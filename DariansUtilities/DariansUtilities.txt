@@ -1,0 +1,27 @@
+﻿## Title: DariansUtilities
+## Description: Darian's Mod Library
+## Author: Darianopolis, barny
+## Version: 1.7.2
+## AddOnVersion: 10702
+## APIVersion: 101040
+## IsLibrary: true
+
+; This Add-on is not created by, affiliated with or sponsored by ZeniMax
+; Media Inc. or its affiliates. The Elder Scrolls® and related logos are
+; registered trademarks or trademarks of ZeniMax Media Inc. in the United
+; States and/or other countries. All rights reserved.
+; You can read the full terms at https://account.elderscrollsonline.com/add-on-terms
+
+DariansUtilities.lua
+utility/Logging.lua
+utility/Constants.lua
+utility/Vectors.lua
+utility/Targeting.lua
+utility/Text.lua
+utility/LinkedList.lua
+utility/Gradient.lua
+controls/Controls.lua
+controls/Frame.lua
+controls/Cooldown.lua
+controls/Bar.lua
+abilities/Ability.lua

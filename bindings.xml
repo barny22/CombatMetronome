@@ -1,0 +1,14 @@
+<Bindings>
+    <Layer name="SI_KEYBINDINGS_LAYER_GENERAL">
+        <Category name="Combat Metronome">
+            <Action name="COMBATMETRONOME_FORCE">
+                <Down> 
+                	CombatMetronome.force = true
+                </Down>
+                <Up> 
+                	CombatMetronome.force = false
+                </Up>
+            </Action>
+        </Category>
+    </Layer>
+</Bindings>

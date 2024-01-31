@@ -1,0 +1,164 @@
+2024-01-26 v1.6.2
+!  Fixed: Barswap and block now only interrupt cast bar when it is a channel/cast longer than gcd
++  Brought order into chaos. Cleaned up the code a little and modulized it
+
+2024-01-24 v1.6.1
+!  Fixed an bug, where the addon would not load, because of missing dependencies (sorry, my mistake guys)
+!  Spell and remaining time label are now properly displayed in over cast bar
++  Barswap now also cancels channeling spells
++  Added fancy mode
+
+2024-01-22 v1.6.0
+project taken by barny
+!  Fixed time adjustment on exhausting fatecarver depending on crux
+!  Fixed: Channeled abilities or abilities with cast time are now interrupted by block or dodgeroll
+!  Fixed a bug after resizing the cast bar in unlock mode
++  Added options to display remaining time, spell name and spell icon on cast bar for spells with cast/channel time
++  Remaining time label and spell icon now move according to bar alignment
++  Added option to stop HA tracking
++  Added option to show the cast bar permanently
+
+2020-11-03 v1.5.2
+!  Deprecated old debug Constants file, 'cause it keeps breaking on new updates
+
+2020-05-22 v1.5.0
+!  No Longer uses DariansAddonLoader
+!  No longer uses LibStub 				// Wambo's change suggestion
+
+2019-08-14 v1.4.1
++  Moved DariansAddonLoader into DariansUtilies
+
+2019-08-14 v1.4.0
++  Added keybind to force display
++  Added flashing animation on helath percentage during execute
++  Added customizable tick tock audio cue
+
+2019-05-20 v1.3.4
+! Fixed bar shadow displayed on initial UI (re)load
++ Added adjustable execute health percentage highlight
++ Added option to attach Target Health to reticle
+
+2019-06-19 v1.3.3
+!  Standardized capitalization on function names
+
+2019-06-18 v1.3.2
+!  Health now shows absolute if target is at 100%, irregardless of combat state
++  Added account wide settings toggle
+
+2019-06-16 v1.3.1
+!  Fixed health marker not hiding properly
+!  Fixed versionining - Last version should have been released as 1.3.0
++  Added max displayed latency option
+
+2019-06-16 v1.3.0
+!  Performance improvements to library
++  Added optional stamina and mob health tracking
+
+2019-06-13 v1.2.2
+!  Fixed lightning staff attack constantly resetting on each tick
+!  Abilities with sub gcd cast/channel times now show gcd
+!  Fixed some healing abilities not triggering their timers
+!  Changed guard detection to use in-game api... (hurrdurr smart programming :S)
+!  Added situational  ability activation requirements to api
+
+2019-06-12 v1.2.1
+!  Fixed heavy attack timer not resetting on early release
+!  Moved ability event dispatch to combat event trigger
+!  Fixed escape cancelled ground targeted spell from triggering on mount up
+
+2019-06-12 v1.2.0
+!  Major algorithm improvement
+!  event queuing added - Can handle attack queueing without timer duration overwrites
+!  Various reliability improvements
+!  Improved algorithm to no longer rely on event forcing
+
+2019-06-09 v1.1.5
+!  Fixed timer stutter when casting ability whilst dismounting
+!  Reworked targeted spell detection, moved to generic event handling system
+!  Improved and moved Guard detection to LibDMUI.Targeting:GetUnitNPCType(unitTag)
+-  Removed Accidental Presidency font - Now using resized base game font
+
+2019-06-09 v1.1.4
+!  Ultimate no longer shows when OOC and targeting dead enemies, critters or (optionally) neutral guards
+
+2019-06-09 v1.1.3
+!  Fixed channeled spells are no longer detected as instant cast
+!  Desynchronised eventAbility and eventStart load to improve reliability
+!  Added timer cancel on KNOCKBACK, PACIFIED, STAGGERED, STUNNED, INTERRUPTED combat events 
+
+2019-06-08 v1.1.2
+!  Deferred timer start until SLOT_UPDATED event (within 100ms grace period) - Removes jitter from bar + hopefully fixes insane timer bug
+!  Few failsafe conditions added to update loop to improve reliability (hopefully)
+
+2019-06-08 v1.1.1
+!  Streamlined update algorithm
+!  Removed debug on targeting cancel event
+!  Removed excess code + comments
+!  Added default -10ms start time adjust to minimize post-adjustment jitter
+!  Added hard limit of max -100ms start time adjust to prevent high latency overlapping from eating spell cooldowns
++  Added optional ultimate tracker above cast bar - Can now hide action bars completely!
+
+2019-06-08 v1.1.0
+!  Fixed bug with initial use of some abilities not registering the correct cooldown
++  GCDs can now be adjusted on for each ability!
++  Complete rework of detection algorithm
++  Moved Frame + Progress bar code to separate library (will be released at a later date)
+
+2019-06-03 v1.0.0
+!  Renamed addon files to CombatMetronome, deprecated GCDTracker name from addon
+!  Changed SavedVariables to CombatMetronomeSavedVars
+!  Will need to remove old files and rename saved variables if upgrading
+
+2019-06-03 v0.8.1
+!  Fixed error on adding new channeled ability adjustment
+
+2019-06-03 v0.8.0
++  Ability caching fixed and implemented into base addon - no longer caches on slot
++  Added individual skill cast time adjusts
++  Added ping zone display option for heavy attacks to maintain visual consistency
++  Added global ability cast adjust
+!  Reworked entire ability tracking system to be more expandable and flexible
+
+2019-05-29 v0.7.2
+!  Early cancel melee swings are now tracked
+!  GCD and cast cooldowns are now independent and can be reset without affecting each other (GCD Reset is now compataible)
+-  Removed baseline caching of abilities - Reslotting and in-combat ability morphs do not cause issues
++  Added debug toggle to ingame menu
+
+2019-05-29 v0.7.1
+!  Removed excessive logging on cast events
+
+2019-05-29 v0.7
++  Added experimental heavy attack + cast timing
+     Known issues:
+	   - Reslotting abilities on bars requires a /reloadui
+	   - Abilities whos cast / use behaviours change dynamically are locked into their first form
+	   - Cast cancels are not currently tracked, and GCD reset tracking does not work whilst heavy attack + cast timing is enabled
+	   - Early finish / cancelled heavy attacks do not reset the swing bar
+?  This is a test build - I don't have enough characters and spells 
+   unlocked to be able to fully test this (I haven't tested channeling
+   at all because I don't have any channeled spells unlocked xD)
+   So anyone willing to try things out and report issues would be greatly appreciated.
+
+2019-05-24 v0.6.1
+!  Minor code / metadata cleanup
+!  Fixed long decimal in options
+
+2019-05-24 v0.6
++  Sliders for position and size
++  Buttons for centering
+!  Fixed file format for Minion
+
+2019-05-23 v0.5
++  Progress bar segmented to prevent overlapping with ping zone - No colour blending with transparency
+!  Fixed error on bar resize
+!  Bar now defaults to the center of the screen
++  Added background colour to Options
+
+2019-05-23 v0.4.1
+!  Improved slot tracking algorithm
+
+2019-05-23 v0.4
++  GCD adjustment +/-
++  Left/right/center alignment for progress bar
++  Toggle display OOC

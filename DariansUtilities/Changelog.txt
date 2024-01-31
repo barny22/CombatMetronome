@@ -1,0 +1,44 @@
+2024-01-25 v1.7.2
++  Added ability icon to the ability cache
+
+2020-05-29 v1.7.1
+!  Removed deprecated constants that were causing error.
+
+2020-05-22 v1.7.0
+!  Removed DariansAddonLoader
+!  Moved logging and onLoad register to DariansUtilities
+
+v1.6.1
++  Moved DariansAddonLoader into DariansUtilies
+
+v1.6.0
+!  Major improvement to progress bar system
+
+v1.5.0
+!  Standardized capitalization on function names
+
+v1.4.0
++  Added preliminary structure to allow for ABILITY_USED, ABILITY_ACTIVATED, ABILITY_CANCELLED event dispatching
+!  Fixed lightning staff attack constantly resetting on each tick
+!  Abilities with sub gcd cast/channel times now show gcd
+!  Fixed some healing abilities not triggering their timers
+!  Added situational ability activation requirements to api
+
+v1.3.1
+!  Moved ability event dispatch to combat event trigger
+!  Fixed escape cancelled ground targeted spell from triggering on mount up
+
+v1.3.0
++  Added CombatEvent class for efficient and concise interaction with Combat Events
++  Added Targeting utilies
++  Added Ability Tracking and data mining with corresponding new bindable callback events
+-  Removed Accidental Presidency font
+
+v1.2.0
++  Added various CombatEvent debug and utility functions
++  Added Frame wrapper
++  Added AccidentalPresidency font using LibMediaProvider
+
+v1.1.0
++  Vector functions (colour phasing)
++  ProgressBar UI wrapper

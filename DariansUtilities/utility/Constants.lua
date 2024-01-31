@@ -1,0 +1,279 @@
+-- local Util = DAL:Ext("DariansUtilities")
+-- Util.Constants = Util.Constants or { }
+local Util = DariansUtilities
+
+-- Util.Constants = { }
+
+-- -- ActionResult
+
+-- Util.Constants.actionResults = {
+--     [ACTION_RESULT_ABILITY_ON_COOLDOWN] = "Abilty on Cooldown",
+--     [ACTION_RESULT_ABSORBED] = "Absorbed",
+--     [ACTION_RESULT_BAD_TARGET] = "Bad target",
+--     [ACTION_RESULT_BATTLE_STANDARDS_DISABLED] = "Battle Standards disabled",
+--     [ACTION_RESULT_BATTLE_STANDARD_ALREADY_EXISTS_FOR_GUILD] = "Battle Standard already exists for guild",
+--     [ACTION_RESULT_BATTLE_STANDARD_LIMIT] = "Battle Standard limit",
+--     [ACTION_RESULT_BATTLE_STANDARD_NO_PERMISSION] = "Battle Standard no permission",
+--     [ACTION_RESULT_BATTLE_STANDARD_TOO_CLOSE_TO_CAPTURABLE] = "Battle Standard too close to capturable",
+--     [ACTION_RESULT_BLADETURN] = "Bladeturn",
+--     [ACTION_RESULT_BLOCKED] = "Blocked",
+--     [ACTION_RESULT_BLOCKED_DAMAGE] = "Blocked damage",
+--     [ACTION_RESULT_BUSY] = "Busy",
+--     [ACTION_RESULT_CANNOT_USE] = "Cannot use",
+--     [ACTION_RESULT_CANT_SEE_TARGET] = "Can't see target",
+--     [ACTION_RESULT_CANT_SWAP_HOTBAR_IS_OVERRIDDEN] = "Can't Swap hotbar is overridden",
+--     [ACTION_RESULT_CANT_SWAP_WHILE_CHANGING_GEAR] = "Can't swap while changing gear",
+--     [ACTION_RESULT_CASTER_DEAD] = "Caster Dead",
+--     [ACTION_RESULT_CRITICAL_DAMAGE] = "Critical damage",
+--     [ACTION_RESULT_CRITICAL_HEAL] = "Critical heal",
+--     [ACTION_RESULT_DAMAGE] = "Damage",
+--     [ACTION_RESULT_DAMAGE_SHIELDED] = "Damage shielded",
+--     [ACTION_RESULT_DEFENDED] = "Defended",
+--     [ACTION_RESULT_DIED] = "Died",
+--     [ACTION_RESULT_DIED_XP] = "Died XP",
+--     [ACTION_RESULT_DISARMED] = "Disarmed",
+--     [ACTION_RESULT_DISORIENTED] = "Disoriented",
+--     [ACTION_RESULT_DODGED] = "Dodged",
+--     [ACTION_RESULT_DOT_TICK] = "Dot tick",
+--     [ACTION_RESULT_DOT_TICK_CRITICAL] = "Dot tick critical",
+--     [ACTION_RESULT_EFFECT_FADED] = "Effect faded",
+--     [ACTION_RESULT_EFFECT_GAINED] = "Effect gained",
+--     [ACTION_RESULT_EFFECT_GAINED_DURATION] = "Effect gained duration",
+--     [ACTION_RESULT_FAILED] = "Failed",
+--     [ACTION_RESULT_FAILED_REQUIREMENTS] = "Failed Requirements",
+--     [ACTION_RESULT_FAILED_SIEGE_CREATION_REQUIREMENTS] = "Failed siege creation requirements",
+--     [ACTION_RESULT_FALLING] = "Falling",
+--     [ACTION_RESULT_FALL_DAMAGE] = "Fall damage",
+--     [ACTION_RESULT_FEARED] = "Feared",
+--     [ACTION_RESULT_FORWARD_CAMP_ALREADY_EXISTS_FOR_GUILD] = "Forward camp already exists for guild",
+--     [ACTION_RESULT_FORWARD_CAMP_NO_PERMISSION] = "Forward camp no permission",
+--     [ACTION_RESULT_FORWARD_CAMP_TABARD_MISMATCH] = "Forward camp tabard mismatch",
+--     [ACTION_RESULT_GRAVEYARD_DISALLOWED_IN_INSTANCE] = "Graveyard disallowed in instance",
+--     [ACTION_RESULT_HEAL] = "Heal",
+--     [ACTION_RESULT_HOT_TICK] = "Hot Tick",
+--     [ACTION_RESULT_HOT_TICK_CRITICAL] = "Hot Tick critical",
+--     [ACTION_RESULT_IMMUNE] = "Immune",
+--     [ACTION_RESULT_INSUFFICIENT_RESOURCE] = "Insufficient resource",
+--     [ACTION_RESULT_INTERCEPTED] = "Intercepted",
+--     [ACTION_RESULT_INTERRUPT] = "Interrupt",
+--     [ACTION_RESULT_INVALID] = "Invalid",
+--     [ACTION_RESULT_INVALID_FIXTURE] = "Invalid fixture",
+--     [ACTION_RESULT_INVALID_JUSTICE_TARGET] = "Invalid justice target",
+--     [ACTION_RESULT_INVALID_TERRAIN] = "Invalid terrain",
+--     [ACTION_RESULT_IN_AIR] = "In air",
+--     [ACTION_RESULT_IN_COMBAT] = "In Combat",
+--     [ACTION_RESULT_IN_ENEMY_KEEP] = "In enemy keep",
+--     [ACTION_RESULT_IN_ENEMY_OUTPOST] = "In enemy outpost",
+--     [ACTION_RESULT_IN_ENEMY_RESOURCE] = "In enemy resource",
+--     [ACTION_RESULT_IN_ENEMY_TOWN] = "In enemy town",
+--     [ACTION_RESULT_IN_HIDEYHOLE] = "In hideyhole",
+--     [ACTION_RESULT_KILLED_BY_SUBZONE] = "Killed by subzone",
+--     [ACTION_RESULT_KILLING_BLOW] = "Killing blow",
+--     [ACTION_RESULT_KNOCKBACK] = "Knockback",
+--     [ACTION_RESULT_LEVITATED] = "Levitated",
+--     [ACTION_RESULT_MERCENARY_LIMIT] = "Mercenary limit",
+--     [ACTION_RESULT_MISS] = "Miss",
+--     [ACTION_RESULT_MISSING_EMPTY_SOUL_GEM] = "Missing empty Soul Gem",
+--     [ACTION_RESULT_MISSING_FILLED_SOUL_GEM] = "Missing filled Soul Gem",
+--     [ACTION_RESULT_MOBILE_GRAVEYARD_LIMIT] = "Mobile Graveyard limit",
+--     [ACTION_RESULT_MOUNTED] = "Mounted",
+--     [ACTION_RESULT_MUST_BE_IN_OWN_KEEP] = "Must be in own keep",
+--     [ACTION_RESULT_NOT_ENOUGH_INVENTORY_SPACE] = "Not enough inventory space",
+--     [ACTION_RESULT_NOT_ENOUGH_INVENTORY_SPACE_SOUL_GEM] = "Not enough inventory soul gem",
+--     [ACTION_RESULT_NOT_ENOUGH_SPACE_FOR_SIEGE] = "Not enough space for siege",
+--     [ACTION_RESULT_NO_LOCATION_FOUND] = "No Location found",
+--     [ACTION_RESULT_NO_RAM_ATTACKABLE_TARGET_WITHIN_RANGE] = "No ram attackable targe within range",
+--     [ACTION_RESULT_NO_WEAPONS_TO_SWAP_TO] = "No weapons to swap to",
+--     [ACTION_RESULT_NPC_TOO_CLOSE] = "NPC too close",
+--     [ACTION_RESULT_OFFBALANCE] = "Offbalance",
+--     [ACTION_RESULT_PACIFIED] = "Pacified",
+--     [ACTION_RESULT_PARRIED] = "Parried",
+--     [ACTION_RESULT_PARTIAL_RESIST] = "Partial Resist",
+--     [ACTION_RESULT_POWER_DRAIN] = "Power drain",
+--     [ACTION_RESULT_POWER_ENERGIZE] = "Power emergize",
+--     [ACTION_RESULT_PRECISE_DAMAGE] = "Precise damage",
+--     [ACTION_RESULT_QUEUED] = "Queued",
+--     [ACTION_RESULT_RAM_ATTACKABLE_TARGETS_ALL_DESTROYED] = "Ram attackable targets all destroyed",
+--     [ACTION_RESULT_RAM_ATTACKABLE_TARGETS_ALL_OCCUPIED] = "Ram attackable targets all occupied",
+--     [ACTION_RESULT_RECALLING] = "Recalling",
+--     [ACTION_RESULT_REFLECTED] = "Reflected",
+--     [ACTION_RESULT_REINCARNATING] = "Reincarnating",
+--     [ACTION_RESULT_RESIST] = "Resist",
+--     [ACTION_RESULT_RESURRECT] = "Resurrect",
+--     [ACTION_RESULT_ROOTED] = "Roted",
+--     [ACTION_RESULT_SIEGE_LIMIT] = "Siege limit",
+--     [ACTION_RESULT_SIEGE_NOT_ALLOWED_IN_ZONE] = "Siege not allowed in zone",
+--     [ACTION_RESULT_SIEGE_TOO_CLOSE] = "Siege too close",
+--     [ACTION_RESULT_SILENCED] = "Silenced",
+--     [ACTION_RESULT_SNARED] = "Snared",
+--     [ACTION_RESULT_SOUL_GEM_RESURRECTION_ACCEPTED] = "Soul Gem resurrection accepted",
+--     [ACTION_RESULT_SPRINTING] = "Sprinting",
+--     [ACTION_RESULT_STAGGERED] = "Staggered",
+--     [ACTION_RESULT_STUNNED] = "Stunned",
+--     [ACTION_RESULT_SWIMMING] = "Swimming",
+--     [ACTION_RESULT_TARGET_DEAD] = "Target dead",
+--     [ACTION_RESULT_TARGET_NOT_IN_VIEW] = "Target not in view",
+--     [ACTION_RESULT_TARGET_NOT_PVP_FLAGGED] = "Target not PvP flagged",
+--     [ACTION_RESULT_TARGET_OUT_OF_RANGE] = "Target out of range",
+--     [ACTION_RESULT_TARGET_TOO_CLOSE] = "Target too close",
+--     [ACTION_RESULT_UNEVEN_TERRAIN] = "Uneven terrain",
+--     [ACTION_RESULT_WEAPONSWAP] = "Weaponswap",
+--     [ACTION_RESULT_WRECKING_DAMAGE] = "Wrecking damage",
+--     [ACTION_RESULT_WRONG_WEAPON] = "Wrong weapon",
+-- }
+
+-- function Util.Constants.getActionResultString(actionResult)
+-- 	return (Util.Constants.actionResults[actionResult] or "N/A").." ("..tostring(actionResult)..")"
+-- end
+
+-- -- ActionSlotType
+
+-- Util.Constants.actionSlotTypes = {
+-- 	[ACTION_SLOT_TYPE_BLOCK] = "Block",
+-- 	[ACTION_SLOT_TYPE_HEAVY_ATTACK] = "Heavy Attack",
+-- 	[ACTION_SLOT_TYPE_LIGHT_ATTACK] = "Light Attack",
+-- 	[ACTION_SLOT_TYPE_NORMAL_ABILITY] = "Normal Ability",
+-- 	[ACTION_SLOT_TYPE_OTHER] = "Other",
+-- 	[ACTION_SLOT_TYPE_ULTIMATE] = "Ultimate",
+-- 	[ACTION_SLOT_TYPE_WEAPON_ATTACK] = "Weapon Attack",
+-- }
+
+-- function Util.Constants.getActionSlotTypeString(actionSlotType)
+-- 	return (Util.Constants.actionSlotTypes[actionSlotType] or "N/A").." ("..tostring(actionSlotType)..")"
+-- end
+
+-- -- CombatUnitType
+
+-- Util.Constants.combatUnitTypes = {
+-- 	[COMBAT_UNIT_TYPE_GROUP] = "Group",
+-- 	[COMBAT_UNIT_TYPE_NONE] = "None",
+-- 	[COMBAT_UNIT_TYPE_OTHER] = "Other",
+-- 	[COMBAT_UNIT_TYPE_PLAYER] = "Player",
+-- 	[COMBAT_UNIT_TYPE_PLAYER_PET] = "Player Pet",
+-- 	[COMBAT_UNIT_TYPE_TARGET_DUMMY] = "Target Dummy",
+-- } 
+
+-- function Util.Constants.getCombatUnitTypeString(combatUnitType)
+-- 	return (Util.Constants.combatUnitTypes[combatUnitType] or "N/A").." ("..tostring(combatUnitType)..")"
+-- end
+
+-- -- PowerType (CombatMechanicType)
+
+-- Util.Constants.powerTypes = {
+-- 	[POWERTYPE_DAEDRIC] = "Daedric",
+-- 	[POWERTYPE_HEALTH] = "Health",
+-- 	[POWERTYPE_HEALTH_BONUS] = "Health Bonus",
+-- 	[POWERTYPE_INVALID] = "Invalid",
+-- 	[POWERTYPE_MAGICKA] = "Magicka",
+-- 	[POWERTYPE_MOUNT_STAMINA] = "Mount Stamina",
+-- 	[POWERTYPE_STAMINA] = "Stamina",
+-- 	[POWERTYPE_ULTIMATE] = "Ultimate",
+-- 	[POWERTYPE_WEREWOLF] = "Werewolf",
+-- }
+
+-- function Util.Constants.getPowerTypeString(powerType)
+-- 	return (Util.Constants.powerTypes[powerType] or "N/A").." ("..tostring(powerType)..")"
+-- end
+
+-- -- DamageType
+
+-- Util.Constants.damageTypes = {
+-- 	[DAMAGE_TYPE_COLD] = "Cold",
+-- 	[DAMAGE_TYPE_DISEASE] = "Disease",
+-- 	[DAMAGE_TYPE_DROWN] = "Drown",
+-- 	[DAMAGE_TYPE_EARTH] = "Earth",
+-- 	[DAMAGE_TYPE_FIRE] = "Fire",
+-- 	[DAMAGE_TYPE_GENERIC] = "Generic",
+-- 	[DAMAGE_TYPE_MAGIC] = "Magic",
+-- 	[DAMAGE_TYPE_OBLIVION] = "Oblivion",
+-- 	[DAMAGE_TYPE_PHYSICAL] = "Physical",
+-- 	[DAMAGE_TYPE_POISON] = "Poison",
+-- 	[DAMAGE_TYPE_SHOCK] = "Shock",
+-- }
+
+-- function Util.Constants.getDamageTypeString(damageType)
+-- 	return (Util.Constants.damageTypes[damageType] or "N/A").." ("..tostring(damageType)..")"
+-- end
+
+-- -- UnitReactionType
+
+-- Util.Constants.unitReactionTypes = {
+--     [UNIT_REACTION_DEFAULT] = "Default",
+--     [UNIT_REACTION_FRIENDLY] = "Friendly",
+--     [UNIT_REACTION_HOSTILE] = "Hostile",
+--     [UNIT_REACTION_NEUTRAL] = "Neutral",
+--     [UNIT_REACTION_NPC_ALLY] = "NPC Ally",
+--     [UNIT_REACTION_PLAYER_ALLY] = "Player Ally",
+-- }
+
+-- function Util.Constants.getUnitReactionTypeString(unitReactionType)
+--     return (Util.Constants.unitReactionTypes[unitReactionType] or "N/A").." ("..tostring(unitReactionType)..")"
+-- end
+
+-- -- BuffType
+
+-- Util.Constants.buffTypes = {
+--     [BUFF_TYPE_EMPOWER] = "Empower",
+--     [BUFF_TYPE_MAJOR_BERSERK] = "Major Berserk",
+--     [BUFF_TYPE_MAJOR_BRUTALITY] = "Major Brutality",
+--     [BUFF_TYPE_MAJOR_COURAGE] = "Major Courage",
+--     [BUFF_TYPE_MAJOR_DEFILE] = "Major Defile",
+--     [BUFF_TYPE_MAJOR_ENDURANCE] = "Major Endurance",
+--     -- [BUFF_TYPE_MAJOR_EROSION] = "Major Erosion",
+--     [BUFF_TYPE_MAJOR_EXPEDITION] = "Major Expedition",
+--     [BUFF_TYPE_MAJOR_FORCE] = "Major Force",
+--     [BUFF_TYPE_MAJOR_FRACTURE] = "Major Fracture",
+--     [BUFF_TYPE_MAJOR_HEROISM] = "Major Heroism",
+--     [BUFF_TYPE_MAJOR_INTELLECT] = "Major Intellect",
+--     [BUFF_TYPE_MAJOR_MAIM] = "Major Maim",
+--     [BUFF_TYPE_MAJOR_MANGLE] = "Major Mangle" ,
+--     [BUFF_TYPE_MAJOR_MENDING] = "Major Mending",
+--     [BUFF_TYPE_MAJOR_PROPHECY] = "Major Prophecy",
+--     [BUFF_TYPE_MAJOR_PROTECTION] = "Major Protection",
+--     [BUFF_TYPE_MAJOR_SAVAGERY] = "Major Savagery",
+--     [BUFF_TYPE_MAJOR_SORCERY] = "Major Sorcery",
+--     -- [BUFF_TYPE_MAJOR_SPELL_SHATTER] = "Major Spell Shatter",
+--     [BUFF_TYPE_MAJOR_VITALITY] = "Major Vitality",
+--     -- [BUFF_TYPE_MAJOR_WARD] = "Major Ward",
+
+--     [BUFF_TYPE_MINOR_BERSERK] = "Minor Berserk",
+--     [BUFF_TYPE_MAJOR_BRUTALITY] = "Minor Brutality",
+--     [BUFF_TYPE_MINOR_COURAGE] = "Minor Courage",
+--     [BUFF_TYPE_MINOR_DEFILE] = "Minor Defile",
+--     [BUFF_TYPE_MINOR_ENDURANCE] = "Minor Endurance",
+--     -- [BUFF_TYPE_MINOR_EROSION] = "Minor Erosion",
+--     [BUFF_TYPE_MINOR_EXPEDITION] = "Minor Expedition",
+--     [BUFF_TYPE_MINOR_FORCE] = "Minor Force",
+--     [BUFF_TYPE_MINOR_FRACTURE] = "Minor Fracture",
+--     [BUFF_TYPE_MINOR_HEROISM] = "Minor Heroism",
+--     [BUFF_TYPE_MINOR_INTELLECT] = "Minor Intellect",
+--     [BUFF_TYPE_MINOR_MAIM] = "Minor Maim",
+--     [BUFF_TYPE_MINOR_MANGLE] = "Minor Mangle" ,
+--     [BUFF_TYPE_MINOR_MENDING] = "Minor Mending",
+--     [BUFF_TYPE_MINOR_PROPHECY] = "Minor Prophecy",
+--     [BUFF_TYPE_MINOR_PROTECTION] = "Minor Protection",
+--     [BUFF_TYPE_MINOR_SAVAGERY] = "Minor Savagery",
+--     [BUFF_TYPE_MINOR_SORCERY] = "Minor Sorcery",
+--     -- [BUFF_TYPE_MINOR_SPELL_SHATTER] = "Minor Spell Shatter",
+--     [BUFF_TYPE_MINOR_VITALITY] = "Minor Vitality",
+--     -- [BUFF_TYPE_MINOR_WARD] = "Minor Ward",
+-- }
+
+-- function Util.Constants.getBuffTypeString(buffType)
+--     return (Util.Constants.buffTypes[buffType] or "N/A").." ("..tostring(buffType)..")"
+-- end
+
+-- -- Hotbar Category
+
+-- Util.Constants.hotbarCategories = {
+--     [HOTBAR_CATEGORY_BACKUP] = "Backup",
+--     [HOTBAR_CATEGORY_DAEDRIC_ARTIFACT] = "Daedric Artifact",
+--     [HOTBAR_CATEGORY_OVERLOAD] = "Overload",
+--     [HOTBAR_CATEGORY_PRIMARY] = "Primary",
+--     [HOTBAR_CATEGORY_TEMPORARY] = "Temporary",
+--     [HOTBAR_CATEGORY_WEREWOLF] = "Werewolf",
+-- }
+
+-- function Util.Constants.getHotbarCategoryString(hotbarCategory)
+--     return (Util.Constants.hotbarCategories[hotbarCategory] or "N/A").." )"..tostring(hotbarCategory)..")"
+-- end
