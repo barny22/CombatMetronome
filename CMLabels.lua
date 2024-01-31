@@ -1,3 +1,5 @@
+local Util = DariansUtilities
+
 function CombatMetronome:UpdateLabels()
     local time = GetFrameTimeMilliseconds()
 

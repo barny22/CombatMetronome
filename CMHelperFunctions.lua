@@ -164,7 +164,7 @@ function CombatMetronome:HandleAbilityUsed(event)
 	-- d(event.ability.id)						--gives 183122 for Fatecarver
 	if	event.ability.id == carverId1 or event.ability.id == carverId2 then
 		local cruxes = CombatMetronome:GetCurrentNumCruxOnPlayer()
-		event.adjust = event.adjust + (300 * cruxes)
+		event.adjust = event.adjust + (338 * cruxes)
 		-- d(string.format("Fatecarver duration succesfully adjusted with %d crux(es)", cruxes))
 	end
 	if self.config.stopHATracking and event.ability.type == 6 then
