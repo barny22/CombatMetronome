@@ -1,4 +1,4 @@
-2024-01-26 v1.6.2
+2024-02-01 v1.6.2
 !  Fixed: Barswap and block behavior on progress bar
 !  Tweaked exhausting fatecarvers extended duration to better match visual effect
 +  Brought order into chaos. Cleaned up the code a little and modularized it
