@@ -10,8 +10,8 @@ CombatMetronome = {
     version = "1.6.3"
 }
 
-local LAM = LibAddonMenu2
-local Util = DariansUtilities
+LAM = LibAddonMenu2
+Util = DariansUtilities
 
 Util.onLoad(CombatMetronome, function(self) self:Init() end)
 
