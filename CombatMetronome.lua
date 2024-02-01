@@ -238,6 +238,7 @@ function CombatMetronome:Init()
 
     Util.Ability.Tracker.CombatMetronome = self
     Util.Ability.Tracker:Start()
+    CombatMetronome = self
 end
 
 -- LOAD HOOK
