@@ -237,7 +237,6 @@ function CombatMetronome:Init()
     )
 
     Util.Ability.Tracker.CombatMetronome = self
-	gcdTriggerTimer = 0
     Util.Ability.Tracker:Start()
 end
 
