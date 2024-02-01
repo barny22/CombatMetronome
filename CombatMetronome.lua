@@ -45,10 +45,11 @@ function CombatMetronome:Update()
 	end
 	if slotRemaining/slotDuration > 0.97 then
 		gcdTrigger = true
-		gcdTriggerTimer = GetFrameTimeMilliseconds()
+		-- gcdTriggerTimer = GetFrameTimeMilliseconds()
 	end
-	local gcdProgress = (1 - (time - gcdTriggerTimer - 30) / (latency+1000))
-	if not (gcdProgress > 0) then gcdProgress = 0 end
+	local gcdProgress = slotRemaining/slotDuration
+	-- local gcdProgress = (1 - (time - gcdTriggerTimer - 30) / (latency+1000))
+	-- if not (gcdProgress > 0) then gcdProgress = 0 end
 	-- GCD Tracking ends here
 	
 	--if gcdTrigger then d("gcd was triggered") end
@@ -63,7 +64,7 @@ function CombatMetronome:Update()
     end
 
     if self.config.trackGCD and not self.currentEvent then
-        self.bar.segments[1].progress = latency / (latency+1000)
+        self.bar.segments[1].progress = 0
 		self.bar.segments[2].progress = gcdProgress
 		
 		if gcdProgress == 0 then
@@ -113,27 +114,27 @@ function CombatMetronome:Update()
                 PlaySound(self.config.soundTickEffect)
             end
 			
-			if ability.instant or ability.delay < 1000 then
-				self.bar.segments[1].progress = latency / (latency+1000)
-				self.bar.segments[2].progress = gcdProgress
-				if gcdProgress == 0 then
-					self:OnCDStop()
-				else
-					self:HideBar(false)
-					self.bar.backgroundTexture:SetWidth(gcdProgress*self.config.width)
-				end
-				self.bar:Update()
+			-- if ability.instant or ability.delay < 1000 then
+				-- self.bar.segments[1].progress = latency / (latency+1000)
+				-- self.bar.segments[2].progress = gcdProgress
+				-- if gcdProgress == 0 then
+					-- self:OnCDStop()
+				-- else
+					-- self:HideBar(false)
+					-- self.bar.backgroundTexture:SetWidth(gcdProgress*self.config.width)
+				-- end
+				-- self.bar:Update()
+			-- else
+			self.bar.segments[2].progress = 1 - (cdTimer/duration)
+			self.bar.segments[1].progress = latency / duration
+			if cdTimer >= (duration+latency) then
+				self:OnCDStop()
 			else
-				self.bar.segments[2].progress = 1 - (cdTimer/duration)
-				self.bar.segments[1].progress = latency / duration
-				if cdTimer >= (duration+latency) then
-					self:OnCDStop()
-				else
-					self:HideBar(false)
-					self.bar.backgroundTexture:SetWidth((1 - (cdTimer/duration))*self.config.width)
-				end
-				self.bar:Update()
+				self:HideBar(false)
+				self.bar.backgroundTexture:SetWidth((1 - (cdTimer/duration))*self.config.width)
 			end
+			self.bar:Update()
+			-- end
 		end
 		--Spell Label on Castbar by barny
 		if self.config.showSpell and ability.delay > 0 and timeRemaining >= 0 and not ability.heavy then
@@ -164,7 +165,7 @@ function CombatMetronome:Update()
 			self.bar:Update()
 		elseif playerDidDodge and trackGCD then
 			self:HideLabels(true)
-			self.bar.segments[1].progress = latency / (latency+1000)
+			self.bar.segments[1].progress = 0
 			self.bar.segments[2].progress = gcdProgress
 			if gcdProgress == 0 then
 				self:OnCDStop()
