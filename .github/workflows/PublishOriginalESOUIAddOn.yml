@@ -18,7 +18,7 @@ jobs:
           path: 'CombatMetronome'
 
       - name: Zip release
-        run: 7z a CombatMetronome_${{github.event.inputs.version}}.zip * -xr!*.git* -x!ReadmeUpdated.md
+        run: 7z a CombatMetronome_${{github.event.inputs.version}}.zip * -xr!*.git* -xr!*Updated.md*
 
       - name: Push to EsoUI
         id: push
