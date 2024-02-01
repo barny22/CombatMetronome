@@ -1,4 +1,4 @@
-name: PushOriginalToEsoUI
+name: OriginalToZIP
 
 on:
   workflow_dispatch:
