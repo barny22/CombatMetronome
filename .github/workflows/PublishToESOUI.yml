@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: '${{github.event.inputs.version}}'     
+        description: 'Version'     
         required: true
         default: 'v1.6.1'
 
@@ -18,7 +18,7 @@ jobs:
           path: 'CombatMetronome'
 
       - name: Zip release
-        run: 7z a CombatMetronome_${{github.event.inputs.version}}.zip * -xr!*.git*
+        run: 7z a CombatMetronome_${{github.event.inputs.version}}.zip * -xr!*.git* -x!ReadmeOriginal.md
 
       - name: Push to EsoUI
         id: push
@@ -28,6 +28,6 @@ jobs:
           EsoUIID: 3790
           path: './CombatMetronome/'
           changelog: 'Changelog.txt'
-          readme: 'Readme.md'
+          readme: 'ReadmeUpdated.md'
           version: ${{github.event.inputs.version}}
           artifact: 'CombatMetronome_${{github.event.inputs.version}}.zip'
