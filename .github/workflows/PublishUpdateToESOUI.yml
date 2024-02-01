@@ -1,4 +1,4 @@
-name: PushToEsoUI
+name: PushUpdateToEsoUI
 
 on:
   workflow_dispatch:
