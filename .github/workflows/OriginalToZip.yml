@@ -1,0 +1,28 @@
+name: PushOriginalToEsoUI
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version'     
+        required: true
+        default: 'v1.6.1'
+
+jobs:
+  hello_world_job:
+    runs-on: ubuntu-latest
+    name: Pushing
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          path: 'CombatMetronome'
+
+      - name: Zip release
+        run: 7z a CombatMetronome_${{github.event.inputs.version}}.zip * -xr!*.git* -x!ReadmeUpdated.md
+
+      - name: Attach zip to release
+        uses: Shopify/upload-to-release@v1.0.1
+        with:
+            name: CombatMetronome_${{github.event.inputs.version}}.zip
+            path: CombatMetronome_${{github.event.inputs.version}}.zip
+            repo-token: ${{ secrets.GITHUB_TOKEN }}
