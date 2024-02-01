@@ -1,7 +1,7 @@
 2024-01-26 v1.6.2
-!  Fixed: Barswap and block now only interrupt cast bar when it is a channel/cast longer than gcd
+!  Fixed: Barswap and block behavior on progress bar
 !  Tweaked exhausting fatecarvers extended duration to better match visual effect
-+  Brought order into chaos. Cleaned up the code a little and modulized it
++  Brought order into chaos. Cleaned up the code a little and modularized it
 
 2024-01-24 v1.6.1
 !  Fixed an bug, where the addon would not load, because of missing dependencies (sorry, my mistake guys)
