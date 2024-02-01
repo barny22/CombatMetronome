@@ -1,5 +1,5 @@
 local Util = DariansUtilities
-self = CombatMetronome
+local self = CombatMetronome
 
 ZO_CreateStringId("SI_BINDING_NAME_COMBATMETRONOME_FORCE", "Force display")
 
