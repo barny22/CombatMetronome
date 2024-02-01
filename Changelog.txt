@@ -1,3 +1,6 @@
+2024-02-01 v1.6.2b
+!  Hotfix for AddOn not being able to load
+
 2024-02-01 v1.6.2
 !  Fixed: Barswap and block behavior on progress bar
 !  Tweaked exhausting fatecarvers extended duration to better match visual effect
