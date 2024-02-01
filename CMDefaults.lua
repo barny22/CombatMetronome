@@ -1,4 +1,4 @@
-local DEFAULT_SAVED_VARS = {
+CM_DEFAULT_SAVED_VARS = {
     ["xOffset"] = (GuiRoot:GetWidth() - 303) / 2,
     ["yOffset"] = (GuiRoot:GetHeight() - 30) / 2,
     ["width"] = 303,

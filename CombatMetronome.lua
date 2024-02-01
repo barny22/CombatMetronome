@@ -6,8 +6,8 @@
 CombatMetronome = {
     name = "CombatMetronome",
     major = 6,
-    minor = 2,
-    version = "1.6.2"
+    minor = 2b,
+    version = "1.6.2b"
 }
 
 local LAM = LibAddonMenu2
@@ -183,9 +183,9 @@ function CombatMetronome:Update()
 end
 
 function CombatMetronome:Init()
-    self.config = ZO_SavedVars:NewCharacterIdSettings("CombatMetronomeSavedVars", 1, nil, DEFAULT_SAVED_VARS)
+    self.config = ZO_SavedVars:NewCharacterIdSettings("CombatMetronomeSavedVars", 1, nil, CM_DEFAULT_SAVED_VARS)
     if self.config.global then
-        self.config = ZO_SavedVars:NewAccountWide("CombatMetronomeSavedVars", 1, nil, DEFAULT_SAVED_VARS)
+        self.config = ZO_SavedVars:NewAccountWide("CombatMetronomeSavedVars", 1, nil, CM_DEFAULT_SAVED_VARS)
         self.config.global = true
     end
 
