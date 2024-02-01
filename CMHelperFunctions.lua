@@ -1,5 +1,3 @@
-ZO_CreateStringId("SI_BINDING_NAME_COMBATMETRONOME_FORCE", "Force display")
-
 -- IDs for easier access
 local cruxId = 184220
 local carverId1 = 183122
