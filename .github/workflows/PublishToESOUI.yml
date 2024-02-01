@@ -28,5 +28,6 @@ jobs:
           EsoUIID: 3790
           path: './CombatMetronome/'
           changelog: 'Changelog.txt'
+          readme: 'Readme.md'
           version: ${{github.event.inputs.version}}
           artifact: 'CombatMetronome_${{github.event.inputs.version}}.zip'
