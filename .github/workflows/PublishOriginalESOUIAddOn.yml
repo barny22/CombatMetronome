@@ -24,7 +24,7 @@ jobs:
         id: push
         uses: M0RGaming/Push-To-EsoUI@main
         with:
-          EsoUIToken: ${{secrets.ESOUI_DARIAN_API_TOKEN}}
+          EsoUIToken: ${{secrets.ESOUI_API_TOKEN}}
           EsoUIID: 2373
           path: './CombatMetronome/'
           changelog: 'Changelog.txt'
