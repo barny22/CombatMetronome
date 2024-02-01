@@ -1,0 +1,33 @@
+name: PushToEsoUI
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: '${{github.event.inputs.version}}'     
+        required: true
+        default: 'v1.6.1'
+
+jobs:
+  hello_world_job:
+    runs-on: ubuntu-latest
+    name: Pushing
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          path: 'CombatMetronome'
+
+      - name: Zip release
+        run: 7z a CombatMetronome_${{github.event.inputs.version}}.zip * -xr!*.git*
+
+      - name: Push to EsoUI
+        id: push
+        uses: M0RGaming/Push-To-EsoUI@main
+        with:
+          EsoUIToken: ${{secrets.ESOUI_API_TOKEN}}
+          EsoUIID: 3790
+          path: './CombatMetronome/'
+          changelog: 'Changelog.txt'
+          readme: 'Readme.md'
+          version: ${{github.event.inputs.version}}
+          artifact: 'CombatMetronome_${{github.event.inputs.version}}.zip'
