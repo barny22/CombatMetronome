@@ -1,6 +1,3 @@
-local Util = DariansUtilities
-local LAM = LibAddonMenu2
-
 local ABILITY_ADJUST_PLACEHOLDER = "Add ability adjust"
 local MAX_ADJUST = 200
 
@@ -8,8 +5,6 @@ local MIN_WIDTH = 50
 local MAX_WIDTH = 500
 local MIN_HEIGHT = 10
 local MAX_HEIGHT = 100
-
-ZO_CreateStringId("SI_BINDING_NAME_COMBATMETRONOME_FORCE", "Force display")
 
 local sounds = {
     "Justice_PickpocketFailed",
