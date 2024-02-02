@@ -1,6 +1,5 @@
 local LAM = LibAddonMenu2
 local Util = DariansUtilities
-local CombatMetronome = self
 
 local ABILITY_ADJUST_PLACEHOLDER = "Add ability adjust"
 local MAX_ADJUST = 200

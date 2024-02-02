@@ -1,6 +1,5 @@
 local LAM = LibAddonMenu2
 local Util = DariansUtilities
-local CombatMetronome = self
 
 local MIN_WIDTH = 50
 local MAX_WIDTH = 500

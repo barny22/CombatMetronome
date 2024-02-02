@@ -197,8 +197,8 @@ function CombatMetronome:Init()
     self.gcd = 1000
 
     self.unlocked = false
-    self:BuildUI()
-    self:BuildMenu()
+    CombatMetronome:BuildUI()
+    CombatMetronome:BuildMenu()
 
     self.lastInterval = 0
 
