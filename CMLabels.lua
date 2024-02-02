@@ -1,3 +1,7 @@
+local LAM = LibAddonMenu2
+local Util = DariansUtilities
+local CombatMetronome = self
+
 function CombatMetronome:UpdateLabels()
     local time = GetFrameTimeMilliseconds()
 

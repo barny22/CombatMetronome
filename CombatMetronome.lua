@@ -10,8 +10,8 @@ CombatMetronome = {
     version = "1.6.3"
 }
 
-LAM = LibAddonMenu2
-Util = DariansUtilities
+local LAM = LibAddonMenu2
+local Util = DariansUtilities
 
 Util.onLoad(CombatMetronome, function(self) self:Init() end)
 
@@ -238,7 +238,6 @@ function CombatMetronome:Init()
 
     Util.Ability.Tracker.CombatMetronome = self
     Util.Ability.Tracker:Start()
-    CombatMetronome = self
 end
 
 -- LOAD HOOK

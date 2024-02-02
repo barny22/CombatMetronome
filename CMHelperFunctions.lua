@@ -1,3 +1,7 @@
+local LAM = LibAddonMenu2
+local Util = DariansUtilities
+local CombatMetronome = self
+
 -- IDs for easier access
 local cruxId = 184220
 local carverId1 = 183122
