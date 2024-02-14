@@ -284,11 +284,108 @@ function CombatMetronome:BuildMenu()
 					setFunc = function(value) self.config.showUltimate = value end,
 				},
 				{
+					type = "slider",
+					name = "Ultimate Label Size",
+					tooltip = "Set the size of the Ultimate label",
+					disabled = function()
+						return (not self.config.showUltimate)
+					end,
+					min = 0,
+					max = 50,
+					step = 1,
+					default = self.config.ultSize,
+					getFunc = function() return self.config.ultSize end,
+					setFunc = function(value)
+						self.config.ultSize = value
+						self:BuildUI()
+					end,
+				},
+				{
+					type = "colorpicker",
+					name = "Ultimate Label Color",
+					tooltip = "Color of your ultimate label",
+					disabled = function()
+						return (not self.config.showUltimate)
+					end,
+					getFunc = function() return unpack(self.config.ultColor) end,
+					setFunc = function(r, g, b, a)
+						self.config.ultColor = {r, g, b, a}
+						self:BuildUI()
+					end,
+				},
+				{
 					type = "checkbox",
 					name = "Show Stamina",
 					tooltip = "Toggle show stamina above cast bar",
 					getFunc = function() return self.config.showStamina end,
 					setFunc = function(value) self.config.showStamina = value end,
+				},
+				{
+					type = "slider",
+					name = "Stamina Label Size",
+					tooltip = "Set the size of the Stamina label",
+					disabled = function()
+						return (not self.config.showStamina)
+					end,
+					min = 0,
+					max = 25,
+					step = 1,
+					default = self.config.stamSize,
+					getFunc = function() return self.config.stamSize end,
+					setFunc = function(value)
+						self.config.stamSize = value
+						self:BuildUI()
+					end,
+				},
+				{
+					type = "colorpicker",
+					name = "Stamina Label Color",
+					tooltip = "Color of your stamina label",
+					disabled = function()
+						return (not self.config.showStamina)
+					end,
+					getFunc = function() return unpack(self.config.stamColor) end,
+					setFunc = function(r, g, b, a)
+						self.config.stamColor = {r, g, b, a}
+						self:BuildUI()
+					end,
+				},
+				{
+					type = "checkbox",
+					name = "Show Magicka",
+					tooltip = "Toggle show magicka above cast bar",
+					getFunc = function() return self.config.showMagicka end,
+					setFunc = function(value) self.config.showMagicka = value end,
+				},
+				{
+					type = "slider",
+					name = "Magicka Label Size",
+					tooltip = "Set the size of the Magicka label",
+					disabled = function()
+						return (not self.config.showMagicka)
+					end,
+					min = 0,
+					max = 25,
+					step = 1,
+					default = self.config.magSize,
+					getFunc = function() return self.config.magSize end,
+					setFunc = function(value)
+						self.config.magSize = value
+						self:BuildUI()
+					end,
+				},
+				{
+					type = "colorpicker",
+					name = "Magicka Label Color",
+					tooltip = "Color of your magicka label",
+					disabled = function()
+						return (not self.config.showMagicka)
+					end,
+					getFunc = function() return unpack(self.config.magColor) end,
+					setFunc = function(r, g, b, a)
+						self.config.magColor = {r, g, b, a}
+						self:BuildUI()
+					end,
 				},
 				{
 					type = "checkbox",
@@ -297,6 +394,55 @@ function CombatMetronome:BuildMenu()
 					getFunc = function() return self.config.showHealth end,
 					setFunc = function(value) self.config.showHealth = value end,
 				},
+				{
+					type = "slider",
+					name = "Health Label Size",
+					tooltip = "Set the size of the Health label",
+					disabled = function()
+						return (not self.config.showHealth)
+					end,
+					min = 0,
+					max = 50,
+					step = 1,
+					default = self.config.healthSize,
+					getFunc = function() return self.config.healthSize end,
+					setFunc = function(value)
+						self.config.healthSize = value
+						self:BuildUI()
+					end,
+				},
+				{
+					type = "colorpicker",
+					name = "Health Label Color",
+					tooltip = "Color of target health label",
+					disabled = function()
+						return (not self.config.showHealth)
+					end,
+					getFunc = function() return unpack(self.config.healthColor) end,
+					setFunc = function(r, g, b, a)
+						self.config.healthColor = {r, g, b, a}
+						self:BuildUI()
+					end,
+				},
+				-- {
+					-- type = "checkbox",
+					-- name = "Make resources colorful",
+					-- tooltip = "Magicka will be blue, stamina green and target health will be red",
+					-- getFunc = function() return self.config.colorfulResources, self.config.magColor, self.config.stamColor, self.config.healthColor end,
+					-- setFunc = function(value) 
+						-- self.config.colorfulResources = value
+						-- if self.config.colorfulResources then
+							-- self.config.magColor = {0, 0.5, 1, 1}
+							-- self.config.stamColor = {0, 0.8, 0.3, 1}
+							-- self.config.healthColor = {0.8, 0, 0, 1}
+						-- else
+							-- self.config.magColor = {1, 1, 1, 1}
+							-- self.config.stamColor = {1, 1, 1, 1}
+							-- self.config.healthColor = {1, 1, 1, 1}
+						-- end
+						-- self:BuildUI()
+					-- end,
+				-- },
 				{
 					type = "checkbox",
 					name = "Attach Target Health to reticle",
@@ -365,7 +511,7 @@ function CombatMetronome:BuildMenu()
 					getFunc = function() return self.config.globalHeavyAdjust end,
 					setFunc = function(value) 
 						self.config.globalHeavyAdjust = value 
-					end
+					end,
 				},
 				{
 					type = "slider",
@@ -377,7 +523,7 @@ function CombatMetronome:BuildMenu()
 					getFunc = function() return self.config.globalAbilityAdjust end,
 					setFunc = function(value)
 						self.config.globalAbilityAdjust = value
-					end
+					end,
 				},
 				--[[
 				{
@@ -397,7 +543,7 @@ function CombatMetronome:BuildMenu()
 					getFunc = function() return self.config.trackGCD end,
 					setFunc = function(value)
 						self.config.trackGCD = value
-					end
+					end,
 				},
 				{
 					type = "checkbox",
@@ -406,7 +552,7 @@ function CombatMetronome:BuildMenu()
 					getFunc = function() return self.config.dontShowPing end,
 					setFunc = function(value)
 						self.config.dontShowPing = value
-					end
+					end,
 				},
 				{
 					type = "checkbox",
@@ -415,7 +561,7 @@ function CombatMetronome:BuildMenu()
 					getFunc = function() return self.config.stopHATracking end,
 					setFunc = function(value)
 						self.config.stopHATracking = value
-					end
+					end,
 				},
 				--[[
 				{
@@ -445,7 +591,7 @@ function CombatMetronome:BuildMenu()
 					getFunc = function() return self.config.displayPingOnHeavy end,
 					setFunc = function(value)
 						self.config.displayPingOnHeavy = value
-					end
+					end,
 				},
 				{
 					type = "checkbox",
@@ -482,6 +628,9 @@ function CombatMetronome:BuildMenu()
 				{
 					type = "dropdown",
 					name = "Sound 'tick' effect",
+					disabled = function()
+						return (not self.config.soundTickEnabled)
+					end,
 					choices = sounds,
 					getFunc = function() return self.config.soundTickEffect end,
 					setFunc = function(value)
@@ -492,6 +641,9 @@ function CombatMetronome:BuildMenu()
 				{
 					type = "slider",
 					name = "Sound 'tick' offset",
+					disabled = function()
+						return (not self.config.soundTickEnabled)
+					end,
 					min = 0,
 					max = 1000,
 					step =  1,
@@ -513,6 +665,9 @@ function CombatMetronome:BuildMenu()
 				{
 					type = "dropdown",
 					name = "Sound 'tock' effect",
+					disabled = function()
+						return (not self.config.soundTockEnabled)
+					end,
 					choices = sounds,
 					getFunc = function() return self.config.soundTockEffect end,
 					setFunc = function(value)
@@ -523,6 +678,9 @@ function CombatMetronome:BuildMenu()
 				{
 					type = "slider",
 					name = "Sound 'tock' offset",
+					disabled = function()
+						return (not self.config.soundTockEnabled)
+					end,
 					min = 0,
 					max = 1000,
 					step = 1,

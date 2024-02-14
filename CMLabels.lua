@@ -1,9 +1,11 @@
 local LAM = LibAddonMenu2
 local Util = DariansUtilities
+-- local healthColor = {}
 
 function CombatMetronome:UpdateLabels()
     local time = GetFrameTimeMilliseconds()
-
+	-- healthColor = self.config.healthColor
+	
     local showResources = Util.Targeting.isUnitValidCombatTarget("reticleover", self.config.showResourcesForGuard)
                           or IsUnitInCombat("player")
                           or self.force
@@ -23,25 +25,33 @@ function CombatMetronome:UpdateLabels()
     else
         self.stamLabel:SetHidden(true)
     end
+	
+	if showResources and self.config.showMagicka then
+        local mag, _, maxMag = GetUnitPower("player", POWERTYPE_MAGICKA)
+        self.magLabel:SetText(mag == maxMag and "" or string.format("%i%%", 100 * mag / maxMag))
+        self.magLabel:SetHidden(false)
+    else
+        self.magLabel:SetHidden(true)
+    end
 
     local hp, _, maxHp = GetUnitPower("reticleover", POWERTYPE_HEALTH)
     if showResources and self.config.showHealth and hp > 0 then
         local showAbsolute = not self.inCombat or hp == maxHp
 
         if 100 * (hp / maxHp) < self.config.hpHighlightThreshold then
-            self.hpLabel:SetColor(1, 0, 0, 1)
+            self.hpLabel:SetColor(unpack(self.config.healthColor))
             -- self.hpLabel:SetAnchor(CENTER, GuiRoot, CENTER, 0, 50)
-            self.hpLabel:SetFont(Util.Text.getFontString(nil, 50, "outline"))
+            self.hpLabel:SetFont(Util.Text.getFontString(nil, 40, "outline"))
 
             local PERIOD = 1000
 
             local mix = (1 + math.sin(time * math.pi * 2 / PERIOD)) / 2
-            local color = Util.Vectors.mix({ 1, 1, 1, 1 }, { 1, 0, 0, 1 }, mix)
+            local color = Util.Vectors.mix(self.config.healthColor, { 1, 1, 1, 1 }, mix)
 
             self.hpLabel:SetColor(unpack(color))
 
         else
-            self.hpLabel:SetColor(1, 1, 1, 1)
+            self.hpLabel:SetColor(unpack(self.config.healthColor))
             -- self.hpLabel:SetAnchor(BOTTOMRIGHT, self.frame.body, TOPRIGHT, 0, 0)
             self.hpLabel:SetFont(Util.Text.getFontString(nil, 30, "outline"))
         end

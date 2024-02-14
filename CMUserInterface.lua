@@ -6,6 +6,10 @@ local MAX_WIDTH = 500
 local MIN_HEIGHT = 10
 local MAX_HEIGHT = 100
 
+-- local stamColor = {} or self.config.stamColor
+-- local magColor = {} or self.config.magColor
+-- local healthColor = {} or self.config.healthColor
+
 function CombatMetronome:BuildUI()
 
     -- Create Bar Frame
@@ -152,7 +156,7 @@ function CombatMetronome:BuildUI()
     self.ultLabel:SetAnchor(BOTTOM, self.labelFrame, BOTTOM, 0, 0)
     self.ultLabel:SetColor(1, 1, 1, 1)
 
-    self.ultLabel:SetFont(Util.Text.getFontString(nil, 50, "outline"))
+    self.ultLabel:SetFont(Util.Text.getFontString(nil, self.config.ultSize, "outline"))
     self.ultLabel:SetHidden(false)
     self.ultLabel:SetText("")
 
@@ -161,10 +165,20 @@ function CombatMetronome:BuildUI()
     self.stamLabel = self.stamLabel or WINDOW_MANAGER:CreateControl(self.name.."StamLabel", self.labelFrame, CT_LABEL)
     self.stamLabel:ClearAnchors()
     self.stamLabel:SetAnchor(BOTTOMLEFT, self.labelFrame, BOTTOMLEFT, 0, 0)
-    self.stamLabel:SetColor(1, 1, 1, 1)
-    self.stamLabel:SetFont(Util.Text.getFontString(nil, 30, "outline"))
+    self.stamLabel:SetColor(unpack(self.config.stamColor))
+    self.stamLabel:SetFont(Util.Text.getFontString(nil, self.config.stamSize, "outline"))
     self.stamLabel:SetHidden(false)
     self.stamLabel:SetText("")
+
+	-- Create Magicka Label
+
+    self.magLabel = self.magLabel or WINDOW_MANAGER:CreateControl(self.name.."MagLabel", self.labelFrame, CT_LABEL)
+    self.magLabel:ClearAnchors()
+    self.magLabel:SetAnchor(TOPLEFT, self.labelFrame, TOPLEFT, 0, 0)
+    self.magLabel:SetColor(unpack(self.config.magColor))
+    self.magLabel:SetFont(Util.Text.getFontString(nil, self.config.magSize, "outline"))
+    self.magLabel:SetHidden(false)
+    self.magLabel:SetText("")
 
     -- Create Target Health Label
 
@@ -175,8 +189,8 @@ function CombatMetronome:BuildUI()
     else
         self.hpLabel:SetAnchor(BOTTOMRIGHT, self.labelFrame, BOTTOMRIGHT, 0, 0)
     end
-    self.hpLabel:SetColor(1, 1, 1, 1)
-    self.hpLabel:SetFont(Util.Text.getFontString(nil, 30, "outline"))
+    self.hpLabel:SetColor(unpack(self.config.healthColor))
+    self.hpLabel:SetFont(Util.Text.getFontString(nil, self.config.healthSize, "outline"))
     self.hpLabel:SetHidden(false)
     self.hpLabel:SetText("")
 end
