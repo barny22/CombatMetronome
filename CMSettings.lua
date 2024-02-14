@@ -19,7 +19,7 @@ local sounds = {
     "Duel_Boundary_Warning",
 }
 
-local bASounds = {
+local fullStackSounds = {
 	"ABILITY_COMPANION_ULTIMATE_READY",
 	"ABILITY_WEAPON_SWAP_FAIL",
 	"ACTIVE_SKILL_UNMORPHED",
@@ -83,484 +83,525 @@ function CombatMetronome:BuildMenu()
                 self:BuildUI()
             end,
         },
+		---------------------------
+		---- Position and Size ----
+		---------------------------
         {
-            type = "header",
+            type = "submenu",
             name = "Position / Size",  
-        },
-        {
-            type = "checkbox",
-            name = "Unlock",
-            tooltip = "Reposition / resize bar by dragging center / edges.",
-            getFunc = function() return self.frame.IsUnlocked() end,
-            setFunc = function(value)
-                self.frame:SetUnlocked(value)
-            end,
-        },
-        {
-            type = "slider",
-            name = "X Offset",
-            min = 0,
-            --max = math.floor(GuiRoot:GetWidth() - self.config.barSize),
-            max = math.floor(GuiRoot:GetWidth() - self.config.width),
-            step = 1,
-            getFunc = function() return self.config.xOffset end,
-            setFunc = function(value) 
-                self.config.xOffset = value 
-                self:BuildUI()
-            end,
-        },
-        {
-            type = "button",
-            name = "Center Horizontally",
-            func = function()
-                self.config.xOffset = math.floor((GuiRoot:GetWidth() - self.config.width) / 2)
-                self:BuildUI()
-            end
-        },
-		{
-            type = "slider",
-            name = "Y Offset",
-            min = 0,
-            --max = math.floor(GuiRoot:GetHeight() - self.config.barSize/10),
-            max = math.floor(GuiRoot:GetHeight() - self.config.height),
-            step = 1,
-            getFunc = function() return self.config.yOffset end,
-            setFunc = function(value) 
-                self.config.yOffset = value 
-                self:BuildUI()
-            end,
-        },
-        {
-            type = "button",
-            name = "Center Vertically",
-            func = function()
-                self.config.yOffset = math.floor((GuiRoot:GetHeight() - self.config.height) / 2)
-                self:BuildUI()
-            end
-        },
-        {
-            type = "slider",
-            name = "Width",
-            min = MIN_WIDTH,
-            max = MAX_WIDTH,
-            step = 1,
-            getFunc = function() return self.config.width end,
-            setFunc = function(value) 
-                self.config.width = value 
-                self:BuildUI()
-            end,
-        },
-        {
-            type = "slider",
-            name = "Height",
-            min = MIN_HEIGHT,
-            max = MAX_HEIGHT,
-            step = 1,
-            getFunc = function() return self.config.height end,
-            setFunc = function(value) 
-                self.config.height = value 
-                self:BuildUI()
-            end,
-        },
-        {
-            type = "header",
-            name = "Visuals / Color / Layout",
-        },
-		{
-            type = "checkbox",
-            name = "Show permanently",
-            tooltip = "If you don't want to hide the cast bar when it's unused, it will display the background color.",
-            getFunc = function() return self.config.dontHide end,
-            setFunc = function(value)
-				self.config.dontHide = value
-				self:BuildUI()
-			end,
-        },
-		{
-            type = "checkbox",
-            name = "Make it fancy",
-            tooltip = "Have fancy effects and stuff",
-            getFunc = function() return self.config.makeItFancy, self.config.lastBackgroundColor, self.config.backgroundColor end,
-            setFunc = function(value)
-				self.config.makeItFancy = value
-				if self.config.makeItFancy then
-					self.config.lastBackgroundColor = self.config.backgroundColor
-					self.config.backgroundColor = {0, 0, 0, 0}
-				else
-					self.config.backgroundColor = self.config.lastBackgroundColor
-				end
-				self:BuildUI()
-			end,
-        },
-        {
-            type = "colorpicker",
-            name = "Background Color",
-            tooltip = "Color of the bar background",
-			disabled = function()
-                return (self.config.makeItFancy)
-            end,
-            getFunc = function() return unpack(self.config.backgroundColor) end,
-            setFunc = function(r, g, b, a)
-                self.config.backgroundColor = {r, g, b, a}
-                self:BuildUI()
-            end,
-        },
-        {
-            type = "colorpicker",
-            name = "Progress Color",
-            tooltip = "Color of the progress bar",
-            getFunc = function() return unpack(self.config.progressColor) end,
-            setFunc = function(r, g, b, a)
-                self.config.progressColor = {r, g, b, a}
-                self:BuildUI()
-            end,
-        },
-        {
-            type = "colorpicker",
-            name = "Ping Color",
-            tooltip = "Color of the ping zone",
-            getFunc = function() return unpack(self.config.pingColor) end,
-            setFunc = function(r, g, b, a)
-                self.config.pingColor = {r, g, b, a}
-                self:BuildUI()
-            end,
-        },
-        {
-            type = "dropdown",
-            name = "Alignment",
-            tooltip = "Alignment of the progress bar",
-            choices = {"Left", "Center", "Right"},
-            getFunc = function() return self.config.barAlign end,
-            setFunc = function(value)
-                self.config.barAlign = value
-                self:BuildUI()
-            end,
-        },
-
-        -- RESOURCES
-
-        {
-            type = "header",
-            name = "Resources",
-        },
-        {
-            type = "checkbox",
-            name = "Show Ultimate",
-            tooltip = "Toggle show ultimate above cast bar",
-            getFunc = function() return self.config.showUltimate end,
-            setFunc = function(value) self.config.showUltimate = value end,
-        },
-        {
-            type = "checkbox",
-            name = "Show Stamina",
-            tooltip = "Toggle show stamina above cast bar",
-            getFunc = function() return self.config.showStamina end,
-            setFunc = function(value) self.config.showStamina = value end,
-        },
-        {
-            type = "checkbox",
-            name = "Show Target Health",
-            tooltip = "Toggle show target health above cast bar",
-            getFunc = function() return self.config.showHealth end,
-            setFunc = function(value) self.config.showHealth = value end,
-        },
-        {
-            type = "checkbox",
-            name = "Attach Target Health to reticle",
-            tooltip = "Attach Target Health to side of reticle",
-            getFunc = function() return self.config.reticleHp end,
-            setFunc = function(value) 
-                self.config.reticleHp = value
-                self:BuildUI()
-            end,
-        },
-        {
-            type = "slider",
-            name = "Target Health execute highlight threshold",
-            tooltip = "Set the threshold for target health highlighting (Set 0% for no highlight)",
-            min = 0,
-            max = 100,
-            getFunc = function() return self.config.hpHighlightThreshold end,
-            setFunc = function(value) self.config.hpHighlightThreshold = value end,
-        },
-        {
-            type = "checkbox",
-            name = "Show resources when targeting guard",
-            tooltip = "Show resources when targeting guard",
-            getFunc = function() return self.config.showResourcesForGuard end,
-            setFunc = function(value) self.config.showResourcesForGuard = value end,
-        },
-
-        -- BEHAVIOUR
-
-        {
-            type = "header",
-            name = "Behaviour"
-        },
-        {
-            type = "slider",
-            name = "Max latency",
-            tooltip = "Set the maximum display latency",
-            min = 0,
-            max = 1000,
-            step = 1,
-            getFunc = function() return self.config.maxLatency end,
-            setFunc = function(value) self.config.maxLatency = value end,
-        },
-        {
-            type = "slider",
-            name = "GCD Adjust",
-            tooltip = "Increase/decrease the displayed GCD length",
-            min = -MAX_ADJUST,
-            max = MAX_ADJUST,
-            step = 1,
-            getFunc = function() return self.config.gcdAdjust end,
-            setFunc = function(value) 
-                self.config.gcdAdjust = value 
-                self:BuildUI()
-            end,
-        },
-        {
-            type = "slider",
-            name = "Global Heavy Attack Adjust",
-            tooltip = "Increase/decrease the baseline heavy attack cast time. Additional adjustments to specific heavy types are made in addition to this",
-            min = -MAX_ADJUST,
-            max = MAX_ADJUST,
-            step = 1,
-            getFunc = function() return self.config.globalHeavyAdjust end,
-            setFunc = function(value) 
-                self.config.globalHeavyAdjust = value 
-            end
-        },
-        {
-            type = "slider",
-            name = "Global Ability Cast Adjust",
-            tooltip = "Increase/decrease the baseline ability cast time. Additional adjustments to specific abilities are made in addition to this",
-            min = -MAX_ADJUST,
-            max = MAX_ADJUST,
-            step = 1,
-            getFunc = function() return self.config.globalAbilityAdjust end,
-            setFunc = function(value)
-                self.config.globalAbilityAdjust = value
-            end
-        },
-        --[[
-		{
-			type = "checkbox",
-			name = "Show OOC",
-			tooltip = "Track GCDs whilst out of combat",
-			getFunc = function() return self.config.showOOC end,
-			setFunc = function(value)
-			self.config.showOOC = value
-			end
+			controls = {
+				{
+					type = "checkbox",
+					name = "Unlock",
+					tooltip = "Reposition / resize bar by dragging center / edges.",
+					getFunc = function() return self.frame.IsUnlocked() end,
+					setFunc = function(value)
+						self.frame:SetUnlocked(value)
+					end,
+				},
+				{
+					type = "slider",
+					name = "X Offset",
+					min = 0,
+					--max = math.floor(GuiRoot:GetWidth() - self.config.barSize),
+					max = math.floor(GuiRoot:GetWidth() - self.config.width),
+					step = 1,
+					getFunc = function() return self.config.xOffset end,
+					setFunc = function(value) 
+						self.config.xOffset = value 
+						self:BuildUI()
+					end,
+				},
+				{
+					type = "button",
+					name = "Center Horizontally",
+					func = function()
+						self.config.xOffset = math.floor((GuiRoot:GetWidth() - self.config.width) / 2)
+						self:BuildUI()
+					end
+				},
+				{
+					type = "slider",
+					name = "Y Offset",
+					min = 0,
+					--max = math.floor(GuiRoot:GetHeight() - self.config.barSize/10),
+					max = math.floor(GuiRoot:GetHeight() - self.config.height),
+					step = 1,
+					getFunc = function() return self.config.yOffset end,
+					setFunc = function(value) 
+						self.config.yOffset = value 
+						self:BuildUI()
+					end,
+				},
+				{
+					type = "button",
+					name = "Center Vertically",
+					func = function()
+						self.config.yOffset = math.floor((GuiRoot:GetHeight() - self.config.height) / 2)
+						self:BuildUI()
+					end
+				},
+				{
+					type = "slider",
+					name = "Width",
+					min = MIN_WIDTH,
+					max = MAX_WIDTH,
+					step = 1,
+					getFunc = function() return self.config.width end,
+					setFunc = function(value) 
+						self.config.width = value 
+						self:BuildUI()
+					end,
+				},
+				{
+					type = "slider",
+					name = "Height",
+					min = MIN_HEIGHT,
+					max = MAX_HEIGHT,
+					step = 1,
+					getFunc = function() return self.config.height end,
+					setFunc = function(value) 
+						self.config.height = value 
+						self:BuildUI()
+					end,
+				},
 			},
-		]]
-		{
-			type = "checkbox",
-			name = "Show GCD",
-			tooltip = "Track GCDs whilst out of combat",
-			getFunc = function() return self.config.trackGCD end,
-			setFunc = function(value)
-				self.config.trackGCD = value
-			end
-        },
-		{
-			type = "checkbox",
-			name = "Don't show ping zone",
-			tooltip = "Don't show Ping Zone on cast bar at all",
-			getFunc = function() return self.config.dontShowPing end,
-			setFunc = function(value)
-				self.config.dontShowPing = value
-			end
-        },
+		},
+		-----------------
+		---- Visuals ----
+		-----------------
         {
-            type = "checkbox",
-            name = "I'm no Oakensorc",
-            tooltip = "Stops displaying heavy attacks on the progress bar",
-            getFunc = function() return self.config.stopHATracking end,
-            setFunc = function(value)
-                self.config.stopHATracking = value
-            end
-        },
-        --[[
-		{
-            type = "dropdown",
-            name = "Show Ping Zone",
-            tooltip = "Show Ping Zone on HA and abilities', only on abilities or not at all",
-            if self.config.stopHATracking then
-				choices = {"Only abilities", "No"},
-			else
-				choices = {"On HA and abilities", "Only abilities", "No"},
-			end,
-            getFunc = function() return self.config.showPing end,
-            setFunc = function(value)
-                self.config.showPing = value
-                self:BuildUI()
-            end,
-        },
-		]]
-		{
-            type = "checkbox",
-            name = "Display ping zone on heavy attacks",
-            tooltip = "Displays heavy attacks with ping zone - Heavy attack cast will finish at start on entering ping zone "
-                                .."(heavy attack timing is calculated locally). This is for visual consistency",
-			disabled = function()
-                return (self.config.dontShowPing)
-            end,
-            getFunc = function() return self.config.displayPingOnHeavy end,
-            setFunc = function(value)
-                self.config.displayPingOnHeavy = value
-            end
-        },
-		{
-            type = "checkbox",
-            name = "Display spell name in cast bar",
-            tooltip = "Displays the spell Name in the cast bar",
-            getFunc = function() return self.config.showSpell end,
-            setFunc = function(value) self.config.showSpell = value end,
-        },
-		{
-            type = "checkbox",
-            name = "Display time remaining in cast bar",
-            tooltip = "Displays the remaining time on channel or cast in the cast bar",
-            getFunc = function() return self.config.showTimeRemaining end,
-            setFunc = function(value) self.config.showTimeRemaining = value end,
-        },
-
-        -- ABILITY TIMER ADJUSTS --
-
+            type = "submenu",
+            name = "Visuals / Color / Layout",
+			controls = {
+				{
+					type = "checkbox",
+					name = "Show permanently",
+					tooltip = "If you don't want to hide the cast bar when it's unused, it will display the background color.",
+					getFunc = function() return self.config.dontHide end,
+					setFunc = function(value)
+						self.config.dontHide = value
+						self:BuildUI()
+					end,
+				},
+				{
+					type = "checkbox",
+					name = "Make it fancy",
+					tooltip = "Have fancy effects and stuff",
+					getFunc = function() return self.config.makeItFancy, self.config.lastBackgroundColor, self.config.backgroundColor end,
+					setFunc = function(value)
+						self.config.makeItFancy = value
+						if self.config.makeItFancy then
+							self.config.lastBackgroundColor = self.config.backgroundColor
+							self.config.backgroundColor = {0, 0, 0, 0}
+						else
+							self.config.backgroundColor = self.config.lastBackgroundColor
+						end
+						self:BuildUI()
+					end,
+				},
+				{
+					type = "colorpicker",
+					name = "Background Color",
+					tooltip = "Color of the bar background",
+					disabled = function()
+						return (self.config.makeItFancy)
+					end,
+					getFunc = function() return unpack(self.config.backgroundColor) end,
+					setFunc = function(r, g, b, a)
+						self.config.backgroundColor = {r, g, b, a}
+						self:BuildUI()
+					end,
+				},
+				{
+					type = "colorpicker",
+					name = "Progress Color",
+					tooltip = "Color of the progress bar",
+					getFunc = function() return unpack(self.config.progressColor) end,
+					setFunc = function(r, g, b, a)
+						self.config.progressColor = {r, g, b, a}
+						self:BuildUI()
+					end,
+				},
+				{
+					type = "colorpicker",
+					name = "Ping Color",
+					tooltip = "Color of the ping zone",
+					getFunc = function() return unpack(self.config.pingColor) end,
+					setFunc = function(r, g, b, a)
+						self.config.pingColor = {r, g, b, a}
+						self:BuildUI()
+					end,
+				},
+				{
+					type = "dropdown",
+					name = "Alignment",
+					tooltip = "Alignment of the progress bar",
+					choices = {"Left", "Center", "Right"},
+					getFunc = function() return self.config.barAlign end,
+					setFunc = function(value)
+						self.config.barAlign = value
+						self:BuildUI()
+					end,
+				},
+				{
+					type = "checkbox",
+					name = "Switch Progress Color while channeling",
+					tooltip = "Change bar color on channeling abilities <1 second to indicate possibility to barswap, when channel is finished",
+					getFunc = function() return self.config.changeOnChanneled end,
+					setFunc = function(value)
+						self.config.changeOnChanneled = value
+						self:BuildUI()
+					end,
+				},
+				{
+					type = "colorpicker",
+					name = "Channel Color",
+					tooltip = "Color while channelling",
+					disabled = function()
+						return (not self.config.changeOnChanneled)
+					end,
+					getFunc = function() return unpack(self.config.channelColor) end,
+					setFunc = function(r, g, b, a)
+						self.config.channelColor = {r, g, b, a}
+						self:BuildUI()
+					end,
+				},
+			},
+		},
+		-------------------
+		---- Resources ----
+		-------------------
         {
-            type = "header",
+            type = "submenu",
+            name = "Resources",
+			controls = {
+				{
+					type = "checkbox",
+					name = "Show Ultimate",
+					tooltip = "Toggle show ultimate above cast bar",
+					getFunc = function() return self.config.showUltimate end,
+					setFunc = function(value) self.config.showUltimate = value end,
+				},
+				{
+					type = "checkbox",
+					name = "Show Stamina",
+					tooltip = "Toggle show stamina above cast bar",
+					getFunc = function() return self.config.showStamina end,
+					setFunc = function(value) self.config.showStamina = value end,
+				},
+				{
+					type = "checkbox",
+					name = "Show Target Health",
+					tooltip = "Toggle show target health above cast bar",
+					getFunc = function() return self.config.showHealth end,
+					setFunc = function(value) self.config.showHealth = value end,
+				},
+				{
+					type = "checkbox",
+					name = "Attach Target Health to reticle",
+					tooltip = "Attach Target Health to side of reticle",
+					getFunc = function() return self.config.reticleHp end,
+					setFunc = function(value) 
+						self.config.reticleHp = value
+						self:BuildUI()
+					end,
+				},
+				{
+					type = "slider",
+					name = "Target Health execute highlight threshold",
+					tooltip = "Set the threshold for target health highlighting (Set 0% for no highlight)",
+					min = 0,
+					max = 100,
+					getFunc = function() return self.config.hpHighlightThreshold end,
+					setFunc = function(value) self.config.hpHighlightThreshold = value end,
+				},
+				{
+					type = "checkbox",
+					name = "Show resources when targeting guard",
+					tooltip = "Show resources when targeting guard",
+					getFunc = function() return self.config.showResourcesForGuard end,
+					setFunc = function(value) self.config.showResourcesForGuard = value end,
+				},
+			},
+		},
+		------------------
+		---- Behavior ----
+		------------------
+        {
+            type = "submenu",
+            name = "Behavior",
+			controls = {
+				{
+					type = "slider",
+					name = "Max latency",
+					tooltip = "Set the maximum display latency",
+					min = 0,
+					max = 1000,
+					step = 1,
+					getFunc = function() return self.config.maxLatency end,
+					setFunc = function(value) self.config.maxLatency = value end,
+				},
+				{
+					type = "slider",
+					name = "GCD Adjust",
+					tooltip = "Increase/decrease the displayed GCD length",
+					min = -MAX_ADJUST,
+					max = MAX_ADJUST,
+					step = 1,
+					getFunc = function() return self.config.gcdAdjust end,
+					setFunc = function(value) 
+						self.config.gcdAdjust = value 
+						self:BuildUI()
+					end,
+				},
+				{
+					type = "slider",
+					name = "Global Heavy Attack Adjust",
+					tooltip = "Increase/decrease the baseline heavy attack cast time. Additional adjustments to specific heavy types are made in addition to this",
+					min = -MAX_ADJUST,
+					max = MAX_ADJUST,
+					step = 1,
+					getFunc = function() return self.config.globalHeavyAdjust end,
+					setFunc = function(value) 
+						self.config.globalHeavyAdjust = value 
+					end
+				},
+				{
+					type = "slider",
+					name = "Global Ability Cast Adjust",
+					tooltip = "Increase/decrease the baseline ability cast time. Additional adjustments to specific abilities are made in addition to this",
+					min = -MAX_ADJUST,
+					max = MAX_ADJUST,
+					step = 1,
+					getFunc = function() return self.config.globalAbilityAdjust end,
+					setFunc = function(value)
+						self.config.globalAbilityAdjust = value
+					end
+				},
+				--[[
+				{
+					type = "checkbox",
+					name = "Show OOC",
+					tooltip = "Track GCDs whilst out of combat",
+					getFunc = function() return self.config.showOOC end,
+					setFunc = function(value)
+					self.config.showOOC = value
+					end
+					},
+				]]
+				{
+					type = "checkbox",
+					name = "Show GCD",
+					tooltip = "Track GCDs whilst out of combat",
+					getFunc = function() return self.config.trackGCD end,
+					setFunc = function(value)
+						self.config.trackGCD = value
+					end
+				},
+				{
+					type = "checkbox",
+					name = "Don't show ping zone",
+					tooltip = "Don't show Ping Zone on cast bar at all",
+					getFunc = function() return self.config.dontShowPing end,
+					setFunc = function(value)
+						self.config.dontShowPing = value
+					end
+				},
+				{
+					type = "checkbox",
+					name = "I'm no Oakensorc",
+					tooltip = "Stops displaying heavy attacks on the progress bar",
+					getFunc = function() return self.config.stopHATracking end,
+					setFunc = function(value)
+						self.config.stopHATracking = value
+					end
+				},
+				--[[
+				{
+					type = "dropdown",
+					name = "Show Ping Zone",
+					tooltip = "Show Ping Zone on HA and abilities', only on abilities or not at all",
+					if self.config.stopHATracking then
+						choices = {"Only abilities", "No"},
+					else
+						choices = {"On HA and abilities", "Only abilities", "No"},
+					end,
+					getFunc = function() return self.config.showPing end,
+					setFunc = function(value)
+						self.config.showPing = value
+						self:BuildUI()
+					end,
+				},
+				]]
+				{
+					type = "checkbox",
+					name = "Display ping zone on heavy attacks",
+					tooltip = "Displays heavy attacks with ping zone - Heavy attack cast will finish at start on entering ping zone "
+										.."(heavy attack timing is calculated locally). This is for visual consistency",
+					disabled = function()
+						return (self.config.dontShowPing)
+					end,
+					getFunc = function() return self.config.displayPingOnHeavy end,
+					setFunc = function(value)
+						self.config.displayPingOnHeavy = value
+					end
+				},
+				{
+					type = "checkbox",
+					name = "Display spell name in cast bar",
+					tooltip = "Displays the spell Name in the cast bar",
+					getFunc = function() return self.config.showSpell end,
+					setFunc = function(value) self.config.showSpell = value end,
+				},
+				{
+					type = "checkbox",
+					name = "Display time remaining in cast bar",
+					tooltip = "Displays the remaining time on channel or cast in the cast bar",
+					getFunc = function() return self.config.showTimeRemaining end,
+					setFunc = function(value) self.config.showTimeRemaining = value end,
+				},
+			},
+		},
+		----------------
+		---- Sounds ----
+		----------------
+        {
+            type = "submenu",
+            name = "Sound", 
+			controls = {
+				{
+					type = "checkbox",
+					name = "Sound 'tick'",
+					tooltip = "Enable sound 'tick'",
+					getFunc = function() return self.config.soundTickEnabled end,
+					setFunc = function(state)
+						self.config.soundTickEnabled = state
+					end,
+				},
+				{
+					type = "dropdown",
+					name = "Sound 'tick' effect",
+					choices = sounds,
+					getFunc = function() return self.config.soundTickEffect end,
+					setFunc = function(value)
+						self.config.soundTickEffect = value
+						PlaySound(value)
+					end,
+				},
+				{
+					type = "slider",
+					name = "Sound 'tick' offset",
+					min = 0,
+					max = 1000,
+					step =  1,
+					getFunc = function() return self.config.soundTickOffset end,
+					setFunc = function(value)
+						self.config.soundTickOffset = value
+					end,
+				},
+
+				{
+					type = "checkbox",
+					name = "Sound 'tock'",
+					tooltip = "Offcycle sound cue",
+					getFunc = function() return self.config.soundTockEnabled end,
+					setFunc = function(state)
+						self.config.soundTockEnabled = state
+					end,
+				},
+				{
+					type = "dropdown",
+					name = "Sound 'tock' effect",
+					choices = sounds,
+					getFunc = function() return self.config.soundTockEffect end,
+					setFunc = function(value)
+						self.config.soundTockEffect = value
+						PlaySound(value)
+					end,
+				},
+				{
+					type = "slider",
+					name = "Sound 'tock' offset",
+					min = 0,
+					max = 1000,
+					step = 1,
+					getFunc = function() return self.config.soundTockOffset end,
+					setFunc = function(value)
+						self.config.soundTockOffset = value
+					end,
+				},
+			},
+		},
+		-------------------------------
+		---- Ability Timer Adjusts ----
+		-------------------------------
+        {
+            type = "submenu",
             name = "Ability timer adjusts",
             description = "Adjusts timers on specific skills - This is applied ON TOP of relevant global adjust",
-        },
-        {
-            type = "editbox",
-            name = "Add skill to adjust",
-            isMultiline = false,
-            getFunc = function() return "" end,
-            setFunc = function(name)
-                if not name or #name == 0 then return end
-                for id = 0, 100000 do
-                    if GetAbilityName(id) == name then
-                        _=self.log and log("Found ability for ", name, " id = ", id)
-                        self.menu.curSkillName = name
-                        self.menu.curSkillId = id
-                        self.config.abilityAdjusts[id] = 0
-                        self:UpdateAdjustChoices()
-                        return
-                    end
-                end
-                log("CM - Could not find valid ability named ", name, "!")
-            end
-        },
-        {
-            type = "dropdown",
-            name = "Select skill adjust",
-            choices = self.menu.abilityAdjustChoices,
-            getFunc = function() return self.menu.curSkillName end,
-            setFunc = function(value) 
-                self.menu.curSkillName = value
-                for id, adj in pairs(self.config.abilityAdjusts) do
-                    if GetAbilityName(id) == value then
-                        self.menu.curSkillId = id
-                    end
-                end
-            end
-        },
-        {
-            type = "slider",
-            name = "Modify skill adjust",
-            min = -MAX_ADJUST,
-            max = MAX_ADJUST,
-            step = 1,
-            getFunc = function() return self.config.abilityAdjusts[self.menu.curSkillId] or 0 end,
-            setFunc = function(value)
-                if self.config.abilityAdjusts[self.menu.curSkillId] then
-                    self.config.abilityAdjusts[self.menu.curSkillId] = value
-                end
-            end
-        },
-        {
-            type = "button",
-            name = "Remove skill adjust",
-            func = function()
-                _=DLog and log("Removing skill ", self.menu.curSkillName, " id: ", self.menu.curSkillId)
-                self.config.abilityAdjusts[self.menu.curSkillId] = nil
-                self:UpdateAdjustChoices()
-            end
-        },
-
-        -- SOUND (Seltiix) --
-
-        {
-            type = "header",
-            name = "Sound",  
-        },
-
-        {
-            type = "checkbox",
-            name = "Sound 'tick'",
-            tooltip = "Enable sound 'tick'",
-            getFunc = function() return self.config.soundTickEnabled end,
-            setFunc = function(state)
-                self.config.soundTickEnabled = state
-            end,
-        },
-        {
-            type = "dropdown",
-            name = "Sound 'tick' effect",
-            choices = sounds,
-            getFunc = function() return self.config.soundTickEffect end,
-            setFunc = function(value)
-                self.config.soundTickEffect = value
-                PlaySound(value)
-            end,
-        },
-        {
-            type = "slider",
-            name = "Sound 'tick' offset",
-            min = 0,
-            max = 1000,
-            step =  1,
-            getFunc = function() return self.config.soundTickOffset end,
-            setFunc = function(value)
-                self.config.soundTickOffset = value
-            end,
-        },
-
-        {
-            type = "checkbox",
-            name = "Sound 'tock'",
-            tooltip = "Offcycle sound cue",
-            getFunc = function() return self.config.soundTockEnabled end,
-            setFunc = function(state)
-                self.config.soundTockEnabled = state
-            end,
-        },
-        {
-            type = "dropdown",
-            name = "Sound 'tock' effect",
-            choices = sounds,
-            getFunc = function() return self.config.soundTockEffect end,
-            setFunc = function(value)
-                self.config.soundTockEffect = value
-                PlaySound(value)
-            end,
-        },
-        {
-            type = "slider",
-            name = "Sound 'tock' offset",
-            min = 0,
-            max = 1000,
-            step = 1,
-            getFunc = function() return self.config.soundTockOffset end,
-            setFunc = function(value)
-                self.config.soundTockOffset = value
-            end,
-        },
-
-        -- EXPERIMENTAL -- 
+			controls = {
+				{
+					type = "editbox",
+					name = "Add skill to adjust",
+					isMultiline = false,
+					getFunc = function() return "" end,
+					setFunc = function(name)
+						if not name or #name == 0 then return end
+						for id = 0, 100000 do
+							if GetAbilityName(id) == name then
+								_=self.log and log("Found ability for ", name, " id = ", id)
+								self.menu.curSkillName = name
+								self.menu.curSkillId = id
+								self.config.abilityAdjusts[id] = 0
+								self:UpdateAdjustChoices()
+								return
+							end
+						end
+						log("CM - Could not find valid ability named ", name, "!")
+					end
+				},
+				{
+					type = "dropdown",
+					name = "Select skill adjust",
+					choices = self.menu.abilityAdjustChoices,
+					getFunc = function() return self.menu.curSkillName end,
+					setFunc = function(value) 
+						self.menu.curSkillName = value
+						for id, adj in pairs(self.config.abilityAdjusts) do
+							if GetAbilityName(id) == value then
+								self.menu.curSkillId = id
+							end
+						end
+					end
+				},
+				{
+					type = "slider",
+					name = "Modify skill adjust",
+					min = -MAX_ADJUST,
+					max = MAX_ADJUST,
+					step = 1,
+					getFunc = function() return self.config.abilityAdjusts[self.menu.curSkillId] or 0 end,
+					setFunc = function(value)
+						if self.config.abilityAdjusts[self.menu.curSkillId] then
+							self.config.abilityAdjusts[self.menu.curSkillId] = value
+						end
+					end
+				},
+				{
+					type = "button",
+					name = "Remove skill adjust",
+					func = function()
+						_=DLog and log("Removing skill ", self.menu.curSkillName, " id: ", self.menu.curSkillId)
+						self.config.abilityAdjusts[self.menu.curSkillId] = nil
+						self:UpdateAdjustChoices()
+					end
+				},
+			},
+		},
+		----------------------
+		---- Experimental ----
+		----------------------
 --[[will be added again later
         {
             type = "header",
