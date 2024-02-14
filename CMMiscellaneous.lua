@@ -9,6 +9,8 @@ CM_DEFAULT_SAVED_VARS = {
     ["backgroundColor"] = { 0, 0, 0, 0.5 },
     ["progressColor"] = { 1, 0.84, 0.24, 0.63 },
     ["pingColor"] = { 1, 0, 0, 0.63 },
+	["channelColor"] = { 1, 0, 1, 0.63},
+	["changeOnChanneled"] = false,
     ["gcdAdjust"] = 0,
     ["barAlign"] = "Center",
 	["trackGCD"] = false,
@@ -36,4 +38,14 @@ CM_DEFAULT_SAVED_VARS = {
     ["soundTockOffset"] = 300,
 	["stopHATracking"] = false,
 	["makeItFancy"] = false,
+}
+
+CM_Graphics = {
+	["bAIcon"] = "/esoui/art/icons/quest_arg_exc_mrkboneknife001.dds",
+	["mWIcon"] = "",
+	["gFIcon"] = "",
+	["cruxIcon"] = "/art/fx/texture/arcanist_trianglerune_01.dds",
+	["trackerBorder"] = "esoui/art/champion/champion_center_bg.dds",
+	["trackerBackground"] = "esoui/art/champion/actionbar/champion_bar_slot_frame_disabled.dds",
+	["trackerHighlight"] = "esoui/art/champion/actionbar/champion_bar_world_selection.dds",
 }

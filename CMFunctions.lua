@@ -7,6 +7,10 @@ local carverId1 = 183122
 local carverId2 = 193397
 local dodgeId = 29721
 local bAId = 203447
+local mWId = nil
+local gFId = 122585
+local mRId = 122586
+local rFId = 122587
 
 	--------------------------
 	---- Helper Functions ----
@@ -64,25 +68,6 @@ function CombatMetronome:CropZOSSpellName(zosString)
     else
         return zosString
     end
-end
-
-	-----------------------
-	---- Crux Tracking ----
-	-----------------------
-
-function CombatMetronome:GetCurrentNumCruxOnPlayer()					-- Crux Tracking by barny (special thanks to akasha who basically did all the work)
-	--local start = GetGameTimeMilliseconds()
-	local crux = 0
-	for i=1,GetNumBuffs("player") do
-		local _,_,_,_,stack,_,_,_,_,_,abilityId = GetUnitBuffInfo("player", i)
-		if	abilityId == cruxId then
-			crux = stack
-			-- d("You currently have "..tostring(crux).." Crux")
-		break 
-		end
-	end
-	-- d(string.format("found %d crux(es); search time %d ms", crux, GetGameTimeMilliseconds() - start))
-	return crux
 end
 
 	-----------------------
@@ -197,6 +182,27 @@ function CombatMetronome:HandleAbilityUsed(event)
     self.gcd = Util.Ability.Tracker.gcd
 end
 
+	-----------------------
+	---- Crux Tracking ----
+	-----------------------
+
+function CombatMetronome:GetCurrentNumCruxOnPlayer()					-- Crux Tracking by barny (special thanks to akasha who basically did all the work)
+	--local start = GetGameTimeMilliseconds()
+	local crux = 0
+	if GetUnitClassId("player") == 117 then
+		for i=1,GetNumBuffs("player") do
+			local _,_,_,_,stack,_,_,_,_,_,abilityId = GetUnitBuffInfo("player", i)
+			if	abilityId == cruxId then
+				crux = stack
+				-- d("You currently have "..tostring(crux).." Crux")
+			break 
+			end
+		end
+	end
+	-- d(string.format("found %d crux(es); search time %d ms", crux, GetGameTimeMilliseconds() - start))
+	return crux
+end
+
 	---------------------------------
 	---- Bound Armaments Tracker ----
 	---------------------------------
@@ -204,13 +210,73 @@ end
 function CombatMetronome:GetCurrentNumBAOnPlayer()
 	--local start = GetGameTimeMilliseconds()
 	local bAStacks = 0
-	for i=1,GetNumBuffs("player") do
-		local _,_,_,_,stack,_,_,_,_,_,abilityId = GetUnitBuffInfo("player", i)
-		if	abilityId == bAId then
-			bAStacks = stack
-			-- d("You currently have "..tostring(bAStacks).." Stacks of Bound Armaments")
-		break 
+	if GetUnitClassId("player") == 2 then
+		for i=1,GetNumBuffs("player") do
+			local _,_,_,_,stack,_,_,_,_,_,abilityId = GetUnitBuffInfo("player", i)
+			if	abilityId == bAId then
+				bAStacks = stack
+				-- d("You currently have "..tostring(bAStacks).." Stacks of Bound Armaments")
+			break 
+			end
 		end
 	end
 	return bAStacks
+end
+
+	-----------------------------
+	---- Molten Whip Tracker ----
+	-----------------------------
+
+function CombatMetronome:GetCurrentNumMWOnPlayer()
+	--local start = GetGameTimeMilliseconds()
+	local mWStacks = 0
+	if GetUnitClassId("player") == 1 then
+		for i=1,GetNumBuffs("player") do
+			local _,_,_,_,stack,_,_,_,_,_,abilityId = GetUnitBuffInfo("player", i)
+			if	abilityId == mWId then
+				mWStacks = stack
+				-- d("You currently have "..tostring(mWStacks).." Stacks of Molten Whip")
+			break 
+			end
+		end
+	end
+	return mWStacks
+end
+
+	----------------------------------------------------------------
+	---- Grimm Focus/Merciless Resolve/Relentless Focus Tracker ----
+	----------------------------------------------------------------
+
+function CombatMetronome:GetCurrentNumGFOnPlayer()
+	--local start = GetGameTimeMilliseconds()
+	local gFStacks = 0
+	local mRStacks = 0
+	local rFStacks = 0
+	if GetUnitClassId("player") == 3 then
+		for i=1,GetNumBuffs("player") do
+			local _,_,_,_,stack,_,_,_,_,_,abilityId = GetUnitBuffInfo("player", i)
+			if	abilityId == gFId then
+				gFStacks = stack
+				-- d("You currently have "..tostring(gFStacks).." Stacks of Grimm Focus")
+			break 
+			end
+		end
+		for i=1,GetNumBuffs("player") do
+			local _,_,_,_,stack,_,_,_,_,_,abilityId = GetUnitBuffInfo("player", i)
+			if	abilityId == mRId then
+				mRStacks = stack
+				-- d("You currently have "..tostring(mRStacks).." Stacks of Merciless Resolve")
+			break 
+			end
+		end
+		for i=1,GetNumBuffs("player") do
+			local _,_,_,_,stack,_,_,_,_,_,abilityId = GetUnitBuffInfo("player", i)
+			if	abilityId == rFId then
+				rFStacks = stack
+				-- d("You currently have "..tostring(rFStacks).." Stacks of Relentless Focus")
+			break 
+			end
+		end
+	end
+	return gFStacks, mRStacks, rFStacks
 end
