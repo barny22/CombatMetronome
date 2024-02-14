@@ -6,6 +6,11 @@ local cruxId = 184220
 local carverId1 = 183122
 local carverId2 = 193397
 local dodgeId = 29721
+local bAId = 203447
+
+	--------------------------
+	---- Helper Functions ----
+	--------------------------
 
 function CombatMetronome:OnCDStop()
 	if self.config.dontHide then
@@ -61,6 +66,10 @@ function CombatMetronome:CropZOSSpellName(zosString)
     end
 end
 
+	-----------------------
+	---- Crux Tracking ----
+	-----------------------
+
 function CombatMetronome:GetCurrentNumCruxOnPlayer()					-- Crux Tracking by barny (special thanks to akasha who basically did all the work)
 	--local start = GetGameTimeMilliseconds()
 	local crux = 0
@@ -75,6 +84,10 @@ function CombatMetronome:GetCurrentNumCruxOnPlayer()					-- Crux Tracking by bar
 	-- d(string.format("found %d crux(es); search time %d ms", crux, GetGameTimeMilliseconds() - start))
 	return crux
 end
+
+	-----------------------
+	---- Dodge Checker ----
+	-----------------------
 
 function CombatMetronome:CheckForDodge()
 	local dodge = false
@@ -94,6 +107,10 @@ function CombatMetronome:CheckForDodge()
 	return dodge
 end
 
+	-----------------------
+	---- Combat Events ----
+	-----------------------
+
 function CombatMetronome:HandleCombatEvents(...)
     local e = Util.CombatEvent:New(...)
 
@@ -110,7 +127,9 @@ function CombatMetronome:HandleCombatEvents(...)
     end
 end
 
-
+	-------------------------
+	---- Ability Adjusts ----
+	-------------------------
 
 function CombatMetronome:UpdateAdjustChoices()
     local names = self.menu.abilityAdjustChoices
@@ -147,6 +166,10 @@ function CombatMetronome:UpdateAdjustChoices()
     end
 end
 
+	-------------------------
+	---- Ability Handler ----
+	-------------------------
+
 function CombatMetronome:HandleAbilityUsed(event)
     if not (self.inCombat or self.config.showOOC) then return end
 
@@ -172,4 +195,22 @@ function CombatMetronome:HandleAbilityUsed(event)
 		self.currentEvent = event
 	end
     self.gcd = Util.Ability.Tracker.gcd
+end
+
+	---------------------------------
+	---- Bound Armaments Tracker ----
+	---------------------------------
+
+function CombatMetronome:GetCurrentNumBAOnPlayer()
+	--local start = GetGameTimeMilliseconds()
+	local bAStacks = 0
+	for i=1,GetNumBuffs("player") do
+		local _,_,_,_,stack,_,_,_,_,_,abilityId = GetUnitBuffInfo("player", i)
+		if	abilityId == bAId then
+			bAStacks = stack
+			-- d("You currently have "..tostring(bAStacks).." Stacks of Bound Armaments")
+		break 
+		end
+	end
+	return bAStacks
 end

@@ -1,7 +1,6 @@
 An updated Version of Darianopolis' tool "Combat Metronome". (That's why he is mentioned as author.)
 I added some fixes and new options:
 
-
 !  Fixed time adjustment on exhausting fatecarver depending on crux
 !  Fixed: Channeled abilities or abilities with cast time are now interrupted by block, dodgeroll or barswap
 !  Fixed a bug after resizing the cast bar in unlock mode
@@ -10,6 +9,8 @@ I added some fixes and new options:
 +  Added option to stop HA tracking
 +  Added option to show the cast bar permanently
 +  Added fancy mode
+
+Should there be any bugs, feel free to report them on my [URL="https://www.esoui.com/portal.php?id=386&a=listbugs"]ESOUI Portal[/URL].
 
 Here is the original description by Darianopolis:
 
