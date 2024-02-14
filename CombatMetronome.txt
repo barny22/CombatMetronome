@@ -1,8 +1,8 @@
 ## Title: CombatMetronome
 ## Description: Combat Metronome
 ## Author: Darianopolis, barny
-## Version: 1.6.2
-## AddOnVersion: 010602
+## Version: 1.6.4
+## AddOnVersion: 010604
 ## APIVersion: 101040
 ## SavedVariables: CombatMetronomeSavedVars
 ## DependsOn: LibAddonMenu-2.0>=35 libAddonKeybinds>=5 DariansUtilities>=10702
@@ -14,9 +14,9 @@
 ; You can read the full terms at https://account.elderscrollsonline.com/add-on-terms
 
 CombatMetronome.lua
-CMDefaults.lua
-CMHelperFunctions.lua
+CMFunctions.lua
 CMLabels.lua
+CMMiscellaneous.lua
 CMSettings.lua
 CMUserInterface.lua
 bindings.xml
