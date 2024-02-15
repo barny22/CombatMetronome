@@ -10,6 +10,7 @@ CM_DEFAULT_SAVED_VARS = {
     ["progressColor"] = { 1, 0.84, 0.24, 0.63 },
     ["pingColor"] = { 1, 0, 0, 0.63 },
 	["channelColor"] = { 1, 0, 1, 0.63},
+	["colorCache"] = { 1, 0.84, 0.24, 0.63},
 	["changeOnChanneled"] = false,
     ["gcdAdjust"] = 0,
     ["barAlign"] = "Center",

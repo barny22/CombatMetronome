@@ -116,12 +116,21 @@ function CombatMetronome:Update()
 		------------------------------------------------
 		---- Switching Color on channeled abilities ----
 		------------------------------------------------
-			-- local colorChannelFinished = self.config.progressColor
-			-- if self.config.changeOnChanneled and ability.delay <= 1000 and timeRemaining >= 0 then
-				-- self.config.progressColor = self.config.channelColor
-			-- else
-				-- self.config.progressColor = colorChannelFinished
-			-- end
+			if self.config.changeOnChanneled then
+				if ability.delay <= 1000 then
+					if timeRemaining >= 0 then
+						self.bar:UpdateSegment(2, {
+						color = self.config.channeledColor,
+						clip = true,
+						})
+					end
+				end
+			else
+				self.bar:UpdateSegment(2, {
+				color = self.config.progressColor,
+				clip = true,
+				})
+			end
 			
 			self.bar.segments[2].progress = 1 - (cdTimer/duration)
 			self.bar.segments[1].progress = latency / duration
