@@ -51,7 +51,7 @@ CM_DEFAULT_SAVED_VARS = {
 	["makeItFancy"] = false,
 }
 
-CM_Graphics = {
+CM_GRAPHICS = {
 	["bAIcon"] = "/esoui/art/icons/quest_arg_exc_mrkboneknife001.dds",
 	["mWIcon"] = "",
 	["gFIcon"] = "",
@@ -59,4 +59,31 @@ CM_Graphics = {
 	["trackerBorder"] = "esoui/art/champion/champion_center_bg.dds",
 	["trackerBackground"] = "esoui/art/champion/actionbar/champion_bar_slot_frame_disabled.dds",
 	["trackerHighlight"] = "esoui/art/champion/actionbar/champion_bar_world_selection.dds",
+}
+
+CM_TRACKER_CLASS_ATTRIBUTES = {
+	["117"] = {
+		["iMax"] = 3,
+		["color"] = {0,1,0,1},
+		["graphic"] = "/art/fx/texture/arcanist_trianglerune_01.dds",
+		["hightlight"] = "esoui/art/champion/actionbar/champion_bar_world_selection.dds",
+	},
+	["1"] = {
+		["iMax"] = 3,
+		["color"] = {1,0,0,1},
+		["graphic"] = "/esoui/art/icons/quest_u32_q6698_instructors_whip.dds",
+		["hightlight"] = "/esoui/art/champion/actionbar/champion_bar_conditioning_selection.dds",
+	},
+	["2"] = {
+		["iMax"] = 4,
+		["color"] = {0,0,1,1},
+		["graphic"] = "/esoui/art/icons/guildfinderheraldry/crest_weapon_dagger.dds",
+		["hightlight"] = "/esoui/art/champion/actionbar/champion_bar_combat_selection.dds",
+	},
+	["3"] = {
+		["iMax"] = 5,
+		["color"] = {1,0,0,1},
+		["graphic"] = "/esoui/art/icons/guildfinderheraldry/crest_weapon_bow.dds",
+		["hightlight"] = "/esoui/art/champion/actionbar/champion_bar_conditioning_selection.dds",
+	},
 }
