@@ -447,6 +447,9 @@ function CombatMetronome:BuildMenu()
 					type = "checkbox",
 					name = "Attach Target Health to reticle",
 					tooltip = "Attach Target Health to side of reticle",
+					disabled = function()
+						return (not self.config.showHealth)
+					end,
 					getFunc = function() return self.config.reticleHp end,
 					setFunc = function(value) 
 						self.config.reticleHp = value
@@ -457,6 +460,9 @@ function CombatMetronome:BuildMenu()
 					type = "slider",
 					name = "Target Health execute highlight threshold",
 					tooltip = "Set the threshold for target health highlighting (Set 0% for no highlight)",
+					disabled = function()
+						return (not self.config.showHealth)
+					end,
 					min = 0,
 					max = 100,
 					getFunc = function() return self.config.hpHighlightThreshold end,
