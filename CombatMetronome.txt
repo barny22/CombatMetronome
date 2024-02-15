@@ -18,5 +18,6 @@ CMFunctions.lua
 CMLabels.lua
 CMMiscellaneous.lua
 CMSettings.lua
+CMStacktracker.lua
 CMUserInterface.lua
 bindings.xml
