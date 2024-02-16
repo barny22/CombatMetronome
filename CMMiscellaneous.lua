@@ -49,41 +49,48 @@ CM_DEFAULT_SAVED_VARS = {
     ["soundTockOffset"] = 300,
 	["stopHATracking"] = false,
 	["makeItFancy"] = false,
-}
-
-CM_GRAPHICS = {
-	["bAIcon"] = "/esoui/art/icons/quest_arg_exc_mrkboneknife001.dds",
-	["mWIcon"] = "",
-	["gFIcon"] = "",
-	["cruxIcon"] = "/art/fx/texture/arcanist_trianglerune_01.dds",
-	["trackerBorder"] = "esoui/art/champion/champion_center_bg.dds",
-	["trackerBackground"] = "esoui/art/champion/actionbar/champion_bar_slot_frame_disabled.dds",
-	["trackerHighlight"] = "esoui/art/champion/actionbar/champion_bar_world_selection.dds",
+	["trackMW"] = false,
+	["trackBA"] = false,
+	["trackGF"] = false,
+	["trackCrux"] = false,
+	["indicatorSize"] = 30,
+	["trackerX"] = 0,
+	["trackerY"] = 0,
 }
 
 CM_TRACKER_CLASS_ATTRIBUTES = {
-	["117"] = {
+	["ARC"] = {
 		["iMax"] = 3,
 		["color"] = {0,1,0,1},
 		["graphic"] = "/art/fx/texture/arcanist_trianglerune_01.dds",
-		["hightlight"] = "esoui/art/champion/actionbar/champion_bar_world_selection.dds",
+		["highlight"] = "esoui/art/champion/actionbar/champion_bar_world_selection.dds",
 	},
-	["1"] = {
+	["DK"] = {
 		["iMax"] = 3,
 		["color"] = {1,0,0,1},
 		["graphic"] = "/esoui/art/icons/quest_u32_q6698_instructors_whip.dds",
-		["hightlight"] = "/esoui/art/champion/actionbar/champion_bar_conditioning_selection.dds",
+		["highlight"] = "/esoui/art/champion/actionbar/champion_bar_conditioning_selection.dds",
 	},
-	["2"] = {
+	["SOR"] = {
 		["iMax"] = 4,
 		["color"] = {0,0,1,1},
 		["graphic"] = "/esoui/art/icons/guildfinderheraldry/crest_weapon_dagger.dds",
-		["hightlight"] = "/esoui/art/champion/actionbar/champion_bar_combat_selection.dds",
+		["highlight"] = "/esoui/art/champion/actionbar/champion_bar_combat_selection.dds",
 	},
-	["3"] = {
+	["NB"] = {
 		["iMax"] = 5,
 		["color"] = {1,0,0,1},
 		["graphic"] = "/esoui/art/icons/guildfinderheraldry/crest_weapon_bow.dds",
-		["hightlight"] = "/esoui/art/champion/actionbar/champion_bar_conditioning_selection.dds",
+		["highlight"] = "/esoui/art/champion/actionbar/champion_bar_conditioning_selection.dds",
 	},
+}
+
+CM_CLASS = {
+	[1] = "DK",
+	[2] = "SOR",
+	[3] = "NB",
+	[4] = "DEN",
+	[5] = "NEC",
+	[6] = "TEM",
+	[117] = "ARC",
 }
