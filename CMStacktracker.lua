@@ -126,6 +126,8 @@ function CombatMetronome:BuildStackTracker()
 	-- DefineFragmentScenes = DefineFragmentScenes,
 	}
 end
+	
+self.stacktracker = CombatMetronome:BuildStackTracker()
 
 function CombatMetronome:TrackerUpdate()
 	local attributes = CM_TRACKER_CLASS_ATTRIBUTES[self.class]
@@ -138,12 +140,11 @@ function CombatMetronome:TrackerUpdate()
 	elseif self.class == "ARC" then
 		stacks = self:GetCurrentNumGFOnPlayer()
 	end
-tracker = CombatMetronome:BuildStackTracker()
 	for i=1,attributes.iMax do 
-		tracker.indicator[i].Deactivate()
+		self.stacktracker.indicator[i].Deactivate()
 	end
 	if stacks == 0 then return end
 	for i=1,stacks do
-		tracker.indicator[i].Activate()
+		self.stacktracker.indicator[i].Activate()
 	end
 end
