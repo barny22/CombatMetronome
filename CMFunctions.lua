@@ -189,7 +189,7 @@ end
 function CombatMetronome:GetCurrentNumCruxOnPlayer()					-- Crux Tracking by barny (special thanks to akasha who basically did all the work)
 	--local start = GetGameTimeMilliseconds()
 	local crux = 0
-	if GetUnitClassId("player") == 117 then
+	if self.class == "ARC" then
 		for i=1,GetNumBuffs("player") do
 			local _,_,_,_,stack,_,_,_,_,_,abilityId = GetUnitBuffInfo("player", i)
 			if	abilityId == cruxId then
@@ -210,7 +210,7 @@ end
 function CombatMetronome:GetCurrentNumBAOnPlayer()
 	--local start = GetGameTimeMilliseconds()
 	local bAStacks = 0
-	if GetUnitClassId("player") == 2 then
+	if self.class == "SORC" then
 		for i=1,GetNumBuffs("player") do
 			local _,_,_,_,stack,_,_,_,_,_,abilityId = GetUnitBuffInfo("player", i)
 			if	abilityId == bAId then
@@ -230,7 +230,7 @@ end
 function CombatMetronome:GetCurrentNumMWOnPlayer()
 	--local start = GetGameTimeMilliseconds()
 	local mWStacks = 0
-	if GetUnitClassId("player") == 1 then
+	if self.class == "DK" then
 		for i=1,GetNumBuffs("player") do
 			local _,_,_,_,stack,_,_,_,_,_,abilityId = GetUnitBuffInfo("player", i)
 			if	abilityId == mWId then
@@ -252,7 +252,8 @@ function CombatMetronome:GetCurrentNumGFOnPlayer()
 	local gFStacks = 0
 	local mRStacks = 0
 	local rFStacks = 0
-	if GetUnitClassId("player") == 3 then
+	local maxStacks = 0
+	if self.class == "NB" then
 		for i=1,GetNumBuffs("player") do
 			local _,_,_,_,stack,_,_,_,_,_,abilityId = GetUnitBuffInfo("player", i)
 			if	abilityId == gFId then
@@ -278,5 +279,14 @@ function CombatMetronome:GetCurrentNumGFOnPlayer()
 			end
 		end
 	end
-	return gFStacks, mRStacks, rFStacks
+	if gFStacks > 0 and gFStacks > maxStacks then
+        maxStacks = gFStacks
+    end
+    if mRStacks > 0 and mRStacks > maxStacks then
+        maxStacks = mRStacks
+    end
+    if rFStacks > 0 and rFStacks > maxStacks then
+        maxStacks = rFStacks
+    end
+	return maxStacks
 end
