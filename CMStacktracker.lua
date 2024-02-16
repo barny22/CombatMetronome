@@ -138,11 +138,12 @@ function CombatMetronome:TrackerUpdate()
 	elseif self.class == "ARC" then
 		stacks = self:GetCurrentNumGFOnPlayer()
 	end
+tracker = CombatMetronome:BuildStackTracker()
 	for i=1,attributes.iMax do 
-		indicator[i].Deactivate()
+		tracker.indicator[i].Deactivate()
 	end
 	if stacks == 0 then return end
 	for i=1,stacks do
-		indicator[i].Activate()
+		tracker.indicator[i].Activate()
 	end
 end
