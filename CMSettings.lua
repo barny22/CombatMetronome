@@ -763,6 +763,102 @@ function CombatMetronome:BuildMenu()
 				},
 			},
 		},
+		-----------------------
+		---- Stack Tracker ----
+		-----------------------
+		{	type = "divider"
+		},
+		-- if CM_TRACKER_CLASS_ATTRIBUTES[self.class] then
+		{
+			type = "submenu",
+			name = "Stack Tracker",
+			description = "Lets you track your stacks on e.g. crux or bound armaments. This works on Nightblade, Sorcerer, Dragonknight and Arcanist.",
+			controls = {
+				{	type = "slider",
+					name = "Stack indicator size",
+					disabled = function()
+						if self.class == "ARC" and self.config.trackCrux then
+							value = false
+						elseif self.class == "SOR" and self.config.trackBA then
+							value = false
+						elseif self.class == "DK" and self.config.trackMW then
+							value = false
+						elseif self.class == "NB" and self.config.trackGF then
+							value = false
+						else
+							value = true
+						end
+						return value
+					end,
+					min = 1,
+					max = 50,
+					step = 1,
+					default = self.config.indicatorSize,
+					getFunc = function() return self.config.indicatorSize end,
+					setFunc = function(value)
+						self.config.indicatorSize = value
+						self:BuildStackTracker()
+					end,
+				},
+				{
+					type = "checkbox",
+					name = "Track Molten Whip Stacks",
+					-- warning = "If changed, will automaticly reload the UI.",
+					disabled = function()
+						return self.class ~= "DK"
+					end,
+					getFunc = function() return self.config.trackMW end,
+					setFunc = function(value)
+						self.config.trackMW = value
+						-- ReloadUI()
+						CombatMetronome:CheckIfStackTrackerShouldLoad()
+					end
+				},
+				{
+					type = "checkbox",
+					name = "Track Bound Armaments Stacks",
+					-- warning = "If changed, will automaticly reload the UI.",
+					disabled = function()
+						return self.class ~= "SOR"
+					end,
+					getFunc = function() return self.config.trackBA end,
+					setFunc = function(value)
+						self.config.trackBA = value
+						-- ReloadUI()
+						CombatMetronome:CheckIfStackTrackerShouldLoad()
+					end
+				},
+				{
+					type = "checkbox",
+					name = "Track Stacks of Grimm Focus and its Morphs",
+					-- warning = "If changed, will automaticly reload the UI.",
+					disabled = function()
+						return self.class ~= "NB"
+					end,
+					getFunc = function() return self.config.trackGF end,
+					setFunc = function(value)
+						self.config.trackGF = value
+						-- ReloadUI()
+						CombatMetronome:CheckIfStackTrackerShouldLoad()
+					end
+				},
+				{
+					type = "checkbox",
+					name = "Track Crux Stacks",
+					-- warning = "If changed, will automaticly reload the UI.",
+					disabled = function() 
+						return self.class ~= "ARC"
+					end,
+					getFunc = function() return self.config.trackCrux end,
+					setFunc = function(value)
+						self.config.trackCrux = value
+						-- ReloadUI()
+						CombatMetronome:CheckIfStackTrackerShouldLoad()
+					end
+				},
+			},
+		},
+		-- end
 		----------------------
 		---- Experimental ----
 		----------------------

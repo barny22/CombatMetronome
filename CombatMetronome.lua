@@ -6,8 +6,8 @@
 CombatMetronome = {
     name = "CombatMetronome",
     major = 6,
-    minor = 3,
-    version = "1.6.3"
+    minor = 4,
+    version = "1.6.4"
 }
 
 local LAM = LibAddonMenu2
@@ -197,6 +197,9 @@ function CombatMetronome:Init()
         self.config = ZO_SavedVars:NewAccountWide("CombatMetronomeSavedVars", 1, nil, CM_DEFAULT_SAVED_VARS)
         self.config.global = true
     end
+	
+	self.classId = GetUnitClassId("player")
+	self.class = CM_CLASS[self.classId]
 
     self.log = self.config.debug
 
@@ -208,6 +211,7 @@ function CombatMetronome:Init()
     self.unlocked = false
     CombatMetronome:BuildUI()
     CombatMetronome:BuildMenu()
+	CombatMetronome:CheckIfStackTrackerShouldLoad()
 
     self.lastInterval = 0
 
@@ -222,6 +226,12 @@ function CombatMetronome:Init()
         1000 / 60,
         function(...) self:UpdateLabels() end
     )
+	
+	EVENT_MANAGER:RegisterForUpdate(
+		self.name.."UpdateStacks",
+		100,
+		function(...) self:TrackerUpdate() end
+	)
 
     EVENT_MANAGER:RegisterForEvent(
         self.name.."CombatStateChange",
