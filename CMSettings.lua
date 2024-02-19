@@ -766,9 +766,35 @@ function CombatMetronome:BuildMenu()
 		-----------------------
 		---- Stack Tracker ----
 		-----------------------
-		{	type = "divider"
-		},
 		-- if CM_TRACKER_CLASS_ATTRIBUTES[self.class] then
+		{	type = "header",
+			name = "Stack Tracker",
+		},
+		{	type = "checkbox",
+			name = "Unlock Tracker",
+			tooltip = "Move stack tracker",
+			disabled = function ()
+				return not CM_TRACKER_CLASS_ATTRIBUTES[self.class]
+			end,
+			getFunc = function() return self.config.trackerIsUnlocked end,
+			setFunc = function(value)
+				self.config.trackerIsUnlocked = value
+				self.stackTracker.stacksWindow:SetMovable(value)
+				self.stackTracker.stacksWindow:SetHidden(not value)
+			end,
+		},
+		-- {
+			-- type = "checkbox",
+			-- name = "Hide Tracker",
+			-- disabled = function ()
+				-- return not CM_TRACKER_CLASS_ATTRIBUTES[self.class]
+			-- end,
+			-- getFunc = function() return self.config.hideTracker end,
+			-- setFunc = function(value)
+				-- self.config.hideTracker = value
+				-- self.stackTracker.DefineFragmentScenes(not value)
+			-- end,
+		-- },
 		{
 			type = "submenu",
 			name = "Stack Tracker",
@@ -790,14 +816,15 @@ function CombatMetronome:BuildMenu()
 						end
 						return value
 					end,
-					min = 1,
-					max = 50,
+					min = 25,
+					max = 75,
 					step = 1,
 					default = self.config.indicatorSize,
 					getFunc = function() return self.config.indicatorSize end,
 					setFunc = function(value)
 						self.config.indicatorSize = value
-						self:BuildStackTracker()
+						self.stackTracker.indicator.ApplySize(value)
+						self.stackTracker.indicator.ApplyDistance(value/5, value)
 					end,
 				},
 				{
@@ -811,7 +838,10 @@ function CombatMetronome:BuildMenu()
 					setFunc = function(value)
 						self.config.trackMW = value
 						-- ReloadUI()
-						CombatMetronome:CheckIfStackTrackerShouldLoad()
+						if self.class == "DK" then
+						-- CombatMetronome:CheckIfStackTrackerShouldLoad()
+							self.stackTracker.DefineFragmentScenes(value)
+						end
 					end
 				},
 				{
@@ -825,7 +855,10 @@ function CombatMetronome:BuildMenu()
 					setFunc = function(value)
 						self.config.trackBA = value
 						-- ReloadUI()
-						CombatMetronome:CheckIfStackTrackerShouldLoad()
+						if self.class == "SOR" then
+						-- CombatMetronome:CheckIfStackTrackerShouldLoad()
+							self.stackTracker.DefineFragmentScenes(value)
+						end
 					end
 				},
 				{
@@ -838,8 +871,10 @@ function CombatMetronome:BuildMenu()
 					getFunc = function() return self.config.trackGF end,
 					setFunc = function(value)
 						self.config.trackGF = value
-						-- ReloadUI()
-						CombatMetronome:CheckIfStackTrackerShouldLoad()
+						if self.class == "NB" then
+						-- CombatMetronome:CheckIfStackTrackerShouldLoad()
+							self.stackTracker.DefineFragmentScenes(value)
+						end
 					end
 				},
 				{
@@ -853,7 +888,10 @@ function CombatMetronome:BuildMenu()
 					setFunc = function(value)
 						self.config.trackCrux = value
 						-- ReloadUI()
-						CombatMetronome:CheckIfStackTrackerShouldLoad()
+						if self.class == "ARC" then
+						-- CombatMetronome:CheckIfStackTrackerShouldLoad()
+							self.stackTracker.DefineFragmentScenes(value)
+						end
 					end
 				},
 			},
