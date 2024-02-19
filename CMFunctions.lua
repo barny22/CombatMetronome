@@ -55,7 +55,7 @@ function CombatMetronome:HideLabels(value)
 end
 
 function CombatMetronome:HideFancy(value)
-	self.bar.backgroundTexture:SetHidden( value)
+	self.bar.backgroundTexture:SetHidden(value)
 	self.bar.borderL:SetHidden(value)
 	self.bar.borderR:SetHidden(value)
 end
@@ -281,12 +281,15 @@ function CombatMetronome:GetCurrentNumGFOnPlayer()
 	end
 	if gFStacks > 0 and gFStacks > maxStacks then
         maxStacks = gFStacks
+		icon = "gF"
     end
     if mRStacks > 0 and mRStacks > maxStacks then
         maxStacks = mRStacks
+		icon = "mR"
     end
     if rFStacks > 0 and rFStacks > maxStacks then
         maxStacks = rFStacks
+		icon = "rF"
     end
-	return maxStacks
+	return maxStacks, icon
 end
