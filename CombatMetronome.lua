@@ -211,7 +211,8 @@ function CombatMetronome:Init()
     self.unlocked = false
     CombatMetronome:BuildUI()
     CombatMetronome:BuildMenu()
-	CombatMetronome:CheckIfStackTrackerShouldLoad()
+	-- CombatMetronome:CheckIfStackTrackerShouldLoad()
+	CombatMetronome:InitializeTracker()
 
     self.lastInterval = 0
 
@@ -226,12 +227,6 @@ function CombatMetronome:Init()
         1000 / 60,
         function(...) self:UpdateLabels() end
     )
-	
-	EVENT_MANAGER:RegisterForUpdate(
-		self.name.."UpdateStacks",
-		100,
-		function(...) self:TrackerUpdate() end
-	)
 
     EVENT_MANAGER:RegisterForEvent(
         self.name.."CombatStateChange",
