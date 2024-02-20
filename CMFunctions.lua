@@ -210,14 +210,12 @@ end
 function CombatMetronome:GetCurrentNumBAOnPlayer()
 	--local start = GetGameTimeMilliseconds()
 	local bAStacks = 0
-	if self.class == "SORC" then
-		for i=1,GetNumBuffs("player") do
-			local _,_,_,_,stack,_,_,_,_,_,abilityId = GetUnitBuffInfo("player", i)
-			if	abilityId == bAId then
-				bAStacks = stack
-				-- d("You currently have "..tostring(bAStacks).." Stacks of Bound Armaments")
-			break 
-			end
+	for i=1,GetNumBuffs("player") do
+		local _,_,_,_,stack,_,_,_,_,_,abilityId = GetUnitBuffInfo("player", i)
+		if	abilityId == bAId then
+			bAStacks = stack
+			-- d("You currently have "..tostring(bAStacks).." Stacks of Bound Armaments")
+		break 
 		end
 	end
 	return bAStacks
@@ -230,14 +228,12 @@ end
 function CombatMetronome:GetCurrentNumMWOnPlayer()
 	--local start = GetGameTimeMilliseconds()
 	local mWStacks = 0
-	if self.class == "DK" then
-		for i=1,GetNumBuffs("player") do
-			local _,_,_,_,stack,_,_,_,_,_,abilityId = GetUnitBuffInfo("player", i)
-			if	abilityId == mWId then
-				mWStacks = stack
-				-- d("You currently have "..tostring(mWStacks).." Stacks of Molten Whip")
-			break 
-			end
+	for i=1,GetNumBuffs("player") do
+		local _,_,_,_,stack,_,_,_,_,_,abilityId = GetUnitBuffInfo("player", i)
+		if	abilityId == mWId then
+			mWStacks = stack
+			-- d("You currently have "..tostring(mWStacks).." Stacks of Molten Whip")
+		break 
 		end
 	end
 	return mWStacks
@@ -253,31 +249,30 @@ function CombatMetronome:GetCurrentNumGFOnPlayer()
 	local mRStacks = 0
 	local rFStacks = 0
 	local maxStacks = 0
-	if self.class == "NB" then
-		for i=1,GetNumBuffs("player") do
-			local _,_,_,_,stack,_,_,_,_,_,abilityId = GetUnitBuffInfo("player", i)
-			if	abilityId == gFId then
-				gFStacks = stack
-				-- d("You currently have "..tostring(gFStacks).." Stacks of Grimm Focus")
-			break 
-			end
+	local icon = "gF"
+	for i=1,GetNumBuffs("player") do
+		local _,_,_,_,stack,_,_,_,_,_,abilityId = GetUnitBuffInfo("player", i)
+		if	abilityId == gFId then
+			gFStacks = stack
+			-- d("You currently have "..tostring(gFStacks).." Stacks of Grimm Focus")
+		break 
 		end
-		for i=1,GetNumBuffs("player") do
-			local _,_,_,_,stack,_,_,_,_,_,abilityId = GetUnitBuffInfo("player", i)
-			if	abilityId == mRId then
-				mRStacks = stack
-				-- d("You currently have "..tostring(mRStacks).." Stacks of Merciless Resolve")
-			break 
-			end
+	end
+	for i=1,GetNumBuffs("player") do
+		local _,_,_,_,stack,_,_,_,_,_,abilityId = GetUnitBuffInfo("player", i)
+		if	abilityId == mRId then
+			mRStacks = stack
+			-- d("You currently have "..tostring(mRStacks).." Stacks of Merciless Resolve")
+		break 
 		end
-		for i=1,GetNumBuffs("player") do
-			local _,_,_,_,stack,_,_,_,_,_,abilityId = GetUnitBuffInfo("player", i)
-			if	abilityId == rFId then
-				rFStacks = stack
-				-- d("You currently have "..tostring(rFStacks).." Stacks of Relentless Focus")
-			break 
-			end
-		end
+	end
+	for i=1,GetNumBuffs("player") do
+		local _,_,_,_,stack,_,_,_,_,_,abilityId = GetUnitBuffInfo("player", i)
+		if	abilityId == rFId then
+			rFStacks = stack
+			-- d("You currently have "..tostring(rFStacks).." Stacks of Relentless Focus")
+		break 
+	end
 	end
 	if gFStacks > 0 and gFStacks > maxStacks then
         maxStacks = gFStacks
@@ -292,4 +287,24 @@ function CombatMetronome:GetCurrentNumGFOnPlayer()
 		icon = "rF"
     end
 	return maxStacks, icon
+end
+
+function CombatMetronome:StoreAbilitiesOnActionBar()
+    local actionSlots = {}  -- Create a table to store action slots
+
+    for j = 0, 1 do
+        for i = 3, 8 do
+            local actionSlot = {}  -- Create a new table for each action slot
+            setmetatable(actionSlot, {__index = index})
+            
+            actionSlot.place = tostring(i .. j)
+            actionSlot.id = GetSlotBoundId(i, j)
+            actionSlot.icon = GetAbilityIcon(actionSlot.id)
+            actionSlot.name = GetAbilityName(actionSlot.id)
+
+            table.insert(actionSlots, actionSlot)  -- Add the current action slot to the table
+        end
+    end
+
+    return actionSlots
 end
