@@ -338,7 +338,9 @@ function CombatMetronome:TrackerUpdate()
         for i=1,stacks do
                 self.stackTracker.indicator[i].Activate()
         end
-        previousStack = stacks
         if previousStack == (attributes.iMax-1) then
+if stacks == attributes.iMax then
+end
         end
+        previousStack = stacks
 end
