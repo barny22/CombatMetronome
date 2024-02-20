@@ -12,6 +12,7 @@ local gFId = 122585
 local mRId = 122586
 local rFId = 122587
 local previousStack = 0
+
 	--------------------------
 	---- Helper Functions ----
 	--------------------------
