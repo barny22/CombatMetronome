@@ -270,3 +270,39 @@ end
 
 --     CombatMetronome:Init()
 -- end)
+
+--------------------------------------
+---- Check for stack tracker load ----
+--------------------------------------
+
+function CombatMetronome:CheckIfStackTrackerShouldLoad()
+	-- if CM_TRACKER_CLASS_ATTRIBUTES[self.class] then
+		if self.class == "ARC" and self.config.trackCrux then
+			CombatMetronome:InitializeTracker()
+		elseif self.class == "DK" and self.config.trackMW then
+			CombatMetronome:InitializeTracker()
+		elseif self.class == "SOR" and self.config.trackBA then
+			CombatMetronome:InitializeTracker()
+		elseif self.class == "NB" and self.config.trackGF then
+			CombatMetronome:InitializeTracker()
+		end
+	-- end
+end
+
+	----------------------------------
+	---- Initialize Stack Tracker ----
+	----------------------------------
+	
+function CombatMetronome:InitializeTracker()
+
+	self.stackTracker = CombatMetronome:BuildStackTracker()
+	self.stackTracker.indicator.ApplySize(self.config.indicatorSize)
+	self.stackTracker.indicator.ApplyDistance(self.config.indicatorSize/5, self.config.indicatorSize)
+	
+	EVENT_MANAGER:RegisterForUpdate(
+		self.name.."UpdateStacks",
+		1000 / 60,
+		function(...) CombatMetronome:TrackerUpdate() end
+	)
+	
+end
