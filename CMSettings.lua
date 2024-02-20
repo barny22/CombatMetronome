@@ -773,26 +773,67 @@ function CombatMetronome:BuildMenu()
 		{	type = "checkbox",
 			name = "Unlock Tracker",
 			tooltip = "Move stack tracker",
+			-- width = "half",
 			disabled = function ()
-				return not CM_TRACKER_CLASS_ATTRIBUTES[self.class]
+				return not self.stackTracker.stacksWindow
 			end,
 			getFunc = function() return self.config.trackerIsUnlocked end,
 			setFunc = function(value)
 				self.config.trackerIsUnlocked = value
 				self.stackTracker.stacksWindow:SetMovable(value)
-				self.stackTracker.stacksWindow:SetHidden(not value)
+				-- self.stackTracker.stacksWindow:SetHidden(not value)
 			end,
+		},
+		{	type = "checkbox",
+			name = "Play Sound Cue when stacks are at max",
+			tooltip = "Plays a sound when you are at max stacks, so you don't miss to cast your ability",
+			-- width = "half",
+			disabled = function ()
+				return not self.stackTracker.stacksWindow
+			end,
+			getFunc = function() return self.config.trackerPlaySound end,
+			setFunc = function(value)
+				self.config.trackerPlaySound = value
+			end,
+		},
+		{
+			type = "dropdown",
+			name = "Select Sound",
+			choices = fullStackSounds,
+			default = self.config.trackerSound,
+			disabled = function() return not (self.stackTracker.stacksWindow and self.config.trackerPlaySound) end,
+			getFunc = function() return self.config.trackerSound end,
+			setFunc = function(value) 
+				self.config.trackerSound = value
+			end
 		},
 		-- {
 			-- type = "checkbox",
 			-- name = "Hide Tracker",
 			-- disabled = function ()
-				-- return not CM_TRACKER_CLASS_ATTRIBUTES[self.class]
+				-- return not self.stackTracker.stacksWindow
 			-- end,
 			-- getFunc = function() return self.config.hideTracker end,
 			-- setFunc = function(value)
 				-- self.config.hideTracker = value
 				-- self.stackTracker.DefineFragmentScenes(not value)
+			-- end,
+		-- },
+		-- {
+			-- type = "description",
+			-- titel = "I lost my stack tracker",
+			-- width = "half",
+		-- },
+		-- {
+			-- type = "button",
+			-- name = "Centralize Tracker",
+			-- tooltip = "This button centers the stack tracker in the middle of your screen",
+			-- width = "half",
+			-- disabled = function ()
+				-- return not self.stackTracker.stacksWindow
+			-- end,
+			-- func = function()
+				-- self.stackTracker.stacksWindow:SetAnchor(TOPLEFT, GuiRoot, TOPLEFT, GuiRoot:GetWidth()/2, GuiRoot:GetHeight()/2)
 			-- end,
 		-- },
 		{
@@ -816,8 +857,8 @@ function CombatMetronome:BuildMenu()
 						end
 						return value
 					end,
-					min = 25,
-					max = 75,
+					min = 10,
+					max = 60,
 					step = 1,
 					default = self.config.indicatorSize,
 					getFunc = function() return self.config.indicatorSize end,
@@ -825,73 +866,61 @@ function CombatMetronome:BuildMenu()
 						self.config.indicatorSize = value
 						self.stackTracker.indicator.ApplySize(value)
 						self.stackTracker.indicator.ApplyDistance(value/5, value)
+						self.stackTracker.stacksWindow:SetDimensions((size*attributes.iMax+distance*(attributes.iMax-1)), size)
+						self.config.trackerX = self.stackTracker.stacksWindow:GetLeft()
+						self.config.trackerY = self.stackTracker.stacksWindow:GetTop()
 					end,
 				},
 				{
 					type = "checkbox",
 					name = "Track Molten Whip Stacks",
-					-- warning = "If changed, will automaticly reload the UI.",
+					warning = "If changed, will automaticly reload the UI.",
 					disabled = function()
 						return self.class ~= "DK"
 					end,
 					getFunc = function() return self.config.trackMW end,
 					setFunc = function(value)
 						self.config.trackMW = value
-						-- ReloadUI()
-						if self.class == "DK" then
-						-- CombatMetronome:CheckIfStackTrackerShouldLoad()
-							self.stackTracker.DefineFragmentScenes(value)
-						end
+						ReloadUI()
 					end
 				},
 				{
 					type = "checkbox",
 					name = "Track Bound Armaments Stacks",
-					-- warning = "If changed, will automaticly reload the UI.",
+					warning = "If changed, will automaticly reload the UI.",
 					disabled = function()
 						return self.class ~= "SOR"
 					end,
 					getFunc = function() return self.config.trackBA end,
 					setFunc = function(value)
 						self.config.trackBA = value
-						-- ReloadUI()
-						if self.class == "SOR" then
-						-- CombatMetronome:CheckIfStackTrackerShouldLoad()
-							self.stackTracker.DefineFragmentScenes(value)
-						end
+						ReloadUI()
 					end
 				},
 				{
 					type = "checkbox",
 					name = "Track Stacks of Grimm Focus and its Morphs",
-					-- warning = "If changed, will automaticly reload the UI.",
+					warning = "If changed, will automaticly reload the UI.",
 					disabled = function()
 						return self.class ~= "NB"
 					end,
 					getFunc = function() return self.config.trackGF end,
 					setFunc = function(value)
 						self.config.trackGF = value
-						if self.class == "NB" then
-						-- CombatMetronome:CheckIfStackTrackerShouldLoad()
-							self.stackTracker.DefineFragmentScenes(value)
-						end
+						ReloadUI()
 					end
 				},
 				{
 					type = "checkbox",
 					name = "Track Crux Stacks",
-					-- warning = "If changed, will automaticly reload the UI.",
+					warning = "If changed, will automaticly reload the UI.",
 					disabled = function() 
 						return self.class ~= "ARC"
 					end,
 					getFunc = function() return self.config.trackCrux end,
 					setFunc = function(value)
 						self.config.trackCrux = value
-						-- ReloadUI()
-						if self.class == "ARC" then
-						-- CombatMetronome:CheckIfStackTrackerShouldLoad()
-							self.stackTracker.DefineFragmentScenes(value)
-						end
+						ReloadUI()
 					end
 				},
 			},

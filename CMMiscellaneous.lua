@@ -58,40 +58,35 @@ CM_DEFAULT_SAVED_VARS = {
 	["trackerX"] = 0,
 	["trackerY"] = 0,
 	["hideTracker"] = true,
+	["trackerPlaySound"] = false,
+	["trackerSound"] = "ABILITY_COMPANION_ULTIMATE_READY",
 }
 
 CM_TRACKER_CLASS_ATTRIBUTES = {
 	["ARC"] = {
 		["iMax"] = 3,
-		["color"] = {0,1,0,1},
 		["graphic"] = "/esoui/art/icons/class_buff_arcanist_crux.dds",
 		["highlight"] = {0,1,0,0.2},
-		-- ["highlight"] = "esoui/art/champion/actionbar/champion_bar_world_selection.dds",
 	},
 	["DK"] = {
 		["iMax"] = 3,
-		["color"] = {1,0,0,1},
 		["graphic"] = "/esoui/art/icons/ability_dragonknight_001_b.dds",
 		["highlight"] = {1,0,0,0.2},
-		-- ["highlight"] = "/esoui/art/champion/actionbar/champion_bar_conditioning_selection.dds",
 	},
 	["SOR"] = {
 		["iMax"] = 4,
-		["color"] = {0,0,1,1},
 		["graphic"] = "/esoui/art/icons/ability_sorcerer_bound_armaments.dds",
 		["highlight"] = {0,0,1,0.2},
-		-- ["highlight"] = "/esoui/art/champion/actionbar/champion_bar_combat_selection.dds",
 	},
 	["NB"] = {
 		["iMax"] = 5,
-		["color"] = {1,0,0,1},
 		["icon"] = {
 			["gF"] = "/esoui/art/icons/ability_nightblade_005.dds",
 			["rF"] = "/esoui/art/icons/ability_nightblade_005_a.dds",
 			["mR"] = "/esoui/art/icons/ability_nightblade_005_b.dds",
 		},
+		["graphic"] = "/esoui/art/icons/ability_nightblade_005.dds",
 		["highlight"] = {1,0,0,0.2},
-		-- ["highlight"] = "/esoui/art/champion/actionbar/champion_bar_conditioning_selection.dds",
 	},
 }
 
