@@ -340,6 +340,7 @@ function CombatMetronome:TrackerUpdate()
         end
         if previousStack == (attributes.iMax-1) then
 if stacks == attributes.iMax then
+PlaySound(self.config.trackerSound)
 end
         end
         previousStack = stacks
