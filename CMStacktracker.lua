@@ -1,21 +1,51 @@
--- function CombatMetronome:CheckIfStackTrackerShouldLoad()
+	------------------------
+	---- Check for load ----
+	------------------------
+
+function CombatMetronome:CheckIfStackTrackerShouldLoad()
 	-- if CM_TRACKER_CLASS_ATTRIBUTES[self.class] then
-		-- if self.class == "ARC" and self.config.trackCrux then
-			-- CombatMetronome:InitializeTracker()
-		-- elseif self.class == "DK" and self.config.trackMW then
-			-- CombatMetronome:InitializeTracker()
-		-- elseif self.class == "SOR" and self.config.trackBA then
-			-- CombatMetronome:InitializeTracker()
-		-- elseif self.class == "NB" and self.config.trackGF then
-			-- CombatMetronome:InitializeTracker()
-		-- end
+		if self.class == "ARC" and self.config.trackCrux then
+			CombatMetronome:InitializeTracker()
+		elseif self.class == "DK" and self.config.trackMW then
+			CombatMetronome:InitializeTracker()
+		elseif self.class == "SOR" and self.config.trackBA then
+			CombatMetronome:InitializeTracker()
+		elseif self.class == "NB" and self.config.trackGF then
+			CombatMetronome:InitializeTracker()
+		end
 	-- end
--- end
+end
+
+	---------------------
+	---- Initializer ----
+	---------------------
+	
+function CombatMetronome:InitializeTracker()
+
+	self.stackTracker = CombatMetronome:BuildStackTracker()
+	self.stackTracker.indicator.ApplySize(self.config.indicatorSize)
+	self.stackTracker.indicator.ApplyDistance(self.config.indicatorSize/5, self.config.indicatorSize)
+	
+	EVENT_MANAGER:RegisterForUpdate(
+		self.name.."UpdateStacks",
+		1000 / 60,
+		function(...) CombatMetronome:TrackerUpdate() end
+	)
+	
+end
+
+	-----------------------------
+	---- Build Stack Tracker ----
+	-----------------------------
 
 function CombatMetronome:BuildStackTracker()
 	local attributes = CM_TRACKER_CLASS_ATTRIBUTES[self.class]
 	local size = self.config.indicatorSize
 	local distance = size/5
+	
+	------------------------------
+	---- Build TopLevelWindow ----
+	------------------------------
 	
 	-- if not stacksWindow then
 		local stacksWindow = WINDOW_MANAGER:CreateTopLevelWindow(self.name.."StackTrackerWindow")
@@ -23,52 +53,43 @@ function CombatMetronome:BuildStackTracker()
 			self.config.trackerX = stacksWindow:GetLeft()
 			self.config.trackerY = stacksWindow:GetTop()
 		end)
-		stacksWindow:SetDimensions(100,100)
-		-- stacksWindow:SetDimensions((size*attributes.iMax+distance*(attributes.iMax-1)), size)
+		stacksWindow:SetDimensions((size*attributes.iMax+distance*(attributes.iMax-1)), size)
 		stacksWindow:ClearAnchors()
 		stacksWindow:SetAnchor(TOPLEFT, GuiRoot, TOPLEFT, self.config.trackerX, self.config.trackerY)
 		stacksWindow:SetMouseEnabled(true)
-		stacksWindow:SetMovable(true)
+		stacksWindow:SetMovable(self.config.trackerIsUnlocked)
 		stacksWindow:SetClampedToScreen(true)
-		stacksWindow:SetHidden(true)
+		stacksWindow:SetHidden(false)
+		stacksWindow:SetDrawTier(DT_LOW)
+		stacksWindow:SetDrawLayer(DL_CONTROLS)
 	-- end
-	local fragment = ZO_HUDFadeSceneFragment:New(stacksWindow) 
-	local function DefineFragmentScenes(enabled)
-		if enabled then 
-			HUD_UI_SCENE:AddFragment( fragment )
-			HUD_SCENE:AddFragment( fragment )
-		else 
-			HUD_UI_SCENE:RemoveFragment( fragment )
-			HUD_SCENE:RemoveFragment( fragment )
-		end
-	end
-
+	
+	-- local fragment = ZO_HUDFadeSceneFragment:New(stacksWindow) 
+	-- local function DefineFragmentScenes(enabled)
+		-- if enabled then 
+			-- HUD_UI_SCENE:AddFragment( fragment )
+			-- HUD_SCENE:AddFragment( fragment )
+		-- else 
+			-- HUD_UI_SCENE:RemoveFragment( fragment )
+			-- HUD_SCENE:RemoveFragment( fragment )
+		-- end
+	-- end
+	
+	-----------------------------
+	---- Generate Indicators ----
+	-----------------------------
+	
 	local indicator = {}
 
-	local function GetIndicator(i) 
-
+	local function GetIndicator(i)
+	
+	-----------------------------
+	---- Build new indicator ----
+	-----------------------------
+		
 		-- if not stackIndicator then
 			local stackIndicator = WINDOW_MANAGER:CreateControl(self.name.."StackIndicator"..tostring(i), stacksWindow, CT_CONTROL)
 			-- d("stackIndicator "..tostring(i).." created")
-		-- end
-		
-		-- if not background then
-			local background = WINDOW_MANAGER:CreateControl(self.name.."StackBackground"..tostring(i), stackIndicator, CT_TEXTURE)
-			background:ClearAnchors()
-			background:SetAnchor(CENTER, stackIndicator, CENTER, 0, 0)
-			background:SetAlpha(0.8)
-			-- background:SetTexture("esoui/art/champion/champion_center_bg.dds")
-			background:SetTexture("/esoui/art/actionbar/actionslot_toggledon.dds")
-			-- d(tostring("background "..i.." created"))
-		-- end
-		
-		-- if not frame then
-			local frame = WINDOW_MANAGER:CreateControl(self.name.."StackFrame"..tostring(i), stackIndicator, CT_TEXTURE)
-			frame:ClearAnchors()
-			frame:SetAnchor(CENTER, stackIndicator, CENTER, 0, 0)
-			-- frame:SetTexture("esoui/art/champion/actionbar/champion_bar_slot_frame_disabled.dds")
-			frame:SetTexture("/esoui/art/actionbar/abilityframe64_up.dds")
-			-- d(tostring("stackFrame "..i.." created"))
 		-- end
 		
 		-- if not icon then
@@ -80,34 +101,53 @@ function CombatMetronome:BuildStackTracker()
 			-- d(tostring("stackIcon "..i.." created"))
 		-- end
 		
-		-- if not highlight then
-			-- local highlight = WINDOW_MANAGER:CreateControl(self.name.."StackHighlight"..tostring(i), stackIndicator, CT_TEXTURE)
-			-- highlight:ClearAnchors()
-			-- highlight:SetAnchor(CENTER, stackIndicator, CENTER, 0, 0)
-			-- highlight:SetDesaturation(0.4)
-			-- highlight:SetTexture("/esoui/art/actionbar/abilityhighlight_03.dds")
-			-- highlight:SetColor(unpack(attributes.highlight))
-			-- highlightTimeline = ANIMATION_MANAGER:CreateTimelineFromVirtual(self.name.."StackHighlightTimeline", highlight)
-			-- highlightTimeline:PlayFromStart()
-			-- d(tostring("stackHighlight "..i.." created"))
+		-- if not frame then
+			local frame = WINDOW_MANAGER:CreateControl(self.name.."StackFrame"..tostring(i), stackIndicator, CT_TEXTURE)
+			frame:ClearAnchors()
+			frame:SetAnchor(CENTER, stackIndicator, CENTER, 0, 0)
+			-- frame:SetTexture("esoui/art/champion/actionbar/champion_bar_slot_frame_disabled.dds")
+			frame:SetTexture("/esoui/art/actionbar/abilityframe64_up.dds")
+			-- d(tostring("stackFrame "..i.." created"))
 		-- end
-
+		
+		-- if not highlight then
+			local highlight = WINDOW_MANAGER:CreateControl(self.name.."StackHighlight"..tostring(i), stackIndicator, CT_TEXTURE)
+			highlight:ClearAnchors()
+			highlight:SetAnchor(CENTER, stackIndicator, CENTER, 0, 0)
+			highlight:SetDesaturation(0.4)
+			highlight:SetTexture("/esoui/art/actionbar/actionslot_toggledon.dds")
+			highlight:SetColor(unpack(attributes.highlight))
+		-- end
+		
+		-- local highlightAnimation = WINDOW_MANAGER:CreateControl(self.name.."StackHighlightAnimation"..tostring(i), stackIndicator, CT_TEXTURE)
+		-- highlightAnimation:ClearAnchors()
+		-- highlightAnimation:SetAnchor(CENTER, stackIndicator, CENTER, 0, 0)
+		-- highlightAnimation:SetDesaturation(0.4)
+		-- highlightAnimation:SetTexture("/esoui/art/actionbar/abilityhighlight_03.dds")
+		-- highlightAnimation:SetTexture("/esoui/art/actionbar/abilityhighlightanimation_mage.dds")
+		-- highlightAnimation:SetColor(unpack(attributes.highlight))
+		-- highlightAnimationTimeline = ANIMATION_MANAGER:CreateTimelineFromVirtual(self.name.."StackHighlightAnimationTimeline", highlightAnimation)
+		-- highlightAnimationTimeline:PlayFromStart()
+		
+	------------------------------
+	---- Highlighting Handler ----
+	------------------------------
+		
 		local function Activate()
-			icon:SetColor(unpack(attributes.color))
-			-- highlight:SetAlpha(0.8)    
+			icon:SetColor(1,1,1,0.7)
+			highlight:SetAlpha(0.8)    
 		end
 
 		local function Deactivate()
-			icon:SetColor(0.1,0.1,0.1,0.2)
-			-- highlight:SetAlpha(0)
+			icon:SetColor(0.1,0.1,0.1,0.7)
+			highlight:SetAlpha(0)
 		end
 
 		local controls = {
 		stackIndicator = stackIndicator,
-		background = background,
 		frame = frame,
 		icon = icon,
-		-- highlight = highlight,
+		highlight = highlight,
 		}
 		return {
 		stacksWindow = stacksWindow,
@@ -120,13 +160,16 @@ function CombatMetronome:BuildStackTracker()
 	for i =1,attributes.iMax do 
 		indicator[i] = GetIndicator(i)
 	end 
-
+	
+	-----------------------
+	---- Changing Size ----
+	-----------------------
+	
 	local function ApplySize(size) 
 		for i=1,attributes.iMax do 
-			indicator[i].controls.background:SetDimensions(size*0.85,size*0.85)
 			indicator[i].controls.frame:SetDimensions(size,size)
-			-- indicator[i].controls.highlight:SetDimensions(size,size)
-			indicator[i].controls.icon:SetDimensions(size*0.75,size*0.75)   
+			indicator[i].controls.highlight:SetDimensions(size,size)
+			indicator[i].controls.icon:SetDimensions(size,size)   
 		end
 	end
 	indicator.ApplySize = ApplySize
@@ -143,9 +186,13 @@ function CombatMetronome:BuildStackTracker()
 	return {
 	stacksWindow = stacksWindow,
 	indicator = indicator,
-	DefineFragmentScenes = DefineFragmentScenes,
+	-- DefineFragmentScenes = DefineFragmentScenes,
 	}
 end
+
+	-----------------
+	---- Updater ----
+	-----------------
 
 function CombatMetronome:TrackerUpdate()
 	local attributes = CM_TRACKER_CLASS_ATTRIBUTES[self.class]
@@ -168,18 +215,8 @@ function CombatMetronome:TrackerUpdate()
 	for i=1,stacks do
 		self.stackTracker.indicator[i].Activate()
 	end
+	previousStack = stacks
+	if previousStack == (attributes.iMax-1) then
+	end
 end
 
-function CombatMetronome:InitializeTracker()
-
-	self.stackTracker = CombatMetronome:BuildStackTracker()
-	
-	CombatMetronome:BuildStackTracker()
-	
-	EVENT_MANAGER:RegisterForUpdate(
-		self.name.."UpdateStacks",
-		1000 / 60,
-		function(...) CombatMetronome:TrackerUpdate() end
-	)
-	
-end
