@@ -117,19 +117,28 @@ function CombatMetronome:Update()
 		---- Switching Color on channeled abilities ----
 		------------------------------------------------
 			if self.config.changeOnChanneled then
-				if ability.delay <= 1000 then
+				if not ability.instant and ability.delay <= 1000 then
+					-- d("Ability with cast time < 1s detected")
 					if timeRemaining >= 0 then
-						self.bar:UpdateSegment(2, {
-						color = self.config.channeledColor,
-						clip = true,
-						})
+						if self.bar.segments[2].color == self.config.progressColor then
+							self.bar:UpdateSegment(2, {
+							color = self.config.channeledColor,
+							clip = true,
+							})
+							d("Trying to update Channel Color")
+						end
+						-- self:BuildUI()
+					elseif timeRemaining <= 0 then
+						if self.bar.segments[2].color == self.config.channeledColor then
+							self.bar:UpdateSegment(2, {
+							color = self.config.progressColor,
+							clip = true,
+							})
+							-- self:BuildUI()
+							d("Turning back to Progress Color")
+						end
 					end
 				end
-			else
-				self.bar:UpdateSegment(2, {
-				color = self.config.progressColor,
-				clip = true,
-				})
 			end
 			
 			self.bar.segments[2].progress = 1 - (cdTimer/duration)
@@ -211,8 +220,7 @@ function CombatMetronome:Init()
     self.unlocked = false
     CombatMetronome:BuildUI()
     CombatMetronome:BuildMenu()
-	-- CombatMetronome:CheckIfStackTrackerShouldLoad()
-	CombatMetronome:InitializeTracker()
+	CombatMetronome:CheckIfStackTrackerShouldLoad()
 
     self.lastInterval = 0
 
