@@ -343,5 +343,5 @@ if stacks == attributes.iMax then
 PlaySound(self.config.trackerSound)
 end
         end
-        previousStack = stacks
+        local previousStack = stacks
 end
