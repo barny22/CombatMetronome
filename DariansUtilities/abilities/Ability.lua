@@ -21,7 +21,7 @@ function Ability:ForId(id)
 	self.__index = self
 
 	local name, actionSlotType, passive
-    for i = 1, 100000 do
+    for i = 1, 300000 do
         if (id == GetAbilityIdByIndex(i)) then
             name, _, _, actionSlotType, passive, _ = GetAbilityInfoByIndex(i)
             break

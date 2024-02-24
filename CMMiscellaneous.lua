@@ -59,7 +59,7 @@ CM_DEFAULT_SAVED_VARS = {
 	["trackerY"] = 0,
 	["hideTracker"] = true,
 	["trackerPlaySound"] = false,
-	["trackerSound"] = "ABILITY_COMPANION_ULTIMATE_READY",
+	["trackerSound"] = "Ability_Companion_Ultimate_Ready",
 }
 
 CM_TRACKER_CLASS_ATTRIBUTES = {
@@ -85,7 +85,7 @@ CM_TRACKER_CLASS_ATTRIBUTES = {
 			["rF"] = "/esoui/art/icons/ability_nightblade_005_a.dds",
 			["mR"] = "/esoui/art/icons/ability_nightblade_005_b.dds",
 		},
-		["graphic"] = "/esoui/art/icons/ability_nightblade_005.dds",
+		["graphic"] = "",
 		["highlight"] = {1,0,0,0.2},
 	},
 }

@@ -32,8 +32,8 @@ Thanks for Seltiix for prototyping the initial sound cue system.
 
 Dependencies:
 [LIST]
-[*] LibAddonMenu-2.0
-[*] libAddonKeybinds
+[*]LibAddonMenu-2.0
+[*]libAddonKeybinds
 [/LIST]
 
 Features

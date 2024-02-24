@@ -22,15 +22,9 @@ local sounds = {
 local fullStackSounds = {
 	"ABILITY_COMPANION_ULTIMATE_READY",
 	"ABILITY_WEAPON_SWAP_FAIL",
-	"ACTIVE_SKILL_UNMORPHED",
-	"ALCHEMY_CLOSED", 
-	"ALCHEMY_OPENED",
 	"ANTIQUITIES_DIGGING_DIG_POWER_REFUND",
-	"ANTIQUITIES_FANFARE_FRAGMENT_DISCOVERED_FINAL",
 	"BATTLEGROUND_CAPTURE_AREA_CAPTURED_OTHER_TEAM",
 	"BATTLEGROUND_COUNTDOWN_FINISH",
-	"BATTLEGROUND_MURDERBALL_RETURNED",
-	"COUNTDOWN_TICK",
 }
 
 function CombatMetronome:BuildMenu()
@@ -40,9 +34,10 @@ function CombatMetronome:BuildMenu()
     -- end
 
     self.menu = { }
-    self.menu.abilityAdjustChoices = { }
+    -- self.menu.abilityAdjustChoices = { }
     self.menu.curSkillName = ABILITY_ADJUST_PLACEHOLDER
     self.menu.curSkillId = -1
+	local attributes = CM_TRACKER_CLASS_ATTRIBUTES[self.class]
     self.menu.metadata = {
         type = "panel",
         name = "Combat Metronome",
@@ -52,6 +47,7 @@ function CombatMetronome:BuildMenu()
         slashCommand = "/cm",
         registerForRefresh = true,
     }
+	-- local slotInQuestion = 1
     self.menu.options = {
         {
             type = "header",
@@ -708,59 +704,74 @@ function CombatMetronome:BuildMenu()
 				{
 					type = "editbox",
 					name = "Add skill to adjust",
-					isMultiline = false,
-					getFunc = function() return "" end,
-					setFunc = function(name)
-						if not name or #name == 0 then return end
-						for id = 0, 100000 do
-							if GetAbilityName(id) == name then
-								_=self.log and log("Found ability for ", name, " id = ", id)
-								self.menu.curSkillName = name
-								self.menu.curSkillId = id
-								self.config.abilityAdjusts[id] = 0
-								self:UpdateAdjustChoices()
-								return
-							end
-						end
-						log("CM - Could not find valid ability named ", name, "!")
+					isMultiline = true,
+					disabled = true,
+					getFunc = function() return ABILITY_ADJUST_PLACEHOLDER end,
+					setFunc = function()
+						-- if not name or #name == 0 then return end
+						-- for id = 0, 300000 do
+							-- if GetAbilityName(id) == name then
+								-- _=self.log and log("Found ability for ", name, " id = ", id)
+								-- self.menu.curSkillName = name
+								-- self.menu.curSkillId = id
+								-- self.config.abilityAdjusts[id] = 0
+								-- self:UpdateAdjustChoices()
+								-- return
+							-- end
+						-- end
+						-- log("CM - Could not find valid ability named ", name, "!")
 					end
 				},
-				{
-					type = "dropdown",
-					name = "Select skill adjust",
-					choices = self.menu.abilityAdjustChoices,
-					getFunc = function() return self.menu.curSkillName end,
-					setFunc = function(value) 
-						self.menu.curSkillName = value
-						for id, adj in pairs(self.config.abilityAdjusts) do
-							if GetAbilityName(id) == value then
-								self.menu.curSkillId = id
-							end
-						end
-					end
-				},
-				{
-					type = "slider",
-					name = "Modify skill adjust",
-					min = -MAX_ADJUST,
-					max = MAX_ADJUST,
-					step = 1,
-					getFunc = function() return self.config.abilityAdjusts[self.menu.curSkillId] or 0 end,
-					setFunc = function(value)
-						if self.config.abilityAdjusts[self.menu.curSkillId] then
-							self.config.abilityAdjusts[self.menu.curSkillId] = value
-						end
-					end
-				},
-				{
-					type = "button",
-					name = "Remove skill adjust",
-					func = function()
-						_=DLog and log("Removing skill ", self.menu.curSkillName, " id: ", self.menu.curSkillId)
-						self.config.abilityAdjusts[self.menu.curSkillId] = nil
-						self:UpdateAdjustChoices()
-					end
-				},
+				-- {
+					-- type = "dropdown",
+					-- name = "Select skill adjust",
+					-- choices = self.menu.abilityAdjustChoices,
+					-- getFunc = function() return self.menu.curSkillName end,							self.menu.abilityAdjustChoices = CombatMetronome:BuildListForAbilityAdjusts()
+					-- setFunc = function(value) 
+						-- self.menu.curSkillName = value
+						-- for id, adj in pairs(self.config.abilityAdjusts) do
+							-- if GetAbilityName(id) == value then
+								-- self.menu.curSkillId = id
+							-- end
+						-- end
+					-- end
+				-- },
+				-- {
+					-- type = "dropdown",
+					-- name = "Select skill adjust",
+					-- getFunc = function() return self.menu.abilityAdjustChoices[1] end,
+					-- choices = self.menu.abilityAdjustChoices,
+					-- setFunc = function() 
+						-- self.menu.curSkillName = value
+						-- for id, adj in pairs(self.config.abilityAdjusts) do
+							-- if GetAbilityName(id) == value then
+								-- self.menu.curSkillId = id
+							-- end
+						-- end
+					-- end
+				-- },
+				-- {
+					-- type = "slider",
+					-- name = "Modify skill adjust",
+					-- min = -MAX_ADJUST,
+					-- max = MAX_ADJUST,
+					-- step = 1,
+					-- getFunc = function() return self.config.abilityAdjusts[self.menu.curSkillId] or 0 end,
+					-- setFunc = function(value)
+						-- if self.config.abilityAdjusts[self.menu.curSkillId] then
+							-- self.config.abilityAdjusts[self.menu.curSkillId] = value
+						-- end
+					-- end
+				-- },
+				-- {
+					-- type = "button",
+					-- name = "Remove skill adjust",
+					-- func = function()
+						-- _=DLog and log("Removing skill ", self.menu.curSkillName, " id: ", self.menu.curSkillId)
+						-- self.config.abilityAdjusts[self.menu.curSkillId] = nil
+						-- self:UpdateAdjustChoices()
+					-- end
+				-- },
 			},
 		},
 		-----------------------
@@ -805,6 +816,7 @@ function CombatMetronome:BuildMenu()
 			getFunc = function() return self.config.trackerSound end,
 			setFunc = function(value) 
 				self.config.trackerSound = value
+				PlaySound(SOUNDS[value])
 			end
 		},
 		-- {
@@ -839,7 +851,7 @@ function CombatMetronome:BuildMenu()
 		{
 			type = "submenu",
 			name = "Stack Tracker",
-			description = "Lets you track your stacks on e.g. crux or bound armaments. This works on Nightblade, Sorcerer, Dragonknight and Arcanist.",
+			tooltip = "Lets you track your stacks on e.g. crux or bound armaments. This works on Nightblade, Sorcerer, Dragonknight and Arcanist.",
 			controls = {
 				{	type = "slider",
 					name = "Stack indicator size",
@@ -866,61 +878,61 @@ function CombatMetronome:BuildMenu()
 						self.config.indicatorSize = value
 						self.stackTracker.indicator.ApplySize(value)
 						self.stackTracker.indicator.ApplyDistance(value/5, value)
-						self.stackTracker.stacksWindow:SetDimensions((size*attributes.iMax+distance*(attributes.iMax-1)), size)
-						self.config.trackerX = self.stackTracker.stacksWindow:GetLeft()
-						self.config.trackerY = self.stackTracker.stacksWindow:GetTop()
+						self.stackTracker.stacksWindow:SetDimensions((value*attributes.iMax+(value/5)*(attributes.iMax-1)), value)
+						-- self.config.trackerX = self.stackTracker.stacksWindow:GetLeft()
+						-- self.config.trackerY = self.stackTracker.stacksWindow:GetTop()
 					end,
 				},
 				{
 					type = "checkbox",
 					name = "Track Molten Whip Stacks",
-					warning = "If changed, will automaticly reload the UI.",
+					-- warning = "If changed, will automaticly reload the UI.",
 					disabled = function()
 						return self.class ~= "DK"
 					end,
 					getFunc = function() return self.config.trackMW end,
 					setFunc = function(value)
 						self.config.trackMW = value
-						ReloadUI()
+						-- ReloadUI()
 					end
 				},
 				{
 					type = "checkbox",
 					name = "Track Bound Armaments Stacks",
-					warning = "If changed, will automaticly reload the UI.",
+					-- warning = "If changed, will automaticly reload the UI.",
 					disabled = function()
 						return self.class ~= "SOR"
 					end,
 					getFunc = function() return self.config.trackBA end,
 					setFunc = function(value)
 						self.config.trackBA = value
-						ReloadUI()
+						-- ReloadUI()
 					end
 				},
 				{
 					type = "checkbox",
 					name = "Track Stacks of Grimm Focus and its Morphs",
-					warning = "If changed, will automaticly reload the UI.",
+					-- warning = "If changed, will automaticly reload the UI.",
 					disabled = function()
 						return self.class ~= "NB"
 					end,
 					getFunc = function() return self.config.trackGF end,
 					setFunc = function(value)
 						self.config.trackGF = value
-						ReloadUI()
+						-- ReloadUI()
 					end
 				},
 				{
 					type = "checkbox",
 					name = "Track Crux Stacks",
-					warning = "If changed, will automaticly reload the UI.",
+					-- warning = "If changed, will automaticly reload the UI.",
 					disabled = function() 
 						return self.class ~= "ARC"
 					end,
 					getFunc = function() return self.config.trackCrux end,
 					setFunc = function(value)
 						self.config.trackCrux = value
-						ReloadUI()
+						-- ReloadUI()
 					end
 				},
 			},
@@ -945,10 +957,95 @@ function CombatMetronome:BuildMenu()
             end
         },
 ]]
+		---------------------------
+		---- Get Ability Infos ----
+		---------------------------
+		-- {
+			-- type = "slider",
+			-- name = "Ability Slot",
+			-- min = 1,
+			-- max = 6,
+			-- step = 1,
+			-- default = slotInQuestion,
+			-- getFunc = function() return slotInQuestion end,
+			-- setFunc = function(value)
+				-- slotInQuestion = value
+				-- return slotInQuestion
+			-- end
+		-- },
+		-- {
+			-- type = "editbox",
+			-- name = "Ability ID",
+			-- isMultiline = false,
+			-- disabled = true,
+			-- getFunc = function()
+				-- return self.actionSlotCache[slotInQuestion].id
+			-- end,
+			-- setFunc = function() end,
+		-- },
+		-- {
+			-- type = "editbox",
+			-- name = "Ability Name",
+			-- isMultiline = false,
+			-- disabled = true,
+			-- getFunc = function()
+				-- return self.actionSlotCache[slotInQuestion].name
+			-- end,
+			-- setFunc = function() end,
+		-- },
+		-- {
+			-- type = "editbox",
+			-- name = "Ability Icon",
+			-- isMultiline = false,
+			-- width = "half",
+			-- disabled = true,
+			-- getFunc = function() 
+				-- return self.actionSlotCache[self.slotInQuestion].icon
+			-- end,
+			-- setFunc = function() end,
+		-- },
+		-- {
+			-- type = "editbox",
+			-- name = "Ability Place",
+			-- isMultiline = false,
+			-- width = "half",
+			-- disabled = true,
+			-- getFunc = function()
+				-- return self.actionSlotCache[self.slotInQuestion].place
+			-- end,
+			-- setFunc = function() end,
+		-- },
+		-- {
+			-- type = "button",
+			-- name = "Get Ability Info",
+			-- tooltip = "This button gives you Info about the chosen ability",
+			-- width = "half",
+			-- func = function()
+				-- local ProgressionSkill = GetProgressionSkillCurrentMorphSlot(GetProgressionSkillProgressionId(1, 1, 6))
+				-- local skillType,skillLineIndex,skillIndex,morphChoice,rank = GetSpecificSkillAbilityKeysByAbilityId(61902)
+				-- local skillType2,skillLineIndex2,skillIndex2,morphChoice2,rank2 = GetSpecificSkillAbilityKeysByAbilityId(61919)
+				-- local skillType3,skillLineIndex3,skillIndex3,morphChoice3,rank3 = GetSpecificSkillAbilityKeysByAbilityId(61927)
+				-- local ProgressionRank = GetAbilityProgressionRankFromAbilityId(self.actionSlotCache[slotInQuestion].id)
+				-- d(ProgressionSkill)
+				-- d(skillType..","..skillLineIndex..","..skillIndex..","..morphChoice..","..rank)
+				-- d(skillType2..","..skillLineIndex2..","..skillIndex2..","..morphChoice2..","..rank2)
+				-- d(skillType3..","..skillLineIndex3..","..skillIndex3..","..morphChoice3..","..rank3)
+				-- d(ProgressionRank)
+			-- end,
+		-- },
+		-- {
+			-- type = "button",
+			-- name = "Update Actionslots",
+			-- tooltip = "Does what it says",
+			-- width = "half",
+			-- func = function()
+				-- CombatMetronome:StoreAbilitiesOnActionBar()
+			-- end,
+		-- },
     }
 
     self.menu.panel = LAM:RegisterAddonPanel(self.name.."Options", self.menu.metadata)
     LAM:RegisterOptionControls(self.name.."Options", self.menu.options)
 
-    self:UpdateAdjustChoices()
+    -- self:UpdateAdjustChoices()
 end

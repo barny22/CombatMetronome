@@ -19,6 +19,10 @@ local INTERVAL = 200
 
 ZO_CreateStringId("SI_BINDING_NAME_COMBATMETRONOME_FORCE", "Force display")
 
+	-------------------------
+	---- Update Cast Bar ----
+	-------------------------
+
 function CombatMetronome:Update()
 	
 	if self.config.dontShowPing then
@@ -121,22 +125,18 @@ function CombatMetronome:Update()
 					-- d("Ability with cast time < 1s detected")
 					if timeRemaining >= 0 then
 						if self.bar.segments[2].color == self.config.progressColor then
-							self.bar:UpdateSegment(2, {
-							color = self.config.channeledColor,
-							clip = true,
-							})
-							d("Trying to update Channel Color")
+							self.bar.segments[2].color = self.config.channelColor
+							-- d("Trying to update Channel Color")
 						end
-						-- self:BuildUI()
 					elseif timeRemaining <= 0 then
-						if self.bar.segments[2].color == self.config.channeledColor then
-							self.bar:UpdateSegment(2, {
-							color = self.config.progressColor,
-							clip = true,
-							})
-							-- self:BuildUI()
-							d("Turning back to Progress Color")
+						if self.bar.segments[2].color == self.config.channelColor then
+							self.bar.segments[2].color = self.config.progressColor
+							-- d("Turning back to Progress Color")
 						end
+					end
+				else
+					if self.bar.segments[2].color == self.config.channelColor then
+						self.bar.segments[2].color = self.config.progressColor
 					end
 				end
 			end
@@ -200,6 +200,10 @@ function CombatMetronome:Update()
 	oldHotbar = GetActiveHotbarCategory()
 end
 
+	-------------------------------------
+	---- Initialize Combat Metronome ----
+	-------------------------------------
+
 function CombatMetronome:Init()
     self.config = ZO_SavedVars:NewCharacterIdSettings("CombatMetronomeSavedVars", 1, nil, CM_DEFAULT_SAVED_VARS)
     if self.config.global then
@@ -220,9 +224,10 @@ function CombatMetronome:Init()
     self.unlocked = false
     CombatMetronome:BuildUI()
     CombatMetronome:BuildMenu()
-	CombatMetronome:CheckIfStackTrackerShouldLoad()
+	-- CombatMetronome:CheckIfStackTrackerShouldLoad()
 
     self.lastInterval = 0
+	self.actionSlotCache = CombatMetronome:StoreAbilitiesOnActionBar()
 
     EVENT_MANAGER:RegisterForUpdate(
         self.name.."Update",
@@ -234,6 +239,15 @@ function CombatMetronome:Init()
         self.name.."UpdateLabels",
         1000 / 60,
         function(...) self:UpdateLabels() end
+    )
+	
+	EVENT_MANAGER:RegisterForUpdate(
+        self.name.."CurrentActionslotsOnHotbar",
+        1000 / 60,
+        function()
+			self.actionSlotCache = CombatMetronome:StoreAbilitiesOnActionBar()
+			-- self.menu.abilityAdjustChoices = CombatMetronome:BuildListForAbilityAdjusts()
+        end
     )
 
     EVENT_MANAGER:RegisterForEvent(
@@ -257,9 +271,24 @@ function CombatMetronome:Init()
             end
         end
     )
-
-    Util.Ability.Tracker.CombatMetronome = self
+	
+	Util.Ability.Tracker.CombatMetronome = self
     Util.Ability.Tracker:Start()
+	
+	----------------------------------
+	---- Initialize Stack Tracker ----
+	----------------------------------
+	if CM_TRACKER_CLASS_ATTRIBUTES[self.class] then
+		self.stackTracker = CombatMetronome:BuildStackTracker()
+		self.stackTracker.indicator.ApplySize(self.config.indicatorSize)
+		self.stackTracker.indicator.ApplyDistance(self.config.indicatorSize/5, self.config.indicatorSize)
+	
+		EVENT_MANAGER:RegisterForUpdate(
+			self.name.."UpdateStacks",
+			1000 / 60,
+			function(...) CombatMetronome:TrackerUpdate() end
+		)
+	end
 end
 
 -- LOAD HOOK
@@ -271,38 +300,18 @@ end
 --     CombatMetronome:Init()
 -- end)
 
---------------------------------------
----- Check for stack tracker load ----
---------------------------------------
+	--------------------------------------
+	---- Check for stack tracker load ----
+	--------------------------------------
 
-function CombatMetronome:CheckIfStackTrackerShouldLoad()
-	-- if CM_TRACKER_CLASS_ATTRIBUTES[self.class] then
-		if self.class == "ARC" and self.config.trackCrux then
-			CombatMetronome:InitializeTracker()
-		elseif self.class == "DK" and self.config.trackMW then
-			CombatMetronome:InitializeTracker()
-		elseif self.class == "SOR" and self.config.trackBA then
-			CombatMetronome:InitializeTracker()
-		elseif self.class == "NB" and self.config.trackGF then
-			CombatMetronome:InitializeTracker()
-		end
-	-- end
-end
-
-	----------------------------------
-	---- Initialize Stack Tracker ----
-	----------------------------------
-	
-function CombatMetronome:InitializeTracker()
-
-	self.stackTracker = CombatMetronome:BuildStackTracker()
-	self.stackTracker.indicator.ApplySize(self.config.indicatorSize)
-	self.stackTracker.indicator.ApplyDistance(self.config.indicatorSize/5, self.config.indicatorSize)
-	
-	EVENT_MANAGER:RegisterForUpdate(
-		self.name.."UpdateStacks",
-		1000 / 60,
-		function(...) CombatMetronome:TrackerUpdate() end
-	)
-	
-end
+-- function CombatMetronome:CheckIfStackTrackerShouldBeVisible()
+		-- if self.class == "ARC" and self.config.trackCrux then
+			-- CombatMetronome:InitializeTracker()
+		-- elseif self.class == "DK" and self.config.trackMW then
+			-- CombatMetronome:InitializeTracker()
+		-- elseif self.class == "SOR" and self.config.trackBA then
+			-- CombatMetronome:InitializeTracker()
+		-- elseif self.class == "NB" and self.config.trackGF then
+			-- CombatMetronome:InitializeTracker()
+		-- end
+-- end

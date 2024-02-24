@@ -1,4 +1,4 @@
-local LAM = LibAddonMenu2
+-- local LAM = LibAddonMenu2
 local Util = DariansUtilities
 
 local MIN_WIDTH = 50

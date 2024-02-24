@@ -23,19 +23,19 @@ Dependencies:
 
 [LIST]
 [*]LibAddonMenu-2.0
-[*]    libAddonKeybinds
+[*]libAddonKeybinds
 [/LIST]
 
 Features
 
 [LIST]
 [*]Heavy attack + Cast / Channel + GCD tracking = Consolidate all of your combat timing into one bar
-[*]    Displays your ping live on the bar to allow spell queueing with live latency information.
-[*]    Timing adjustments. Firing abilities too early or too late? - Fine tune the displayed GCD / heavy timer / cast / channel individually (or globally) for ANY ability to best suit your play.
-[*]    Auto hides - Keeps your UI clean
-[*]    Flashing animation on health percentage during execute
-[*]    Keybind to force display + show absolute health
-[*]    'Tick Tock' sound cues for audio feedback
+[*]Displays your ping live on the bar to allow spell queueing with live latency information.
+[*]Timing adjustments. Firing abilities too early or too late? - Fine tune the displayed GCD / heavy timer / cast / channel individually (or globally) for ANY ability to best suit your play.
+[*]Auto hides - Keeps your UI clean
+[*]Flashing animation on health percentage during execute
+[*]Keybind to force display + show absolute health
+[*]'Tick Tock' sound cues for audio feedback
 [/LIST]
 
 To access the addon settings quickly, enter the command /cm[/QUOTE]
