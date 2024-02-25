@@ -82,9 +82,19 @@ function Ability:ForName(name)
     return self:ForId(Ability.getIdFromName(name))
 end
 
+function Ability:CropZOSSpellName(zosString)
+    local _, zosSpellDivider = string.find(zosString, "%^")
+    
+    if zosSpellDivider then
+        return string.sub(zosString, 1, zosSpellDivider - 1)
+    else
+        return zosString
+    end
+end
+
 function Ability.getIdFromName(name)
     local hotbar = GetActiveHotbarCategory()
-    for i = 1, 100000 do
+    for i = 1, 300000 do
         if (CanAbilityBeUsedFromHotbar(i, hotbar) and name == GetAbilityName(i)) then
             return i
         end
