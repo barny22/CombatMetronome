@@ -34,9 +34,10 @@ function CombatMetronome:BuildMenu()
     -- end
 
     self.menu = { }
-    -- self.menu.abilityAdjustChoices = { }
+    self.menu.abilityAdjustChoices = { }
     self.menu.curSkillName = ABILITY_ADJUST_PLACEHOLDER
     self.menu.curSkillId = -1
+	self.listOfCurrentSkills = {}
 	local attributes = CM_TRACKER_CLASS_ATTRIBUTES[self.class]
     self.menu.metadata = {
         type = "panel",
@@ -701,77 +702,78 @@ function CombatMetronome:BuildMenu()
             name = "Ability timer adjusts",
             description = "Adjusts timers on specific skills - This is applied ON TOP of relevant global adjust",
 			controls = {
-				{
-					type = "editbox",
-					name = "Add skill to adjust",
-					isMultiline = true,
-					disabled = true,
-					getFunc = function() return ABILITY_ADJUST_PLACEHOLDER end,
-					setFunc = function()
-						-- if not name or #name == 0 then return end
-						-- for id = 0, 300000 do
-							-- if GetAbilityName(id) == name then
-								-- _=self.log and log("Found ability for ", name, " id = ", id)
-								-- self.menu.curSkillName = name
-								-- self.menu.curSkillId = id
-								-- self.config.abilityAdjusts[id] = 0
-								-- self:UpdateAdjustChoices()
-								-- return
-							-- end
-						-- end
-						-- log("CM - Could not find valid ability named ", name, "!")
-					end
-				},
 				-- {
 					-- type = "dropdown",
-					-- name = "Select skill adjust",
-					-- choices = self.menu.abilityAdjustChoices,
-					-- getFunc = function() return self.menu.curSkillName end,							self.menu.abilityAdjustChoices = CombatMetronome:BuildListForAbilityAdjusts()
-					-- setFunc = function(value) 
-						-- self.menu.curSkillName = value
-						-- for id, adj in pairs(self.config.abilityAdjusts) do
-							-- if GetAbilityName(id) == value then
-								-- self.menu.curSkillId = id
-							-- end
-						-- end
-					-- end
-				-- },
-				-- {
-					-- type = "dropdown",
-					-- name = "Select skill adjust",
-					-- getFunc = function() return self.menu.abilityAdjustChoices[1] end,
-					-- choices = self.menu.abilityAdjustChoices,
-					-- setFunc = function() 
-						-- self.menu.curSkillName = value
-						-- for id, adj in pairs(self.config.abilityAdjusts) do
-							-- if GetAbilityName(id) == value then
-								-- self.menu.curSkillId = id
-							-- end
-						-- end
-					-- end
-				-- },
-				-- {
-					-- type = "slider",
-					-- name = "Modify skill adjust",
-					-- min = -MAX_ADJUST,
-					-- max = MAX_ADJUST,
-					-- step = 1,
-					-- getFunc = function() return self.config.abilityAdjusts[self.menu.curSkillId] or 0 end,
-					-- setFunc = function(value)
-						-- if self.config.abilityAdjusts[self.menu.curSkillId] then
-							-- self.config.abilityAdjusts[self.menu.curSkillId] = value
-						-- end
-					-- end
+					-- name = "Currently equipped abilities",
+					-- choices = self.listOfCurrentSkills,
+					-- getFunc = function() return self.listOfCurrentSkills[1] end,
+					-- setFunc = function() return end
 				-- },
 				-- {
 					-- type = "button",
-					-- name = "Remove skill adjust",
+					-- name = "Build ability list",
+					-- width = "half",
 					-- func = function()
-						-- _=DLog and log("Removing skill ", self.menu.curSkillName, " id: ", self.menu.curSkillId)
-						-- self.config.abilityAdjusts[self.menu.curSkillId] = nil
-						-- self:UpdateAdjustChoices()
+						-- self.listOfCurrentSkills = CombatMetronome:BuildListForAbilityAdjusts()
 					-- end
 				-- },
+				{
+					type = "editbox",
+					name = "Add skill to adjust",
+					isMultiline = false,
+					-- disabled = true,
+					getFunc = function() return self.menu.curSkillName end,
+					setFunc = function(name)
+						if not name or #name == 0 then return end
+						for id = 0, 300000 do
+							if CombatMetronome:CropZOSSpellName(GetAbilityName(id)) == name then
+								--[[_=self.log and]] d("Found ability for "..name, "id = "..id)
+								self.menu.curSkillName = name
+								self.menu.curSkillId = id
+								self.config.abilityAdjusts[id] = 0
+								self:UpdateAdjustChoices()
+								return
+							end
+						end
+						d("CM - Could not find valid ability named "..name.."!")
+					end
+				},
+				{
+					type = "dropdown",
+					name = "Select skill adjust",
+					choices = self.menu.abilityAdjustChoices,
+					getFunc = function() return self.menu.curSkillName end,
+					setFunc = function(value) 
+						self.menu.curSkillName = value
+						for id, adj in pairs(self.config.abilityAdjusts) do
+							if GetAbilityName(id) == value then
+								self.menu.curSkillId = id
+							end
+						end
+					end
+				},
+				{
+					type = "slider",
+					name = "Modify skill adjust",
+					min = -MAX_ADJUST,
+					max = MAX_ADJUST,
+					step = 1,
+					getFunc = function() return self.config.abilityAdjusts[self.menu.curSkillId] or 0 end,
+					setFunc = function(value)
+						if self.config.abilityAdjusts[self.menu.curSkillId] then
+							self.config.abilityAdjusts[self.menu.curSkillId] = value
+						end
+					end
+				},
+				{
+					type = "button",
+					name = "Remove skill adjust",
+					func = function()
+						--[[_=DLog and]] d("Removing skill "..self.menu.curSkillName, "id: "..self.menu.curSkillId)
+						self.config.abilityAdjusts[self.menu.curSkillId] = nil
+						self:UpdateAdjustChoices()
+					end
+				},
 			},
 		},
 		-----------------------

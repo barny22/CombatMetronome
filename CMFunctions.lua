@@ -119,40 +119,40 @@ end
 	---- Ability Adjusts ----
 	-------------------------
 
--- function CombatMetronome:UpdateAdjustChoices()
-    -- local names = self.menu.abilityAdjustChoices
+function CombatMetronome:UpdateAdjustChoices()
+    local names = self.menu.abilityAdjustChoices
 
-    -- for k in pairs(names) do names[k] = nil end
+    for k in pairs(names) do names[k] = nil end
 
-    -- for id, adj in pairs(self.config.abilityAdjusts) do
-        -- local name = GetAbilityName(id)
-        -- names[#names + 1] = name
-    -- end
+    for id, adj in pairs(self.config.abilityAdjusts) do
+        local name = GetAbilityName(id)
+        names[#names + 1] = name
+    end
 
-    -- if #names == 0 then
-        -- names[1] = ABILITY_ADJUST_PLACEHOLDER
-        -- self.menu.curSkillName = ABILITY_ADJUST_PLACEHOLDER
-        -- self.menu.curSkillId = -1
-    -- else
-        -- if not self.config.abilityAdjusts[self.menu.curSkillId] then
-            -- for id, _ in pairs(self.config.abilityAdjusts) do
-                -- self.menu.curSkillId = id
-                -- self.menu.curSkillName = GetAbilityName(id)
-                -- break
-            -- end
-        -- end
-    -- end
+    if #names == 0 then
+        names[1] = ABILITY_ADJUST_PLACEHOLDER
+        self.menu.curSkillName = ABILITY_ADJUST_PLACEHOLDER
+        self.menu.curSkillId = -1
+    else
+        if not self.config.abilityAdjusts[self.menu.curSkillId] then
+            for id, _ in pairs(self.config.abilityAdjusts) do
+                self.menu.curSkillId = id
+                self.menu.curSkillName = GetAbilityName(id)
+                break
+            end
+        end
+    end
 
-    -- local panelControls = self.menu.panel.controlsToRefresh
-    -- for i = 1, #panelControls do
-        -- local control = panelControls[i]
-        -- if (control.data and control.data.name == "Select skill adjust") then
-            -- control:UpdateChoices()
-            -- control:UpdateValue()
-            -- break
-        -- end
-    -- end
--- end
+    local panelControls = self.menu.panel.controlsToRefresh
+    for i = 1, #panelControls do
+        local control = panelControls[i]
+        if (control.data and control.data.name == "Select skill adjust") then
+            control:UpdateChoices()
+            control:UpdateValue()
+            break
+        end
+    end
+end
 
 function CombatMetronome:BuildListForAbilityAdjusts()
 	local list = {}

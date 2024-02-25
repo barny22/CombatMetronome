@@ -1,7 +1,7 @@
 2024-02-14 v1.6.4
+!  Fixed the ability adjusts section. Should now work as intended
 +  Added an ability stack tracker for stackable abilities like bound armaments, crux, molten whip or grimm focus and its morphs
-+  Added a colorpicker for the labels
-+  Added a label for magicka and options to resize labels
++  Added a label for magicka and options to resize and colorize labels
 +  Added option to change bar color on channeling abilities <1 second to indicate possibility to barswap
 +  Cleaned up the addon menu by introducing submenus
 +  A little bit more order to the code by adding sections
