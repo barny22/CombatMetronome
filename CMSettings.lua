@@ -705,16 +705,18 @@ function CombatMetronome:BuildMenu()
 				-- {
 					-- type = "dropdown",
 					-- name = "Currently equipped abilities",
+					-- width = "half",
 					-- choices = self.listOfCurrentSkills,
-					-- getFunc = function() return self.listOfCurrentSkills[1] end,
-					-- setFunc = function() return end
+					-- getFunc = function() return self.listOfCurrentSkills end,
+					-- setFunc = function() end
 				-- },
 				-- {
 					-- type = "button",
 					-- name = "Build ability list",
 					-- width = "half",
 					-- func = function()
-						-- self.listOfCurrentSkills = CombatMetronome:BuildListForAbilityAdjusts()
+						-- self.listOfCurrentSkills = CombatMetronome:BuildListOfCurrentSkills()
+						-- d(self.listOfCurrentSkills)
 					-- end
 				-- },
 				{
@@ -788,7 +790,7 @@ function CombatMetronome:BuildMenu()
 			tooltip = "Move stack tracker",
 			-- width = "half",
 			disabled = function ()
-				return not self.stackTracker.stacksWindow
+				return not self:TrackerIsActive()											--CM_TRACKER_CLASS_ATTRIBUTES[self.class]
 			end,
 			getFunc = function() return self.config.trackerIsUnlocked end,
 			setFunc = function(value)
@@ -802,7 +804,7 @@ function CombatMetronome:BuildMenu()
 			tooltip = "Plays a sound when you are at max stacks, so you don't miss to cast your ability",
 			-- width = "half",
 			disabled = function ()
-				return not self.stackTracker.stacksWindow
+				return not self:TrackerIsActive()											--CM_TRACKER_CLASS_ATTRIBUTES[self.class]
 			end,
 			getFunc = function() return self.config.trackerPlaySound end,
 			setFunc = function(value)
@@ -814,7 +816,7 @@ function CombatMetronome:BuildMenu()
 			name = "Select Sound",
 			choices = fullStackSounds,
 			default = self.config.trackerSound,
-			disabled = function() return not (self.stackTracker.stacksWindow and self.config.trackerPlaySound) end,
+			disabled = function() return not (self:TrackerIsActive() and self.config.trackerPlaySound) end,
 			getFunc = function() return self.config.trackerSound end,
 			setFunc = function(value) 
 				self.config.trackerSound = value

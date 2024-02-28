@@ -7,7 +7,7 @@ local carverId1 = 183122
 local carverId2 = 193397
 local dodgeId = 29721
 local bAId = { ["buff"] = 203447, ["ability"] = 24165,}
-local mWId = { ["buff"] = 122658, ["ability"] = "",} -- 122729
+local mWId = { ["buff"] = 122658, ["ability"] = 20805,} -- 122729
 local gFId = {
 	["gF"] = { ["buff"] = 122585, ["ability"] = 61902,},
 	["mR"] = { ["buff"] = 122586, ["ability"] = 61919,},
@@ -154,27 +154,19 @@ function CombatMetronome:UpdateAdjustChoices()
     end
 end
 
-function CombatMetronome:BuildListForAbilityAdjusts()
+function CombatMetronome:BuildListOfCurrentSkills()
 	local list = {}
 	local listVariables = CombatMetronome:StoreAbilitiesOnActionBar()
 	table.insert(list, "----FRONTBAR----")
 	for i=1,5 do
-		local abilitiyString = tostring(i..": "..listVariables[i].id..", "..listVariables[i].name)
-		table.insert(list, abilityString)
+		table.insert(list, tostring(i..": "..listVariables[i].id..", "..listVariables[i].name))
 	end
-	-- for i=6,6 do
-		-- local abilitiyString = tostring("Ultimate: "..listVariables[i].id..", "..listVariables[i].name)
-		table.insert(list, tostring("Ultimate: "..listVariables[6].id..", "..listVariables[6].name))
-	-- end
+	table.insert(list, tostring("Ultimate: "..listVariables[6].id..", "..listVariables[6].name))
 	table.insert(list, "----BACKBAR----")
 	for i=7,11 do
-		local abilitiyString = tostring((i-6)..": "..listVariables[i].id..", "..listVariables[i].name)
-		table.insert(list, abilityString)
+		table.insert(list, tostring((i-6)..": "..listVariables[i].id..", "..listVariables[i].name))
 	end
-	-- for i=12,12 do
-		-- local abilitiyString = tostring("Ultimate: "..listVariables[i].id..", "..listVariables[i].name)
-		table.insert(list, tostring("Ultimate: "..listVariables[12].id..", "..listVariables[12].name))
-	-- end
+	table.insert(list, tostring("Ultimate: "..listVariables[12].id..", "..listVariables[12].name))
 	return list
 end
 	-------------------------
@@ -292,51 +284,25 @@ function CombatMetronome:GetCurrentNumGFOnPlayer()
 	return gFStacks
 end
 
--- function CombatMetronome:GetCurrentNumGFOnPlayer()
-	-- local start = GetGameTimeMilliseconds()
-	-- local gFStacks = 0
-	-- local mRStacks = 0
-	-- local rFStacks = 0
-	-- local maxStacks = 0
-	-- local icon = "gF"
-	-- for i=1,GetNumBuffs("player") do
-		-- local _,_,_,_,stack,_,_,_,_,_,abilityId = GetUnitBuffInfo("player", i)
-		-- if	abilityId == gFId then															--61902
-			-- gFStacks = stack
-			-- d("You currently have "..tostring(gFStacks).." Stacks of Grimm Focus")
-		-- break 
-		-- end
-	-- end
-	-- for i=1,GetNumBuffs("player") do
-		-- local _,_,_,_,stack,_,_,_,_,_,abilityId = GetUnitBuffInfo("player", i)
-		-- if	abilityId == mRId then															-- 61919
-			-- mRStacks = stack
-			-- d("You currently have "..tostring(mRStacks).." Stacks of Merciless Resolve")
-		-- break 
-		-- end
-	-- end
-	-- for i=1,GetNumBuffs("player") do
-		-- local _,_,_,_,stack,_,_,_,_,_,abilityId = GetUnitBuffInfo("player", i)
-		-- if	abilityId == rFId then															--61927
-			-- rFStacks = stack
-			-- d("You currently have "..tostring(rFStacks).." Stacks of Relentless Focus")
-		-- break 
-	-- end
-	-- end
-	-- if gFStacks > 0 and gFStacks > maxStacks then
-        -- maxStacks = gFStacks
-		-- icon = "gF"
-    -- end
-    -- if mRStacks > 0 and mRStacks > maxStacks then
-        -- maxStacks = mRStacks
-		-- icon = "mR"
-    -- end
-    -- if rFStacks > 0 and rFStacks > maxStacks then
-        -- maxStacks = rFStacks
-		-- icon = "rF"
-    -- end
-	-- return maxStacks, icon
--- end
+	------------------------------------
+	---- Check if Tracker is active ----
+	------------------------------------
+
+function CombatMetronome:TrackerIsActive()
+	local trackerIsActive = false
+	if self.class == "ARC" and self.config.trackCrux then
+		trackerIsActive = true
+	elseif self.class == "DK" and self.config.trackMW then
+		trackerIsActive = true
+	elseif self.class == "SOR" and self.config.trackBA then
+		trackerIsActive = true
+	elseif self.class == "NB" and self.config.trackGF then
+		trackerIsActive = true
+	else
+		trackerIsActive = false
+	end
+	return trackerIsActive
+end
 
 		---------------------------------------
         ---- Store abilities on Actionbars ----
@@ -389,14 +355,16 @@ end
 
 function CombatMetronome:TrackerUpdate()
 	local trackerShouldBeVisible = false
-	if self.class == "ARC" and self.config.trackCrux then
+	if self:TrackerIsActive() then
 		trackerShouldBeVisible = true
-	elseif self.class == "DK" and self.config.trackMW then
-		trackerShouldBeVisible = true
-	elseif self.class == "SOR" and self.config.trackBA then
-		trackerShouldBeVisible = true
-	elseif self.class == "NB" and self.config.trackGF then
-		trackerShouldBeVisible = true
+	-- if self.class == "ARC" and self.config.trackCrux then
+		-- trackerShouldBeVisible = true
+	-- elseif self.class == "DK" and self.config.trackMW then
+		-- trackerShouldBeVisible = true
+	-- elseif self.class == "SOR" and self.config.trackBA then
+		-- trackerShouldBeVisible = true
+	-- elseif self.class == "NB" and self.config.trackGF then
+		-- trackerShouldBeVisible = true
 	elseif self.config.trackerIsUnlocked then
 		trackerShouldBeVisible = true
 	else
