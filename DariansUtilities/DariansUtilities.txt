@@ -1,9 +1,9 @@
 ﻿## Title: DariansUtilities
 ## Description: Darian's Mod Library
 ## Author: Darianopolis, barny
-## Version: 1.7.2
-## AddOnVersion: 10702
-## APIVersion: 101040
+## Version: 1.7.3
+## AddOnVersion: 10703
+## APIVersion: 101041
 ## IsLibrary: true
 
 ; This Add-on is not created by, affiliated with or sponsored by ZeniMax
