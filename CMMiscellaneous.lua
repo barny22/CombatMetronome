@@ -14,6 +14,7 @@ CM_DEFAULT_SAVED_VARS = {
 	["changeOnChanneled"] = false,
     ["gcdAdjust"] = 0,
     ["barAlign"] = "Center",
+	["labelFont"] = "$(CHAT_FONT)",
 	["trackGCD"] = false,
     ["showOOC"] = true,
     ["displayPingOnHeavy"] = true,
@@ -21,6 +22,7 @@ CM_DEFAULT_SAVED_VARS = {
     ["globalHeavyAdjust"] = 25,
     ["globalAbilityAdjust"] = 25,
     ["abilityAdjusts"] = { },
+	["showResources"] = false,
     ["showUltimate"] = true,
     ["showStamina"] = true,
 	["showMagicka"] = true,
@@ -59,6 +61,7 @@ CM_DEFAULT_SAVED_VARS = {
 	["trackerY"] = 0,
 	["hideTracker"] = true,
 	["trackerPlaySound"] = false,
+	["hightlightOnFullStacks"] = false,
 	["trackerSound"] = "Ability_Companion_Ultimate_Ready",
 }
 
@@ -67,16 +70,19 @@ CM_TRACKER_CLASS_ATTRIBUTES = {
 		["iMax"] = 3,
 		["graphic"] = "/esoui/art/icons/class_buff_arcanist_crux.dds",
 		["highlight"] = {0,1,0,0.2},
+		["highlightAnimation"] = {0.8,1,0.8,0.8},
 	},
 	["DK"] = {
 		["iMax"] = 3,
 		["graphic"] = "/esoui/art/icons/ability_dragonknight_001_b.dds",
 		["highlight"] = {1,0,0,0.2},
+		["highlightAnimation"] = {1,0.8,0.8,0.8},
 	},
 	["SOR"] = {
 		["iMax"] = 4,
 		["graphic"] = "/esoui/art/icons/ability_sorcerer_bound_armaments.dds",
 		["highlight"] = {0,0,1,0.2},
+		["highlightAnimation"] = {0.8,0.8,1,0.8},
 	},
 	["NB"] = {
 		["iMax"] = 5,
@@ -87,6 +93,7 @@ CM_TRACKER_CLASS_ATTRIBUTES = {
 		},
 		["graphic"] = "",
 		["highlight"] = {1,0,0,0.2},
+		["highlightAnimation"] = {1,0.8,0.8,0.8},
 	},
 }
 

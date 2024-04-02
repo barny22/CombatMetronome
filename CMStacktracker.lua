@@ -89,31 +89,19 @@ function CombatMetronome:BuildStackTracker()
 		-- end
 		
 		local highlightAnimation = WINDOW_MANAGER:CreateControl(self.name.."StackHighlightAnimation"..tostring(i), stackIndicator, CT_TEXTURE)
-		-- highlightAnimation:ClearAnchors()
-		highlightAnimation:SetAnchor(TOPLEFT, stackIndicator, TOPLEFT, 0, 0)
-		highlightAnimation:SetAnchor(BOTTOMRIGHT, stackIndicator, BOTTOMRIGHT, 0, 0)
-		-- highlightAnimation:SetBlendMode(TEX_BLEND_MODE_ADD)
-		-- highlightAnimation:SetDesaturation(0.4)
+		highlightAnimation:ClearAnchors()
+		-- highlightAnimation:SetAnchor(TOPLEFT, stackIndicator, TOPLEFT, 0, 0)
+		-- highlightAnimation:SetAnchor(BOTTOMRIGHT, stackIndicator, BOTTOMRIGHT, 0, 0)
 		-- highlightAnimation:SetTexture("/esoui/art/actionbar/abilityhighlight_03.dds")
 		highlightAnimation:SetTexture("/esoui/art/actionbar/abilityhighlight_mage_med.dds")
 		highlightAnimation:SetDrawTier(DT_HIGH)
-		-- highlightAnimation:SetColor(unpack(attributes.highlight))
-		-- highlightAnimation:SetDuration(1000)
+		highlightAnimation:SetColor(unpack(attributes.highlightAnimation))
+		-- highlightAnimation:SetDuration(2000)
 		
-		local highlightAnimationTimeline = ANIMATION_MANAGER:CreateTimelineFromVirtual("UltimateReadyLoop", highlightAnimation)
-		-- highlightAnimation:SetImageData(64, 64)
-		-- highlightAnimation:SetFramerate(32)
-		-- highlightAnimationTimeline:SetPlaybackType(ANIMATION_PLAYBACK_LOOP, LOOP_INDEFINITELY)
-		highlightAnimationTimeline:PlayFromStart()
-		highlightAnimation:SetHidden(false)
-		-- d(highlightAnimation:GetNamedChild('FlipCard'))
+		local highlightAnimationTimeline = ANIMATION_MANAGER:CreateTimelineFromVirtual("StackReadyLoop", highlightAnimation)
+		-- highlightAnimationTimeline:PlayFromStart()
+		highlightAnimation:SetHidden(true)
 		
-		
-		 -- anim = CreateSimpleAnimation(ANIMATION_TEXTURE, self.activationHighlight)
-                -- anim:SetImageData(64, 1)
-                -- anim:SetFramerate(30)
-                -- anim:GetTimeline():SetPlaybackType(ANIMATION_PLAYBACK_LOOP, LOOP_INDEFINITELY)
-
 	------------------------------
 	---- Highlighting Handler ----
 	------------------------------
@@ -121,18 +109,24 @@ function CombatMetronome:BuildStackTracker()
 		local function Activate()
 			icon:SetColor(1,1,1,0.8)
 			highlight:SetAlpha(0.8)
-			-- highlightAnimation:SetAlpha(0.8)
-			-- highlightAnimation:SetHidden(false)
-			-- highlightAnimationTimeline:PlayFromStart()
-			-- local highlightAnimationStarted = true
 		end
 
 		local function Deactivate()
 			icon:SetColor(0.1,0.1,0.1,0.7)
 			highlight:SetAlpha(0)
-			-- highlightAnimation:SetAlpha(0)
-			-- highlightAnimation:SetHidden(true)
-			-- if highlightAnimationStarted then highlightAnimationTimeline:Stop() highlightAnimationStarted = false end
+		end
+		
+		local function Animate()
+			-- d(tostring(highlightAnimationTimeline:GetDuration()))
+			highlightAnimation:SetHidden(false)
+			highlightAnimationTimeline:PlayFromStart()
+			-- d("Animation should've started")
+		end
+		
+		local function StopAnimation()
+			highlightAnimationTimeline:Stop()
+			highlightAnimation:SetHidden(true)
+			-- d("Animation should've stopped")
 		end
 
 		local controls = {
@@ -148,6 +142,8 @@ function CombatMetronome:BuildStackTracker()
 		controls = controls,
 		Activate = Activate,
 		Deactivate = Deactivate,
+		Animate = Animate,
+		StopAnimation = StopAnimation,
 		}
 	end
 
@@ -164,7 +160,8 @@ function CombatMetronome:BuildStackTracker()
 			indicator[i].controls.frame:SetDimensions(size,size)
 			indicator[i].controls.highlight:SetDimensions(size,size)
 			indicator[i].controls.icon:SetDimensions(size,size)
-			-- indicator[i].controls.highlightAnimation:SetDimensions(size,size)			
+			indicator[i].controls.highlightAnimation:SetAnchor(TOPLEFT, stackIcon, TOPLEFT, math.floor(size/20), math.floor(size/20))
+			indicator[i].controls.highlightAnimation:SetAnchor(BOTTOMRIGHT, stackIcon, BOTTOMRIGHT, size-math.floor(size/20), size-math.floor(size/20))
 		end
 	end
 	indicator.ApplySize = ApplySize

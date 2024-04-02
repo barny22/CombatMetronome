@@ -27,6 +27,18 @@ local fullStackSounds = {
 	"BATTLEGROUND_COUNTDOWN_FINISH",
 }
 
+local labelFonts = {
+	"$(MEDIUM_FONT)",
+	"$(BOLD_FONT)",
+	"$(CHAT_FONT)",
+	"$(GAMEPAD_LIGHT_FONT)" ,
+	"$(GAMEPAD_MEDIUM_FONT)",
+	"$(GAMEPAD_BOLD_FONT)",
+	"$(ANTIQUE_FONT)",
+	"$(HANDWRITTEN_FONT)",
+	"$(STONE_TABLET_FONT)",
+}
+
 function CombatMetronome:BuildMenu()
     -- sounds = { }
     -- for _, sound in pairs(SOUNDS) do
@@ -264,6 +276,17 @@ function CombatMetronome:BuildMenu()
 						self:BuildUI()
 					end,
 				},
+				{
+					type = "dropdown",
+					name = "Label font",
+					tooltip = "Font that is used for labels",
+					choices = labelFonts,
+					getFunc = function() return self.config.labelFont end,
+					setFunc = function(value)
+						self.config.labelFont = value
+						self:BuildUI()
+					end,
+				},
 			},
 		},
 		-------------------
@@ -273,6 +296,16 @@ function CombatMetronome:BuildMenu()
             type = "submenu",
             name = "Resources",
 			controls = {
+				{
+					type = "checkbox",
+					name = "Always show own resources",
+					tooltip = "Toggle show own resources. If this is off, your resources will only be shown, when targeting units",
+					disabled = function()
+						return self.config.showUltimate or self.config.showStamina or self.config.showMagicka
+					end,
+					getFunc = function() return self.config.showResources end,
+					setFunc = function(value) self.config.showResources = value end,
+				},
 				{
 					type = "checkbox",
 					name = "Show Ultimate",
@@ -822,6 +855,18 @@ function CombatMetronome:BuildMenu()
 				self.config.trackerSound = value
 				PlaySound(SOUNDS[value])
 			end
+		},
+		{	type = "checkbox",
+			name = "Play animation when reaching full stacks",
+			tooltip = "Gives you a more intense visual cue",
+			-- width = "half",
+			disabled = function ()
+				return not self:TrackerIsActive()											--CM_TRACKER_CLASS_ATTRIBUTES[self.class]
+			end,
+			getFunc = function() return self.config.hightlightOnFullStacks end,
+			setFunc = function(value)
+				self.config.hightlightOnFullStacks = value
+			end,
 		},
 		-- {
 			-- type = "checkbox",

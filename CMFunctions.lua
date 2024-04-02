@@ -260,6 +260,7 @@ end
 	----------------------------------------------------------------
 	---- Grimm Focus/Merciless Resolve/Relentless Focus Tracker ----
 	----------------------------------------------------------------
+	
 function CombatMetronome:CheckForGFMorph()
 	local morph = ""
 	local morphId = GetProgressionSkillCurrentMorphSlot(GetProgressionSkillProgressionId(1, 1, 6))
@@ -353,8 +354,10 @@ end
         ---- Stack Tracker Updater ----
         -------------------------------
 
+local animStart = false
+local trackerShouldBeVisible = false
+
 function CombatMetronome:TrackerUpdate()
-	local trackerShouldBeVisible = false
 	if self:TrackerIsActive() then
 		trackerShouldBeVisible = true
 	-- if self.class == "ARC" and self.config.trackCrux then
@@ -386,19 +389,26 @@ function CombatMetronome:TrackerUpdate()
 					stacks = self:GetCurrentNumGFOnPlayer()
 			end
 			for i=1,attributes.iMax do 
-					self.stackTracker.indicator[i].Deactivate()
+				self.stackTracker.indicator[i].Deactivate()
 			end
-			if stacks == 0 then return end
+			-- if stacks == 0 then return end
 			for i=1,stacks do
-					self.stackTracker.indicator[i].Activate()
+				self.stackTracker.indicator[i].Activate()
 			end
-			-- if self.config.hightlightOnFullStacks then
-				-- if previousStack == (attributes.iMax-1) then
-					-- if stacks == attributes.iMax then
-						
-					-- end
-				-- end
-			-- end
+			if self.config.hightlightOnFullStacks then											--Animation when stacks are full
+				if stacks == attributes.iMax and animStart == false then
+					for i=1,attributes.iMax do
+						self.stackTracker.indicator[i].Animate()
+					end
+					animStart = true
+				end
+				if animStart == true and stacks ~= attributes.iMax then
+					for i=1,attributes.iMax do
+						self.stackTracker.indicator[i].StopAnimation()
+					end
+					animStart = false
+				end
+			end
 			if self.config.trackerPlaySound then												--Sound cue when stacks are full
 				if previousStack == (attributes.iMax-1) then
 					if stacks == attributes.iMax then

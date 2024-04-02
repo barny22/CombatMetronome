@@ -9,6 +9,7 @@ function CombatMetronome:UpdateLabels()
     local showResources = Util.Targeting.isUnitValidCombatTarget("reticleover", self.config.showResourcesForGuard)
                           or IsUnitInCombat("player")
                           or self.force
+                          or self.config.showResources
 
     if showResources and self.config.showUltimate then        
         local ult = GetUnitPower("player", POWERTYPE_ULTIMATE)
@@ -20,7 +21,7 @@ function CombatMetronome:UpdateLabels()
 
     if showResources and self.config.showStamina then
         local stam, _, maxStam = GetUnitPower("player", POWERTYPE_STAMINA)
-        self.stamLabel:SetText(stam == maxStam and "" or string.format("%i%%", 100 * stam / maxStam))
+        self.stamLabel:SetText(stam == maxStam and "100%" or string.format("%i%%", 100 * stam / maxStam))
         self.stamLabel:SetHidden(false)
     else
         self.stamLabel:SetHidden(true)
@@ -28,7 +29,7 @@ function CombatMetronome:UpdateLabels()
 	
 	if showResources and self.config.showMagicka then
         local mag, _, maxMag = GetUnitPower("player", POWERTYPE_MAGICKA)
-        self.magLabel:SetText(mag == maxMag and "" or string.format("%i%%", 100 * mag / maxMag))
+        self.magLabel:SetText(mag == maxMag and "100%" or string.format("%i%%", 100 * mag / maxMag))
         self.magLabel:SetHidden(false)
     else
         self.magLabel:SetHidden(true)
@@ -41,7 +42,7 @@ function CombatMetronome:UpdateLabels()
         if 100 * (hp / maxHp) < self.config.hpHighlightThreshold then
             self.hpLabel:SetColor(unpack(self.config.healthColor))
             -- self.hpLabel:SetAnchor(CENTER, GuiRoot, CENTER, 0, 50)
-            self.hpLabel:SetFont(Util.Text.getFontString(nil, (self.config.healthSize + 10), "outline"))
+            self.hpLabel:SetFont(Util.Text.getFontString(self.config.labelFont, (self.config.healthSize + 10), "outline"))
 
             local PERIOD = 1000
 
@@ -53,7 +54,7 @@ function CombatMetronome:UpdateLabels()
         else
             self.hpLabel:SetColor(unpack(self.config.healthColor))
             -- self.hpLabel:SetAnchor(BOTTOMRIGHT, self.frame.body, TOPRIGHT, 0, 0)
-            self.hpLabel:SetFont(Util.Text.getFontString(nil, self.config.healthSize, "outline"))
+            self.hpLabel:SetFont(Util.Text.getFontString(self.config.labelFont, self.config.healthSize, "outline"))
         end
 
         self.hpLabel:SetText((showAbsolute or self.force)

@@ -8,7 +8,8 @@ Util.Text = Util.Text or { }
 local log = Util.log
 
 function Util.Text.getFontString(family, size, style)
-	family = family or "EsoUI/Common/Fonts/Univers57.otf"
+	-- family = family or "EsoUI/Common/Fonts/Univers57.otf"
+	family = family or "$(CHAT_FONT)"
 	size = size or 10
     style = style or "outline"
     return string.format("%s|%u|%s", family, size, style)

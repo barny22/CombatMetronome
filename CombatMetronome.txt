@@ -20,4 +20,5 @@ CMMiscellaneous.lua
 CMSettings.lua
 CMStacktracker.lua
 CMUserInterface.lua
+animations.xml
 bindings.xml
