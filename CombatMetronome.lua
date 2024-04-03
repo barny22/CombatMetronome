@@ -278,10 +278,11 @@ function CombatMetronome:Init()
 	----------------------------------
 	---- Initialize Stack Tracker ----
 	----------------------------------
+	
 	if CM_TRACKER_CLASS_ATTRIBUTES[self.class] then
 		self.stackTracker = CombatMetronome:BuildStackTracker()
-		self.stackTracker.indicator.ApplySize(self.config.indicatorSize)
 		self.stackTracker.indicator.ApplyDistance(self.config.indicatorSize/5, self.config.indicatorSize)
+		self.stackTracker.indicator.ApplySize(self.config.indicatorSize)
 	
 		EVENT_MANAGER:RegisterForUpdate(
 			self.name.."UpdateStacks",

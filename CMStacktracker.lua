@@ -160,8 +160,8 @@ function CombatMetronome:BuildStackTracker()
 			indicator[i].controls.frame:SetDimensions(size,size)
 			indicator[i].controls.highlight:SetDimensions(size,size)
 			indicator[i].controls.icon:SetDimensions(size,size)
-			indicator[i].controls.highlightAnimation:SetAnchor(TOPLEFT, stackIcon, TOPLEFT, math.floor(size/20), math.floor(size/20))
-			indicator[i].controls.highlightAnimation:SetAnchor(BOTTOMRIGHT, stackIcon, BOTTOMRIGHT, size-math.floor(size/20), size-math.floor(size/20))
+			indicator[i].controls.highlightAnimation:SetAnchor(TOPLEFT, stackIdicator, TOPLEFT, math.floor(size/20), math.floor(size/20))
+			indicator[i].controls.highlightAnimation:SetAnchor(BOTTOMRIGHT, stackIndicator, BOTTOMRIGHT, size-math.floor(size/20), size-math.floor(size/20))
 		end
 	end
 	indicator.ApplySize = ApplySize

@@ -54,9 +54,11 @@ function CombatMetronome:BuildMenu()
     self.menu.metadata = {
         type = "panel",
         name = "Combat Metronome",
-        displayName = "Combat Metronome",
-        author = "Darianopolis, barny",
+        displayName = "|ce11212C|rombat |ce11212M|retronome",			-- "Combat Metronome"
+        author = "Darianopolis, |ce11212b|c3645d6arny|r",
         version = ""..self.version,
+		website = "https://www.esoui.com/downloads/info2373-CombatMetronomeGCDTracker.html",
+		feedback = "https://www.esoui.com/portal.php?&id=386",
         slashCommand = "/cm",
         registerForRefresh = true,
     }
@@ -257,10 +259,11 @@ function CombatMetronome:BuildMenu()
 					type = "checkbox",
 					name = "Switch Progress Color while channeling",
 					tooltip = "Change bar color on channeling abilities <1 second to indicate possibility to barswap, when channel is finished",
+					warning = "This is experimental and might feel a little wonky",
 					getFunc = function() return self.config.changeOnChanneled end,
 					setFunc = function(value)
 						self.config.changeOnChanneled = value
-						self:BuildUI()
+						-- self:BuildUI()
 					end,
 				},
 				{
