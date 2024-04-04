@@ -324,7 +324,7 @@ function CombatMetronome:RegisterCM()
         end
     )
 	self.cmRegistered = true
-	d("cm is registered")
+	-- d("cm is registered")
 end
 
 function CombatMetronome:RegisterTracker()
@@ -334,7 +334,7 @@ function CombatMetronome:RegisterTracker()
 		function(...) CombatMetronome:TrackerUpdate() end
 	)
 	self.trackerRegistered = true
-	d("tracker is registered")
+	-- d("tracker is registered")
 end
 
 function CombatMetronome:UnregisterCM()
@@ -357,7 +357,7 @@ function CombatMetronome:UnregisterCM()
         self.name.."SlotUsed")
 	
 	self.cmRegistered = false
-	d("cm is unregistered")
+	-- d("cm is unregistered")
 	self.cmWarning = false
 end
 
@@ -367,6 +367,6 @@ function CombatMetronome:UnregisterTracker()
 		self.name.."UpdateStacks")
 	
 	self.trackerRegistered = false
-	d("tracker is unregistered")
+	-- d("tracker is unregistered")
 	self.trackerWarning = false
 end

@@ -371,21 +371,21 @@ function CombatMetronome:CMPVPSwitch()
 		if self.cmRegistered then
 			self:UnregisterCM()
 			self:HideBar(true)
-			d("registered cm scenario 1")
+			-- d("registered cm scenario 1")
 		elseif not self.cmRegistered then
 			self:HideBar(true)
-			d("registered cm scenario 2")
+			-- d("registered cm scenario 2")
 		end
 	else 
 		if not self.cmRegistered then
 			self:RegisterCM()
 			self:BuildUI()
 			self:HideBar(not self.config.dontHide)
-			d("registered cm scenario 3")
+			-- d("registered cm scenario 3")
 		else
 			self:BuildUI()
 			self:HideBar(not self.config.dontHide)
-			d("registered cm scenario 4")
+			-- d("registered cm scenario 4")
 		end
 	end
 end
@@ -395,15 +395,15 @@ function CombatMetronome:TrackerPVPSwitch()
 		if self.trackerRegistered then
 			self:UnregisterTracker()
 			self.stackTracker.showTracker(false)
-			d("registered tracker scenario 1")
+			-- d("registered tracker scenario 1")
 		elseif not self.trackerRegistered then
 			self.stackTracker.showTracker(false)
-			d("registered tracker scenario 2")
+			-- d("registered tracker scenario 2")
 		end
 	else
 		if not self.trackerRegistered then
 			self:RegisterTracker()
-			d("registered tracker scenario 3")
+			-- d("registered tracker scenario 3")
 		end
 	end
 end

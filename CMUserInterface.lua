@@ -237,6 +237,7 @@ function CombatMetronome:BuildStackTracker()
 		stacksWindow:SetMovable(self.config.trackerIsUnlocked)
 		stacksWindow:SetClampedToScreen(true)
 		stacksWindow:SetHidden(true)
+		-- stacksWindow:SetDrawTier(DT_HIGH)
 	-- end
 	
 	local fragment = ZO_HUDFadeSceneFragment:New(stacksWindow) 

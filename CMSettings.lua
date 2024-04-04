@@ -120,6 +120,13 @@ function CombatMetronome:BuildMenu()
 					getFunc = function() return self.frame.IsUnlocked() end,
 					setFunc = function(value)
 						self.frame:SetUnlocked(value)
+						if value then
+							self.frame:SetDrawTier(DT_HIGH)
+							self.frame:SetHidden(false)
+						else
+							self.frame:SetDrawTier(DT_LOW)
+							self.frame:SetHidden(true)
+						end
 					end,
 				},
 				{
@@ -844,7 +851,12 @@ function CombatMetronome:BuildMenu()
 			setFunc = function(value)
 				self.config.trackerIsUnlocked = value
 				self.stackTracker.stacksWindow:SetMovable(value)
-				-- self.stackTracker.stacksWindow:SetHidden(not value)
+				self.stackTracker.stacksWindow:SetHidden(not value)
+				if value then
+					self.stackTracker.stacksWindow:SetDrawTier(DT_HIGH)
+				else
+					self.stackTracker.stacksWindow:SetDrawTier(DT_LOW)
+				end
 			end,
 		},
 		{	type = "checkbox",

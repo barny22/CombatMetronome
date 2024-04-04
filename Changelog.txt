@@ -1,6 +1,7 @@
 2024-04-02 v1.6.4
 !  Fixed the ability adjusts section. Should now work as intended
 !  Fixed fonts for non latin letters and added an option to choose label font
+!  Bar and tracker are now shown in front of the settings window when unlocked and can be moved while still in settings
 +  Added option to hide tracker and/or progressbar in PVP Zones rather than just plain deactivating the AddOn
 +  Added an ability stack tracker for stackable abilities like bound armaments, crux, molten whip or grimm focus and its morphs
 +  Added an option to always show your own resources, instead of only when targeting units or in combat
