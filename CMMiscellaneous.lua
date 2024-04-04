@@ -1,5 +1,6 @@
 CM_DEFAULT_SAVED_VARS = {
-    ["xOffset"] = (GuiRoot:GetWidth() - 303) / 2,
+    ["hideCMInPVP"] = false,
+	["xOffset"] = (GuiRoot:GetWidth() - 303) / 2,
     ["yOffset"] = (GuiRoot:GetHeight() - 30) / 2,
     ["width"] = 303,
     ["height"] = 30,
@@ -52,6 +53,7 @@ CM_DEFAULT_SAVED_VARS = {
 	["stopHATracking"] = false,
 	["makeItFancy"] = false,
 	["trackerIsUnlocked"] = false,
+	["hideTrackerInPVP"] = false,
 	["trackMW"] = false,
 	["trackBA"] = false,
 	["trackGF"] = false,

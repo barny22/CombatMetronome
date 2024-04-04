@@ -299,6 +299,8 @@ function CombatMetronome:TrackerIsActive()
 		trackerIsActive = true
 	elseif self.class == "NB" and self.config.trackGF then
 		trackerIsActive = true
+	-- elseif self.hideTrackerInPVP and self.inPVPZone then
+		-- trackerIsActive = false
 	else
 		trackerIsActive = false
 	end
@@ -350,78 +352,58 @@ function CombatMetronome:CheckIfSlotted()
 	return abilitySlotted
 end
 
-        -------------------------------
-        ---- Stack Tracker Updater ----
+		-------------------------------
+        ---- PVP Check and Handler ----
         -------------------------------
 
-local animStart = false
-local trackerShouldBeVisible = false
-
-function CombatMetronome:TrackerUpdate()
-	if self:TrackerIsActive() then
-		trackerShouldBeVisible = true
-	-- if self.class == "ARC" and self.config.trackCrux then
-		-- trackerShouldBeVisible = true
-	-- elseif self.class == "DK" and self.config.trackMW then
-		-- trackerShouldBeVisible = true
-	-- elseif self.class == "SOR" and self.config.trackBA then
-		-- trackerShouldBeVisible = true
-	-- elseif self.class == "NB" and self.config.trackGF then
-		-- trackerShouldBeVisible = true
-	elseif self.config.trackerIsUnlocked then
-		trackerShouldBeVisible = true
+function CombatMetronome:IsInPvPZone()
+	if IsActiveWorldBattleground() or IsPlayerInAvAWorld() then
+		self.inPVPZone = true
 	else
-		trackerShouldBeVisible = false
+		self.inPVPZone = false
 	end
-	
-	if trackerShouldBeVisible then
-		local abilitySlotted = CombatMetronome:CheckIfSlotted()
-		if abilitySlotted or self.class == "ARC" then
-			self.stackTracker.showTracker(true)
-			local attributes = CM_TRACKER_CLASS_ATTRIBUTES[self.class]
-			if self.class == "ARC" then
-					stacks = self:GetCurrentNumCruxOnPlayer()
-			elseif self.class == "DK" then
-					stacks = self:GetCurrentNumMWOnPlayer()
-			elseif self.class == "SOR" then
-					stacks = self:GetCurrentNumBAOnPlayer()
-			elseif self.class == "NB" then
-					stacks = self:GetCurrentNumGFOnPlayer()
-			end
-			for i=1,attributes.iMax do 
-				self.stackTracker.indicator[i].Deactivate()
-			end
-			-- if stacks == 0 then return end
-			for i=1,stacks do
-				self.stackTracker.indicator[i].Activate()
-			end
-			if self.config.hightlightOnFullStacks then											--Animation when stacks are full
-				if stacks == attributes.iMax and animStart == false then
-					for i=1,attributes.iMax do
-						self.stackTracker.indicator[i].Animate()
-					end
-					animStart = true
-				end
-				if animStart == true and stacks ~= attributes.iMax then
-					for i=1,attributes.iMax do
-						self.stackTracker.indicator[i].StopAnimation()
-					end
-					animStart = false
-				end
-			end
-			if self.config.trackerPlaySound then												--Sound cue when stacks are full
-				if previousStack == (attributes.iMax-1) then
-					if stacks == attributes.iMax then
-						PlaySound(SOUNDS[self.config.trackerSound])
-						-- d("Stacks are full")
-					end
-				end
-			end
-			previousStack = stacks
+	-- d(self.inPVPZone)
+	return self.inPVPZone
+end
+
+function CombatMetronome:CMPVPSwitch()
+	if self.config.hideCMInPVP and self.inPVPZone then
+		if self.cmRegistered then
+			self:UnregisterCM()
+			self:HideBar(true)
+			d("registered cm scenario 1")
+		elseif not self.cmRegistered then
+			self:HideBar(true)
+			d("registered cm scenario 2")
+		end
+	else 
+		if not self.cmRegistered then
+			self:RegisterCM()
+			self:BuildUI()
+			self:HideBar(not self.config.dontHide)
+			d("registered cm scenario 3")
 		else
+			self:BuildUI()
+			self:HideBar(not self.config.dontHide)
+			d("registered cm scenario 4")
+		end
+	end
+end
+
+function CombatMetronome:TrackerPVPSwitch()
+	if self.config.hideTrackerInPVP and self.inPVPZone then
+		if self.trackerRegistered then
+			self:UnregisterTracker()
 			self.stackTracker.showTracker(false)
+			d("registered tracker scenario 1")
+		elseif not self.trackerRegistered then
+			self.stackTracker.showTracker(false)
+			d("registered tracker scenario 2")
 		end
 	else
-		self.stackTracker.showTracker(false)
+		if not self.trackerRegistered then
+			self:RegisterTracker()
+			d("registered tracker scenario 3")
+		end
 	end
 end

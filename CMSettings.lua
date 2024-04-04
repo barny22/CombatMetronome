@@ -94,6 +94,18 @@ function CombatMetronome:BuildMenu()
                 self:BuildUI()
             end,
         },
+		{
+			type = "checkbox",
+			name = "Hide progress bar in PVP Zones",
+			tooltip = "Hides progress bar in PVPZones to keep UI clean",
+			getFunc = function() return self.config.hideCMInPVP end,
+			setFunc = function(value)
+				self.config.hideCMInPVP = value
+				self:CMPVPSwitch()
+				-- self:BuildUI()
+			end,
+		},
+		
 		---------------------------
 		---- Position and Size ----
 		---------------------------
@@ -869,6 +881,19 @@ function CombatMetronome:BuildMenu()
 			getFunc = function() return self.config.hightlightOnFullStacks end,
 			setFunc = function(value)
 				self.config.hightlightOnFullStacks = value
+			end,
+		},
+		{
+			type = "checkbox",
+			name = "Hide tracker in PVP Zones",
+			tooltip = "Hides stack tracker in PVPZones to keep UI clean",
+			disabled = function ()
+				return not self:TrackerIsActive()											--CM_TRACKER_CLASS_ATTRIBUTES[self.class]
+			end,
+			getFunc = function() return self.config.hideTrackerInPVP end,
+			setFunc = function(value)
+				self.config.hideTrackerInPVP = value
+				self:TrackerPVPSwitch()
 			end,
 		},
 		-- {
