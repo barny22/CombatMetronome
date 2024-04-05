@@ -95,6 +95,11 @@ function CombatMetronome:BuildMenu()
             end,
         },
 		{
+            type = "header",
+            name = "Progressbar aka. GCD Tracker",
+			tooltip = "Lets you track your GCD and helps you queuing your light attacks and spells more efficiently.",
+        },
+		{
 			type = "checkbox",
 			name = "Hide progress bar in PVP Zones",
 			tooltip = "Hides progress bar in PVPZones to keep UI clean",
@@ -105,7 +110,6 @@ function CombatMetronome:BuildMenu()
 				-- self:BuildUI()
 			end,
 		},
-		
 		---------------------------
 		---- Position and Size ----
 		---------------------------
@@ -115,14 +119,37 @@ function CombatMetronome:BuildMenu()
 			controls = {
 				{
 					type = "checkbox",
-					name = "Unlock",
+					name = "Unlock progressbar",
 					tooltip = "Reposition / resize bar by dragging center / edges.",
+					width = "half",
 					getFunc = function() return self.frame.IsUnlocked() end,
 					setFunc = function(value)
 						self.frame:SetUnlocked(value)
+						if not value then
+						
+						-- if value then
+							-- self.frame:SetDrawTier(DT_HIGH)
+							-- self.frame:SetHidden(false)
+						-- else
+							self.frame:SetDrawTier(DT_LOW)
+							self.frame:SetHidden(true)
+						end
+					end,
+				},
+				{
+					type = "checkbox",
+					name = "Show bar over settings menu",
+					tooltip = "Shows progressbar over settings menu in unlocked mode",
+					disabled = function() return not self.frame.IsUnlocked() end,
+					width = "half",
+					getFunc = function() return false end,
+					setFunc = function(value)
 						if value then
 							self.frame:SetDrawTier(DT_HIGH)
 							self.frame:SetHidden(false)
+						-- elseif not self.frame.IsUnlocked() then
+							-- self.frame:SetDrawTier(DT_LOW)
+							-- self.frame:SetHidden(true)
 						else
 							self.frame:SetDrawTier(DT_LOW)
 							self.frame:SetHidden(true)
@@ -839,61 +866,7 @@ function CombatMetronome:BuildMenu()
 		-- if CM_TRACKER_CLASS_ATTRIBUTES[self.class] then
 		{	type = "header",
 			name = "Stack Tracker",
-		},
-		{	type = "checkbox",
-			name = "Unlock Tracker",
-			tooltip = "Move stack tracker",
-			-- width = "half",
-			disabled = function ()
-				return not self:TrackerIsActive()											--CM_TRACKER_CLASS_ATTRIBUTES[self.class]
-			end,
-			getFunc = function() return self.config.trackerIsUnlocked end,
-			setFunc = function(value)
-				self.config.trackerIsUnlocked = value
-				self.stackTracker.stacksWindow:SetMovable(value)
-				self.stackTracker.stacksWindow:SetHidden(not value)
-				if value then
-					self.stackTracker.stacksWindow:SetDrawTier(DT_HIGH)
-				else
-					self.stackTracker.stacksWindow:SetDrawTier(DT_LOW)
-				end
-			end,
-		},
-		{	type = "checkbox",
-			name = "Play Sound Cue when stacks are at max",
-			tooltip = "Plays a sound when you are at max stacks, so you don't miss to cast your ability",
-			-- width = "half",
-			disabled = function ()
-				return not self:TrackerIsActive()											--CM_TRACKER_CLASS_ATTRIBUTES[self.class]
-			end,
-			getFunc = function() return self.config.trackerPlaySound end,
-			setFunc = function(value)
-				self.config.trackerPlaySound = value
-			end,
-		},
-		{
-			type = "dropdown",
-			name = "Select Sound",
-			choices = fullStackSounds,
-			default = self.config.trackerSound,
-			disabled = function() return not (self:TrackerIsActive() and self.config.trackerPlaySound) end,
-			getFunc = function() return self.config.trackerSound end,
-			setFunc = function(value) 
-				self.config.trackerSound = value
-				PlaySound(SOUNDS[value])
-			end
-		},
-		{	type = "checkbox",
-			name = "Play animation when reaching full stacks",
-			tooltip = "Gives you a more intense visual cue",
-			-- width = "half",
-			disabled = function ()
-				return not self:TrackerIsActive()											--CM_TRACKER_CLASS_ATTRIBUTES[self.class]
-			end,
-			getFunc = function() return self.config.hightlightOnFullStacks end,
-			setFunc = function(value)
-				self.config.hightlightOnFullStacks = value
-			end,
+			tooltip = "Lets you track your stacks on e.g. crux or bound armaments. This works on Nightblade, Sorcerer, Dragonknight and Arcanist.",
 		},
 		{
 			type = "checkbox",
@@ -908,40 +881,51 @@ function CombatMetronome:BuildMenu()
 				self:TrackerPVPSwitch()
 			end,
 		},
-		-- {
-			-- type = "checkbox",
-			-- name = "Hide Tracker",
-			-- disabled = function ()
-				-- return not self.stackTracker.stacksWindow
-			-- end,
-			-- getFunc = function() return self.config.hideTracker end,
-			-- setFunc = function(value)
-				-- self.config.hideTracker = value
-				-- self.stackTracker.DefineFragmentScenes(not value)
-			-- end,
-		-- },
-		-- {
-			-- type = "description",
-			-- titel = "I lost my stack tracker",
-			-- width = "half",
-		-- },
-		-- {
-			-- type = "button",
-			-- name = "Centralize Tracker",
-			-- tooltip = "This button centers the stack tracker in the middle of your screen",
-			-- width = "half",
-			-- disabled = function ()
-				-- return not self.stackTracker.stacksWindow
-			-- end,
-			-- func = function()
-				-- self.stackTracker.stacksWindow:SetAnchor(TOPLEFT, GuiRoot, TOPLEFT, GuiRoot:GetWidth()/2, GuiRoot:GetHeight()/2)
-			-- end,
-		-- },
-		{
-			type = "submenu",
-			name = "Stack Tracker",
-			tooltip = "Lets you track your stacks on e.g. crux or bound armaments. This works on Nightblade, Sorcerer, Dragonknight and Arcanist.",
+				---------------------------
+		---- Position and Size ----
+		---------------------------
+        {
+            type = "submenu",
+            name = "Position and size",
 			controls = {
+				{	type = "checkbox",
+					name = "Unlock Tracker",
+					tooltip = "Move stack tracker",
+					width = "half",
+					disabled = function ()
+						return not self:TrackerIsActive()											--CM_TRACKER_CLASS_ATTRIBUTES[self.class]
+					end,
+					getFunc = function() return self.config.trackerIsUnlocked end,
+					setFunc = function(value)
+						self.config.trackerIsUnlocked = value
+						self.stackTracker.stacksWindow:SetMovable(value)
+						if not value then
+							self.stackTracker.stacksWindow:SetHidden(true)
+						-- if value then
+							-- self.stackTracker.stacksWindow:SetDrawTier(DT_HIGH)
+						-- else
+							self.stackTracker.stacksWindow:SetDrawTier(DT_LOW)
+						end
+					end,
+				},
+				{
+					type = "checkbox",
+					name = "Show tracker over settings menu",
+					tooltip = "Shows tracker over settings menu in unlocked mode",
+					disabled = function() return not self.config.trackerIsUnlocked end,
+					width = "half",
+					getFunc = function() return false end,
+					setFunc = function(value)
+						if self:TrackerIsActive() then
+							self.stackTracker.stacksWindow:SetHidden(not value)
+							if value then
+								self.stackTracker.stacksWindow:SetDrawTier(DT_HIGH)
+							else
+								self.stackTracker.stacksWindow:SetDrawTier(DT_LOW)
+							end
+						end
+					end,
+				},
 				{	type = "slider",
 					name = "Stack indicator size",
 					disabled = function()
@@ -972,6 +956,15 @@ function CombatMetronome:BuildMenu()
 						-- self.config.trackerY = self.stackTracker.stacksWindow:GetTop()
 					end,
 				},
+			},
+		},
+		-------------------------
+		---- Stacks to track ----
+		-------------------------
+		{
+			type = "submenu",
+			name = "Stacks to track",
+			controls = {
 				{
 					type = "checkbox",
 					name = "Track Molten Whip Stacks",
@@ -1024,6 +1017,81 @@ function CombatMetronome:BuildMenu()
 						-- ReloadUI()
 					end
 				},
+			},
+		},
+		--------------------------
+		---- Tracker Behavior ----
+		--------------------------
+        {
+            type = "submenu",
+            name = "Behavior",
+			controls = {
+				{	type = "checkbox",
+					name = "Play sound cue at max stacks",
+					tooltip = "Plays a sound when you are at max stacks, so you don't miss to cast your ability",
+					width = "half",
+					disabled = function ()
+						return not self:TrackerIsActive()											--CM_TRACKER_CLASS_ATTRIBUTES[self.class]
+					end,
+					getFunc = function() return self.config.trackerPlaySound end,
+					setFunc = function(value)
+						self.config.trackerPlaySound = value
+					end,
+				},
+				{
+					type = "dropdown",
+					name = "Select Sound",
+					width = "half",
+					choices = fullStackSounds,
+					default = self.config.trackerSound,
+					disabled = function() return not (self:TrackerIsActive() and self.config.trackerPlaySound) end,
+					getFunc = function() return self.config.trackerSound end,
+					setFunc = function(value) 
+						self.config.trackerSound = value
+						PlaySound(SOUNDS[value])
+					end
+				},
+				{	type = "checkbox",
+					name = "Play animation when reaching full stacks",
+					tooltip = "Gives you a more intense visual cue",
+					-- width = "half",
+					disabled = function ()
+						return not self:TrackerIsActive()											--CM_TRACKER_CLASS_ATTRIBUTES[self.class]
+					end,
+					getFunc = function() return self.config.hightlightOnFullStacks end,
+					setFunc = function(value)
+						self.config.hightlightOnFullStacks = value
+					end,
+				},
+				-- {
+					-- type = "checkbox",
+					-- name = "Hide Tracker",
+					-- disabled = function ()
+						-- return not self.stackTracker.stacksWindow
+					-- end,
+					-- getFunc = function() return self.config.hideTracker end,
+					-- setFunc = function(value)
+						-- self.config.hideTracker = value
+						-- self.stackTracker.DefineFragmentScenes(not value)
+					-- end,
+				-- },
+				-- {
+					-- type = "description",
+					-- titel = "I lost my stack tracker",
+					-- width = "half",
+				-- },
+				-- {
+					-- type = "button",
+					-- name = "Centralize Tracker",
+					-- tooltip = "This button centers the stack tracker in the middle of your screen",
+					-- width = "half",
+					-- disabled = function ()
+						-- return not self.stackTracker.stacksWindow
+					-- end,
+					-- func = function()
+						-- self.stackTracker.stacksWindow:SetAnchor(TOPLEFT, GuiRoot, TOPLEFT, GuiRoot:GetWidth()/2, GuiRoot:GetHeight()/2)
+					-- end,
+				-- },
 			},
 		},
 		-- end
