@@ -391,19 +391,21 @@ function CombatMetronome:CMPVPSwitch()
 end
 
 function CombatMetronome:TrackerPVPSwitch()
-	if self.config.hideTrackerInPVP and self.inPVPZone then
-		if self.trackerRegistered then
-			self:UnregisterTracker()
-			self.stackTracker.showTracker(false)
-			-- d("registered tracker scenario 1")
-		elseif not self.trackerRegistered then
-			self.stackTracker.showTracker(false)
-			-- d("registered tracker scenario 2")
-		end
-	else
-		if not self.trackerRegistered then
-			self:RegisterTracker()
-			-- d("registered tracker scenario 3")
+	if self:TrackerIsActive() then
+		if self.config.hideTrackerInPVP and self.inPVPZone then
+			if self.trackerRegistered then
+				self:UnregisterTracker()
+				self.stackTracker.showTracker(false)
+				-- d("registered tracker scenario 1")
+			elseif not self.trackerRegistered then
+				self.stackTracker.showTracker(false)
+				-- d("registered tracker scenario 2")
+			end
+		else
+			if not self.trackerRegistered then
+				self:RegisterTracker()
+				-- d("registered tracker scenario 3")
+			end
 		end
 	end
 end
