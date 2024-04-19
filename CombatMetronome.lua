@@ -24,13 +24,48 @@ ZO_CreateStringId("SI_BINDING_NAME_COMBATMETRONOME_FORCE", "Force display")
 	-------------------------
 
 function CombatMetronome:Update()
-	-- if self.config.hideCMInPVP and self.inPVPZone then
-		-- self:HideBar(true)
-	-- else
-	if self.inPVPZone and self.config.hideCMInPVP and not self.cmWarning then
-		d("CM is still updating...")
-		self.cmWarning = true
-	end
+
+	------------------------
+	---- Sample Section ----
+	------------------------
+
+	if self.showSampleBar then
+		self.bar.segments[2].progress = 0.7
+		self.bar.backgroundTexture:SetWidth(0.7*self.config.width)
+		if self.config.dontShowPing then
+			self.bar.segments[1].progress = 0
+		else
+			self.bar.segments[1].progress = 0.071
+		end
+		if self.config.showSpell then
+			self.spellLabel:SetText("Generic sample text")
+			self.spellLabel:SetHidden(false)
+			self.spellIcon:SetTexture("/esoui/art/icons/ability_dualwield_002_b.dds")
+			self.spellIcon:SetHidden(false)
+			self.spellIconBorder:SetHidden(false)
+		else
+			self.spellLabel:SetHidden(true)
+			self.spellIcon:SetHidden(true)
+			self.spellIconBorder:SetHidden(true)
+		end
+		if self.config.showTimeRemaining then
+			self.timeLabel:SetText("7.8s")
+			self.timeLabel:SetHidden(false)
+		else
+			self.timeLabel:SetHidden(true)
+		end
+		if self.config.changeOnChanneled then
+			self.bar.segments[2].color = self.config.channelColor
+		else
+			self.bar.segments[2].color = self.config.progressColor
+		end
+		self.bar:Update()
+	else
+	
+	-------------------------
+	---- Actual Updating ----
+	-------------------------
+
 		if self.config.dontShowPing then
 			latency = 0
 		else
@@ -39,8 +74,7 @@ function CombatMetronome:Update()
 		
 		local time = GetFrameTimeMilliseconds()
 		
-		local dodgeTrigger = self:CheckForDodge()
-		local currentHotbar = GetActiveHotbarCategory()
+		local dodgeTrigger = CombatMetronome:CheckForDodge()
 		
 		-- this is important for GCD Tracking
 		local gcdTrigger = false
@@ -116,12 +150,25 @@ function CombatMetronome:Update()
 
 				if not self.soundTockPlayed and self.config.soundTockEnabled and time > start + (length / 2) - self.config.soundTockOffset then
 					self.soundTockPlayed = true
-					PlaySound(self.config.soundTockEffect)
+					local uiVolume = GetSetting(SETTING_TYPE_AUDIO, AUDIO_SETTING_UI_VOLUME)
+					local tockQueue = ZO_QueuedSoundPlayer:New(0)
+					tockQueue:SetFinishedAllSoundsCallback(function()
+						SetSetting(SETTING_TYPE_AUDIO, AUDIO_SETTING_UI_VOLUME, uiVolume)
+					end)
+					SetSetting(SETTING_TYPE_AUDIO, AUDIO_SETTING_UI_VOLUME, self.config.tickVolume)
+					tockQueue:PlaySound(self.config.soundTockEffect, 250)
 				end
 
 				if not self.soundTickPlayed and self.config.soundTickEnabled and time > start + length - self.config.soundTickOffset then
 					self.soundTickPlayed = true
-					PlaySound(self.config.soundTickEffect)
+					local uiVolume = GetSetting(SETTING_TYPE_AUDIO, AUDIO_SETTING_UI_VOLUME)
+					local tickQueue = ZO_QueuedSoundPlayer:New(0)
+					tickQueue:SetFinishedAllSoundsCallback(function()
+						SetSetting(SETTING_TYPE_AUDIO, AUDIO_SETTING_UI_VOLUME, uiVolume)
+						-- d("Sound is finished playing. Volume adjusted. Volume is now "..GetSetting(SETTING_TYPE_AUDIO, AUDIO_SETTING_UI_VOLUME))
+					end)
+					SetSetting(SETTING_TYPE_AUDIO, AUDIO_SETTING_UI_VOLUME, self.config.tickVolume)
+					tickQueue:PlaySound(self.config.soundTickEffect, 250)
 				end
 			------------------------------------------------
 			---- Switching Color on channeled abilities ----
@@ -184,7 +231,7 @@ function CombatMetronome:Update()
 			--------------------
 			---- Interrupts ----							-- check for interrupts by dodge, barswap or block
 			--------------------
-			if (playerDidBlock or playerDidDodge or oldHotbar ~= currentHotbar) and duration > 1000+latency then
+			if (playerDidBlock or playerDidDodge or self.barswap) and duration > 1000+latency then
 				self:OnCDStop()
 				self.bar:Update()
 			elseif playerDidDodge and trackGCD then
@@ -203,8 +250,11 @@ function CombatMetronome:Update()
 			self:OnCDStop()
 			self.bar:Update()
 		end
-		oldHotbar = GetActiveHotbarCategory()
-	-- end
+		-- if self.barswap then
+			-- d("barswap reset")
+		-- end
+		self.barswap = false
+	end
 end
 
 	-------------------------------------
@@ -229,15 +279,20 @@ function CombatMetronome:Init()
     self.gcd = 1000
 
     self.unlocked = false
-    CombatMetronome:BuildUI()
+    self.progressbar = CombatMetronome:BuildProgressBar()
+	if not self.config.hideProgressbar then
+		self:RegisterCM()
+		-- d("cm registered")
+	else
+		self.bar:SetHidden(true)
+	end
+	self.showSampleBar = false
     CombatMetronome:BuildMenu()
-	-- CombatMetronome:CheckIfStackTrackerShouldLoad()
 
     self.lastInterval = 0
 	self.actionSlotCache = CombatMetronome:StoreAbilitiesOnActionBar()
 
 	self:RegisterMetadata()
-    self:RegisterCM()
 	
 	Util.Ability.Tracker.CombatMetronome = self
     Util.Ability.Tracker:Start()
@@ -250,9 +305,11 @@ function CombatMetronome:Init()
 		self.stackTracker = CombatMetronome:BuildStackTracker()
 		self.stackTracker.indicator.ApplyDistance(self.config.indicatorSize/5, self.config.indicatorSize)
 		self.stackTracker.indicator.ApplySize(self.config.indicatorSize)
+		self.stackTracker.indicator.ApplyIcon()
 	
 		self:RegisterTracker()
-	end
+		self.showSampleTracker = false
+	end	
 end
 
 -- LOAD HOOK
@@ -324,6 +381,18 @@ function CombatMetronome:RegisterCM()
         end
     )
 	self.cmRegistered = true
+	
+	EVENT_MANAGER:RegisterForEvent(
+		self.name.."BarSwap",
+		EVENT_ACTION_SLOTS_ACTIVE_HOTBAR_UPDATED,
+		function(_,barswap,_,category)
+			if barswap then
+				self.barswap = barswap
+				-- d("barswap occured. Hotbar was "..category)
+			end
+			return self.barswap
+		end
+	)
 	-- d("cm is registered")
 end
 
