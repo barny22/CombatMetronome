@@ -1,4 +1,5 @@
 2024-04-19 v1.6.5
+!  Updated DariansUtilies for U42 and scribing
 +  Added font styles
 
 2024-04-02 v1.6.4

@@ -5,7 +5,7 @@
 ## AddOnVersion: 010605
 ## APIVersion: 101042
 ## SavedVariables: CombatMetronomeSavedVars
-## DependsOn: LibAddonMenu-2.0>=35 libAddonKeybinds>=5 DariansUtilities>=10703
+## DependsOn: LibAddonMenu-2.0>=35 libAddonKeybinds>=5 DariansUtilities>=10704
 
 ; This Add-on is not created by, affiliated with or sponsored by ZeniMax
 ; Media Inc. or its affiliates. The Elder Scrolls® and related logos are
