@@ -1,3 +1,9 @@
+2024-04-19 v1.7.4
+!  Updated Ability.lua for U42 and scribing
+
+2024-03-30 v1.7.3
+!  Fixed font string for U41
+
 2024-01-25 v1.7.2
 +  Added ability icon to the ability cache
 

@@ -8,6 +8,7 @@ Ability.nameCache = { }
 local log = Util.log
 
 function Ability:ForId(id)
+    local APIVersion = GetAPIVersion()
 	local o = self.cache[id]
 	if (o) then 
         -- d(" Ability "..o.name.." is cached for id, "..id)
@@ -30,9 +31,21 @@ function Ability:ForId(id)
 
     o.id = id
     o.name = GetAbilityName(id)
-    o.channeled, 
-    o.castTime, 
-    o.channelTime = GetAbilityCastInfo(id)
+    if APIVersion < 101042 then
+        o.channeled, 
+        o.castTime, 
+        o.channelTime = GetAbilityCastInfo(id)
+    else
+        local channeled, duration = GetAbilityCastInfo(id)
+        o.channeled = channeled
+        if channeled then
+            o.channelTime = duration
+            o.castTime = 0
+        else
+            o.castTime = duration
+            o.channelTime = 0
+        end
+    end
     o.delay = math.max(o.castTime, o.channelTime)
     o.instant = not (o.castTime > 0 or (o.channeled and o.channelTime > 0))
     o.casted = not (o.instant or o.channeled)
@@ -283,7 +296,11 @@ end
 function Ability.Tracker:HandleSlotUsed(e, slot)
     if (slot > 8) then return end
 
-    local ability = Util.Ability:ForId(GetSlotBoundId(slot), slot)
+    local ability = Util.Ability:ForId(GetSlotBoundId(slot))--, slot)
+    local actionType = GetSlotType(slot)
+    if actionType == ACTION_TYPE_CRAFTED_ABILITY then
+        ability = Util.Ability:ForId(GetAbilityIdForCraftedAbilityId(GetSlotBoundId(slot)))
+    end
     -- Util.log("SLOT NAME = ", GetSlotName(slot))
     -- local ability = Util.Ability:ForName(GetSlotName(slot), slot)
     if not (ability) then return end
