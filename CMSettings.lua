@@ -61,6 +61,7 @@ function CombatMetronome:BuildMenu()
 		feedback = "https://www.esoui.com/portal.php?&id=386",
         slashCommand = "/cm",
         registerForRefresh = true,
+		registerForDefaults = true,
     }
 	-- local slotInQuestion = 1
     self.menu.options = {
@@ -91,7 +92,7 @@ function CombatMetronome:BuildMenu()
 
                 self.config.global = value
                 self:UpdateAdjustChoices()
-                self:BuildUI()
+                self:BuildProgressBar()
             end,
         },
 		{
@@ -101,13 +102,52 @@ function CombatMetronome:BuildMenu()
         },
 		{
 			type = "checkbox",
+			name = "Hide GCD Tracker",
+			tooltip = "Hides progress bar, in case you just need the stack tracker",
+			warning = "Activating this disables all other settings regarding the GCD Tracker",
+			getFunc = function() return self.config.hideProgressbar end,
+			setFunc = function(value)
+				self.config.hideProgressbar = value
+				self.frame:SetHidden(value)
+				if value then
+					self:UnregisterCM()
+					self.bar:SetHidden(true)
+				else
+					self:RegisterCM()
+					self.progressbar.HiddenStates()
+				end
+			end,
+		},
+		{
+			type = "checkbox",
 			name = "Hide progress bar in PVP Zones",
 			tooltip = "Hides progress bar in PVPZones to keep UI clean",
+			disabled = function() return self.config.hideProgressbar end,
 			getFunc = function() return self.config.hideCMInPVP end,
 			setFunc = function(value)
 				self.config.hideCMInPVP = value
 				self:CMPVPSwitch()
-				-- self:BuildUI()
+				-- self:BuildProgressBar()
+			end,
+		},
+		{
+			type = "checkbox",
+			name = "How does it look?",
+			tooltip = "Shows bar at the right of the screen to check your settings. This bar is not resizable nor movable! This resets if you leave the menu.",
+			warning = "This temporarily disables the Unlock function! Deactivate again to be able to unlock the bar.",
+			disabled = function() return self.config.hideProgressbar end,
+			default = false,
+			getFunc = function() return self.showSampleBar end,
+			setFunc = function(value)
+				self.showSampleBar = value
+				if value then
+					self.progressbar.Position("Sample")
+					self.frame:SetHidden(false)
+					self.labelFrame:SetHidden(false)
+				else
+					self.progressbar.Position("UI")
+					self.progressbar.HiddenStates()
+				end
 			end,
 		},
 		---------------------------
@@ -115,13 +155,15 @@ function CombatMetronome:BuildMenu()
 		---------------------------
         {
             type = "submenu",
-            name = "Position / Size",  
+            name = "Position / Size",
+			disabled = function() return self.config.hideProgressbar end,
 			controls = {
 				{
 					type = "checkbox",
 					name = "Unlock progressbar",
 					tooltip = "Reposition / resize bar by dragging center / edges.",
-					width = "half",
+					-- width = "half",
+					disabled = function() return self.showSampleBar end,
 					getFunc = function() return self.frame.IsUnlocked() end,
 					setFunc = function(value)
 						self.frame:SetUnlocked(value)
@@ -136,26 +178,26 @@ function CombatMetronome:BuildMenu()
 						end
 					end,
 				},
-				{
-					type = "checkbox",
-					name = "Show bar over settings menu",
-					tooltip = "Shows progressbar over settings menu in unlocked mode",
-					disabled = function() return not self.frame.IsUnlocked() end,
-					width = "half",
-					getFunc = function() return false end,
-					setFunc = function(value)
-						if value then
-							self.frame:SetDrawTier(DT_HIGH)
-							self.frame:SetHidden(false)
+				-- {
+					-- type = "checkbox",
+					-- name = "Show bar over settings menu",
+					-- tooltip = "Shows progressbar over settings menu in unlocked mode",
+					-- disabled = function() return not self.frame.IsUnlocked() end,
+					-- width = "half",
+					-- getFunc = function() return false end,
+					-- setFunc = function(value)
+						-- if value then
+							-- self.frame:SetDrawTier(DT_HIGH)
+							-- self.frame:SetHidden(false)
 						-- elseif not self.frame.IsUnlocked() then
 							-- self.frame:SetDrawTier(DT_LOW)
 							-- self.frame:SetHidden(true)
-						else
-							self.frame:SetDrawTier(DT_LOW)
-							self.frame:SetHidden(true)
-						end
-					end,
-				},
+						-- else
+							-- self.frame:SetDrawTier(DT_LOW)
+							-- self.frame:SetHidden(true)
+						-- end
+					-- end,
+				-- },
 				{
 					type = "slider",
 					name = "X Offset",
@@ -163,18 +205,22 @@ function CombatMetronome:BuildMenu()
 					--max = math.floor(GuiRoot:GetWidth() - self.config.barSize),
 					max = math.floor(GuiRoot:GetWidth() - self.config.width),
 					step = 1,
+					disabled = function() return self.showSampleBar end,
 					getFunc = function() return self.config.xOffset end,
 					setFunc = function(value) 
-						self.config.xOffset = value 
-						self:BuildUI()
+						self.config.xOffset = value
+						self.progressbar.Position("UI")
+						-- self:BuildProgressBar()
 					end,
 				},
 				{
 					type = "button",
 					name = "Center Horizontally",
+					disabled = function() return self.showSampleBar end,
 					func = function()
 						self.config.xOffset = math.floor((GuiRoot:GetWidth() - self.config.width) / 2)
-						self:BuildUI()
+						self.progressbar.Position("UI")
+						-- self:BuildProgressBar()
 					end
 				},
 				{
@@ -184,18 +230,22 @@ function CombatMetronome:BuildMenu()
 					--max = math.floor(GuiRoot:GetHeight() - self.config.barSize/10),
 					max = math.floor(GuiRoot:GetHeight() - self.config.height),
 					step = 1,
+					disabled = function() return self.showSampleBar end,
 					getFunc = function() return self.config.yOffset end,
 					setFunc = function(value) 
 						self.config.yOffset = value 
-						self:BuildUI()
+						self.progressbar.Position("UI")
+						-- self:BuildProgressBar()
 					end,
 				},
 				{
 					type = "button",
 					name = "Center Vertically",
+					disabled = function() return self.showSampleBar end,
 					func = function()
 						self.config.yOffset = math.floor((GuiRoot:GetHeight() - self.config.height) / 2)
-						self:BuildUI()
+						self.progressbar.Position("UI")
+						-- self:BuildProgressBar()
 					end
 				},
 				{
@@ -206,8 +256,9 @@ function CombatMetronome:BuildMenu()
 					step = 1,
 					getFunc = function() return self.config.width end,
 					setFunc = function(value) 
-						self.config.width = value 
-						self:BuildUI()
+						self.config.width = value
+						self.progressbar.Size()
+						-- self:BuildProgressBar()
 					end,
 				},
 				{
@@ -219,7 +270,8 @@ function CombatMetronome:BuildMenu()
 					getFunc = function() return self.config.height end,
 					setFunc = function(value) 
 						self.config.height = value 
-						self:BuildUI()
+						self.progressbar.Size()
+						-- self:BuildProgressBar()
 					end,
 				},
 			},
@@ -230,6 +282,7 @@ function CombatMetronome:BuildMenu()
         {
             type = "submenu",
             name = "Visuals / Color / Layout",
+			disabled = function() return self.config.hideProgressbar end,
 			controls = {
 				{
 					type = "checkbox",
@@ -238,7 +291,8 @@ function CombatMetronome:BuildMenu()
 					getFunc = function() return self.config.dontHide end,
 					setFunc = function(value)
 						self.config.dontHide = value
-						self:BuildUI()
+						self.progressbar.HiddenStates()
+						-- self:BuildProgressBar()
 					end,
 				},
 				{
@@ -254,7 +308,8 @@ function CombatMetronome:BuildMenu()
 						else
 							self.config.backgroundColor = self.config.lastBackgroundColor
 						end
-						self:BuildUI()
+						self.progressbar.HiddenStates()
+						-- self:BuildProgressBar()
 					end,
 				},
 				{
@@ -267,7 +322,8 @@ function CombatMetronome:BuildMenu()
 					getFunc = function() return unpack(self.config.backgroundColor) end,
 					setFunc = function(r, g, b, a)
 						self.config.backgroundColor = {r, g, b, a}
-						self:BuildUI()
+						self.progressbar.BarColors()
+						-- self:BuildProgressBar()
 					end,
 				},
 				{
@@ -277,7 +333,8 @@ function CombatMetronome:BuildMenu()
 					getFunc = function() return unpack(self.config.progressColor) end,
 					setFunc = function(r, g, b, a)
 						self.config.progressColor = {r, g, b, a}
-						self:BuildUI()
+						self.progressbar.BarColors()
+						-- self:BuildProgressBar()
 					end,
 				},
 				{
@@ -287,7 +344,8 @@ function CombatMetronome:BuildMenu()
 					getFunc = function() return unpack(self.config.pingColor) end,
 					setFunc = function(r, g, b, a)
 						self.config.pingColor = {r, g, b, a}
-						self:BuildUI()
+						self.progressbar.BarColors()
+						-- self:BuildProgressBar()
 					end,
 				},
 				{
@@ -298,7 +356,8 @@ function CombatMetronome:BuildMenu()
 					getFunc = function() return self.config.barAlign end,
 					setFunc = function(value)
 						self.config.barAlign = value
-						self:BuildUI()
+						self.progressbar.Anchors()
+						-- self:BuildProgressBar()
 					end,
 				},
 				{
@@ -309,7 +368,7 @@ function CombatMetronome:BuildMenu()
 					getFunc = function() return self.config.changeOnChanneled end,
 					setFunc = function(value)
 						self.config.changeOnChanneled = value
-						-- self:BuildUI()
+						-- self:BuildProgressBar()
 					end,
 				},
 				{
@@ -322,7 +381,8 @@ function CombatMetronome:BuildMenu()
 					getFunc = function() return unpack(self.config.channelColor) end,
 					setFunc = function(r, g, b, a)
 						self.config.channelColor = {r, g, b, a}
-						self:BuildUI()
+						self.progressbar.BarColors()
+						-- self:BuildProgressBar()
 					end,
 				},
 				{
@@ -333,7 +393,8 @@ function CombatMetronome:BuildMenu()
 					getFunc = function() return self.config.labelFont end,
 					setFunc = function(value)
 						self.config.labelFont = value
-						self:BuildUI()
+						self.progressbar.Fonts()
+						-- self:BuildProgressBar()
 					end,
 				},
 			},
@@ -344,13 +405,14 @@ function CombatMetronome:BuildMenu()
         {
             type = "submenu",
             name = "Resources",
+			disabled = function() return self.config.hideProgressbar end,
 			controls = {
 				{
 					type = "checkbox",
 					name = "Always show own resources",
 					tooltip = "Toggle show own resources. If this is off, your resources will only be shown, when targeting units",
 					disabled = function()
-						return self.config.showUltimate or self.config.showStamina or self.config.showMagicka
+						return not (self.config.showUltimate or self.config.showStamina or self.config.showMagicka)
 					end,
 					getFunc = function() return self.config.showResources end,
 					setFunc = function(value) self.config.showResources = value end,
@@ -360,7 +422,9 @@ function CombatMetronome:BuildMenu()
 					name = "Show Ultimate",
 					tooltip = "Toggle show ultimate above cast bar",
 					getFunc = function() return self.config.showUltimate end,
-					setFunc = function(value) self.config.showUltimate = value end,
+					setFunc = function(value)
+						self.config.showUltimate = value
+					end,
 				},
 				{
 					type = "slider",
@@ -376,7 +440,8 @@ function CombatMetronome:BuildMenu()
 					getFunc = function() return self.config.ultSize end,
 					setFunc = function(value)
 						self.config.ultSize = value
-						self:BuildUI()
+						self.progressbar.Fonts()
+						-- self:BuildProgressBar()
 					end,
 				},
 				{
@@ -389,7 +454,8 @@ function CombatMetronome:BuildMenu()
 					getFunc = function() return unpack(self.config.ultColor) end,
 					setFunc = function(r, g, b, a)
 						self.config.ultColor = {r, g, b, a}
-						self:BuildUI()
+						self.progressbar.LabelColors()
+						-- self:BuildProgressBar()
 					end,
 				},
 				{
@@ -397,7 +463,9 @@ function CombatMetronome:BuildMenu()
 					name = "Show Stamina",
 					tooltip = "Toggle show stamina above cast bar",
 					getFunc = function() return self.config.showStamina end,
-					setFunc = function(value) self.config.showStamina = value end,
+					setFunc = function(value)
+						self.config.showStamina = value
+					end,
 				},
 				{
 					type = "slider",
@@ -413,7 +481,8 @@ function CombatMetronome:BuildMenu()
 					getFunc = function() return self.config.stamSize end,
 					setFunc = function(value)
 						self.config.stamSize = value
-						self:BuildUI()
+						self.progressbar.Fonts()
+						-- self:BuildProgressBar()
 					end,
 				},
 				{
@@ -426,7 +495,8 @@ function CombatMetronome:BuildMenu()
 					getFunc = function() return unpack(self.config.stamColor) end,
 					setFunc = function(r, g, b, a)
 						self.config.stamColor = {r, g, b, a}
-						self:BuildUI()
+						self.progressbar.LabelColors()
+						-- self:BuildProgressBar()
 					end,
 				},
 				{
@@ -434,7 +504,10 @@ function CombatMetronome:BuildMenu()
 					name = "Show Magicka",
 					tooltip = "Toggle show magicka above cast bar",
 					getFunc = function() return self.config.showMagicka end,
-					setFunc = function(value) self.config.showMagicka = value end,
+					setFunc = function(value)
+						self.config.showMagicka = value
+						-- self.sampleBar.Mag:SetHidden(not value)
+					end,
 				},
 				{
 					type = "slider",
@@ -450,7 +523,8 @@ function CombatMetronome:BuildMenu()
 					getFunc = function() return self.config.magSize end,
 					setFunc = function(value)
 						self.config.magSize = value
-						self:BuildUI()
+						self.progressbar.Fonts()
+						-- self:BuildProgressBar()
 					end,
 				},
 				{
@@ -463,7 +537,8 @@ function CombatMetronome:BuildMenu()
 					getFunc = function() return unpack(self.config.magColor) end,
 					setFunc = function(r, g, b, a)
 						self.config.magColor = {r, g, b, a}
-						self:BuildUI()
+						self.progressbar.LabelColors()
+						-- self:BuildProgressBar()
 					end,
 				},
 				{
@@ -471,7 +546,9 @@ function CombatMetronome:BuildMenu()
 					name = "Show Target Health",
 					tooltip = "Toggle show target health above cast bar",
 					getFunc = function() return self.config.showHealth end,
-					setFunc = function(value) self.config.showHealth = value end,
+					setFunc = function(value)
+						self.config.showHealth = value
+					end,
 				},
 				{
 					type = "slider",
@@ -487,7 +564,8 @@ function CombatMetronome:BuildMenu()
 					getFunc = function() return self.config.healthSize end,
 					setFunc = function(value)
 						self.config.healthSize = value
-						self:BuildUI()
+						self.progressbar.Fonts()
+						-- self:BuildProgressBar()
 					end,
 				},
 				{
@@ -500,8 +578,9 @@ function CombatMetronome:BuildMenu()
 					getFunc = function() return unpack(self.config.healthColor) end,
 					setFunc = function(r, g, b, a)
 						self.config.healthColor = {r, g, b, a}
-						self:BuildUI()
-					end,
+						self.progressbar.LabelColors()
+						-- self:BuildProgressBar()
+						end,
 				},
 				-- {
 					-- type = "checkbox",
@@ -519,7 +598,7 @@ function CombatMetronome:BuildMenu()
 							-- self.config.stamColor = {1, 1, 1, 1}
 							-- self.config.healthColor = {1, 1, 1, 1}
 						-- end
-						-- self:BuildUI()
+						-- self:BuildProgressBar()
 					-- end,
 				-- },
 				{
@@ -532,7 +611,8 @@ function CombatMetronome:BuildMenu()
 					getFunc = function() return self.config.reticleHp end,
 					setFunc = function(value) 
 						self.config.reticleHp = value
-						self:BuildUI()
+						self.progressbar.Anchors()
+						-- self:BuildProgressBar()
 					end,
 				},
 				{
@@ -562,6 +642,7 @@ function CombatMetronome:BuildMenu()
         {
             type = "submenu",
             name = "Behavior",
+			disabled = function() return self.config.hideProgressbar end,
 			controls = {
 				{
 					type = "slider",
@@ -583,7 +664,7 @@ function CombatMetronome:BuildMenu()
 					getFunc = function() return self.config.gcdAdjust end,
 					setFunc = function(value) 
 						self.config.gcdAdjust = value 
-						self:BuildUI()
+						-- self:BuildProgressBar()
 					end,
 				},
 				{
@@ -661,7 +742,7 @@ function CombatMetronome:BuildMenu()
 					getFunc = function() return self.config.showPing end,
 					setFunc = function(value)
 						self.config.showPing = value
-						self:BuildUI()
+						self:BuildProgressBar()
 					end,
 				},
 				]]
@@ -683,14 +764,18 @@ function CombatMetronome:BuildMenu()
 					name = "Display spell name in cast bar",
 					tooltip = "Displays the spell Name in the cast bar",
 					getFunc = function() return self.config.showSpell end,
-					setFunc = function(value) self.config.showSpell = value end,
+					setFunc = function(value)
+						self.config.showSpell = value
+					end,
 				},
 				{
 					type = "checkbox",
 					name = "Display time remaining in cast bar",
 					tooltip = "Displays the remaining time on channel or cast in the cast bar",
 					getFunc = function() return self.config.showTimeRemaining end,
-					setFunc = function(value) self.config.showTimeRemaining = value end,
+					setFunc = function(value)
+						self.config.showTimeRemaining = value
+					end,
 				},
 			},
 		},
@@ -700,7 +785,20 @@ function CombatMetronome:BuildMenu()
         {
             type = "submenu",
             name = "Sound", 
+			disabled = function() return self.config.hideProgressbar end,
 			controls = {
+				{
+					type = "slider",
+					name = "Volume of 'tick' and 'tock'",
+					tooltip = "Adjust volume of tick and tock effects",
+					warning = "You may have to adjust your general audio settings and general audio volume for this to have a noticable effect. Take care not to overadjust, your ears can only take so much!",
+					disabled = function() return not (self.config.soundTickEnabled or self.config.soundTockEnabled) end,
+					min = 0,
+					max = 100,
+					setp = 1,
+					getFunc = function() return self.config.tickVolume end,
+					setFunc = function(value) self.config.tickVolume = value end,
+				},
 				{
 					type = "checkbox",
 					name = "Sound 'tick'",
@@ -783,6 +881,7 @@ function CombatMetronome:BuildMenu()
             type = "submenu",
             name = "Ability timer adjusts",
             description = "Adjusts timers on specific skills - This is applied ON TOP of relevant global adjust",
+			disabled = function() return self.config.hideProgressbar end,
 			controls = {
 				-- {
 					-- type = "dropdown",
@@ -881,19 +980,43 @@ function CombatMetronome:BuildMenu()
 				self:TrackerPVPSwitch()
 			end,
 		},
+		{
+			type = "checkbox",
+			name = "How does it look?",
+			tooltip = "Shows tracker at the right of the screen to check your settings. This tracker is not movable!",
+			warning = "This temporarily disables the Unlock function! Deactivate again to be able to unlock the tracker. This resets, if you leave the menu.",
+			default = false,
+			disabled = function ()
+				return not (self:TrackerIsActive() and self:CheckIfSlotted())					--CM_TRACKER_CLASS_ATTRIBUTES[self.class]
+			end,
+			getFunc = function() return (self.showSampleTracker and self:TrackerIsActive() and self:CheckIfSlotted()) end,
+			setFunc = function(value)
+				self.showSampleTracker = value
+				if value then
+					self.stackTracker.Position("Sample")
+					self.stackTracker.FadeScenes("Sample")
+				else
+					self.stackTracker.Position("UI")
+					self.stackTracker.FadeScenes("NoSample")
+				end
+			end,
+		},
 				---------------------------
 		---- Position and Size ----
 		---------------------------
         {
             type = "submenu",
             name = "Position and size",
+			disabled = function ()
+				return not CM_TRACKER_CLASS_ATTRIBUTES[self.class]
+			end,
 			controls = {
 				{	type = "checkbox",
 					name = "Unlock Tracker",
 					tooltip = "Move stack tracker",
-					width = "half",
+					-- width = "half",
 					disabled = function ()
-						return not self:TrackerIsActive()											--CM_TRACKER_CLASS_ATTRIBUTES[self.class]
+						return not (self:TrackerIsActive() and self:CheckIfSlotted()) or self.showSampleTracker		--CM_TRACKER_CLASS_ATTRIBUTES[self.class]
 					end,
 					getFunc = function() return self.config.trackerIsUnlocked end,
 					setFunc = function(value)
@@ -908,30 +1031,30 @@ function CombatMetronome:BuildMenu()
 						end
 					end,
 				},
-				{
-					type = "checkbox",
-					name = "Show tracker over settings menu",
-					tooltip = "Shows tracker over settings menu in unlocked mode",
-					disabled = function() return not self.config.trackerIsUnlocked end,
-					width = "half",
-					getFunc = function() return false end,
-					setFunc = function(value)
-						if self:TrackerIsActive() then
-							self.stackTracker.stacksWindow:SetHidden(not value)
-							if value then
-								self.stackTracker.stacksWindow:SetDrawTier(DT_HIGH)
-							else
-								self.stackTracker.stacksWindow:SetDrawTier(DT_LOW)
-							end
-						end
-					end,
-				},
+				-- {
+					-- type = "checkbox",
+					-- name = "Show tracker over settings menu",
+					-- tooltip = "Shows tracker over settings menu in unlocked mode",
+					-- disabled = function() return not self.config.trackerIsUnlocked end,
+					-- width = "half",
+					-- getFunc = function() return false end,
+					-- setFunc = function(value)
+						-- if self:TrackerIsActive() then
+							-- self.stackTracker.stacksWindow:SetHidden(not value)
+							-- if value then
+								-- self.stackTracker.stacksWindow:SetDrawTier(DT_HIGH)
+							-- else
+								-- self.stackTracker.stacksWindow:SetDrawTier(DT_LOW)
+							-- end
+						-- end
+					-- end,
+				-- },
 				{	type = "slider",
 					name = "Stack indicator size",
 					disabled = function()
 						if self.class == "ARC" and self.config.trackCrux then
 							value = false
-						elseif self.class == "SOR" and self.config.trackBA then
+						elseif self.class == "SORC" and self.config.trackBA then
 							value = false
 						elseif self.class == "DK" and self.config.trackMW then
 							value = false
@@ -952,8 +1075,6 @@ function CombatMetronome:BuildMenu()
 						self.stackTracker.indicator.ApplySize(value)
 						self.stackTracker.indicator.ApplyDistance(value/5, value)
 						self.stackTracker.stacksWindow:SetDimensions((value*attributes.iMax+(value/5)*(attributes.iMax-1)), value)
-						-- self.config.trackerX = self.stackTracker.stacksWindow:GetLeft()
-						-- self.config.trackerY = self.stackTracker.stacksWindow:GetTop()
 					end,
 				},
 			},
@@ -964,6 +1085,9 @@ function CombatMetronome:BuildMenu()
 		{
 			type = "submenu",
 			name = "Stacks to track",
+			disabled = function ()
+				return not CM_TRACKER_CLASS_ATTRIBUTES[self.class]
+			end,
 			controls = {
 				{
 					type = "checkbox",
@@ -983,7 +1107,7 @@ function CombatMetronome:BuildMenu()
 					name = "Track Bound Armaments Stacks",
 					-- warning = "If changed, will automaticly reload the UI.",
 					disabled = function()
-						return self.class ~= "SOR"
+						return self.class ~= "SORC"
 					end,
 					getFunc = function() return self.config.trackBA end,
 					setFunc = function(value)
@@ -1017,6 +1141,19 @@ function CombatMetronome:BuildMenu()
 						-- ReloadUI()
 					end
 				},
+				{
+					type = "checkbox",
+					name = "Track Stacks of flame skull and its Morphs",
+					-- warning = "If changed, will automaticly reload the UI.",
+					disabled = function()
+						return self.class ~= "CRO"
+					end,
+					getFunc = function() return self.config.trackFS end,
+					setFunc = function(value)
+						self.config.trackFS = value
+						-- ReloadUI()
+					end
+				},
 			},
 		},
 		--------------------------
@@ -1024,24 +1161,36 @@ function CombatMetronome:BuildMenu()
 		--------------------------
         {
             type = "submenu",
-            name = "Behavior",
+            name = "Audio and visual cues",
+			tooltip = "Settings regarding audio and visual cues when reaching full stacks",
+			disabled = function ()
+				return not CM_TRACKER_CLASS_ATTRIBUTES[self.class]
+			end,
 			controls = {
 				{	type = "checkbox",
 					name = "Play sound cue at max stacks",
 					tooltip = "Plays a sound when you are at max stacks, so you don't miss to cast your ability",
-					width = "half",
 					disabled = function ()
 						return not self:TrackerIsActive()											--CM_TRACKER_CLASS_ATTRIBUTES[self.class]
 					end,
 					getFunc = function() return self.config.trackerPlaySound end,
-					setFunc = function(value)
-						self.config.trackerPlaySound = value
-					end,
+					setFunc = function(value) self.config.trackerPlaySound = value end,
+				},
+				{
+					type = "slider",
+					name = "Sound cue volume",
+					tooltip = "Adjust volume of the sound cue effect",
+					warning = "You may have to adjust your general audio settings and general audio volume for this to have a noticable effect. Take care not to overadjust, your ears can only take so much!",
+					disabled = function() return not self.config.trackerPlaySound end,
+					min = 0,
+					max = 100,
+					setp = 1,
+					getFunc = function() return self.config.trackerVolume end,
+					setFunc = function(value) self.config.trackerVolume = value end,
 				},
 				{
 					type = "dropdown",
 					name = "Select Sound",
-					width = "half",
 					choices = fullStackSounds,
 					default = self.config.trackerSound,
 					disabled = function() return not (self:TrackerIsActive() and self.config.trackerPlaySound) end,

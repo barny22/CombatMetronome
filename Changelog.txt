@@ -1,9 +1,10 @@
 2024-04-02 v1.6.4
 !  Fixed the ability adjusts section. Should now work as intended
 !  Fixed fonts for non latin letters and added an option to choose label font
-!  Bar and tracker can now be shown in front of the settings window when unlocked and can be moved while still in settings
+!  Bar and tracker can now be shown in settings menu to check what it looks like
++  Tick volume can now be adjusted in settings
 +  Added option to hide tracker and/or progressbar in PVP Zones rather than just plain deactivating the AddOn
-+  Added an ability stack tracker for stackable abilities like bound armaments, crux, molten whip or grimm focus and its morphs
++  Added an ability stack tracker for stackable abilities like bound armaments, crux, molten whip or grimm focus and flame skull and their morphs
 +  Added an option to always show your own resources, instead of only when targeting units or in combat
 +  Added a label for magicka and options to resize and colorize labels
 +  Added option to change bar color on channeling abilities <1 second to indicate possibility to barswap
