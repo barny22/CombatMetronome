@@ -13,7 +13,25 @@ local gFId = {
 	["mR"] = { ["buff"] = 122586, ["ability"] = 61919,},
 	["rF"] = { ["buff"] = 122587, ["ability"] = 61927,},
 	}
+local fSId = {
+	["fS"] = { ["buff"] = 114131, ["ability"] = {
+	[1] = 114108, [2] = 123683, [3] = 123685
+	}},	
+	["rS"] = { ["buff"] = 117638, ["ability"] = {
+	[1] = 117637, [2] = 123718, [3] = 123719
+	}},
+	["vS"] = { ["buff"] = 117625, ["ability"] = {
+	[1] = 117624, [2] = 123699, [3] = 123704
+	}},
+	}
+	
 local previousStack = 0
+
+	--------------------------------------------------------------------------------------------------------------------
+	---- Script to get (SkillType skillType, luaindex skillLineIndex, luaindex skillIndex) to determine skill morph ----
+	--------------------------------------------------------------------------------------------------------------------
+	
+-- /script _,index,_,_,_,_ = GetAbilityProgressionXPInfoFromAbilityId(ID) d(GetSkillAbilityIndicesFromProgressionIndex(index))
 
 	--------------------------
 	---- Helper Functions ----
@@ -268,11 +286,14 @@ function CombatMetronome:CheckForGFMorph()
 		elseif morphId == 1 then morph = "rF"
 		elseif morphId == 2 then morph = "mR"
 		end
+	if morph ~= self.oldMorph and morph ~= "" then self.morphChanged = true end --self.stackTracker.indicator.ApplyIcon() end
+	-- if morphChanged then d("How dare you change morphs midgame??") end
+	self.oldMorph = morph
 	return morph
 end
 
 function CombatMetronome:GetCurrentNumGFOnPlayer()
-	local morph = CombatMetronome:CheckForGFMorph()
+	local morph,_ = CombatMetronome:CheckForGFMorph()
 	local gFStacks = 0
 	for i=1,GetNumBuffs("player") do
 		local _,_,_,_,stack,_,_,_,_,_,abilityId = GetUnitBuffInfo("player", i)
@@ -285,6 +306,38 @@ function CombatMetronome:GetCurrentNumGFOnPlayer()
 	return gFStacks
 end
 
+	-----------------------------
+	---- Necro skull Tracker ----
+	-----------------------------
+	
+function CombatMetronome:CheckForFSMorph()
+	local morph = ""
+	local morphId = GetProgressionSkillCurrentMorphSlot(GetProgressionSkillProgressionId(1, 1, 2))
+		if morphId == 0 then morph = "fS"
+		elseif morphId == 1 then morph = "vS"
+		elseif morphId == 2 then morph = "rS"
+		end
+	if morph ~= self.oldMorph and morph ~= "" then self.morphChanged = true end -- self.stackTracker.indicator.ApplyIcon() end
+	self.oldMorph = morph
+	return morph
+end
+
+function CombatMetronome:GetCurrentNumFSOnPlayer()
+	local morph,_ = CombatMetronome:CheckForFSMorph()
+	local fSStacks = 0
+	for i=2,3 do
+			ability = fSId[morph].ability[i]
+			for j=1,12 do
+				if self.actionSlotCache[j].id == ability then
+					fSStacks = i-1
+					break
+				end
+			end
+		if fSStacks ~= 0 then break	end
+		end
+	return fSStacks
+end
+
 	------------------------------------
 	---- Check if Tracker is active ----
 	------------------------------------
@@ -295,12 +348,12 @@ function CombatMetronome:TrackerIsActive()
 		trackerIsActive = true
 	elseif self.class == "DK" and self.config.trackMW then
 		trackerIsActive = true
-	elseif self.class == "SOR" and self.config.trackBA then
+	elseif self.class == "SORC" and self.config.trackBA then
 		trackerIsActive = true
 	elseif self.class == "NB" and self.config.trackGF then
 		trackerIsActive = true
-	-- elseif self.hideTrackerInPVP and self.inPVPZone then
-		-- trackerIsActive = false
+	elseif self.class == "CRO" and self.config.trackFS then
+		trackerIsActive = true
 	else
 		trackerIsActive = false
 	end
@@ -336,17 +389,35 @@ end
         ------------------------------------------------
 		
 function CombatMetronome:CheckIfSlotted()
-	local morph = self:CheckForGFMorph()
 	local ability = ""
 	local abilitySlotted = false
-		if self.class == "SOR" then ability = bAId.ability
-		elseif self.class == "NB" then ability = gFId[morph].ability
-		elseif self.class == "DK" then ability = mWId.ability
+	if self.class == "SORC" then ability = bAId.ability
+	elseif self.class == "NB" then 
+		local morph = self:CheckForGFMorph()
+		ability = gFId[morph].ability
+	elseif self.class == "DK" then ability = mWId.ability
+	end
+	if ability ~= "" then
+		for i=1,12 do
+			if self.actionSlotCache[i].id == ability then
+				abilitySlotted = true
+				break
+			end
 		end
-	for i=1,12 do
-		if self.actionSlotCache[i].id == ability then
-			abilitySlotted = true
-			break
+	elseif self.class == "ARC" then abilitySlotted = true
+	elseif self.class == "CRO" then
+		local morph = self:CheckForFSMorph()
+		for i=1,3 do
+			ability = fSId[morph].ability[i]
+			for j=1,12 do
+				if self.actionSlotCache[j].id == ability then
+					abilitySlotted = true
+					break
+				end
+			end
+			if ablilitySlotted then
+				break
+			end
 		end
 	end
 	return abilitySlotted
@@ -367,25 +438,27 @@ function CombatMetronome:IsInPvPZone()
 end
 
 function CombatMetronome:CMPVPSwitch()
-	if self.config.hideCMInPVP and self.inPVPZone then
-		if self.cmRegistered then
-			self:UnregisterCM()
-			self:HideBar(true)
-			-- d("registered cm scenario 1")
-		elseif not self.cmRegistered then
-			self:HideBar(true)
-			-- d("registered cm scenario 2")
-		end
-	else 
-		if not self.cmRegistered then
-			self:RegisterCM()
-			self:BuildUI()
-			self:HideBar(not self.config.dontHide)
-			-- d("registered cm scenario 3")
-		else
-			self:BuildUI()
-			self:HideBar(not self.config.dontHide)
-			-- d("registered cm scenario 4")
+	if not self.config.hideProgressbar then
+		if self.config.hideCMInPVP and self.inPVPZone then
+			if self.cmRegistered then
+				self:UnregisterCM()
+				self:HideBar(true)
+				-- d("registered cm scenario 1")
+			elseif not self.cmRegistered then
+				self:HideBar(true)
+				-- d("registered cm scenario 2")
+			end
+		else 
+			if not self.cmRegistered then
+				self:RegisterCM()
+				self:BuildProgressBar()
+				self:HideBar(not self.config.dontHide)
+				-- d("registered cm scenario 3")
+			else
+				self:BuildProgressBar()
+				self:HideBar(not self.config.dontHide)
+				-- d("registered cm scenario 4")
+			end
 		end
 	end
 end
@@ -395,10 +468,10 @@ function CombatMetronome:TrackerPVPSwitch()
 		if self.config.hideTrackerInPVP and self.inPVPZone then
 			if self.trackerRegistered then
 				self:UnregisterTracker()
-				self.stackTracker.showTracker(false)
+				self.stackTracker.FadeScenes("NoUI")
 				-- d("registered tracker scenario 1")
 			elseif not self.trackerRegistered then
-				self.stackTracker.showTracker(false)
+				self.stackTracker.FadeScenes("NoUi")
 				-- d("registered tracker scenario 2")
 			end
 		else
