@@ -28,15 +28,21 @@ local fullStackSounds = {
 }
 
 local labelFonts = {
-	"$(MEDIUM_FONT)",
-	"$(BOLD_FONT)",
-	"$(CHAT_FONT)",
-	"$(GAMEPAD_LIGHT_FONT)" ,
-	"$(GAMEPAD_MEDIUM_FONT)",
-	"$(GAMEPAD_BOLD_FONT)",
-	"$(ANTIQUE_FONT)",
-	"$(HANDWRITTEN_FONT)",
-	"$(STONE_TABLET_FONT)",
+	"MEDIUM_FONT",
+	"BOLD_FONT",
+	"CHAT_FONT",
+	"GAMEPAD_LIGHT_FONT" ,
+	"GAMEPAD_MEDIUM_FONT",
+	"GAMEPAD_BOLD_FONT",
+	"ANTIQUE_FONT",
+	"HANDWRITTEN_FONT",
+	"STONE_TABLET_FONT",
+}
+
+local fontStyles = {
+	"soft-shadow-thin",
+	"soft-shadow-thick",
+	"outline",
 }
 
 function CombatMetronome:BuildMenu()
@@ -390,9 +396,23 @@ function CombatMetronome:BuildMenu()
 					name = "Label font",
 					tooltip = "Font that is used for labels",
 					choices = labelFonts,
+					width = "half",
 					getFunc = function() return self.config.labelFont end,
 					setFunc = function(value)
 						self.config.labelFont = value
+						self.progressbar.Fonts()
+						-- self:BuildProgressBar()
+					end,
+				},
+				{
+					type = "dropdown",
+					name = "Font Style",
+					tooltip = "Font style that is used for labels",
+					choices = fontStyles,
+					width = "half",
+					getFunc = function() return self.config.fontStyle end,
+					setFunc = function(value)
+						self.config.fontStyle = value
 						self.progressbar.Fonts()
 						-- self:BuildProgressBar()
 					end,

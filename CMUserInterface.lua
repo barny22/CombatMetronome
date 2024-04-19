@@ -89,12 +89,12 @@ function CombatMetronome:BuildProgressBar()
 	end
 	
 	local function Fonts()
-		self.hpLabel:SetFont(Util.Text.getFontString(self.config.labelFont, self.config.healthSize, "outline"))
-		self.magLabel:SetFont(Util.Text.getFontString(self.config.labelFont, self.config.magSize, "outline"))
-		self.stamLabel:SetFont(Util.Text.getFontString(self.config.labelFont, self.config.stamSize, "outline"))
-		self.ultLabel:SetFont(Util.Text.getFontString(self.config.labelFont, self.config.ultSize, "outline"))
-		self.timeLabel:SetFont(Util.Text.getFontString(self.config.labelFont, math.floor(self.config.width/20), "outline"))
-		self.spellLabel:SetFont(Util.Text.getFontString(self.config.labelFont, math.floor(self.config.width/20), "outline"))
+		self.hpLabel:SetFont(Util.Text.getFontString(tostring("$("..self.config.labelFont..")"), self.config.healthSize, self.config.fontStyle))
+		self.magLabel:SetFont(Util.Text.getFontString(tostring("$("..self.config.labelFont..")"), self.config.magSize, self.config.fontStyle))
+		self.stamLabel:SetFont(Util.Text.getFontString(tostring("$("..self.config.labelFont..")"), self.config.stamSize, self.config.fontStyle))
+		self.ultLabel:SetFont(Util.Text.getFontString(tostring("$("..self.config.labelFont..")"), self.config.ultSize, self.config.fontStyle))
+		self.timeLabel:SetFont(Util.Text.getFontString(tostring("$("..self.config.labelFont..")"), math.floor(self.config.width/20), self.config.fontStyle))
+		self.spellLabel:SetFont(Util.Text.getFontString(tostring("$("..self.config.labelFont..")"), math.floor(self.config.width/20), self.config.fontStyle))
 	end
 	
 	local function LabelColors()

@@ -1,9 +1,9 @@
 ## Title: CombatMetronome
 ## Description: Combat Metronome
 ## Author: Darianopolis, barny
-## Version: 1.6.4
-## AddOnVersion: 010604
-## APIVersion: 101041
+## Version: 1.6.5
+## AddOnVersion: 010605
+## APIVersion: 101042
 ## SavedVariables: CombatMetronomeSavedVars
 ## DependsOn: LibAddonMenu-2.0>=35 libAddonKeybinds>=5 DariansUtilities>=10703
 

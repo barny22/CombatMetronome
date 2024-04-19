@@ -78,7 +78,7 @@ function CombatMetronome:UpdateLabels()
             if 100 * (hp / maxHp) < self.config.hpHighlightThreshold then
                 self.hpLabel:SetColor(unpack(self.config.healthColor))
                 -- self.hpLabel:SetAnchor(CENTER, GuiRoot, CENTER, 0, 50)
-                self.hpLabel:SetFont(Util.Text.getFontString(self.config.labelFont, (self.config.healthSize + 10), "outline"))
+                self.hpLabel:SetFont(Util.Text.getFontString(self.config.labelFont, (self.config.healthSize + 10), self.config.fontStyle))
 
                 local PERIOD = 1000
 
@@ -90,7 +90,7 @@ function CombatMetronome:UpdateLabels()
             else
                 self.hpLabel:SetColor(unpack(self.config.healthColor))
                 -- self.hpLabel:SetAnchor(BOTTOMRIGHT, self.frame.body, TOPRIGHT, 0, 0)
-                self.hpLabel:SetFont(Util.Text.getFontString(self.config.labelFont, self.config.healthSize, "outline"))
+                self.hpLabel:SetFont(Util.Text.getFontString(self.config.labelFont, self.config.healthSize, self.config.fontStyle))
             end
 
             self.hpLabel:SetText((showAbsolute or self.force)
