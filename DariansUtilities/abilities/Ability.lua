@@ -8,7 +8,7 @@ Ability.nameCache = { }
 local log = Util.log
 
 function Ability:ForId(id)
-    local APIVersion = GetAPIVersion()
+    -- local APIVersion = GetAPIVersion()
 	local o = self.cache[id]
 	if (o) then 
         -- d(" Ability "..o.name.." is cached for id, "..id)
@@ -31,11 +31,11 @@ function Ability:ForId(id)
 
     o.id = id
     o.name = GetAbilityName(id)
-    if APIVersion < 101042 then
-        o.channeled, 
-        o.castTime, 
-        o.channelTime = GetAbilityCastInfo(id)
-    else
+    -- if APIVersion < 101042 then
+    o.channeled, 
+    o.castTime, 
+    o.channelTime = GetAbilityCastInfo(id)
+    if o.channelTime == nil then
         local channeled, duration = GetAbilityCastInfo(id)
         o.channeled = channeled
         if channeled then
