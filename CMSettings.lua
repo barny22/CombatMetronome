@@ -102,1165 +102,1241 @@ function CombatMetronome:BuildMenu()
             end,
         },
 		{
-            type = "header",
+            type = "submenu",
             name = "Progressbar aka. GCD Tracker",
 			tooltip = "Lets you track your GCD and helps you queuing your light attacks and spells more efficiently.",
-        },
-		{
-			type = "checkbox",
-			name = "Hide GCD Tracker",
-			tooltip = "Hides progress bar, in case you just need the stack tracker",
-			warning = "Activating this disables all other settings regarding the GCD Tracker",
-			getFunc = function() return self.config.hideProgressbar end,
-			setFunc = function(value)
-				self.config.hideProgressbar = value
-				self.frame:SetHidden(value)
-				if value then
-					self:UnregisterCM()
-					self.bar:SetHidden(true)
-				else
-					self:RegisterCM()
-					self.progressbar.HiddenStates()
-				end
-			end,
-		},
-		{
-			type = "checkbox",
-			name = "Hide progress bar in PVP Zones",
-			tooltip = "Hides progress bar in PVPZones to keep UI clean",
-			disabled = function() return self.config.hideProgressbar end,
-			getFunc = function() return self.config.hideCMInPVP end,
-			setFunc = function(value)
-				self.config.hideCMInPVP = value
-				self:CMPVPSwitch()
-				-- self:BuildProgressBar()
-			end,
-		},
-		{
-			type = "checkbox",
-			name = "How does it look?",
-			tooltip = "Shows bar at the right of the screen to check your settings. This bar is not resizable nor movable! This resets if you leave the menu.",
-			warning = "This temporarily disables the Unlock function! Deactivate again to be able to unlock the bar.",
-			disabled = function() return self.config.hideProgressbar end,
-			default = false,
-			getFunc = function() return self.showSampleBar end,
-			setFunc = function(value)
-				self.showSampleBar = value
-				if value then
-					self.progressbar.Position("Sample")
-					self.frame:SetHidden(false)
-					self.labelFrame:SetHidden(false)
-				else
-					self.progressbar.Position("UI")
-					self.progressbar.HiddenStates()
-				end
-			end,
-		},
+			controls = {
+				{
+					type = "checkbox",
+					name = "Hide GCD Tracker",
+					tooltip = "Hides progress bar, in case you just need the stack tracker",
+					warning = "Activating this disables all other settings regarding the GCD Tracker",
+					getFunc = function() return self.config.hideProgressbar end,
+					setFunc = function(value)
+						self.config.hideProgressbar = value
+						self.frame:SetHidden(value)
+						if value then
+							self:UnregisterCM()
+							self.bar:SetHidden(true)
+						else
+							self:RegisterCM()
+							self.progressbar.HiddenStates()
+						end
+					end,
+				},
+				{
+					type = "checkbox",
+					name = "Hide progress bar in PVP Zones",
+					tooltip = "Hides progress bar in PVPZones to keep UI clean",
+					disabled = function() return self.config.hideProgressbar end,
+					getFunc = function() return self.config.hideCMInPVP end,
+					setFunc = function(value)
+						self.config.hideCMInPVP = value
+						self:CMPVPSwitch()
+						-- self:BuildProgressBar()
+					end,
+				},
+				{
+					type = "checkbox",
+					name = "How does it look?",
+					tooltip = "Shows bar at the right of the screen to check your settings. This bar is not resizable nor movable! This resets if you leave the menu.",
+					warning = "This temporarily disables the Unlock function! Deactivate again to be able to unlock the bar.",
+					disabled = function() return self.config.hideProgressbar end,
+					default = false,
+					getFunc = function() return self.showSampleBar end,
+					setFunc = function(value)
+						self.showSampleBar = value
+						if value then
+							self.progressbar.Position("Sample")
+							self.frame:SetHidden(false)
+						else
+							self.progressbar.Position("UI")
+							self.progressbar.HiddenStates()
+						end
+					end,
+				},
 		---------------------------
 		---- Position and Size ----
 		---------------------------
-        {
-            type = "submenu",
-            name = "Position / Size",
-			disabled = function() return self.config.hideProgressbar end,
-			controls = {
 				{
-					type = "checkbox",
-					name = "Unlock progressbar",
-					tooltip = "Reposition / resize bar by dragging center / edges.",
-					-- width = "half",
-					disabled = function() return self.showSampleBar end,
-					getFunc = function() return self.frame.IsUnlocked() end,
-					setFunc = function(value)
-						self.frame:SetUnlocked(value)
-						if not value then
-						
-						-- if value then
-							-- self.frame:SetDrawTier(DT_HIGH)
-							-- self.frame:SetHidden(false)
-						-- else
-							self.frame:SetDrawTier(DT_LOW)
-							self.frame:SetHidden(true)
-						end
-					end,
+					type = "submenu",
+					name = "Position / Size",
+					disabled = function() return self.config.hideProgressbar end,
+					controls = {
+						{
+							type = "checkbox",
+							name = "Unlock progressbar",
+							tooltip = "Reposition / resize bar by dragging center / edges.",
+							-- width = "half",
+							disabled = function() return self.showSampleBar end,
+							getFunc = function() return self.frame.IsUnlocked() end,
+							setFunc = function(value)
+								self.frame:SetUnlocked(value)
+								if value then
+									self.frame:SetDrawTier(DT_HIGH)
+									self.frame:SetHidden(false)
+								else
+									self.frame:SetDrawTier(DT_LOW)
+									self.frame:SetHidden(true)
+								end
+							end,
+						},
+						-- {
+							-- type = "checkbox",
+							-- name = "Show bar over settings menu",
+							-- tooltip = "Shows progressbar over settings menu in unlocked mode",
+							-- disabled = function() return not self.frame.IsUnlocked() end,
+							-- width = "half",
+							-- getFunc = function() return false end,
+							-- setFunc = function(value)
+								-- if value then
+									-- self.frame:SetDrawTier(DT_HIGH)
+									-- self.frame:SetHidden(false)
+								-- elseif not self.frame.IsUnlocked() then
+									-- self.frame:SetDrawTier(DT_LOW)
+									-- self.frame:SetHidden(true)
+								-- else
+									-- self.frame:SetDrawTier(DT_LOW)
+									-- self.frame:SetHidden(true)
+								-- end
+							-- end,
+						-- },
+						{
+							type = "slider",
+							name = "X Offset",
+							min = 0,
+							--max = math.floor(GuiRoot:GetWidth() - self.config.barSize),
+							max = math.floor(GuiRoot:GetWidth() - self.config.width),
+							step = 1,
+							disabled = function() return self.showSampleBar end,
+							getFunc = function() return self.config.xOffset end,
+							setFunc = function(value) 
+								self.config.xOffset = value
+								self.progressbar.Position("UI")
+								-- self:BuildProgressBar()
+							end,
+						},
+						{
+							type = "button",
+							name = "Center Horizontally",
+							disabled = function() return self.showSampleBar end,
+							func = function()
+								self.config.xOffset = math.floor((GuiRoot:GetWidth() - self.config.width) / 2)
+								self.progressbar.Position("UI")
+								-- self:BuildProgressBar()
+							end
+						},
+						{
+							type = "slider",
+							name = "Y Offset",
+							min = 0,
+							--max = math.floor(GuiRoot:GetHeight() - self.config.barSize/10),
+							max = math.floor(GuiRoot:GetHeight() - self.config.height),
+							step = 1,
+							disabled = function() return self.showSampleBar end,
+							getFunc = function() return self.config.yOffset end,
+							setFunc = function(value) 
+								self.config.yOffset = value 
+								self.progressbar.Position("UI")
+								-- self:BuildProgressBar()
+							end,
+						},
+						{
+							type = "button",
+							name = "Center Vertically",
+							disabled = function() return self.showSampleBar end,
+							func = function()
+								self.config.yOffset = math.floor((GuiRoot:GetHeight() - self.config.height) / 2)
+								self.progressbar.Position("UI")
+								-- self:BuildProgressBar()
+							end
+						},
+						{
+							type = "slider",
+							name = "Width",
+							min = MIN_WIDTH,
+							max = MAX_WIDTH,
+							step = 1,
+							getFunc = function() return self.config.width end,
+							setFunc = function(value) 
+								self.config.width = value
+								self.progressbar.Size()
+								-- self:BuildProgressBar()
+							end,
+						},
+						{
+							type = "slider",
+							name = "Height",
+							min = MIN_HEIGHT,
+							max = MAX_HEIGHT,
+							step = 1,
+							getFunc = function() return self.config.height end,
+							setFunc = function(value) 
+								self.config.height = value 
+								self.progressbar.Size()
+								-- self:BuildProgressBar()
+							end,
+						},
+					},
 				},
-				-- {
-					-- type = "checkbox",
-					-- name = "Show bar over settings menu",
-					-- tooltip = "Shows progressbar over settings menu in unlocked mode",
-					-- disabled = function() return not self.frame.IsUnlocked() end,
-					-- width = "half",
-					-- getFunc = function() return false end,
-					-- setFunc = function(value)
-						-- if value then
-							-- self.frame:SetDrawTier(DT_HIGH)
-							-- self.frame:SetHidden(false)
-						-- elseif not self.frame.IsUnlocked() then
-							-- self.frame:SetDrawTier(DT_LOW)
-							-- self.frame:SetHidden(true)
-						-- else
-							-- self.frame:SetDrawTier(DT_LOW)
-							-- self.frame:SetHidden(true)
-						-- end
-					-- end,
-				-- },
-				{
-					type = "slider",
-					name = "X Offset",
-					min = 0,
-					--max = math.floor(GuiRoot:GetWidth() - self.config.barSize),
-					max = math.floor(GuiRoot:GetWidth() - self.config.width),
-					step = 1,
-					disabled = function() return self.showSampleBar end,
-					getFunc = function() return self.config.xOffset end,
-					setFunc = function(value) 
-						self.config.xOffset = value
-						self.progressbar.Position("UI")
-						-- self:BuildProgressBar()
-					end,
-				},
-				{
-					type = "button",
-					name = "Center Horizontally",
-					disabled = function() return self.showSampleBar end,
-					func = function()
-						self.config.xOffset = math.floor((GuiRoot:GetWidth() - self.config.width) / 2)
-						self.progressbar.Position("UI")
-						-- self:BuildProgressBar()
-					end
-				},
-				{
-					type = "slider",
-					name = "Y Offset",
-					min = 0,
-					--max = math.floor(GuiRoot:GetHeight() - self.config.barSize/10),
-					max = math.floor(GuiRoot:GetHeight() - self.config.height),
-					step = 1,
-					disabled = function() return self.showSampleBar end,
-					getFunc = function() return self.config.yOffset end,
-					setFunc = function(value) 
-						self.config.yOffset = value 
-						self.progressbar.Position("UI")
-						-- self:BuildProgressBar()
-					end,
-				},
-				{
-					type = "button",
-					name = "Center Vertically",
-					disabled = function() return self.showSampleBar end,
-					func = function()
-						self.config.yOffset = math.floor((GuiRoot:GetHeight() - self.config.height) / 2)
-						self.progressbar.Position("UI")
-						-- self:BuildProgressBar()
-					end
-				},
-				{
-					type = "slider",
-					name = "Width",
-					min = MIN_WIDTH,
-					max = MAX_WIDTH,
-					step = 1,
-					getFunc = function() return self.config.width end,
-					setFunc = function(value) 
-						self.config.width = value
-						self.progressbar.Size()
-						-- self:BuildProgressBar()
-					end,
-				},
-				{
-					type = "slider",
-					name = "Height",
-					min = MIN_HEIGHT,
-					max = MAX_HEIGHT,
-					step = 1,
-					getFunc = function() return self.config.height end,
-					setFunc = function(value) 
-						self.config.height = value 
-						self.progressbar.Size()
-						-- self:BuildProgressBar()
-					end,
-				},
-			},
-		},
 		-----------------
 		---- Visuals ----
 		-----------------
-        {
-            type = "submenu",
-            name = "Visuals / Color / Layout",
-			disabled = function() return self.config.hideProgressbar end,
-			controls = {
 				{
-					type = "checkbox",
-					name = "Show permanently",
-					tooltip = "If you don't want to hide the cast bar when it's unused, it will display the background color.",
-					getFunc = function() return self.config.dontHide end,
-					setFunc = function(value)
-						self.config.dontHide = value
-						self.progressbar.HiddenStates()
-						-- self:BuildProgressBar()
-					end,
+					type = "submenu",
+					name = "Visuals / Color / Layout",
+					disabled = function() return self.config.hideProgressbar end,
+					controls = {
+						{
+							type = "checkbox",
+							name = "Show permanently",
+							tooltip = "If you don't want to hide the cast bar when it's unused, it will display the background color.",
+							getFunc = function() return self.config.dontHide end,
+							setFunc = function(value)
+								self.config.dontHide = value
+								self.progressbar.HiddenStates()
+								-- self:BuildProgressBar()
+							end,
+						},
+						{
+							type = "checkbox",
+							name = "Make it fancy",
+							tooltip = "Have fancy effects and stuff",
+							getFunc = function() return self.config.makeItFancy, self.config.lastBackgroundColor, self.config.backgroundColor end,
+							setFunc = function(value)
+								self.config.makeItFancy = value
+								if self.config.makeItFancy then
+									self.config.lastBackgroundColor = self.config.backgroundColor
+									self.config.backgroundColor = {0, 0, 0, 0}
+								else
+									self.config.backgroundColor = self.config.lastBackgroundColor
+								end
+								self.progressbar.HiddenStates()
+								-- self:BuildProgressBar()
+							end,
+						},
+						{
+							type = "colorpicker",
+							name = "Background Color",
+							tooltip = "Color of the bar background",
+							disabled = function()
+								return (self.config.makeItFancy)
+							end,
+							getFunc = function() return unpack(self.config.backgroundColor) end,
+							setFunc = function(r, g, b, a)
+								self.config.backgroundColor = {r, g, b, a}
+								self.progressbar.BarColors()
+								-- self:BuildProgressBar()
+							end,
+						},
+						{
+							type = "colorpicker",
+							name = "Progress Color",
+							tooltip = "Color of the progress bar",
+							getFunc = function() return unpack(self.config.progressColor) end,
+							setFunc = function(r, g, b, a)
+								self.config.progressColor = {r, g, b, a}
+								self.progressbar.BarColors()
+								-- self:BuildProgressBar()
+							end,
+						},
+						{
+							type = "colorpicker",
+							name = "Ping Color",
+							tooltip = "Color of the ping zone",
+							getFunc = function() return unpack(self.config.pingColor) end,
+							setFunc = function(r, g, b, a)
+								self.config.pingColor = {r, g, b, a}
+								self.progressbar.BarColors()
+								-- self:BuildProgressBar()
+							end,
+						},
+						{
+							type = "dropdown",
+							name = "Alignment",
+							tooltip = "Alignment of the progress bar",
+							choices = {"Left", "Center", "Right"},
+							getFunc = function() return self.config.barAlign end,
+							setFunc = function(value)
+								self.config.barAlign = value
+								self.progressbar.Anchors()
+								-- self:BuildProgressBar()
+							end,
+						},
+						{
+							type = "checkbox",
+							name = "Switch Progress Color while channeling",
+							tooltip = "Change bar color on channeling abilities <1 second to indicate possibility to barswap, when channel is finished",
+							warning = "This is experimental and might feel a little wonky",
+							getFunc = function() return self.config.changeOnChanneled end,
+							setFunc = function(value)
+								self.config.changeOnChanneled = value
+								-- self:BuildProgressBar()
+							end,
+						},
+						{
+							type = "colorpicker",
+							name = "Channel Color",
+							tooltip = "Color while channelling",
+							disabled = function()
+								return (not self.config.changeOnChanneled)
+							end,
+							getFunc = function() return unpack(self.config.channelColor) end,
+							setFunc = function(r, g, b, a)
+								self.config.channelColor = {r, g, b, a}
+								self.progressbar.BarColors()
+								-- self:BuildProgressBar()
+							end,
+						},
+						{
+							type = "dropdown",
+							name = "Label font",
+							tooltip = "Font that is used for labels",
+							choices = labelFonts,
+							width = "half",
+							getFunc = function() return self.config.labelFont end,
+							setFunc = function(value)
+								self.config.labelFont = value
+								self.progressbar.Fonts()
+								-- self:BuildProgressBar()
+							end,
+						},
+						{
+							type = "dropdown",
+							name = "Font Style",
+							tooltip = "Font style that is used for labels",
+							choices = fontStyles,
+							width = "half",
+							getFunc = function() return self.config.fontStyle end,
+							setFunc = function(value)
+								self.config.fontStyle = value
+								self.progressbar.Fonts()
+								-- self:BuildProgressBar()
+							end,
+						},
+					},
 				},
-				{
-					type = "checkbox",
-					name = "Make it fancy",
-					tooltip = "Have fancy effects and stuff",
-					getFunc = function() return self.config.makeItFancy, self.config.lastBackgroundColor, self.config.backgroundColor end,
-					setFunc = function(value)
-						self.config.makeItFancy = value
-						if self.config.makeItFancy then
-							self.config.lastBackgroundColor = self.config.backgroundColor
-							self.config.backgroundColor = {0, 0, 0, 0}
-						else
-							self.config.backgroundColor = self.config.lastBackgroundColor
-						end
-						self.progressbar.HiddenStates()
-						-- self:BuildProgressBar()
-					end,
-				},
-				{
-					type = "colorpicker",
-					name = "Background Color",
-					tooltip = "Color of the bar background",
-					disabled = function()
-						return (self.config.makeItFancy)
-					end,
-					getFunc = function() return unpack(self.config.backgroundColor) end,
-					setFunc = function(r, g, b, a)
-						self.config.backgroundColor = {r, g, b, a}
-						self.progressbar.BarColors()
-						-- self:BuildProgressBar()
-					end,
-				},
-				{
-					type = "colorpicker",
-					name = "Progress Color",
-					tooltip = "Color of the progress bar",
-					getFunc = function() return unpack(self.config.progressColor) end,
-					setFunc = function(r, g, b, a)
-						self.config.progressColor = {r, g, b, a}
-						self.progressbar.BarColors()
-						-- self:BuildProgressBar()
-					end,
-				},
-				{
-					type = "colorpicker",
-					name = "Ping Color",
-					tooltip = "Color of the ping zone",
-					getFunc = function() return unpack(self.config.pingColor) end,
-					setFunc = function(r, g, b, a)
-						self.config.pingColor = {r, g, b, a}
-						self.progressbar.BarColors()
-						-- self:BuildProgressBar()
-					end,
-				},
-				{
-					type = "dropdown",
-					name = "Alignment",
-					tooltip = "Alignment of the progress bar",
-					choices = {"Left", "Center", "Right"},
-					getFunc = function() return self.config.barAlign end,
-					setFunc = function(value)
-						self.config.barAlign = value
-						self.progressbar.Anchors()
-						-- self:BuildProgressBar()
-					end,
-				},
-				{
-					type = "checkbox",
-					name = "Switch Progress Color while channeling",
-					tooltip = "Change bar color on channeling abilities <1 second to indicate possibility to barswap, when channel is finished",
-					warning = "This is experimental and might feel a little wonky",
-					getFunc = function() return self.config.changeOnChanneled end,
-					setFunc = function(value)
-						self.config.changeOnChanneled = value
-						-- self:BuildProgressBar()
-					end,
-				},
-				{
-					type = "colorpicker",
-					name = "Channel Color",
-					tooltip = "Color while channelling",
-					disabled = function()
-						return (not self.config.changeOnChanneled)
-					end,
-					getFunc = function() return unpack(self.config.channelColor) end,
-					setFunc = function(r, g, b, a)
-						self.config.channelColor = {r, g, b, a}
-						self.progressbar.BarColors()
-						-- self:BuildProgressBar()
-					end,
-				},
-				{
-					type = "dropdown",
-					name = "Label font",
-					tooltip = "Font that is used for labels",
-					choices = labelFonts,
-					width = "half",
-					getFunc = function() return self.config.labelFont end,
-					setFunc = function(value)
-						self.config.labelFont = value
-						self.progressbar.Fonts()
-						-- self:BuildProgressBar()
-					end,
-				},
-				{
-					type = "dropdown",
-					name = "Font Style",
-					tooltip = "Font style that is used for labels",
-					choices = fontStyles,
-					width = "half",
-					getFunc = function() return self.config.fontStyle end,
-					setFunc = function(value)
-						self.config.fontStyle = value
-						self.progressbar.Fonts()
-						-- self:BuildProgressBar()
-					end,
-				},
-			},
-		},
-		-------------------
-		---- Resources ----
-		-------------------
-        {
-            type = "submenu",
-            name = "Resources",
-			disabled = function() return self.config.hideProgressbar end,
-			controls = {
-				{
-					type = "checkbox",
-					name = "Always show own resources",
-					tooltip = "Toggle show own resources. If this is off, your resources will only be shown, when targeting units",
-					disabled = function()
-						return not (self.config.showUltimate or self.config.showStamina or self.config.showMagicka)
-					end,
-					getFunc = function() return self.config.showResources end,
-					setFunc = function(value) self.config.showResources = value end,
-				},
-				{
-					type = "checkbox",
-					name = "Show Ultimate",
-					tooltip = "Toggle show ultimate above cast bar",
-					getFunc = function() return self.config.showUltimate end,
-					setFunc = function(value)
-						self.config.showUltimate = value
-					end,
-				},
-				{
-					type = "slider",
-					name = "Ultimate Label Size",
-					tooltip = "Set the size of the Ultimate label",
-					disabled = function()
-						return (not self.config.showUltimate)
-					end,
-					min = 0,
-					max = 50,
-					step = 1,
-					default = self.config.ultSize,
-					getFunc = function() return self.config.ultSize end,
-					setFunc = function(value)
-						self.config.ultSize = value
-						self.progressbar.Fonts()
-						-- self:BuildProgressBar()
-					end,
-				},
-				{
-					type = "colorpicker",
-					name = "Ultimate Label Color",
-					tooltip = "Color of your ultimate label",
-					disabled = function()
-						return (not self.config.showUltimate)
-					end,
-					getFunc = function() return unpack(self.config.ultColor) end,
-					setFunc = function(r, g, b, a)
-						self.config.ultColor = {r, g, b, a}
-						self.progressbar.LabelColors()
-						-- self:BuildProgressBar()
-					end,
-				},
-				{
-					type = "checkbox",
-					name = "Show Stamina",
-					tooltip = "Toggle show stamina above cast bar",
-					getFunc = function() return self.config.showStamina end,
-					setFunc = function(value)
-						self.config.showStamina = value
-					end,
-				},
-				{
-					type = "slider",
-					name = "Stamina Label Size",
-					tooltip = "Set the size of the Stamina label",
-					disabled = function()
-						return (not self.config.showStamina)
-					end,
-					min = 0,
-					max = 25,
-					step = 1,
-					default = self.config.stamSize,
-					getFunc = function() return self.config.stamSize end,
-					setFunc = function(value)
-						self.config.stamSize = value
-						self.progressbar.Fonts()
-						-- self:BuildProgressBar()
-					end,
-				},
-				{
-					type = "colorpicker",
-					name = "Stamina Label Color",
-					tooltip = "Color of your stamina label",
-					disabled = function()
-						return (not self.config.showStamina)
-					end,
-					getFunc = function() return unpack(self.config.stamColor) end,
-					setFunc = function(r, g, b, a)
-						self.config.stamColor = {r, g, b, a}
-						self.progressbar.LabelColors()
-						-- self:BuildProgressBar()
-					end,
-				},
-				{
-					type = "checkbox",
-					name = "Show Magicka",
-					tooltip = "Toggle show magicka above cast bar",
-					getFunc = function() return self.config.showMagicka end,
-					setFunc = function(value)
-						self.config.showMagicka = value
-						-- self.sampleBar.Mag:SetHidden(not value)
-					end,
-				},
-				{
-					type = "slider",
-					name = "Magicka Label Size",
-					tooltip = "Set the size of the Magicka label",
-					disabled = function()
-						return (not self.config.showMagicka)
-					end,
-					min = 0,
-					max = 25,
-					step = 1,
-					default = self.config.magSize,
-					getFunc = function() return self.config.magSize end,
-					setFunc = function(value)
-						self.config.magSize = value
-						self.progressbar.Fonts()
-						-- self:BuildProgressBar()
-					end,
-				},
-				{
-					type = "colorpicker",
-					name = "Magicka Label Color",
-					tooltip = "Color of your magicka label",
-					disabled = function()
-						return (not self.config.showMagicka)
-					end,
-					getFunc = function() return unpack(self.config.magColor) end,
-					setFunc = function(r, g, b, a)
-						self.config.magColor = {r, g, b, a}
-						self.progressbar.LabelColors()
-						-- self:BuildProgressBar()
-					end,
-				},
-				{
-					type = "checkbox",
-					name = "Show Target Health",
-					tooltip = "Toggle show target health above cast bar",
-					getFunc = function() return self.config.showHealth end,
-					setFunc = function(value)
-						self.config.showHealth = value
-					end,
-				},
-				{
-					type = "slider",
-					name = "Health Label Size",
-					tooltip = "Set the size of the Health label",
-					disabled = function()
-						return (not self.config.showHealth)
-					end,
-					min = 0,
-					max = 50,
-					step = 1,
-					default = self.config.healthSize,
-					getFunc = function() return self.config.healthSize end,
-					setFunc = function(value)
-						self.config.healthSize = value
-						self.progressbar.Fonts()
-						-- self:BuildProgressBar()
-					end,
-				},
-				{
-					type = "colorpicker",
-					name = "Health Label Color",
-					tooltip = "Color of target health label",
-					disabled = function()
-						return (not self.config.showHealth)
-					end,
-					getFunc = function() return unpack(self.config.healthColor) end,
-					setFunc = function(r, g, b, a)
-						self.config.healthColor = {r, g, b, a}
-						self.progressbar.LabelColors()
-						-- self:BuildProgressBar()
-						end,
-				},
-				-- {
-					-- type = "checkbox",
-					-- name = "Make resources colorful",
-					-- tooltip = "Magicka will be blue, stamina green and target health will be red",
-					-- getFunc = function() return self.config.colorfulResources, self.config.magColor, self.config.stamColor, self.config.healthColor end,
-					-- setFunc = function(value) 
-						-- self.config.colorfulResources = value
-						-- if self.config.colorfulResources then
-							-- self.config.magColor = {0, 0.5, 1, 1}
-							-- self.config.stamColor = {0, 0.8, 0.3, 1}
-							-- self.config.healthColor = {0.8, 0, 0, 1}
-						-- else
-							-- self.config.magColor = {1, 1, 1, 1}
-							-- self.config.stamColor = {1, 1, 1, 1}
-							-- self.config.healthColor = {1, 1, 1, 1}
-						-- end
-						-- self:BuildProgressBar()
-					-- end,
-				-- },
-				{
-					type = "checkbox",
-					name = "Attach Target Health to reticle",
-					tooltip = "Attach Target Health to side of reticle",
-					disabled = function()
-						return (not self.config.showHealth)
-					end,
-					getFunc = function() return self.config.reticleHp end,
-					setFunc = function(value) 
-						self.config.reticleHp = value
-						self.progressbar.Anchors()
-						-- self:BuildProgressBar()
-					end,
-				},
-				{
-					type = "slider",
-					name = "Target Health execute highlight threshold",
-					tooltip = "Set the threshold for target health highlighting (Set 0% for no highlight)",
-					disabled = function()
-						return (not self.config.showHealth)
-					end,
-					min = 0,
-					max = 100,
-					getFunc = function() return self.config.hpHighlightThreshold end,
-					setFunc = function(value) self.config.hpHighlightThreshold = value end,
-				},
-				{
-					type = "checkbox",
-					name = "Show resources when targeting guard",
-					tooltip = "Show resources when targeting guard",
-					getFunc = function() return self.config.showResourcesForGuard end,
-					setFunc = function(value) self.config.showResourcesForGuard = value end,
-				},
-			},
-		},
 		------------------
 		---- Behavior ----
 		------------------
-        {
-            type = "submenu",
-            name = "Behavior",
-			disabled = function() return self.config.hideProgressbar end,
-			controls = {
 				{
-					type = "slider",
-					name = "Max latency",
-					tooltip = "Set the maximum display latency",
-					min = 0,
-					max = 1000,
-					step = 1,
-					getFunc = function() return self.config.maxLatency end,
-					setFunc = function(value) self.config.maxLatency = value end,
-				},
-				{
-					type = "slider",
-					name = "GCD Adjust",
-					tooltip = "Increase/decrease the displayed GCD length",
-					min = -MAX_ADJUST,
-					max = MAX_ADJUST,
-					step = 1,
-					getFunc = function() return self.config.gcdAdjust end,
-					setFunc = function(value) 
-						self.config.gcdAdjust = value 
-						-- self:BuildProgressBar()
-					end,
-				},
-				{
-					type = "slider",
-					name = "Global Heavy Attack Adjust",
-					tooltip = "Increase/decrease the baseline heavy attack cast time. Additional adjustments to specific heavy types are made in addition to this",
-					min = -MAX_ADJUST,
-					max = MAX_ADJUST,
-					step = 1,
-					getFunc = function() return self.config.globalHeavyAdjust end,
-					setFunc = function(value) 
-						self.config.globalHeavyAdjust = value 
-					end,
-				},
-				{
-					type = "slider",
-					name = "Global Ability Cast Adjust",
-					tooltip = "Increase/decrease the baseline ability cast time. Additional adjustments to specific abilities are made in addition to this",
-					min = -MAX_ADJUST,
-					max = MAX_ADJUST,
-					step = 1,
-					getFunc = function() return self.config.globalAbilityAdjust end,
-					setFunc = function(value)
-						self.config.globalAbilityAdjust = value
-					end,
-				},
-				--[[
-				{
-					type = "checkbox",
-					name = "Show OOC",
-					tooltip = "Track GCDs whilst out of combat",
-					getFunc = function() return self.config.showOOC end,
-					setFunc = function(value)
-					self.config.showOOC = value
-					end
+					type = "submenu",
+					name = "Behavior",
+					disabled = function() return self.config.hideProgressbar end,
+					controls = {
+						{
+							type = "slider",
+							name = "Max latency",
+							tooltip = "Set the maximum display latency",
+							min = 0,
+							max = 1000,
+							step = 1,
+							getFunc = function() return self.config.maxLatency end,
+							setFunc = function(value) self.config.maxLatency = value end,
+						},
+						{
+							type = "slider",
+							name = "GCD Adjust",
+							tooltip = "Increase/decrease the displayed GCD length",
+							min = -MAX_ADJUST,
+							max = MAX_ADJUST,
+							step = 1,
+							getFunc = function() return self.config.gcdAdjust end,
+							setFunc = function(value) 
+								self.config.gcdAdjust = value 
+								-- self:BuildProgressBar()
+							end,
+						},
+						{
+							type = "slider",
+							name = "Global Heavy Attack Adjust",
+							tooltip = "Increase/decrease the baseline heavy attack cast time. Additional adjustments to specific heavy types are made in addition to this",
+							min = -MAX_ADJUST,
+							max = MAX_ADJUST,
+							step = 1,
+							getFunc = function() return self.config.globalHeavyAdjust end,
+							setFunc = function(value) 
+								self.config.globalHeavyAdjust = value 
+							end,
+						},
+						{
+							type = "slider",
+							name = "Global Ability Cast Adjust",
+							tooltip = "Increase/decrease the baseline ability cast time. Additional adjustments to specific abilities are made in addition to this",
+							min = -MAX_ADJUST,
+							max = MAX_ADJUST,
+							step = 1,
+							getFunc = function() return self.config.globalAbilityAdjust end,
+							setFunc = function(value)
+								self.config.globalAbilityAdjust = value
+							end,
+						},
+						--[[
+						{
+							type = "checkbox",
+							name = "Show OOC",
+							tooltip = "Track GCDs whilst out of combat",
+							getFunc = function() return self.config.showOOC end,
+							setFunc = function(value)
+							self.config.showOOC = value
+							end
+							},
+						]]
+						{
+							type = "checkbox",
+							name = "Show GCD",
+							tooltip = "Track GCDs whilst out of combat",
+							getFunc = function() return self.config.trackGCD end,
+							setFunc = function(value)
+								self.config.trackGCD = value
+							end,
+						},
+						{
+							type = "checkbox",
+							name = "Don't show ping zone",
+							tooltip = "Don't show Ping Zone on cast bar at all",
+							getFunc = function() return self.config.dontShowPing end,
+							setFunc = function(value)
+								self.config.dontShowPing = value
+							end,
+						},
+						{
+							type = "checkbox",
+							name = "I'm no Oakensorc",
+							tooltip = "Stops displaying heavy attacks on the progress bar",
+							getFunc = function() return self.config.stopHATracking end,
+							setFunc = function(value)
+								self.config.stopHATracking = value
+							end,
+						},
+						--[[
+						{
+							type = "dropdown",
+							name = "Show Ping Zone",
+							tooltip = "Show Ping Zone on HA and abilities', only on abilities or not at all",
+							if self.config.stopHATracking then
+								choices = {"Only abilities", "No"},
+							else
+								choices = {"On HA and abilities", "Only abilities", "No"},
+							end,
+							getFunc = function() return self.config.showPing end,
+							setFunc = function(value)
+								self.config.showPing = value
+								self:BuildProgressBar()
+							end,
+						},
+						]]
+						{
+							type = "checkbox",
+							name = "Display ping zone on heavy attacks",
+							tooltip = "Displays heavy attacks with ping zone - Heavy attack cast will finish at start on entering ping zone "
+												.."(heavy attack timing is calculated locally). This is for visual consistency",
+							disabled = function()
+								return (self.config.dontShowPing)
+							end,
+							getFunc = function() return self.config.displayPingOnHeavy end,
+							setFunc = function(value)
+								self.config.displayPingOnHeavy = value
+							end,
+						},
+						{
+							type = "checkbox",
+							name = "Display spell name in cast bar",
+							tooltip = "Displays the spell Name in the cast bar",
+							getFunc = function() return self.config.showSpell end,
+							setFunc = function(value)
+								self.config.showSpell = value
+							end,
+						},
+						{
+							type = "checkbox",
+							name = "Display time remaining in cast bar",
+							tooltip = "Displays the remaining time on channel or cast in the cast bar",
+							getFunc = function() return self.config.showTimeRemaining end,
+							setFunc = function(value)
+								self.config.showTimeRemaining = value
+							end,
+						},
 					},
-				]]
-				{
-					type = "checkbox",
-					name = "Show GCD",
-					tooltip = "Track GCDs whilst out of combat",
-					getFunc = function() return self.config.trackGCD end,
-					setFunc = function(value)
-						self.config.trackGCD = value
-					end,
 				},
-				{
-					type = "checkbox",
-					name = "Don't show ping zone",
-					tooltip = "Don't show Ping Zone on cast bar at all",
-					getFunc = function() return self.config.dontShowPing end,
-					setFunc = function(value)
-						self.config.dontShowPing = value
-					end,
-				},
-				{
-					type = "checkbox",
-					name = "I'm no Oakensorc",
-					tooltip = "Stops displaying heavy attacks on the progress bar",
-					getFunc = function() return self.config.stopHATracking end,
-					setFunc = function(value)
-						self.config.stopHATracking = value
-					end,
-				},
-				--[[
-				{
-					type = "dropdown",
-					name = "Show Ping Zone",
-					tooltip = "Show Ping Zone on HA and abilities', only on abilities or not at all",
-					if self.config.stopHATracking then
-						choices = {"Only abilities", "No"},
-					else
-						choices = {"On HA and abilities", "Only abilities", "No"},
-					end,
-					getFunc = function() return self.config.showPing end,
-					setFunc = function(value)
-						self.config.showPing = value
-						self:BuildProgressBar()
-					end,
-				},
-				]]
-				{
-					type = "checkbox",
-					name = "Display ping zone on heavy attacks",
-					tooltip = "Displays heavy attacks with ping zone - Heavy attack cast will finish at start on entering ping zone "
-										.."(heavy attack timing is calculated locally). This is for visual consistency",
-					disabled = function()
-						return (self.config.dontShowPing)
-					end,
-					getFunc = function() return self.config.displayPingOnHeavy end,
-					setFunc = function(value)
-						self.config.displayPingOnHeavy = value
-					end,
-				},
-				{
-					type = "checkbox",
-					name = "Display spell name in cast bar",
-					tooltip = "Displays the spell Name in the cast bar",
-					getFunc = function() return self.config.showSpell end,
-					setFunc = function(value)
-						self.config.showSpell = value
-					end,
-				},
-				{
-					type = "checkbox",
-					name = "Display time remaining in cast bar",
-					tooltip = "Displays the remaining time on channel or cast in the cast bar",
-					getFunc = function() return self.config.showTimeRemaining end,
-					setFunc = function(value)
-						self.config.showTimeRemaining = value
-					end,
-				},
-			},
-		},
 		----------------
 		---- Sounds ----
 		----------------
-        {
-            type = "submenu",
-            name = "Sound", 
-			disabled = function() return self.config.hideProgressbar end,
-			controls = {
 				{
-					type = "slider",
-					name = "Volume of 'tick' and 'tock'",
-					tooltip = "Adjust volume of tick and tock effects",
-					warning = "You may have to adjust your general audio settings and general audio volume for this to have a noticable effect. Take care not to overadjust, your ears can only take so much!",
-					disabled = function() return not (self.config.soundTickEnabled or self.config.soundTockEnabled) end,
-					min = 0,
-					max = 100,
-					setp = 1,
-					getFunc = function() return self.config.tickVolume end,
-					setFunc = function(value) self.config.tickVolume = value end,
-				},
-				{
-					type = "checkbox",
-					name = "Sound 'tick'",
-					tooltip = "Enable sound 'tick'",
-					getFunc = function() return self.config.soundTickEnabled end,
-					setFunc = function(state)
-						self.config.soundTickEnabled = state
-					end,
-				},
-				{
-					type = "dropdown",
-					name = "Sound 'tick' effect",
-					disabled = function()
-						return (not self.config.soundTickEnabled)
-					end,
-					choices = sounds,
-					getFunc = function() return self.config.soundTickEffect end,
-					setFunc = function(value)
-						self.config.soundTickEffect = value
-						PlaySound(value)
-					end,
-				},
-				{
-					type = "slider",
-					name = "Sound 'tick' offset",
-					disabled = function()
-						return (not self.config.soundTickEnabled)
-					end,
-					min = 0,
-					max = 1000,
-					step =  1,
-					getFunc = function() return self.config.soundTickOffset end,
-					setFunc = function(value)
-						self.config.soundTickOffset = value
-					end,
-				},
+					type = "submenu",
+					name = "Sound", 
+					disabled = function() return self.config.hideProgressbar end,
+					controls = {
+						{
+							type = "slider",
+							name = "Volume of 'tick' and 'tock'",
+							tooltip = "Adjust volume of tick and tock effects",
+							warning = "You may have to adjust your general audio settings and general audio volume for this to have a noticable effect. Take care not to overadjust, your ears can only take so much!",
+							disabled = function() return not (self.config.soundTickEnabled or self.config.soundTockEnabled) end,
+							min = 0,
+							max = 100,
+							setp = 1,
+							getFunc = function() return self.config.tickVolume end,
+							setFunc = function(value) self.config.tickVolume = value end,
+						},
+						{
+							type = "checkbox",
+							name = "Sound 'tick'",
+							tooltip = "Enable sound 'tick'",
+							getFunc = function() return self.config.soundTickEnabled end,
+							setFunc = function(state)
+								self.config.soundTickEnabled = state
+							end,
+						},
+						{
+							type = "dropdown",
+							name = "Sound 'tick' effect",
+							disabled = function()
+								return (not self.config.soundTickEnabled)
+							end,
+							choices = sounds,
+							getFunc = function() return self.config.soundTickEffect end,
+							setFunc = function(value)
+								self.config.soundTickEffect = value
+								PlaySound(value)
+							end,
+						},
+						{
+							type = "slider",
+							name = "Sound 'tick' offset",
+							disabled = function()
+								return (not self.config.soundTickEnabled)
+							end,
+							min = 0,
+							max = 1000,
+							step =  1,
+							getFunc = function() return self.config.soundTickOffset end,
+							setFunc = function(value)
+								self.config.soundTickOffset = value
+							end,
+						},
 
-				{
-					type = "checkbox",
-					name = "Sound 'tock'",
-					tooltip = "Offcycle sound cue",
-					getFunc = function() return self.config.soundTockEnabled end,
-					setFunc = function(state)
-						self.config.soundTockEnabled = state
-					end,
+						{
+							type = "checkbox",
+							name = "Sound 'tock'",
+							tooltip = "Offcycle sound cue",
+							getFunc = function() return self.config.soundTockEnabled end,
+							setFunc = function(state)
+								self.config.soundTockEnabled = state
+							end,
+						},
+						{
+							type = "dropdown",
+							name = "Sound 'tock' effect",
+							disabled = function()
+								return (not self.config.soundTockEnabled)
+							end,
+							choices = sounds,
+							getFunc = function() return self.config.soundTockEffect end,
+							setFunc = function(value)
+								self.config.soundTockEffect = value
+								PlaySound(value)
+							end,
+						},
+						{
+							type = "slider",
+							name = "Sound 'tock' offset",
+							disabled = function()
+								return (not self.config.soundTockEnabled)
+							end,
+							min = 0,
+							max = 1000,
+							step = 1,
+							getFunc = function() return self.config.soundTockOffset end,
+							setFunc = function(value)
+								self.config.soundTockOffset = value
+							end,
+						},
+					},
 				},
-				{
-					type = "dropdown",
-					name = "Sound 'tock' effect",
-					disabled = function()
-						return (not self.config.soundTockEnabled)
-					end,
-					choices = sounds,
-					getFunc = function() return self.config.soundTockEffect end,
-					setFunc = function(value)
-						self.config.soundTockEffect = value
-						PlaySound(value)
-					end,
-				},
-				{
-					type = "slider",
-					name = "Sound 'tock' offset",
-					disabled = function()
-						return (not self.config.soundTockEnabled)
-					end,
-					min = 0,
-					max = 1000,
-					step = 1,
-					getFunc = function() return self.config.soundTockOffset end,
-					setFunc = function(value)
-						self.config.soundTockOffset = value
-					end,
-				},
-			},
-		},
 		-------------------------------
 		---- Ability Timer Adjusts ----
 		-------------------------------
-        {
-            type = "submenu",
-            name = "Ability timer adjusts",
-            description = "Adjusts timers on specific skills - This is applied ON TOP of relevant global adjust",
-			disabled = function() return self.config.hideProgressbar end,
-			controls = {
-				-- {
-					-- type = "dropdown",
-					-- name = "Currently equipped abilities",
-					-- width = "half",
-					-- choices = self.listOfCurrentSkills,
-					-- getFunc = function() return self.listOfCurrentSkills end,
-					-- setFunc = function() end
-				-- },
-				-- {
-					-- type = "button",
-					-- name = "Build ability list",
-					-- width = "half",
-					-- func = function()
-						-- self.listOfCurrentSkills = CombatMetronome:BuildListOfCurrentSkills()
-						-- d(self.listOfCurrentSkills)
-					-- end
-				-- },
 				{
-					type = "editbox",
-					name = "Add skill to adjust",
-					isMultiline = false,
-					-- disabled = true,
-					getFunc = function() return self.menu.curSkillName end,
-					setFunc = function(name)
-						if not name or #name == 0 then return end
-						for id = 0, 300000 do
-							if CombatMetronome:CropZOSSpellName(GetAbilityName(id)) == name then
-								--[[_=self.log and]] d("Found ability for "..name, "id = "..id)
-								self.menu.curSkillName = name
-								self.menu.curSkillId = id
-								self.config.abilityAdjusts[id] = 0
+					type = "submenu",
+					name = "Ability timer adjusts",
+					description = "Adjusts timers on specific skills - This is applied ON TOP of relevant global adjust",
+					disabled = function() return self.config.hideProgressbar end,
+					controls = {
+						-- {
+							-- type = "dropdown",
+							-- name = "Currently equipped abilities",
+							-- width = "half",
+							-- choices = self.listOfCurrentSkills,
+							-- getFunc = function() return self.listOfCurrentSkills end,
+							-- setFunc = function() end
+						-- },
+						-- {
+							-- type = "button",
+							-- name = "Build ability list",
+							-- width = "half",
+							-- func = function()
+								-- self.listOfCurrentSkills = CombatMetronome:BuildListOfCurrentSkills()
+								-- d(self.listOfCurrentSkills)
+							-- end
+						-- },
+						{
+							type = "editbox",
+							name = "Add skill to adjust",
+							isMultiline = false,
+							-- disabled = true,
+							getFunc = function() return self.menu.curSkillName end,
+							setFunc = function(name)
+								if not name or #name == 0 then return end
+								for id = 0, 300000 do
+									if CombatMetronome:CropZOSSpellName(GetAbilityName(id)) == name then
+										--[[_=self.log and]] d("Found ability for "..name, "id = "..id)
+										self.menu.curSkillName = name
+										self.menu.curSkillId = id
+										self.config.abilityAdjusts[id] = 0
+										self:UpdateAdjustChoices()
+										return
+									end
+								end
+								d("CM - Could not find valid ability named "..name.."!")
+							end
+						},
+						{
+							type = "dropdown",
+							name = "Select skill adjust",
+							choices = self.menu.abilityAdjustChoices,
+							getFunc = function() return self.menu.curSkillName end,
+							setFunc = function(value) 
+								self.menu.curSkillName = value
+								for id, adj in pairs(self.config.abilityAdjusts) do
+									if GetAbilityName(id) == value then
+										self.menu.curSkillId = id
+									end
+								end
+							end
+						},
+						{
+							type = "slider",
+							name = "Modify skill adjust",
+							min = -MAX_ADJUST,
+							max = MAX_ADJUST,
+							step = 1,
+							getFunc = function() return self.config.abilityAdjusts[self.menu.curSkillId] or 0 end,
+							setFunc = function(value)
+								if self.config.abilityAdjusts[self.menu.curSkillId] then
+									self.config.abilityAdjusts[self.menu.curSkillId] = value
+								end
+							end
+						},
+						{
+							type = "button",
+							name = "Remove skill adjust",
+							func = function()
+								--[[_=DLog and]] d("Removing skill "..self.menu.curSkillName, "id: "..self.menu.curSkillId)
+								self.config.abilityAdjusts[self.menu.curSkillId] = nil
 								self:UpdateAdjustChoices()
-								return
 							end
-						end
-						d("CM - Could not find valid ability named "..name.."!")
-					end
-				},
-				{
-					type = "dropdown",
-					name = "Select skill adjust",
-					choices = self.menu.abilityAdjustChoices,
-					getFunc = function() return self.menu.curSkillName end,
-					setFunc = function(value) 
-						self.menu.curSkillName = value
-						for id, adj in pairs(self.config.abilityAdjusts) do
-							if GetAbilityName(id) == value then
-								self.menu.curSkillId = id
-							end
-						end
-					end
-				},
-				{
-					type = "slider",
-					name = "Modify skill adjust",
-					min = -MAX_ADJUST,
-					max = MAX_ADJUST,
-					step = 1,
-					getFunc = function() return self.config.abilityAdjusts[self.menu.curSkillId] or 0 end,
-					setFunc = function(value)
-						if self.config.abilityAdjusts[self.menu.curSkillId] then
-							self.config.abilityAdjusts[self.menu.curSkillId] = value
-						end
-					end
-				},
-				{
-					type = "button",
-					name = "Remove skill adjust",
-					func = function()
-						--[[_=DLog and]] d("Removing skill "..self.menu.curSkillName, "id: "..self.menu.curSkillId)
-						self.config.abilityAdjusts[self.menu.curSkillId] = nil
-						self:UpdateAdjustChoices()
-					end
+						},
+					},
 				},
 			},
 		},
+		{	type = "divider",},
+		-------------------
+		---- Resources ----
+		-------------------
+		{	type = "submenu",
+			name = "Resources",
+			tooltip = "To keep track of your resources on a different bar",
+			controls = {
+				{
+					type = "checkbox",
+					name = "Unlock resource bar",
+					tooltip = "Reposition / resize resourcebar by dragging center / edges.",
+					disabled = function () return self.config.anchorResourcesToProgressbar or self.showSampleResources end,
+					getFunc = function() return self.labelFrame.IsUnlocked() end,
+					setFunc = function(value)
+						self.labelFrame:SetUnlocked(value)
+						if value then
+							self.labelFrame:SetDrawTier(DT_HIGH)
+							self.labelFrame:SetHidden(false)
+						else
+							self.labelFrame:SetDrawTier(DT_LOW)
+							self.labelFrame:SetHidden(true)
+						end
+					end,
+				},
+				{
+					type = "checkbox",
+					name = "Anchor resource tracker atop the progressbar",
+					tooltip = "If turned off, resourcebar can be dragged or resized independently",
+					warning = "Turning this off will automaticly resize resourcebar to fit your GCD bar!",
+					disabled = function()
+						return not (self.config.showUltimate or self.config.showStamina or self.config.showMagicka) or self.labelFrame.IsUnlocked()
+					end,
+					getFunc = function() return self.config.anchorResourcesToProgressbar end,
+					setFunc = function(value)
+						self.config.anchorResourcesToProgressbar = value
+						self.progressbar.Size()
+						if self.showSampleResources then
+							self.progressbar.ResourcesPosition("Sample")
+						end
+					end,
+				},
+				{
+					type = "checkbox",
+					name = "Hide resource tracker in PVP Zones",
+					tooltip = "Hides resource tracker in PVPZones to keep UI clean",
+					disabled = function()
+						return not (self.config.showUltimate or self.config.showStamina or self.config.showMagicka)
+					end,
+					getFunc = function() return self.config.hideResourcesInPVP end,
+					setFunc = function(value)
+						self.config.hideResourcesInPVP = value
+					end,
+				},
+				{
+					type = "checkbox",
+					name = "How does it look?",
+					tooltip = "Shows resourcebar at the right of the screen to check your settings. This resourcebar is not movable!",
+					warning = "This temporarily disables the Unlock function! Deactivate again to be able to unlock the tracker. This resets, if you leave the menu.",
+					default = false,
+					disabled = function()
+						return not (self.config.showUltimate or self.config.showStamina or self.config.showMagicka)
+					end,
+					getFunc = function() return self.showSampleResources end,
+					setFunc = function(value)
+						self.showSampleResources = value
+						if value then
+							self.progressbar.ResourcesPosition("Sample")
+							self.labelFrame:SetHidden(false)
+						else
+							self.progressbar.ResourcesPosition("UI")
+							self.progressbar.HiddenStates()
+						end
+					end,
+				},
+				{
+					type = "submenu",
+					name = "Configuration",
+					-- disabled = function() return self.config.hideProgressbar end,
+					controls = {
+						{
+							type = "checkbox",
+							name = "Always show own resources",
+							tooltip = "Toggle show own resources. If this is off, your resources will only be shown, when targeting units",
+							disabled = function()
+								return not (self.config.showUltimate or self.config.showStamina or self.config.showMagicka)
+							end,
+							getFunc = function() return self.config.showResources end,
+							setFunc = function(value) self.config.showResources = value end,
+						},
+						{
+							type = "checkbox",
+							name = "Show Ultimate",
+							tooltip = "Toggle show ultimate above cast bar",
+							getFunc = function() return self.config.showUltimate end,
+							setFunc = function(value)
+								self.config.showUltimate = value
+							end,
+						},
+						{
+							type = "slider",
+							name = "Ultimate Label Size",
+							tooltip = "Set the size of the Ultimate label",
+							disabled = function()
+								return (not self.config.showUltimate)
+							end,
+							min = 0,
+							max = self.config.labelFrameHeight,
+							step = 1,
+							default = self.config.ultSize,
+							getFunc = function() return self.config.ultSize end,
+							setFunc = function(value)
+								self.config.ultSize = value
+								self.progressbar.Fonts()
+								-- self:BuildProgressBar()
+							end,
+						},
+						{
+							type = "colorpicker",
+							name = "Ultimate Label Color",
+							tooltip = "Color of your ultimate label",
+							disabled = function()
+								return (not self.config.showUltimate)
+							end,
+							getFunc = function() return unpack(self.config.ultColor) end,
+							setFunc = function(r, g, b, a)
+								self.config.ultColor = {r, g, b, a}
+								self.progressbar.LabelColors()
+								-- self:BuildProgressBar()
+							end,
+						},
+						{
+							type = "checkbox",
+							name = "Show Stamina",
+							tooltip = "Toggle show stamina above cast bar",
+							getFunc = function() return self.config.showStamina end,
+							setFunc = function(value)
+								self.config.showStamina = value
+							end,
+						},
+						{
+							type = "slider",
+							name = "Stamina Label Size",
+							tooltip = "Set the size of the Stamina label",
+							disabled = function()
+								return (not self.config.showStamina)
+							end,
+							min = 0,
+							max = self.config.labelFrameHeight/2,
+							step = 1,
+							default = self.config.stamSize,
+							getFunc = function() return self.config.stamSize end,
+							setFunc = function(value)
+								self.config.stamSize = value
+								self.progressbar.Fonts()
+								-- self:BuildProgressBar()
+							end,
+						},
+						{
+							type = "colorpicker",
+							name = "Stamina Label Color",
+							tooltip = "Color of your stamina label",
+							disabled = function()
+								return (not self.config.showStamina)
+							end,
+							getFunc = function() return unpack(self.config.stamColor) end,
+							setFunc = function(r, g, b, a)
+								self.config.stamColor = {r, g, b, a}
+								self.progressbar.LabelColors()
+								-- self:BuildProgressBar()
+							end,
+						},
+						{
+							type = "checkbox",
+							name = "Show Magicka",
+							tooltip = "Toggle show magicka above cast bar",
+							getFunc = function() return self.config.showMagicka end,
+							setFunc = function(value)
+								self.config.showMagicka = value
+								-- self.sampleBar.Mag:SetHidden(not value)
+							end,
+						},
+						{
+							type = "slider",
+							name = "Magicka Label Size",
+							tooltip = "Set the size of the Magicka label",
+							disabled = function()
+								return (not self.config.showMagicka)
+							end,
+							min = 0,
+							max = self.config.labelFrameHeight/2,
+							step = 1,
+							default = self.config.magSize,
+							getFunc = function() return self.config.magSize end,
+							setFunc = function(value)
+								self.config.magSize = value
+								self.progressbar.Fonts()
+								-- self:BuildProgressBar()
+							end,
+						},
+						{
+							type = "colorpicker",
+							name = "Magicka Label Color",
+							tooltip = "Color of your magicka label",
+							disabled = function()
+								return (not self.config.showMagicka)
+							end,
+							getFunc = function() return unpack(self.config.magColor) end,
+							setFunc = function(r, g, b, a)
+								self.config.magColor = {r, g, b, a}
+								self.progressbar.LabelColors()
+								-- self:BuildProgressBar()
+							end,
+						},
+						{
+							type = "checkbox",
+							name = "Show Target Health",
+							tooltip = "Toggle show target health above cast bar",
+							getFunc = function() return self.config.showHealth end,
+							setFunc = function(value)
+								self.config.showHealth = value
+							end,
+						},
+						{
+							type = "slider",
+							name = "Health Label Size",
+							tooltip = "Set the size of the Health label",
+							disabled = function()
+								return (not self.config.showHealth)
+							end,
+							min = 0,
+							max = self.config.labelFrameHeight,
+							step = 1,
+							default = self.config.healthSize,
+							getFunc = function() return self.config.healthSize end,
+							setFunc = function(value)
+								self.config.healthSize = value
+								self.progressbar.Fonts()
+								-- self:BuildProgressBar()
+							end,
+						},
+						{
+							type = "colorpicker",
+							name = "Health Label Color",
+							tooltip = "Color of target health label",
+							disabled = function()
+								return (not self.config.showHealth)
+							end,
+							getFunc = function() return unpack(self.config.healthColor) end,
+							setFunc = function(r, g, b, a)
+								self.config.healthColor = {r, g, b, a}
+								self.progressbar.LabelColors()
+								-- self:BuildProgressBar()
+								end,
+						},
+						-- {
+							-- type = "checkbox",
+							-- name = "Make resources colorful",
+							-- tooltip = "Magicka will be blue, stamina green and target health will be red",
+							-- getFunc = function() return self.config.colorfulResources, self.config.magColor, self.config.stamColor, self.config.healthColor end,
+							-- setFunc = function(value) 
+								-- self.config.colorfulResources = value
+								-- if self.config.colorfulResources then
+									-- self.config.magColor = {0, 0.5, 1, 1}
+									-- self.config.stamColor = {0, 0.8, 0.3, 1}
+									-- self.config.healthColor = {0.8, 0, 0, 1}
+								-- else
+									-- self.config.magColor = {1, 1, 1, 1}
+									-- self.config.stamColor = {1, 1, 1, 1}
+									-- self.config.healthColor = {1, 1, 1, 1}
+								-- end
+								-- self:BuildProgressBar()
+							-- end,
+						-- },
+						{
+							type = "checkbox",
+							name = "Attach Target Health to reticle",
+							tooltip = "Attach Target Health to side of reticle",
+							disabled = function()
+								return (not self.config.showHealth)
+							end,
+							getFunc = function() return self.config.reticleHp end,
+							setFunc = function(value) 
+								self.config.reticleHp = value
+								self.progressbar.Anchors()
+								-- self:BuildProgressBar()
+							end,
+						},
+						{
+							type = "slider",
+							name = "Target Health execute highlight threshold",
+							tooltip = "Set the threshold for target health highlighting (Set 0% for no highlight)",
+							disabled = function()
+								return (not self.config.showHealth)
+							end,
+							min = 0,
+							max = 100,
+							getFunc = function() return self.config.hpHighlightThreshold end,
+							setFunc = function(value) self.config.hpHighlightThreshold = value end,
+						},
+						{
+							type = "checkbox",
+							name = "Show resources when targeting guard",
+							tooltip = "Show resources when targeting guard",
+							getFunc = function() return self.config.showResourcesForGuard end,
+							setFunc = function(value) self.config.showResourcesForGuard = value end,
+						},
+					},
+				},
+			},
+		},
+		{	type = "divider",},
 		-----------------------
 		---- Stack Tracker ----
 		-----------------------
 		-- if CM_TRACKER_CLASS_ATTRIBUTES[self.class] then
-		{	type = "header",
+		{	type = "submenu",
 			name = "Stack Tracker",
 			tooltip = "Lets you track your stacks on e.g. crux or bound armaments. This works on Nightblade, Sorcerer, Dragonknight and Arcanist.",
-		},
-		{
-			type = "checkbox",
-			name = "Hide tracker in PVP Zones",
-			tooltip = "Hides stack tracker in PVPZones to keep UI clean",
-			disabled = function ()
-				return not self:TrackerIsActive()											--CM_TRACKER_CLASS_ATTRIBUTES[self.class]
-			end,
-			getFunc = function() return self.config.hideTrackerInPVP end,
-			setFunc = function(value)
-				self.config.hideTrackerInPVP = value
-				self:TrackerPVPSwitch()
-			end,
-		},
-		{
-			type = "checkbox",
-			name = "How does it look?",
-			tooltip = "Shows tracker at the right of the screen to check your settings. This tracker is not movable!",
-			warning = "This temporarily disables the Unlock function! Deactivate again to be able to unlock the tracker. This resets, if you leave the menu.",
-			default = false,
-			disabled = function ()
-				return not (self:TrackerIsActive() and self:CheckIfSlotted())					--CM_TRACKER_CLASS_ATTRIBUTES[self.class]
-			end,
-			getFunc = function() return (self.showSampleTracker and self:TrackerIsActive() and self:CheckIfSlotted()) end,
-			setFunc = function(value)
-				self.showSampleTracker = value
-				if value then
-					self.stackTracker.Position("Sample")
-					self.stackTracker.FadeScenes("Sample")
-				else
-					self.stackTracker.Position("UI")
-					self.stackTracker.FadeScenes("NoSample")
-				end
-			end,
-		},
-				---------------------------
+			controls = {
+				{
+					type = "checkbox",
+					name = "Hide tracker in PVP Zones",
+					tooltip = "Hides stack tracker in PVPZones to keep UI clean",
+					disabled = function ()
+						return not self:TrackerIsActive()											--CM_TRACKER_CLASS_ATTRIBUTES[self.class]
+					end,
+					getFunc = function() return self.config.hideTrackerInPVP end,
+					setFunc = function(value)
+						self.config.hideTrackerInPVP = value
+						self:TrackerPVPSwitch()
+					end,
+				},
+				{
+					type = "checkbox",
+					name = "How does it look?",
+					tooltip = "Shows tracker at the right of the screen to check your settings. This tracker is not movable!",
+					warning = "This temporarily disables the Unlock function! Deactivate again to be able to unlock the tracker. This resets, if you leave the menu.",
+					default = false,
+					disabled = function ()
+						return not (self:TrackerIsActive() and self:CheckIfSlotted())					--CM_TRACKER_CLASS_ATTRIBUTES[self.class]
+					end,
+					getFunc = function() return (self.showSampleTracker and self:TrackerIsActive() and self:CheckIfSlotted()) end,
+					setFunc = function(value)
+						self.showSampleTracker = value
+						if value then
+							self.stackTracker.Position("Sample")
+							self.stackTracker.FadeScenes("Sample")
+						else
+							self.stackTracker.Position("UI")
+							self.stackTracker.FadeScenes("NoSample")
+						end
+					end,
+				},
+		---------------------------
 		---- Position and Size ----
 		---------------------------
-        {
-            type = "submenu",
-            name = "Position and size",
-			disabled = function ()
-				return not CM_TRACKER_CLASS_ATTRIBUTES[self.class]
-			end,
-			controls = {
-				{	type = "checkbox",
-					name = "Unlock Tracker",
-					tooltip = "Move stack tracker",
-					-- width = "half",
+				{
+					type = "submenu",
+					name = "Position and size",
 					disabled = function ()
-						return not (self:TrackerIsActive() and self:CheckIfSlotted()) or self.showSampleTracker		--CM_TRACKER_CLASS_ATTRIBUTES[self.class]
+						return not CM_TRACKER_CLASS_ATTRIBUTES[self.class]
 					end,
-					getFunc = function() return self.config.trackerIsUnlocked end,
-					setFunc = function(value)
-						self.config.trackerIsUnlocked = value
-						self.stackTracker.stacksWindow:SetMovable(value)
-						if not value then
-							self.stackTracker.stacksWindow:SetHidden(true)
-						-- if value then
-							-- self.stackTracker.stacksWindow:SetDrawTier(DT_HIGH)
-						-- else
-							self.stackTracker.stacksWindow:SetDrawTier(DT_LOW)
-						end
-					end,
+					controls = {
+						{	type = "checkbox",
+							name = "Unlock Tracker",
+							tooltip = "Move stack tracker",
+							-- width = "half",
+							disabled = function ()
+								return not (self:TrackerIsActive() and self:CheckIfSlotted()) or self.showSampleTracker		--CM_TRACKER_CLASS_ATTRIBUTES[self.class]
+							end,
+							getFunc = function() return self.config.trackerIsUnlocked end,
+							setFunc = function(value)
+								self.config.trackerIsUnlocked = value
+								self.stackTracker.stacksWindow:SetMovable(value)
+								if not value then
+									self.stackTracker.stacksWindow:SetHidden(true)
+								-- if value then
+									-- self.stackTracker.stacksWindow:SetDrawTier(DT_HIGH)
+								-- else
+									self.stackTracker.stacksWindow:SetDrawTier(DT_LOW)
+								end
+							end,
+						},
+						-- {
+							-- type = "checkbox",
+							-- name = "Show tracker over settings menu",
+							-- tooltip = "Shows tracker over settings menu in unlocked mode",
+							-- disabled = function() return not self.config.trackerIsUnlocked end,
+							-- width = "half",
+							-- getFunc = function() return false end,
+							-- setFunc = function(value)
+								-- if self:TrackerIsActive() then
+									-- self.stackTracker.stacksWindow:SetHidden(not value)
+									-- if value then
+										-- self.stackTracker.stacksWindow:SetDrawTier(DT_HIGH)
+									-- else
+										-- self.stackTracker.stacksWindow:SetDrawTier(DT_LOW)
+									-- end
+								-- end
+							-- end,
+						-- },
+						{	type = "slider",
+							name = "Stack indicator size",
+							disabled = function()
+								if self.class == "ARC" and self.config.trackCrux then
+									value = false
+								elseif self.class == "SORC" and self.config.trackBA then
+									value = false
+								elseif self.class == "DK" and self.config.trackMW then
+									value = false
+								elseif self.class == "NB" and self.config.trackGF then
+									value = false
+								else
+									value = true
+								end
+								return value
+							end,
+							min = 10,
+							max = 60,
+							step = 1,
+							default = self.config.indicatorSize,
+							getFunc = function() return self.config.indicatorSize end,
+							setFunc = function(value)
+								self.config.indicatorSize = value
+								self.stackTracker.indicator.ApplySize(value)
+								self.stackTracker.indicator.ApplyDistance(value/5, value)
+								self.stackTracker.stacksWindow:SetDimensions((value*attributes.iMax+(value/5)*(attributes.iMax-1)), value)
+							end,
+						},
+					},
 				},
-				-- {
-					-- type = "checkbox",
-					-- name = "Show tracker over settings menu",
-					-- tooltip = "Shows tracker over settings menu in unlocked mode",
-					-- disabled = function() return not self.config.trackerIsUnlocked end,
-					-- width = "half",
-					-- getFunc = function() return false end,
-					-- setFunc = function(value)
-						-- if self:TrackerIsActive() then
-							-- self.stackTracker.stacksWindow:SetHidden(not value)
-							-- if value then
-								-- self.stackTracker.stacksWindow:SetDrawTier(DT_HIGH)
-							-- else
-								-- self.stackTracker.stacksWindow:SetDrawTier(DT_LOW)
-							-- end
-						-- end
-					-- end,
-				-- },
-				{	type = "slider",
-					name = "Stack indicator size",
-					disabled = function()
-						if self.class == "ARC" and self.config.trackCrux then
-							value = false
-						elseif self.class == "SORC" and self.config.trackBA then
-							value = false
-						elseif self.class == "DK" and self.config.trackMW then
-							value = false
-						elseif self.class == "NB" and self.config.trackGF then
-							value = false
-						else
-							value = true
-						end
-						return value
-					end,
-					min = 10,
-					max = 60,
-					step = 1,
-					default = self.config.indicatorSize,
-					getFunc = function() return self.config.indicatorSize end,
-					setFunc = function(value)
-						self.config.indicatorSize = value
-						self.stackTracker.indicator.ApplySize(value)
-						self.stackTracker.indicator.ApplyDistance(value/5, value)
-						self.stackTracker.stacksWindow:SetDimensions((value*attributes.iMax+(value/5)*(attributes.iMax-1)), value)
-					end,
-				},
-			},
-		},
 		-------------------------
 		---- Stacks to track ----
 		-------------------------
-		{
-			type = "submenu",
-			name = "Stacks to track",
-			disabled = function ()
-				return not CM_TRACKER_CLASS_ATTRIBUTES[self.class]
-			end,
-			controls = {
 				{
-					type = "checkbox",
-					name = "Track Molten Whip Stacks",
-					-- warning = "If changed, will automaticly reload the UI.",
-					disabled = function()
-						return self.class ~= "DK"
+					type = "submenu",
+					name = "Stacks to track",
+					disabled = function ()
+						return not CM_TRACKER_CLASS_ATTRIBUTES[self.class]
 					end,
-					getFunc = function() return self.config.trackMW end,
-					setFunc = function(value)
-						self.config.trackMW = value
-						-- ReloadUI()
-					end
+					controls = {
+						{
+							type = "checkbox",
+							name = "Track Molten Whip Stacks",
+							-- warning = "If changed, will automaticly reload the UI.",
+							disabled = function()
+								return self.class ~= "DK"
+							end,
+							getFunc = function() return self.config.trackMW end,
+							setFunc = function(value)
+								self.config.trackMW = value
+								-- ReloadUI()
+							end
+						},
+						{
+							type = "checkbox",
+							name = "Track Bound Armaments Stacks",
+							-- warning = "If changed, will automaticly reload the UI.",
+							disabled = function()
+								return self.class ~= "SORC"
+							end,
+							getFunc = function() return self.config.trackBA end,
+							setFunc = function(value)
+								self.config.trackBA = value
+								-- ReloadUI()
+							end
+						},
+						{
+							type = "checkbox",
+							name = "Track Stacks of Grimm Focus and its Morphs",
+							-- warning = "If changed, will automaticly reload the UI.",
+							disabled = function()
+								return self.class ~= "NB"
+							end,
+							getFunc = function() return self.config.trackGF end,
+							setFunc = function(value)
+								self.config.trackGF = value
+								-- ReloadUI()
+							end
+						},
+						{
+							type = "checkbox",
+							name = "Track Crux Stacks",
+							-- warning = "If changed, will automaticly reload the UI.",
+							disabled = function() 
+								return self.class ~= "ARC"
+							end,
+							getFunc = function() return self.config.trackCrux end,
+							setFunc = function(value)
+								self.config.trackCrux = value
+								-- ReloadUI()
+							end
+						},
+						{
+							type = "checkbox",
+							name = "Track Stacks of flame skull and its Morphs",
+							-- warning = "If changed, will automaticly reload the UI.",
+							disabled = function()
+								return self.class ~= "CRO"
+							end,
+							getFunc = function() return self.config.trackFS end,
+							setFunc = function(value)
+								self.config.trackFS = value
+								-- ReloadUI()
+							end
+						},
+					},
 				},
-				{
-					type = "checkbox",
-					name = "Track Bound Armaments Stacks",
-					-- warning = "If changed, will automaticly reload the UI.",
-					disabled = function()
-						return self.class ~= "SORC"
-					end,
-					getFunc = function() return self.config.trackBA end,
-					setFunc = function(value)
-						self.config.trackBA = value
-						-- ReloadUI()
-					end
-				},
-				{
-					type = "checkbox",
-					name = "Track Stacks of Grimm Focus and its Morphs",
-					-- warning = "If changed, will automaticly reload the UI.",
-					disabled = function()
-						return self.class ~= "NB"
-					end,
-					getFunc = function() return self.config.trackGF end,
-					setFunc = function(value)
-						self.config.trackGF = value
-						-- ReloadUI()
-					end
-				},
-				{
-					type = "checkbox",
-					name = "Track Crux Stacks",
-					-- warning = "If changed, will automaticly reload the UI.",
-					disabled = function() 
-						return self.class ~= "ARC"
-					end,
-					getFunc = function() return self.config.trackCrux end,
-					setFunc = function(value)
-						self.config.trackCrux = value
-						-- ReloadUI()
-					end
-				},
-				{
-					type = "checkbox",
-					name = "Track Stacks of flame skull and its Morphs",
-					-- warning = "If changed, will automaticly reload the UI.",
-					disabled = function()
-						return self.class ~= "CRO"
-					end,
-					getFunc = function() return self.config.trackFS end,
-					setFunc = function(value)
-						self.config.trackFS = value
-						-- ReloadUI()
-					end
-				},
-			},
-		},
 		--------------------------
 		---- Tracker Behavior ----
 		--------------------------
-        {
-            type = "submenu",
-            name = "Audio and visual cues",
-			tooltip = "Settings regarding audio and visual cues when reaching full stacks",
-			disabled = function ()
-				return not CM_TRACKER_CLASS_ATTRIBUTES[self.class]
-			end,
-			controls = {
-				{	type = "checkbox",
-					name = "Play sound cue at max stacks",
-					tooltip = "Plays a sound when you are at max stacks, so you don't miss to cast your ability",
-					disabled = function ()
-						return not self:TrackerIsActive()											--CM_TRACKER_CLASS_ATTRIBUTES[self.class]
-					end,
-					getFunc = function() return self.config.trackerPlaySound end,
-					setFunc = function(value) self.config.trackerPlaySound = value end,
-				},
 				{
-					type = "slider",
-					name = "Sound cue volume",
-					tooltip = "Adjust volume of the sound cue effect",
-					warning = "You may have to adjust your general audio settings and general audio volume for this to have a noticable effect. Take care not to overadjust, your ears can only take so much!",
-					disabled = function() return not self.config.trackerPlaySound end,
-					min = 0,
-					max = 100,
-					setp = 1,
-					getFunc = function() return self.config.trackerVolume end,
-					setFunc = function(value) self.config.trackerVolume = value end,
-				},
-				{
-					type = "dropdown",
-					name = "Select Sound",
-					choices = fullStackSounds,
-					default = self.config.trackerSound,
-					disabled = function() return not (self:TrackerIsActive() and self.config.trackerPlaySound) end,
-					getFunc = function() return self.config.trackerSound end,
-					setFunc = function(value) 
-						self.config.trackerSound = value
-						PlaySound(SOUNDS[value])
-					end
-				},
-				{	type = "checkbox",
-					name = "Play animation when reaching full stacks",
-					tooltip = "Gives you a more intense visual cue",
-					-- width = "half",
+					type = "submenu",
+					name = "Audio and visual cues",
+					tooltip = "Settings regarding audio and visual cues when reaching full stacks",
 					disabled = function ()
-						return not self:TrackerIsActive()											--CM_TRACKER_CLASS_ATTRIBUTES[self.class]
+						return not CM_TRACKER_CLASS_ATTRIBUTES[self.class]
 					end,
-					getFunc = function() return self.config.hightlightOnFullStacks end,
-					setFunc = function(value)
-						self.config.hightlightOnFullStacks = value
-					end,
+					controls = {
+						{	type = "checkbox",
+							name = "Play sound cue at max stacks",
+							tooltip = "Plays a sound when you are at max stacks, so you don't miss to cast your ability",
+							disabled = function ()
+								return not self:TrackerIsActive()											--CM_TRACKER_CLASS_ATTRIBUTES[self.class]
+							end,
+							getFunc = function() return self.config.trackerPlaySound end,
+							setFunc = function(value) self.config.trackerPlaySound = value end,
+						},
+						{
+							type = "slider",
+							name = "Sound cue volume",
+							tooltip = "Adjust volume of the sound cue effect",
+							warning = "You may have to adjust your general audio settings and general audio volume for this to have a noticable effect. Take care not to overadjust, your ears can only take so much!",
+							disabled = function() return not self.config.trackerPlaySound end,
+							min = 0,
+							max = 100,
+							setp = 1,
+							getFunc = function() return self.config.trackerVolume end,
+							setFunc = function(value) self.config.trackerVolume = value end,
+						},
+						{
+							type = "dropdown",
+							name = "Select Sound",
+							choices = fullStackSounds,
+							default = self.config.trackerSound,
+							disabled = function() return not (self:TrackerIsActive() and self.config.trackerPlaySound) end,
+							getFunc = function() return self.config.trackerSound end,
+							setFunc = function(value) 
+								self.config.trackerSound = value
+								PlaySound(SOUNDS[value])
+							end
+						},
+						{	type = "checkbox",
+							name = "Play animation when reaching full stacks",
+							tooltip = "Gives you a more intense visual cue",
+							-- width = "half",
+							disabled = function ()
+								return not self:TrackerIsActive()											--CM_TRACKER_CLASS_ATTRIBUTES[self.class]
+							end,
+							getFunc = function() return self.config.hightlightOnFullStacks end,
+							setFunc = function(value)
+								self.config.hightlightOnFullStacks = value
+							end,
+						},
+						-- {
+							-- type = "checkbox",
+							-- name = "Hide Tracker",
+							-- disabled = function ()
+								-- return not self.stackTracker.stacksWindow
+							-- end,
+							-- getFunc = function() return self.config.hideTracker end,
+							-- setFunc = function(value)
+								-- self.config.hideTracker = value
+								-- self.stackTracker.DefineFragmentScenes(not value)
+							-- end,
+						-- },
+						-- {
+							-- type = "description",
+							-- titel = "I lost my stack tracker",
+							-- width = "half",
+						-- },
+						-- {
+							-- type = "button",
+							-- name = "Centralize Tracker",
+							-- tooltip = "This button centers the stack tracker in the middle of your screen",
+							-- width = "half",
+							-- disabled = function ()
+								-- return not self.stackTracker.stacksWindow
+							-- end,
+							-- func = function()
+								-- self.stackTracker.stacksWindow:SetAnchor(TOPLEFT, GuiRoot, TOPLEFT, GuiRoot:GetWidth()/2, GuiRoot:GetHeight()/2)
+							-- end,
+						-- },
+					},
 				},
-				-- {
-					-- type = "checkbox",
-					-- name = "Hide Tracker",
-					-- disabled = function ()
-						-- return not self.stackTracker.stacksWindow
-					-- end,
-					-- getFunc = function() return self.config.hideTracker end,
-					-- setFunc = function(value)
-						-- self.config.hideTracker = value
-						-- self.stackTracker.DefineFragmentScenes(not value)
-					-- end,
-				-- },
-				-- {
-					-- type = "description",
-					-- titel = "I lost my stack tracker",
-					-- width = "half",
-				-- },
-				-- {
-					-- type = "button",
-					-- name = "Centralize Tracker",
-					-- tooltip = "This button centers the stack tracker in the middle of your screen",
-					-- width = "half",
-					-- disabled = function ()
-						-- return not self.stackTracker.stacksWindow
-					-- end,
-					-- func = function()
-						-- self.stackTracker.stacksWindow:SetAnchor(TOPLEFT, GuiRoot, TOPLEFT, GuiRoot:GetWidth()/2, GuiRoot:GetHeight()/2)
-					-- end,
-				-- },
 			},
 		},
 		-- end
