@@ -8,7 +8,7 @@ function CombatMetronome:UpdateLabels()
 	---- Sample Section ----
 	------------------------
 
-   if self.showSampleBar then
+   if self.showSampleResources then
         if self.config.showUltimate then
             self.ultLabel:SetText("171")
             self.ultLabel:SetHidden(false)
@@ -37,7 +37,7 @@ function CombatMetronome:UpdateLabels()
 	-------------------------
 	---- Actual Updating ----
 	-------------------------
-
+    
     else
         local time = GetFrameTimeMilliseconds()
         -- healthColor = self.config.healthColor

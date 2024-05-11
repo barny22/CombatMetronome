@@ -463,6 +463,31 @@ function CombatMetronome:CMPVPSwitch()
 	end
 end
 
+function CombatMetronome:ResourcesPVPSwitch()
+	-- local hideResources = false
+	if self.config.hideResourcesInPVP and self.inPVPZone then
+		-- hideResources = true
+		if self.rtRegistered then
+			self:UnregisterResourceTracker()
+			self.stamLabel:SetHidden(true)
+            self.magLabel:SetHidden(true)
+            self.hpLabel:SetHidden(true)    
+            self.ultLabel:SetHidden(true)
+		elseif not self.rtRegistered then
+			self.stamLabel:SetHidden(true)
+            self.magLabel:SetHidden(true)
+            self.hpLabel:SetHidden(true)    
+            self.ultLabel:SetHidden(true)
+		end
+	else
+		if not self.rtRegistered then
+			self:RegisterResourceTracker()
+		end
+		-- hideResources = false
+	end
+	-- return hideResources
+end
+
 function CombatMetronome:TrackerPVPSwitch()
 	if self:TrackerIsActive() then
 		if self.config.hideTrackerInPVP and self.inPVPZone then

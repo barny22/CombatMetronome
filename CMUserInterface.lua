@@ -21,13 +21,15 @@ function CombatMetronome:BuildProgressBar()
 			self.frame = Util.Controls:NewFrame(self.name.."ProgressbarFrame")
 			self.frame:SetDimensionConstraints(MIN_WIDTH, MIN_HEIGHT, MAX_WIDTH, MAX_HEIGHT)
 			self.frame:SetHandler("OnMoveStop", function(...)
-				self.config.xOffset = self.self.frame:GetLeft()
-				self.config.yOffset = self.self.frame:GetTop()
+				self.config.xOffset = self.frame:GetLeft()
+				self.config.yOffset = self.frame:GetTop()
+				self.progressbar.Anchors()
 				-- self:BuildProgressBar()
 			end)
 			self.frame:SetHandler("OnResizeStop", function(...)
-				self.config.width = self.self.frame:GetWidth()
-				self.config.height = self.self.frame:GetHeight()
+				self.config.width = self.frame:GetWidth()
+				self.config.height = self.frame:GetHeight()
+				self.progressbar.Size()
 				-- self:BuildProgressBar()
 			end)
 		end
@@ -64,7 +66,19 @@ function CombatMetronome:BuildProgressBar()
 	---- Create label Controls ----
 	-------------------------------
 
-		self.labelFrame = self.labelFrame or Util.Controls:NewFrame(self.name.."LabelFrame")
+		-- self.labelFrame = self.labelFrame or Util.Controls:NewFrame(self.name.."LabelFrame")
+		if not self.labelFrame then
+			self.labelFrame = Util.Controls:NewFrame(self.name.."LabelFrame")
+			self.labelFrame:SetDimensionConstraints(MIN_WIDTH, MIN_HEIGHT, MAX_WIDTH, MAX_HEIGHT)
+			self.labelFrame:SetHandler("OnMoveStop", function(...)
+				self.config.labelFrameXOffset = self.labelFrame:GetLeft()
+				self.config.labelFrameYOffset = self.labelFrame:GetTop()
+			end)
+			self.labelFrame:SetHandler("OnResizeStop", function(...)
+				self.config.labelFrameWidth = self.labelFrame:GetWidth()
+				self.config.labelFrameHeight = self.labelFrame:GetHeight()
+			end)
+		end
 
 		self.ultLabel = self.ultLabel or WINDOW_MANAGER:CreateControl(self.name.."UltLabel", self.labelFrame, CT_LABEL)
 		self.ultLabel:SetText("")
@@ -85,6 +99,19 @@ function CombatMetronome:BuildProgressBar()
 			self.frame:SetAnchor(TOPLEFT, GuiRoot, TOPLEFT, self.config.xOffset, self.config.yOffset)
 		elseif value == "Sample" then
 			self.frame:SetAnchor(RIGHT, GuiRoot, RIGHT, -GuiRoot:GetWidth()/8, -GuiRoot:GetHeight()/6)
+		end
+	end
+	
+	local function ResourcesPosition(value)
+		self.labelFrame:ClearAnchors()
+		if value == "UI" and self.config.anchorResourcesToProgressbar then
+			self.labelFrame:SetAnchor(BOTTOM, self.frame, TOP, 0, 0)
+		elseif value == "UI" and not self.config.anchorResourcesToProgressbar then
+			self.labelFrame:SetAnchor(TOPLEFT, GuiRoot, TOPLEFT, self.config.labelFrameXOffset, self.config.labelFrameYOffset)
+		elseif value == "Sample" and not self.config.anchorResourcesToProgressbar then
+			self.labelFrame:SetAnchor(RIGHT, GuiRoot, RIGHT, -GuiRoot:GetWidth()/8, 0)
+		elseif value == "Sample" and self.config.anchorResourcesToProgressbar then
+			self.labelFrame:SetAnchor(RIGHT, GuiRoot, RIGHT, -GuiRoot:GetWidth()/8, -GuiRoot:GetHeight()/6 - self.config.height - self.config.labelFrameHeight/2)
 		end
 	end
 	
@@ -167,18 +194,26 @@ function CombatMetronome:BuildProgressBar()
 		self.ultLabel:ClearAnchors()
 		self.ultLabel:SetAnchor(BOTTOM, self.labelFrame, BOTTOM, 0, 0)
 		self.labelFrame:ClearAnchors()
-		self.labelFrame:SetAnchor(BOTTOM, self.frame, TOP, 0, 0)
+		if self.config.anchorResourcesToProgressbar then
+			self.labelFrame:SetAnchor(BOTTOM, self.frame, TOP, 0, 0)
+		else
+			self.labelFrame:SetAnchor(TOPLEFT, GuiRoot, TOPLEFT, self.config.labelFrameXOffset, self.config.labelFrameYOffset)
+		end
 	end
 	
 	local function Size()
 		self.frame:SetDimensions(self.config.width, self.config.height)
-		self.labelFrame:SetDimensions(self.config.width, 50)
 		self.bar.background:SetDimensions(self.config.width, self.config.height)
 		self.bar.borderR:SetDimensions(self.config.width/2, self.config.height)
 		self.bar.borderL:SetDimensions(self.config.width/2, self.config.height)
 		self.bar.backgroundTexture:SetDimensions(self.config.width, self.config.height)
 		self.spellIconBorder:SetDimensions(self.config.height, self.config.height)
 		self.spellIcon:SetDimensions(self.config.height, self.config.height)
+		if self.config.anchorResourcesToProgressbar then
+			self.config.labelFrameWidth = self.config.width
+			self.config.labelFrameHeight = 50
+		end
+		self.labelFrame:SetDimensions(self.config.labelFrameWidth, self.config.labelFrameHeight)
 		Anchors()
 	end
 	
@@ -202,6 +237,14 @@ function CombatMetronome:BuildProgressBar()
 		end
 	end)
 	
+	SCENE_MANAGER:RegisterCallback("SceneStateChanged", function(scene, newState)
+		if scene:GetName() == "gameMenuInGame" and newState == "hiding" and self.showSampleResources then
+			self.showSampleResources = false
+			ResourcesPosition("UI")
+			HiddenStates()
+		end
+	end)
+	
 	CreateControls()
 	Position()
 	Size()
@@ -211,6 +254,7 @@ function CombatMetronome:BuildProgressBar()
 	LabelColors()
 	HiddenStates()
 	Position("UI")
+	ResourcesPosition("UI")
 	
 	return {
 		Fonts = Fonts,
@@ -222,6 +266,7 @@ function CombatMetronome:BuildProgressBar()
 		CreateControls = CreateControls,
 		FadeScenes = FadeScenes,
 		Position = Position,
+		ResourcesPosition = ResourcesPosition,
 	}
 		
 end

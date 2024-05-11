@@ -280,13 +280,6 @@ function CombatMetronome:Init()
 
     self.unlocked = false
     self.progressbar = CombatMetronome:BuildProgressBar()
-	if not self.config.hideProgressbar then
-		self:RegisterCM()
-		-- d("cm registered")
-	else
-		self.bar:SetHidden(true)
-	end
-	self.showSampleBar = false
     CombatMetronome:BuildMenu()
 
     self.lastInterval = 0
@@ -342,22 +335,9 @@ function CombatMetronome:RegisterMetadata()
 			self.inPVPZone = self:IsInPvPZone()
 			self:CMPVPSwitch()
 			self:TrackerPVPSwitch()
+			self:ResourcesPVPSwitch()
 		end
 	)
-end
-
-function CombatMetronome:RegisterCM()
-	EVENT_MANAGER:RegisterForUpdate(
-        self.name.."Update",
-        1000 / 60,
-        function(...) self:Update() end
-    )
-
-    EVENT_MANAGER:RegisterForUpdate(
-        self.name.."UpdateLabels",
-        1000 / 60,
-        function(...) self:UpdateLabels() end
-    )
 
     EVENT_MANAGER:RegisterForEvent(
         self.name.."CombatStateChange",
@@ -366,6 +346,14 @@ function CombatMetronome:RegisterCM()
             self.inCombat = inCombat == true
             -- self.stamGradient:Reset()
         end
+    )
+end
+
+function CombatMetronome:RegisterCM()
+	EVENT_MANAGER:RegisterForUpdate(
+        self.name.."Update",
+        1000 / 60,
+        function(...) self:Update() end
     )
     
     EVENT_MANAGER:RegisterForEvent(
@@ -396,6 +384,16 @@ function CombatMetronome:RegisterCM()
 	-- d("cm is registered")
 end
 
+function CombatMetronome:RegisterResourceTracker()
+    EVENT_MANAGER:RegisterForUpdate(
+        self.name.."UpdateLabels",
+        1000 / 60,
+        function(...) self:UpdateLabels() end
+    )
+	
+	self.rtRegistered = true
+end
+
 function CombatMetronome:RegisterTracker()
 	EVENT_MANAGER:RegisterForUpdate(
 		self.name.."UpdateStacks",
@@ -409,15 +407,9 @@ end
 function CombatMetronome:UnregisterCM()
 	EVENT_MANAGER:UnregisterForUpdate(
         self.name.."Update")
-		
-	EVENT_MANAGER:UnregisterForUpdate(
-        self.name.."UpdateLabels")
 	
 	-- EVENT_MANAGER:UnregisterForUpdate(
         -- self.name.."CurrentActionslotsOnHotbar")
-	
-	EVENT_MANAGER:UnregisterForEvent(
-        self.name.."CombatStateChange")
 		
 	-- EVENT_MANAGER:UnregisterForEvent(
 		-- self.name.."CharacterLoaded")
@@ -427,9 +419,15 @@ function CombatMetronome:UnregisterCM()
 	
 	self.cmRegistered = false
 	-- d("cm is unregistered")
-	self.cmWarning = false
+	-- self.cmWarning = false
 end
 
+function CombatMetronome:UnregisterResourceTracker()
+	EVENT_MANAGER:UnregisterForUpdate(
+        self.name.."UpdateLabels")
+		
+	self.rtRegistered = false
+end
 
 function CombatMetronome:UnregisterTracker()
 	EVENT_MANAGER:UnregisterForUpdate(
