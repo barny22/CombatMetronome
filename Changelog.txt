@@ -1,5 +1,7 @@
-2024-04-19 v1.6.5
+2024-05-11 v1.6.5
 !  Updated DariansUtilies for U42 and scribing
+!  Fixed a bug when resizing or moving the progressbar via dragging 
++  More clearity in AddOn settings due to more submenus
 +  Added font styles
 
 2024-04-02 v1.6.4
