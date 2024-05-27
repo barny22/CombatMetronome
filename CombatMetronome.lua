@@ -234,6 +234,9 @@ function CombatMetronome:Update()
 			if (playerDidBlock or playerDidDodge or self.barswap) and duration > 1000+latency then
 				self:OnCDStop()
 				self.bar:Update()
+				if self.barswap then
+					self.barswap = false
+				end
 			elseif playerDidDodge and trackGCD then
 				self:HideLabels(true)
 				self.bar.segments[1].progress = 0
@@ -250,10 +253,10 @@ function CombatMetronome:Update()
 			self:OnCDStop()
 			self.bar:Update()
 		end
-		-- if self.barswap then
+		if self.barswap then
+			self.barswap = false
 			-- d("barswap reset")
-		-- end
-		self.barswap = false
+		end
 	end
 end
 

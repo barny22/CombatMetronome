@@ -1,3 +1,6 @@
+2024-05-27 v1.6.6
+!  Fixed a rare issue with barswaps
+
 2024-05-11 v1.6.5
 !  Updated DariansUtilies for U42 and scribing
 !  Fixed a bug when resizing or moving the progressbar via dragging 
