@@ -6,8 +6,8 @@
 CombatMetronome = {
     name = "CombatMetronome",
     major = 6,
-    minor = 5,
-    version = "1.6.5"
+    minor = 6,
+    version = "1.6.6"
 }
 
 local LAM = LibAddonMenu2
@@ -74,7 +74,7 @@ function CombatMetronome:Update()
 		
 		local time = GetFrameTimeMilliseconds()
 		
-		local dodgeTrigger = CombatMetronome:CheckForDodge()
+		-- local dodgeTrigger = CombatMetronome:CheckForDodge()
 		
 		-- this is important for GCD Tracking
 		local gcdTrigger = false
@@ -95,7 +95,7 @@ function CombatMetronome:Update()
 		--if gcdTrigger then d("gcd was triggered") end
 		--if dodgeTrigger then d("dodge was triggered") end
 		
-		local playerDidDodge = dodgeTrigger and gcdTrigger
+		-- local playerDidDodge = dodgeTrigger and gcdTrigger
 
 		local interval = false
 		if time > self.lastInterval + INTERVAL then
@@ -128,7 +128,7 @@ function CombatMetronome:Update()
 			local duration = math.max(ability.heavy and 0 or (self.gcd or 1000), ability.delay) + self.currentEvent.adjust
 			local channelTime = ability.delay + self.currentEvent.adjust
 			local timeRemaining = ((start + channelTime + GetLatency()) - time) / 1000
-			local playerDidDodge = CombatMetronome:CheckForDodge()
+			-- local playerDidDodge = CombatMetronome:CheckForDodge()
 			local playerDidBlock = IsBlockActive()
 			
 			if ability.heavy then
@@ -231,13 +231,29 @@ function CombatMetronome:Update()
 			--------------------
 			---- Interrupts ----							-- check for interrupts by dodge, barswap or block
 			--------------------
-			if (playerDidBlock or playerDidDodge or self.barswap) and duration > 1000+latency then
-				self:OnCDStop()
-				self.bar:Update()
-				if self.barswap then
-					self.barswap = false
+			if (playerDidBlock or self.rollDodge or self.barswap) then
+				-- local spellInterrupter = true
+				local eventAdjust = 0
+				if self.currentEvent then
+					if self.currentEvent.adjust then
+						eventAdjust = self.currentEvent.adjust
+					end
 				end
-			elseif playerDidDodge and trackGCD then
+				-- if spellInterrupter then
+					-- d(self.currentEvent.adjust)
+					if duration > 1000+latency+eventAdjust then
+						self:OnCDStop()
+						self.bar:Update()
+					end
+					if self.barswap then
+						self.barswap = false
+					end
+					if self.rollDodge then
+						self.rollDodge = false
+					end
+					-- spellInterrupter = false
+				-- end
+			elseif self.rollDodge and trackGCD then
 				self:HideLabels(true)
 				self.bar.segments[1].progress = 0
 				self.bar.segments[2].progress = gcdProgress
@@ -248,6 +264,7 @@ function CombatMetronome:Update()
 					self.bar.backgroundTexture:SetWidth(gcdProgress*self.config.width)
 				end
 				self.bar:Update()
+				self.rollDodge = false
 			end
 		else
 			self:OnCDStop()
@@ -256,6 +273,9 @@ function CombatMetronome:Update()
 		if self.barswap then
 			self.barswap = false
 			-- d("barswap reset")
+		end
+		if self.rollDodge then
+			self.rollDodge = false
 		end
 	end
 end
@@ -384,6 +404,18 @@ function CombatMetronome:RegisterCM()
 			return self.barswap
 		end
 	)
+	
+	EVENT_MANAGER:RegisterForEvent(
+		self.name.."RollDodge",
+		EVENT_EFFECT_CHANGED,
+		function(_,changeType,_,_,_,_,_,_,_,_,_,_,_,_,_,abilityId,sourceType)
+			if sourceType == COMBAT_UNIT_TYPE_PLAYER and abilityId == 29721 and changeType == 3 then			--- 69143 is DodgeFatigue
+				self.rollDodge = true
+				-- d("Dodge detected")
+			end
+			return self.rollDodge
+		end
+	)
 	-- d("cm is registered")
 end
 
@@ -421,6 +453,12 @@ function CombatMetronome:UnregisterCM()
         self.name.."SlotUsed")
 	
 	self.cmRegistered = false
+	
+	EVENT_MANAGER:UnregisterForEvent(
+		self.name.."BarSwap")
+		
+	EVENT_MANAGER:UnregisterForEvent(
+		self.name.."RollDodge")
 	-- d("cm is unregistered")
 	-- self.cmWarning = false
 end

@@ -92,26 +92,26 @@ function CombatMetronome:CropZOSSpellName(zosString)
 end
 
 	-----------------------
-	---- Dodge Checker ----
+	---- Dodge Checker ----								--- changed in v1.6.6
 	-----------------------
 
-function CombatMetronome:CheckForDodge()
-	local dodge = false
-	for i=1,GetNumBuffs("player") do
-		local _,startTime,endTime,_,_,_,_,_,_,_,abilityId = GetUnitBuffInfo("player", i)
-		if abilityId == dodgeId then
-			buffTimer = endTime - math.floor(GetGameTimeMilliseconds()/1000)
-			buffLength = endTime - startTime
+-- function CombatMetronome:CheckForDodge()
+	-- local dodge = false
+	-- for i=1,GetNumBuffs("player") do
+		-- local _,startTime,endTime,_,_,_,_,_,_,_,abilityId = GetUnitBuffInfo("player", i)
+		-- if abilityId == dodgeId then
+			-- buffTimer = endTime - math.floor(GetGameTimeMilliseconds()/1000)
+			-- buffLength = endTime - startTime
 			--d(tostring(buffTimer))
-			if buffTimer > 3 and buffLength == 3 then
-			dodge = true
+			-- if buffTimer > 3 and buffLength == 3 then
+			-- dodge = true
 			--d("dodge detected")
-			end
-		break
-		end
-	end
-	return dodge
-end
+			-- end
+		-- break
+		-- end
+	-- end
+	-- return dodge
+-- end
 
 	-----------------------
 	---- Combat Events ----
