@@ -32,20 +32,20 @@ function Ability:ForId(id)
     o.id = id
     o.name = GetAbilityName(id)
     -- if APIVersion < 101042 then
-    o.channeled, 
-    o.castTime, 
-    o.channelTime = GetAbilityCastInfo(id)
-    if o.channelTime == nil then
-        local channeled, duration = GetAbilityCastInfo(id)
-        o.channeled = channeled
-        if channeled then
-            o.channelTime = duration
-            o.castTime = 0
-        else
-            o.castTime = duration
-            o.channelTime = 0
-        end
+    -- o.channeled, 
+    -- o.castTime, 
+    -- o.channelTime = GetAbilityCastInfo(id)                                                   --- this was pre API 101042
+    -- if o.channelTime == nil then
+    local channeled, duration = GetAbilityCastInfo(id)
+    o.channeled = channeled
+    if channeled then
+        o.channelTime = duration
+        o.castTime = 0
+    else
+        o.castTime = duration
+        o.channelTime = 0
     end
+    -- end
     o.delay = math.max(o.castTime, o.channelTime)
     o.instant = not (o.castTime > 0 or (o.channeled and o.channelTime > 0))
     o.casted = not (o.instant or o.channeled)
