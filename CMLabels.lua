@@ -78,12 +78,12 @@ function CombatMetronome:UpdateLabels()
             if 100 * (hp / maxHp) < self.config.hpHighlightThreshold then
                 self.hpLabel:SetColor(unpack(self.config.healthColor))
                 -- self.hpLabel:SetAnchor(CENTER, GuiRoot, CENTER, 0, 50)
-                self.hpLabel:SetFont(Util.Text.getFontString(self.config.labelFont, (self.config.healthSize + 10), self.config.fontStyle))
+                self.hpLabel:SetFont(Util.Text.getFontString(self.config.labelFont, (3*self.config.healthSize/2), self.config.fontStyle))
 
                 local PERIOD = 1000
 
                 local mix = (1 + math.sin(time * math.pi * 2 / PERIOD)) / 2
-                local color = Util.Vectors.mix(self.config.healthColor, { 1, 1, 1, 1 }, mix)
+                local color = Util.Vectors.mix(self.config.healthColor, self.config.healthHighligtColor, mix)
 
                 self.hpLabel:SetColor(unpack(color))
 

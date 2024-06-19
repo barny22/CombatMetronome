@@ -40,6 +40,7 @@ CM_DEFAULT_SAVED_VARS = {
 	["magColor"] = {0, 0.5, 1, 1},
 	["stamColor"] = {0, 0.8, 0.3, 1},
 	["healthColor"] = {0.8, 0, 0, 1},
+	["healthHighligtColor"] = {1, 1, 1, 1},
 	["stamSize"] = 21,
 	["magSize"] = 21,
 	["ultSize"] = 40,

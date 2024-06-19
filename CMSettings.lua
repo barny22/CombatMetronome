@@ -772,7 +772,7 @@ function CombatMetronome:BuildMenu()
 					tooltip = "If turned off, resourcebar can be dragged or resized independently",
 					warning = "Turning this off will automaticly resize resourcebar to fit your GCD bar!",
 					disabled = function()
-						return not (self.config.showUltimate or self.config.showStamina or self.config.showMagicka) or self.labelFrame.IsUnlocked()
+						return not (self.config.showUltimate or self.config.showStamina or self.config.showMagicka or self.config.showHealth) or self.labelFrame.IsUnlocked()
 					end,
 					getFunc = function() return self.config.anchorResourcesToProgressbar end,
 					setFunc = function(value)
@@ -788,7 +788,7 @@ function CombatMetronome:BuildMenu()
 					name = "Hide resource tracker in PVP Zones",
 					tooltip = "Hides resource tracker in PVPZones to keep UI clean",
 					disabled = function()
-						return not (self.config.showUltimate or self.config.showStamina or self.config.showMagicka)
+						return not (self.config.showUltimate or self.config.showStamina or self.config.showMagicka or self.config.showHealth)
 					end,
 					getFunc = function() return self.config.hideResourcesInPVP end,
 					setFunc = function(value)
@@ -802,7 +802,7 @@ function CombatMetronome:BuildMenu()
 					warning = "This temporarily disables the Unlock function! Deactivate again to be able to unlock the tracker. This resets, if you leave the menu.",
 					default = false,
 					disabled = function()
-						return not (self.config.showUltimate or self.config.showStamina or self.config.showMagicka)
+						return not (self.config.showUltimate or self.config.showStamina or self.config.showMagicka or self.config.showHealth)
 					end,
 					getFunc = function() return self.showSampleResources end,
 					setFunc = function(value)
@@ -826,7 +826,7 @@ function CombatMetronome:BuildMenu()
 							name = "Always show own resources",
 							tooltip = "Toggle show own resources. If this is off, your resources will only be shown, when targeting units",
 							disabled = function()
-								return not (self.config.showUltimate or self.config.showStamina or self.config.showMagicka)
+								return not (self.config.showUltimate or self.config.showStamina or self.config.showMagicka or self.config.showHealth)
 							end,
 							getFunc = function() return self.config.showResources end,
 							setFunc = function(value) self.config.showResources = value end,
@@ -1040,6 +1040,20 @@ function CombatMetronome:BuildMenu()
 							max = 100,
 							getFunc = function() return self.config.hpHighlightThreshold end,
 							setFunc = function(value) self.config.hpHighlightThreshold = value end,
+						},
+						{
+							type = "colorpicker",
+							name = "Health Highlight Color",
+							tooltip = "Color of target health label",
+							disabled = function()
+								return (not (self.config.hpHighlightThreshold ~= 0 and self.config.showHealth))
+							end,
+							getFunc = function() return unpack(self.config.healthHighligtColor) end,
+							setFunc = function(r, g, b, a)
+								self.config.healthHighligtColor = {r, g, b, a}
+								self.progressbar.LabelColors()
+								-- self:BuildProgressBar()
+								end,
 						},
 						{
 							type = "checkbox",
