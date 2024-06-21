@@ -1,5 +1,4 @@
 2024-06-16 v1.6.6
-!  Fixed a rare issue with barswaps
 !  Changed the way dodge was detected for more accurate results
 !  Several fixes with resource bar and its settings
 
