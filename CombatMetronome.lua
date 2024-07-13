@@ -6,8 +6,8 @@
 CombatMetronome = {
     name = "CombatMetronome",
     major = 6,
-    minor = 6,
-    version = "1.6.6"
+    minor = 7,
+    version = "1.6.7"
 }
 
 local LAM = LibAddonMenu2
@@ -304,9 +304,10 @@ function CombatMetronome:Init()
     self.unlocked = false
     self.progressbar = CombatMetronome:BuildProgressBar()
     CombatMetronome:BuildMenu()
+	-- CombatMetronome:UpdateAdjustChoices()
 
     self.lastInterval = 0
-	self.actionSlotCache = CombatMetronome:StoreAbilitiesOnActionBar()
+	-- self.actionSlotCache = CombatMetronome:StoreAbilitiesOnActionBar()
 
 	self:RegisterMetadata()
 	
@@ -383,7 +384,17 @@ function CombatMetronome:RegisterCM()
         self.name.."SlotUsed",
         EVENT_ACTION_SLOT_ABILITY_USED,
         function(e, slot)
-            local ability = Util.Ability:ForId(GetSlotBoundId(slot))
+			-- d(slot)
+			local ability = {}
+            local actionType = GetSlotType(slot)
+			-- d(actionType)
+			if actionType == 3 then --ACTION_TYPE_CRAFTED_ABILITY then
+				-- d("Crafted ability executed")
+				ability = Util.Ability:ForId(GetAbilityIdForCraftedAbilityId(GetSlotBoundId(slot)))
+				-- d("Ability used - "..ability.name..", ID: "..ability.id)
+			else
+				ability = Util.Ability:ForId(GetSlotBoundId(slot))
+			end
             -- log("Abilty used - ", ability.name)
             if (ability and ability.heavy) then
                 -- log("Cancelling heavy")

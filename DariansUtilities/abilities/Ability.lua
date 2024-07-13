@@ -28,9 +28,12 @@ function Ability:ForId(id)
             break
         end
     end
+    -- if actionSlotType == 3 then
+        -- id = GetAbilityIdForCraftedAbilityId(id)
+    -- end
 
     o.id = id
-    o.name = GetAbilityName(id)
+    o.name = Ability:CropZOSSpellName(GetAbilityName(id))
     -- if APIVersion < 101042 then
     -- o.channeled, 
     -- o.castTime, 
@@ -295,12 +298,17 @@ end
 
 function Ability.Tracker:HandleSlotUsed(e, slot)
     if (slot > 8) then return end
-
-    local ability = Util.Ability:ForId(GetSlotBoundId(slot))--, slot)
+    
+    local ability = {}
     local actionType = GetSlotType(slot)
-    if actionType == ACTION_TYPE_CRAFTED_ABILITY then
+    if actionType == 3 then --ACTION_TYPE_CRAFTED_ABILITY then
+        -- d("Crafted ability executed")
         ability = Util.Ability:ForId(GetAbilityIdForCraftedAbilityId(GetSlotBoundId(slot)))
+        -- d("Ability used - ", ability.name)
+    else
+        ability = Util.Ability:ForId(GetSlotBoundId(slot))
     end
+    -- local ability = Util.Ability:ForId(GetSlotBoundId(slot))--, slot)
     -- Util.log("SLOT NAME = ", GetSlotName(slot))
     -- local ability = Util.Ability:ForName(GetSlotName(slot), slot)
     if not (ability) then return end
