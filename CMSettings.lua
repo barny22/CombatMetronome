@@ -52,10 +52,10 @@ function CombatMetronome:BuildMenu()
     -- end
 
     self.menu = { }
-    self.menu.abilityAdjustChoices = { }
+    self.menu.abilityAdjustChoices = self:CreateAdjustList()
     self.menu.curSkillName = ABILITY_ADJUST_PLACEHOLDER
     self.menu.curSkillId = -1
-	self.listOfCurrentSkills = {}
+	-- self.listOfCurrentSkills = {}
 	local attributes = CM_TRACKER_CLASS_ATTRIBUTES[self.class]
     self.menu.metadata = {
         type = "panel",
@@ -690,7 +690,7 @@ function CombatMetronome:BuildMenu()
 								if not name or #name == 0 then return end
 								for id = 0, 300000 do
 									if CombatMetronome:CropZOSSpellName(GetAbilityName(id)) == name then
-										--[[_=self.log and]] d("Found ability for "..name, "id = "..id)
+										--[[_=self.log and]] d("Found ability for '"..name.."'", "id: "..id)
 										self.menu.curSkillName = name
 										self.menu.curSkillId = id
 										self.config.abilityAdjusts[id] = 0
@@ -709,7 +709,7 @@ function CombatMetronome:BuildMenu()
 							setFunc = function(value) 
 								self.menu.curSkillName = value
 								for id, adj in pairs(self.config.abilityAdjusts) do
-									if GetAbilityName(id) == value then
+									if CombatMetronome:CropZOSSpellName(GetAbilityName(id)) == value then
 										self.menu.curSkillId = id
 									end
 								end
@@ -721,7 +721,14 @@ function CombatMetronome:BuildMenu()
 							min = -MAX_ADJUST,
 							max = MAX_ADJUST,
 							step = 1,
-							getFunc = function() return self.config.abilityAdjusts[self.menu.curSkillId] or 0 end,
+							getFunc = function()
+								for id, adj in pairs(self.config.abilityAdjusts) do
+									if CombatMetronome:CropZOSSpellName(GetAbilityName(id)) == self.menu.curSkillName then
+										self.menu.curSkillId = id
+									end
+								end
+								return self.config.abilityAdjusts[self.menu.curSkillId] or 0
+							end,
 							setFunc = function(value)
 								if self.config.abilityAdjusts[self.menu.curSkillId] then
 									self.config.abilityAdjusts[self.menu.curSkillId] = value
@@ -732,7 +739,7 @@ function CombatMetronome:BuildMenu()
 							type = "button",
 							name = "Remove skill adjust",
 							func = function()
-								--[[_=DLog and]] d("Removing skill "..self.menu.curSkillName, "id: "..self.menu.curSkillId)
+								--[[_=DLog and]] d("Removing skill '"..self.menu.curSkillName.."'", "id: "..self.menu.curSkillId)
 								self.config.abilityAdjusts[self.menu.curSkillId] = nil
 								self:UpdateAdjustChoices()
 							end

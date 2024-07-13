@@ -138,14 +138,14 @@ end
 	-------------------------
 
 function CombatMetronome:UpdateAdjustChoices()
-    local names = self.menu.abilityAdjustChoices
+	local names = self.menu.abilityAdjustChoices
 
-    for k in pairs(names) do names[k] = nil end
+	for k in pairs(names) do names[k] = nil end
 
-    for id, adj in pairs(self.config.abilityAdjusts) do
-        local name = GetAbilityName(id)
-        names[#names + 1] = name
-    end
+	for id, adj in pairs(self.config.abilityAdjusts) do
+		local name = CombatMetronome:CropZOSSpellName(GetAbilityName(id))
+		names[#names + 1] = name
+	end
 
     if #names == 0 then
         names[1] = ABILITY_ADJUST_PLACEHOLDER
@@ -161,32 +161,41 @@ function CombatMetronome:UpdateAdjustChoices()
         end
     end
 
-    local panelControls = self.menu.panel.controlsToRefresh
-    for i = 1, #panelControls do
-        local control = panelControls[i]
-        if (control.data and control.data.name == "Select skill adjust") then
-            control:UpdateChoices()
-            control:UpdateValue()
-            break
-        end
-    end
+	local panelControls = self.menu.panel.controlsToRefresh
+	for i = 1, #panelControls do
+		local control = panelControls[i]
+		if (control.data and control.data.name == "Select skill adjust") then
+			control:UpdateChoices()
+			control:UpdateValue()
+			break
+		end
+	end
 end
 
-function CombatMetronome:BuildListOfCurrentSkills()
-	local list = {}
-	local listVariables = CombatMetronome:StoreAbilitiesOnActionBar()
-	table.insert(list, "----FRONTBAR----")
-	for i=1,5 do
-		table.insert(list, tostring(i..": "..listVariables[i].id..", "..listVariables[i].name))
+function CombatMetronome:CreateAdjustList()
+		local names = {}
+		for id, adj in pairs(self.config.abilityAdjusts) do
+			local name = CombatMetronome:CropZOSSpellName(GetAbilityName(id))
+			names[#names + 1] = name
+		end
+		return names
 	end
-	table.insert(list, tostring("Ultimate: "..listVariables[6].id..", "..listVariables[6].name))
-	table.insert(list, "----BACKBAR----")
-	for i=7,11 do
-		table.insert(list, tostring((i-6)..": "..listVariables[i].id..", "..listVariables[i].name))
-	end
-	table.insert(list, tostring("Ultimate: "..listVariables[12].id..", "..listVariables[12].name))
-	return list
-end
+
+-- function CombatMetronome:BuildListOfCurrentSkills()
+	-- local list = {}
+	-- local listVariables = CombatMetronome:StoreAbilitiesOnActionBar()
+	-- table.insert(list, "----FRONTBAR----")
+	-- for i=1,5 do
+		-- table.insert(list, tostring(i..": "..listVariables[i].id..", "..listVariables[i].name))
+	-- end
+	-- table.insert(list, tostring("Ultimate: "..listVariables[6].id..", "..listVariables[6].name))
+	-- table.insert(list, "----BACKBAR----")
+	-- for i=7,11 do
+		-- table.insert(list, tostring((i-6)..": "..listVariables[i].id..", "..listVariables[i].name))
+	-- end
+	-- table.insert(list, tostring("Ultimate: "..listVariables[12].id..", "..listVariables[12].name))
+	-- return list
+-- end
 	-------------------------
 	---- Ability Handler ----
 	-------------------------
