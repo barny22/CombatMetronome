@@ -219,7 +219,7 @@ function CombatMetronome:HandleAbilityUsed(event)
 		event.adjust = event.adjust + (338 * cruxes)
 		-- d(string.format("Fatecarver duration succesfully adjusted with %d crux(es)", cruxes))
 	end
-	if self.config.stopHATracking and event.ability.type == 6 then
+	if self.config.stopHATracking and event.ability.type == ACTION_SLOT_TYPE_HEAVY_ATTACK then
 		self.currentEvent = nil
 	else
 		self.currentEvent = event
