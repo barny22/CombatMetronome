@@ -1,5 +1,5 @@
-2024-07-13 v1.6.7
-!  Fixed issue with some scribing skills
+2024-07-18 v1.6.7
+!  Ground targeted skills are now properly recognized
 !  More fixes to ability adjust section
 !  Removed some unnecessary code sections
 
