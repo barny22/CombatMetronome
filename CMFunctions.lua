@@ -384,7 +384,7 @@ function CombatMetronome:StoreAbilitiesOnActionBar()
             
             actionSlot.place = tostring(i .. j)
 			if slotType == ACTION_TYPE_CRAFTED_ABILITY then
-				actionSlot.id = GetAbilityIdForCraftedAbilityId(GetSlotBoundId(i, j)
+				actionSlot.id = GetAbilityIdForCraftedAbilityId(GetSlotBoundId(i, j))
 			else
 				actionSlot.id = GetSlotBoundId(i, j)
 			end

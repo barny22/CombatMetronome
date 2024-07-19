@@ -695,10 +695,12 @@ function CombatMetronome:BuildMenu()
 										self.menu.curSkillId = id
 										self.config.abilityAdjusts[id] = 0
 										self:UpdateAdjustChoices()
-										return
+										break
 									end
 								end
-								d("CM - Could not find valid ability named "..name.."!")
+								if not self.menu.curSkillId then
+									d("CM - Could not find valid ability named "..name.."!")
+								end
 							end
 						},
 						{
