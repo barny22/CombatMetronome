@@ -57,7 +57,7 @@ function Ability:ForId(id)
     end
     -- end
     o.delay = math.max(o.castTime, o.channelTime)
-    o.instant = not (o.castTime > 0 or (o.channeled and o.channelTime > 0))
+    o.instant = not (o.castTime > 0 or o.channelTime > 0)
     o.casted = not (o.instant or o.channeled)
     -- o.passive = passive
     o.target = GetAbilityTargetDescription(id)
@@ -160,7 +160,6 @@ function Ability.Tracker:Start()
     self.log = false
     self.lastMounted = 0
     self.weaponLastSheathed = 0
-    self.abilityWasFired = false
 
     EVENT_MANAGER:RegisterForUpdate(self.name.."Update", 1000 / 60, function(...)
         self:Update()
@@ -206,18 +205,13 @@ function Ability.Tracker:Update()
         end
     end
     
-    -- Util.slotCounter = 0
-    -- for i = 3,8 do
-        -- Util.updatedSlots[i] = false
-    -- end
-    
     if IsMounted() then
         self.lastMounted = time
     end
     if ArePlayerWeaponsSheathed() then
         self.weaponLastSheathed = time
     end
-    self.abilityWasFired = false
+    self.abilityWasUsed = false
 end
 
 function Ability.Tracker:NewEvent(ability, slot, start)
@@ -304,44 +298,28 @@ function Ability.Tracker:HandleSlotUpdated(e, slot)
 
     local remaining, duration, global, t = GetSlotCooldownInfo(slot)
     local time = GetFrameTimeMilliseconds()
-    self.abilityWasFired = not self.abilityWasFired
+    
+    self.abilityWasUsed = not self.abilityWasUsed
+    local buggedAbilityUsed = (duration == 0 and remaining == 0 and self.abilityWasUsed)
 
+    if (duration > 0 and remaining > 0) or buggedAbilityUsed then
+    
+        self.gcd = remaining
 
-    -- if not Util.updatedSlots[slot] then
-        -- Util.updatedSlots[slot] = true
-        -- Util.slotCounter = Util.slotCounter + 1
-    -- end
-
-    if (duration > 0 and remaining > 0) or (duration == 0 and remaining == 0 and self.abilityWasFired) then
-    -- if self.queuedEvent then
-        -- if self.queuedEvent.ability then
-            -- if self.queuedEvent.ability.slot then
-                -- if not Util.updatedSlots[self.queuedEvent.ability.slot] and Util.slotCounter >= 5 and not self.gcdTrigger then
-                    
-                    self.gcd = remaining
-
-                    local oldStart = self.eventStart or 0
-                    self.eventStart = time + remaining - duration 
-                    -- self.gcdTriggerTime = math.max(self.queuedEvent.ability.channelTime or 0, self.queuedEvent.ability.castTime or 0, self.gcd) + GetLatency()
-                    
-                    -- if (oldStart ~= self.eventStart) then
-                        -- _=self.log and d(""..time.." : Event start "..tostring(duration - remaining).."ms ago")
-                    -- end
-                    
-                    if self.queuedEvent and --[[self.queuedEvent.triggerOnSlotUpdated and]] self.eventStart > oldStart then
-                        -- _=self.log and d(""..time.." : Moved queued "..self.queuedEvent.ability.name.." to current") 
-                        -- log("  Dispatching ", self.queuedEvent.ability.name)
-                        -- log("    oldStart = ", oldStart)
-                        -- log("    newStart = ", self.eventStart)
-                        -- log("    current  = ", GetFrameTimeMilliseconds())
-                        -- self.gcdTrigger = true
-                        self:AbilityUsed()
-                        -- Util.slotCounter = 0
-                        -- zo_callLater(function() self.gcdTrigger = false end, self.gcdTriggerTime)
-                    end
-                -- end
-            -- end
+        local oldStart = self.eventStart or 0
+        self.eventStart = time + remaining - duration 
+        
+        -- if (oldStart ~= self.eventStart) then
+            -- _=self.log and d(""..time.." : Event start "..tostring(duration - remaining).."ms ago")
         -- end
+        if self.queuedEvent and --[[self.queuedEvent.triggerOnSlotUpdated and]] self.eventStart > oldStart and not self.castBlock then
+            -- _=self.log and d(""..time.." : Moved queued "..self.queuedEvent.ability.name.." to current") 
+            -- log("  Dispatching ", self.queuedEvent.ability.name)
+            -- log("    oldStart = ", oldStart)
+            -- log("    newStart = ", self.eventStart)
+            -- log("    current  = ", GetFrameTimeMilliseconds())
+            self:AbilityUsed()
+        end
     end
 end
 
@@ -358,7 +336,6 @@ function Ability.Tracker:HandleSlotUsed(e, slot)
         ability = Util.Ability:ForId(GetSlotBoundId(slot))
     end
     
-    -- ability.slot = slot
     -- local ability = Util.Ability:ForId(GetSlotBoundId(slot))--, slot)
     -- Util.log("SLOT NAME = ", GetSlotName(slot))
     -- local ability = Util.Ability:ForName(GetSlotName(slot), slot)
