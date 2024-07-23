@@ -706,7 +706,6 @@ function CombatMetronome:BuildMenu()
 							type = "dropdown",
 							name = "Select skill adjust",
 							choices = self.menu.abilityAdjustChoices,
-							default = "select ability here",
 							getFunc = function() return self.menu.curSkillName end,
 							setFunc = function(value) 
 								self.menu.curSkillName = value
