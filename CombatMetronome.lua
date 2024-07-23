@@ -25,6 +25,8 @@ ZO_CreateStringId("SI_BINDING_NAME_COMBATMETRONOME_FORCE", "Force display")
 
 function CombatMetronome:Update()
 
+	local latency, cdTimer
+
 	------------------------
 	---- Sample Section ----
 	------------------------
@@ -74,10 +76,7 @@ function CombatMetronome:Update()
 		
 		local time = GetFrameTimeMilliseconds()
 		
-		-- local dodgeTrigger = CombatMetronome:CheckForDodge()
-		
 		-- this is important for GCD Tracking
-		local gcdTrigger = false
 		local slotRemaining, slotDuration, _, _ = GetSlotCooldownInfo(3)
 		local sR, sD, _, _ = GetSlotCooldownInfo(4)
 		if (sR > slotRemaining) or ( sD > slotDuration ) then
@@ -87,15 +86,7 @@ function CombatMetronome:Update()
 		if slotDuration < 1 then
 			slotDuration = 1
 		end
-		if slotRemaining/slotDuration > 0.97 then
-			gcdTrigger = true
-		end
 		local gcdProgress = slotRemaining/slotDuration
-		
-		--if gcdTrigger then d("gcd was triggered") end
-		--if dodgeTrigger then d("dodge was triggered") end
-		
-		-- local playerDidDodge = dodgeTrigger and gcdTrigger
 
 		local interval = false
 		if time > self.lastInterval + INTERVAL then
@@ -108,6 +99,12 @@ function CombatMetronome:Update()
 		if self.config.trackGCD and not self.currentEvent then
 			self.bar.segments[1].progress = 0
 			self.bar.segments[2].progress = gcdProgress
+			if self.rollDodge then
+				self:HideLabels(false)
+				self.spellLabel:SetText("Dodgeroll")
+				self.timeLabel:SetText(string.format("%.1fs", gcdProgress))
+				self.spellIcon:SetTexture("/esoui/art/icons/ability_rogue_035.dds")
+			end
 			
 			if gcdProgress == 0 then
 				self:OnCDStop()
@@ -253,8 +250,12 @@ function CombatMetronome:Update()
 					end
 					-- spellInterrupter = false
 				-- end
-			elseif self.rollDodge and trackGCD then
-				self:HideLabels(true)
+			elseif self.rollDodge and self.config.trackGCD then
+				-- d("dodge should be shown now")
+				self:HideLabels(false)
+				self.spellLabel:SetText("Dodgeroll")
+				self.timeLabel:SetText(string.format("%.1fs", gcdProgress))
+				self.spellIcon:SetTexture("/esoui/art/icons/ability_rogue_035.dds")
 				self.bar.segments[1].progress = 0
 				self.bar.segments[2].progress = gcdProgress
 				if gcdProgress == 0 then
@@ -291,6 +292,8 @@ function CombatMetronome:Init()
         self.config.global = true
     end
 	
+	self.language = GetCVar("Language.2")
+	
 	self.classId = GetUnitClassId("player")
 	self.class = CM_CLASS[self.classId]
 
@@ -307,7 +310,7 @@ function CombatMetronome:Init()
 	-- CombatMetronome:UpdateAdjustChoices()
 
     self.lastInterval = 0
-	-- self.actionSlotCache = CombatMetronome:StoreAbilitiesOnActionBar()
+	self.actionSlotCache = CombatMetronome:StoreAbilitiesOnActionBar()
 
 	self:RegisterMetadata()
 	
@@ -343,9 +346,9 @@ end
 	-----------------------------
 
 function CombatMetronome:RegisterMetadata()
-	EVENT_MANAGER:RegisterForUpdate(
+	EVENT_MANAGER:RegisterForEvent(
         self.name.."CurrentActionslotsOnHotbar",
-        1000 / 60,
+        EVENT_ACTION_SLOT_UPDATED,
         function()
 			self.actionSlotCache = CombatMetronome:StoreAbilitiesOnActionBar()
 			-- self.menu.abilityAdjustChoices = CombatMetronome:BuildListForAbilityAdjusts()
@@ -388,13 +391,43 @@ function CombatMetronome:RegisterCM()
 			local ability = {}
             local actionType = GetSlotType(slot)
 			-- d(actionType)
-			if actionType == 3 then --ACTION_TYPE_CRAFTED_ABILITY then
+			if actionType == ACTION_TYPE_CRAFTED_ABILITY then --3 then
 				-- d("Crafted ability executed")
 				ability = Util.Ability:ForId(GetAbilityIdForCraftedAbilityId(GetSlotBoundId(slot)))
 				-- d("Ability used - "..ability.name..", ID: "..ability.id)
 			else
 				ability = Util.Ability:ForId(GetSlotBoundId(slot))
 			end
+			
+			-- d("Slot used - Target: "..GetAbilityTargetDescription(GetSlotBoundId(slot)).." - "..ability.name)
+			--[[if slot>3 and not self.abilityGCDTrigger then
+				local abilityGcdEndTime = math.max(ability.castTime, ability.channelTime, 990) + GetFrameTimeMilliseconds()
+				self.abilityGCDTrigger = true
+				if ability then
+					self.currentEvent = {}
+					self.currentEvent.ability = ability
+					self.currentEvent.start = GetFrameTimeMilliseconds()				
+					self.currentEvent.adjust = self.config.abilityAdjusts[ability.id] or 0
+				end
+				-- d("GCD triggered by ability")
+				EVENT_MANAGER:RegisterForUpdate(
+					self.name.."AbilityGCDReset",
+					1000 / 60,
+					function ()
+						if GetFrameTimeMilliseconds() > abilityGcdEndTime or IsBlockActive() then
+							self.abilityGCDTrigger = false
+							EVENT_MANAGER:UnregisterForUpdate(self.name.."AbilityGCDReset")
+							-- d("GCD by ability free")
+						end
+					end
+				)
+			elseif slot>3 and self.abilityGCDTrigger then
+				d("ability queued - "..ability.name)
+				self.queuedAbility = {}
+				self.queuedAbility.ability = ability
+				self.queuedAbility.start = GetFrameTimeMilliseconds()				
+				self.queuedAbility.adjust = self.config.abilityAdjusts[ability.id] or 0
+			end]]
             -- log("Abilty used - ", ability.name)
             if (ability and ability.heavy) then
                 -- log("Cancelling heavy")
@@ -402,6 +435,36 @@ function CombatMetronome:RegisterCM()
             end
         end
     )
+	
+	--[[EVENT_MANAGER:RegisterForEvent(
+		self.name.."GCDTrigger",
+		EVENT_ACTION_SLOT_STATE_UPDATED,
+		function(e, slot)
+			if slot>3 and not self.gcdTrigger and not self.abilityGCDTrigger then
+				local duration = GetSlotCooldownInfo(slot)
+				if duration > 0 then
+					self.gcdTrigger = true
+					-- self.gcdEndTime = GetFrameTimeMilliseconds() + duration
+					-- d("GCD triggered for "..duration.."ms")
+					EVENT_MANAGER:RegisterForUpdate(
+						self.name.."GCDReset",
+						duration,
+						function ()
+							self.gcdTrigger = false
+							EVENT_MANAGER:UnregisterForUpdate(self.name.."GCDReset")
+							-- d("GCD free")
+						end
+					)
+				end
+				-- if self.queuedAbility and not self.currentEvent then
+					-- self.currentEvent = self.queuedAbility
+					-- self.queuedAbility = nil
+					-- d("queued Ability is now current Event")
+				-- end
+			end
+		end
+	)]]
+	
 	self.cmRegistered = true
 	
 	EVENT_MANAGER:RegisterForEvent(
@@ -411,6 +474,15 @@ function CombatMetronome:RegisterCM()
 			if barswap then
 				self.barswap = barswap
 				-- d("barswap occured. Hotbar was "..category)
+				-- if self.abilityGCDTrigger then
+					-- self.abilityGCDTrigger = false
+					-- EVENT_MANAGER:UnregisterForUpdate(self.name.."AbilityGCDReset")
+					-- d("GCD cleared by Barswap")
+				-- end
+				-- if self.queuedAbility then
+					-- self.queuedAbility = nil
+					-- d("queued ability deleted")
+				-- end
 			end
 			return self.barswap
 		end
@@ -423,6 +495,15 @@ function CombatMetronome:RegisterCM()
 			if sourceType == COMBAT_UNIT_TYPE_PLAYER and abilityId == 29721 and changeType == 3 then			--- 69143 is DodgeFatigue
 				self.rollDodge = true
 				-- d("Dodge detected")
+				-- if self.abilityGCDTrigger then
+					-- self.abilityGCDTrigger = false
+					-- EVENT_MANAGER:UnregisterForUpdate(self.name.."AbilityGCDReset")
+					-- d("GCD cleared by rolldodge")
+				-- end
+				-- if self.queuedAbility then
+					-- self.queuedAbility = nil
+					-- d("queued ability deleted")
+				-- end
 			end
 			return self.rollDodge
 		end
