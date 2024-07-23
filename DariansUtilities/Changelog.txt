@@ -1,3 +1,7 @@
+2024-07-23 v1.7.5
+!  Quick fix for elemental explosion scribed skill
+!  Updated Ability.lua
+
 2024-04-19 v1.7.4
 !  Updated Ability.lua for U42 and scribing
 
