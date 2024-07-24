@@ -154,8 +154,7 @@ function Ability.Tracker:Start()
 
     self.started = true
     
-    -- Util.slotCounter = 0
-    -- Util.updatedSlots = {}
+    self.slotCounter = 0
 
     self.log = false
     self.lastMounted = 0
@@ -211,7 +210,7 @@ function Ability.Tracker:Update()
     if ArePlayerWeaponsSheathed() then
         self.weaponLastSheathed = time
     end
-    self.abilityWasUsed = false
+    self.slotCounter = 0
 end
 
 function Ability.Tracker:NewEvent(ability, slot, start)
@@ -295,16 +294,19 @@ end
 
 function Ability.Tracker:HandleSlotUpdated(e, slot)
     if (slot < 3) then return end
+    
+    self.slotCounter = self.slotCounter + 1
 
     local remaining, duration, global, t = GetSlotCooldownInfo(slot)
     local time = GetFrameTimeMilliseconds()
     
-    self.abilityWasUsed = not self.abilityWasUsed
-    local buggedAbilityUsed = (duration == 0 and remaining == 0 and self.abilityWasUsed)
-
-    if (duration > 0 and remaining > 0) or buggedAbilityUsed then
+    local normalAbilityUsed = (duration > 0 and remaining > 0 and self.slotCounter == 5 and not IsMounted() and not ArePlayerWeaponsSheathed())                 --more specified triggers for abilities
+    local buggedAbilityUsed = (duration == 0 and remaining == 0 and self.slotCounter == 5 and not IsMounted() and not ArePlayerWeaponsSheathed())
+    local queuedBuggedAbilityUsed = (duration == 0 and remaining == 0 and self.slotCounter == 10 and not IsMounted() and not ArePlayerWeaponsSheathed())
     
-        self.gcd = remaining
+    if normalAbilityUsed or buggedAbilityUsed or queuedBuggedAbilityUsed then
+    
+        self.gcd = remaining or self.queuedEvent.ability.delay
 
         local oldStart = self.eventStart or 0
         self.eventStart = time + remaining - duration 
@@ -312,14 +314,27 @@ function Ability.Tracker:HandleSlotUpdated(e, slot)
         -- if (oldStart ~= self.eventStart) then
             -- _=self.log and d(""..time.." : Event start "..tostring(duration - remaining).."ms ago")
         -- end
-        if self.queuedEvent and --[[self.queuedEvent.triggerOnSlotUpdated and]] self.eventStart > oldStart and not self.castBlock then
+        if queuedBuggedAbilityUsed then                                                                     -- this part is for bugged abilities in scribing until fixed by ZOS
+            self.buggedAbilitySwitch = true                                                                 --              |             |             |             |
+        elseif buggedAbilityUsed and not self.buggedAbilitySwitch then                                      --              |             |             |             |
+            self.buggedAbilitySwitch = true                                                                 --              |             |             |             |
+        end                                                                                                 --              |             |             |             |
+                                                                                                            --              |             |             |             |
+        if self.queuedEvent and self.eventStart > oldStart and self.buggedAbilitySwitch then                --              |             |             |             |
+            self:AbilityUsed()
+            self.buggedAbilitySwitch = false
+            -- d("ability fired")
+        elseif self.queuedEvent and --[[self.queuedEvent.triggerOnSlotUpdated and]] self.eventStart > oldStart and normalAbilityUsed then
             -- _=self.log and d(""..time.." : Moved queued "..self.queuedEvent.ability.name.." to current") 
             -- log("  Dispatching ", self.queuedEvent.ability.name)
             -- log("    oldStart = ", oldStart)
             -- log("    newStart = ", self.eventStart)
             -- log("    current  = ", GetFrameTimeMilliseconds())
             self:AbilityUsed()
+            normalAbilityUsed = false
+            -- d("normal ability fired")
         end
+        -- if buggedAbilityUsed and self.slotCounter == 6 then self:CancelEvent() end
     end
 end
 
