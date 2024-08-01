@@ -93,6 +93,14 @@ function CombatMetronome:Update()
 			self.lastInterval = time
 			interval = true
 		end
+			--------------------------------
+			---- Rolldodge Timer Updater----
+			--------------------------------
+			
+		if not self.rollDodgeFinished and gcdProgress > 0 then
+			self.timeLabel:SetText(string.format("%.1fs", gcdProgress))
+		end
+		
 			---------------------
 			---- GCD Tracker ----
 			---------------------
@@ -427,6 +435,8 @@ function CombatMetronome:RegisterCM()
 		function(_,changeType,_,_,_,_,_,_,_,_,_,_,_,_,_,abilityId,sourceType)
 			if sourceType == COMBAT_UNIT_TYPE_PLAYER and abilityId == 29721 and changeType == 3 then			--- 69143 is DodgeFatigue
 				self.rollDodge = true
+				self.rollDodgeFinished = false
+				zo_callLater(function () self.rollDodgeFinished = true end, 1000)
 			end
 			return self.rollDodge
 		end
