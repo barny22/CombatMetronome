@@ -254,6 +254,13 @@ function Ability.Tracker:CancelEvent()
 end
 
 function Ability.Tracker:AbilityUsed()
+
+    if self.buggedAbilitySwitch then                                                                                        -- only fire "bugged abilities" for "elemental explosion"
+        self.buggedAbilitySwitch = false
+        if self.queuedEvent and not GetSlotBoundId(self.queuedEvent.slot) == 5 then self:CancelEvent() end
+    end
+            
+            
     local event = self.queuedEvent
     event.start = self.eventStart
     self.queuedEvent = nil
@@ -300,7 +307,7 @@ function Ability.Tracker:HandleSlotUpdated(e, slot)
     local remaining, duration, global, t = GetSlotCooldownInfo(slot)
     local time = GetFrameTimeMilliseconds()
     
-    local normalAbilityUsed = (duration > 0 and remaining > 0 and self.slotCounter == 5 and not IsMounted() and not ArePlayerWeaponsSheathed())                 --more specified triggers for abilities
+    local normalAbilityUsed = (duration > 0 and remaining > 0 and self.slotCounter == 5 and not IsMounted() and not ArePlayerWeaponsSheathed())              --more specified triggers for abilities
     local buggedAbilityUsed = (duration == 0 and remaining == 0 and self.slotCounter == 5 and not IsMounted() and not ArePlayerWeaponsSheathed())
     local queuedBuggedAbilityUsed = (duration == 0 and remaining == 0 and self.slotCounter == 10 and not IsMounted() and not ArePlayerWeaponsSheathed())
     
@@ -322,7 +329,6 @@ function Ability.Tracker:HandleSlotUpdated(e, slot)
                                                                                                             --              |             |             |             |
         if self.queuedEvent and self.eventStart > oldStart and self.buggedAbilitySwitch then                --              |             |             |             |
             self:AbilityUsed()
-            self.buggedAbilitySwitch = false
             -- d("ability fired")
         elseif self.queuedEvent and --[[self.queuedEvent.triggerOnSlotUpdated and]] self.eventStart > oldStart and normalAbilityUsed then
             -- _=self.log and d(""..time.." : Moved queued "..self.queuedEvent.ability.name.." to current") 
@@ -331,7 +337,6 @@ function Ability.Tracker:HandleSlotUpdated(e, slot)
             -- log("    newStart = ", self.eventStart)
             -- log("    current  = ", GetFrameTimeMilliseconds())
             self:AbilityUsed()
-            normalAbilityUsed = false
             -- d("normal ability fired")
         end
         -- if buggedAbilityUsed and self.slotCounter == 6 then self:CancelEvent() end
