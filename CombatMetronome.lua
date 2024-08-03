@@ -108,10 +108,23 @@ function CombatMetronome:Update()
 			self.bar.segments[1].progress = 0
 			self.bar.segments[2].progress = gcdProgress
 			if self.rollDodge then
-				self:HideLabels(false)
-				self.spellLabel:SetText("Dodgeroll")
-				self.timeLabel:SetText(string.format("%.1fs", gcdProgress))
-				self.spellIcon:SetTexture("/esoui/art/icons/ability_rogue_035.dds")
+				if self.config.showSpell then
+					self.spellLabel:SetHidden(false)
+					self.spellIcon:SetHidden(false)
+					self.spellIconBorder:SetHidden(false)
+					self.spellIcon:SetTexture("/esoui/art/icons/ability_rogue_035.dds")
+					self.spellLabel:SetText("Dodgeroll")
+				else
+					self.spellLabel:SetHidden(true)
+					self.spellIcon:SetHidden(true)
+					self.spellIconBorder:SetHidden(true)
+				end
+				if self.config.showTimeRemaining then
+					self.timeLabel:SetHidden(false)
+					self.timeLabel:SetText(string.format("%.1fs", gcdProgress))
+				else
+					self.timeLabel:SetHidden(true)
+				end
 			end
 			
 			if gcdProgress == 0 then
@@ -236,34 +249,26 @@ function CombatMetronome:Update()
 			--------------------
 			---- Interrupts ----							-- check for interrupts by dodge, barswap or block
 			--------------------
-			if (playerDidBlock or self.rollDodge or self.barswap) then
-				-- local spellInterrupter = true
-				local eventAdjust = 0
-				if self.currentEvent then
-					if self.currentEvent.adjust then
-						eventAdjust = self.currentEvent.adjust
-					end
+			if self.rollDodge and self.config.trackGCD then
+				self:OnCDStop()
+				-- d("dodge should be interrupting now")
+				if self.config.showSpell then
+					self.spellLabel:SetHidden(false)
+					self.spellIcon:SetHidden(false)
+					self.spellIconBorder:SetHidden(false)
+					self.spellIcon:SetTexture("/esoui/art/icons/ability_rogue_035.dds")
+					self.spellLabel:SetText("Dodgeroll")
+				else
+					self.spellLabel:SetHidden(true)
+					self.spellIcon:SetHidden(true)
+					self.spellIconBorder:SetHidden(true)
 				end
-				-- if spellInterrupter then
-					-- d(self.currentEvent.adjust)
-					if duration > 1000+latency+eventAdjust then
-						self:OnCDStop()
-						self.bar:Update()
-					end
-					if self.barswap then
-						self.barswap = false
-					end
-					if self.rollDodge then
-						self.rollDodge = false
-					end
-					-- spellInterrupter = false
-				-- end
-			elseif self.rollDodge and self.config.trackGCD then
-				-- d("dodge should be shown now")
-				self:HideLabels(false)
-				self.spellLabel:SetText("Dodgeroll")
-				self.timeLabel:SetText(string.format("%.1fs", gcdProgress))
-				self.spellIcon:SetTexture("/esoui/art/icons/ability_rogue_035.dds")
+				if self.config.showTimeRemaining then
+					self.timeLabel:SetHidden(false)
+					self.timeLabel:SetText(string.format("%.1fs", gcdProgress))
+				else
+					self.timeLabel:SetHidden(true)
+				end
 				self.bar.segments[1].progress = 0
 				self.bar.segments[2].progress = gcdProgress
 				if gcdProgress == 0 then
@@ -274,6 +279,24 @@ function CombatMetronome:Update()
 				end
 				self.bar:Update()
 				self.rollDodge = false
+			elseif (playerDidBlock or self.rollDodge or self.barswap) then
+				-- local spellInterrupter = true
+				local eventAdjust = 0
+				if self.currentEvent then
+					if self.currentEvent.adjust then
+						eventAdjust = self.currentEvent.adjust
+					end
+				end
+				if duration > 1000+latency+eventAdjust then
+					self:OnCDStop()
+					self.bar:Update()
+				end
+				if self.barswap then
+					self.barswap = false
+				end
+				if self.rollDodge then
+					self.rollDodge = false
+				end
 			end
 		else
 			self:OnCDStop()
