@@ -153,6 +153,8 @@ function Ability.Tracker:Start()
     -- d("Abiilty Tracker Started!")
 
     self.started = true
+    self.callLaterActivated = false
+    self.callLaterReset = false
     
     self.slotCounter = 0
 
@@ -165,19 +167,24 @@ function Ability.Tracker:Start()
     end)
 
     EVENT_MANAGER:RegisterForEvent(self.name.."SlotUpdated", EVENT_ACTION_SLOT_STATE_UPDATED, function(...) 
-        self:HandleSlotUpdated(...) 
+        self:HandleSlotUpdated(...)
     end)
     EVENT_MANAGER:RegisterForEvent(self.name.."SlotUsed", EVENT_ACTION_SLOT_ABILITY_USED, function(...)
         self:HandleSlotUsed(...) 
     end)
     EVENT_MANAGER:RegisterForEvent(self.name.."CombatEvent", EVENT_COMBAT_EVENT, function(...)
-        self:HandleCombatEvent(...) 
+        self:HandleCombatEvent(...)
+    end)
+    EVENT_MANAGER:RegisterForEvent(self.name.."MountedState", EVENT_MOUNTED_STATE_CHANGED, function(_, mounted)
+        if not mounted then
+            self.lastMounted = GetFrameTimeMilliseconds()
+        end
     end)
 end
 
 function Ability.Tracker:Update()
     local time = GetFrameTimeMilliseconds()
-
+    
     -- Fire off late events if no SLOT_UPDATE events
     if (not self.eventStart and self.queuedEvent and self.queuedEvent.allowForce) then
         if (time > self.queuedEvent.recorded + EVENT_FORCE_WAIT) then
@@ -204,12 +211,13 @@ function Ability.Tracker:Update()
         end
     end
     
-    if IsMounted() then
-        self.lastMounted = time
-    end
+    -- if IsMounted() then
+        -- self.lastMounted = time
+    -- end
     if ArePlayerWeaponsSheathed() then
         self.weaponLastSheathed = time
     end
+    
     self.slotCounter = 0
 end
 
@@ -255,12 +263,6 @@ end
 
 function Ability.Tracker:AbilityUsed()
 
-    if self.buggedAbilitySwitch then                                                                                        -- only fire "bugged abilities" for "elemental explosion"
-        self.buggedAbilitySwitch = false
-        if self.queuedEvent and not GetSlotBoundId(self.queuedEvent.slot) == 5 then self:CancelEvent() end
-    end
-            
-            
     local event = self.queuedEvent
     event.start = self.eventStart
     self.queuedEvent = nil
@@ -303,15 +305,43 @@ function Ability.Tracker:HandleSlotUpdated(e, slot)
     if (slot < 3) then return end
     
     self.slotCounter = self.slotCounter + 1
-
-    local remaining, duration, global, t = GetSlotCooldownInfo(slot)
+    
     local time = GetFrameTimeMilliseconds()
+    local remaining, duration, global, t = GetSlotCooldownInfo(slot)
+        
+    if self.slotCounter == 5 and remaining == 0 and duration == 0 and not self.callLaterActivated then
+        -- d("call later activated")
+        self.callLaterActivated = true
+        EVENT_MANAGER:RegisterForUpdate(                                                                                          -- for whatever reason zo_callLater always returns a bug here, so I decided to just code it manually
+            self.name.."HandleSlotUpdatedCallback",
+            1000/60,
+            function()
+                Ability.Tracker:TrackGCD()
+            end
+        )
+        self.callLaterReset = false
+    end
     
-    local normalAbilityUsed = (duration > 0 and remaining > 0 and self.slotCounter == 5 and not IsMounted() and not ArePlayerWeaponsSheathed())              --more specified triggers for abilities
-    local buggedAbilityUsed = (duration == 0 and remaining == 0 and self.slotCounter == 5 and not IsMounted() and not ArePlayerWeaponsSheathed())
-    local queuedBuggedAbilityUsed = (duration == 0 and remaining == 0 and self.slotCounter == 10 and not IsMounted() and not ArePlayerWeaponsSheathed())
+    if not self.callLaterReset and self.callLaterActivated then
+        self.callLaterReset = true
+        EVENT_MANAGER:RegisterForUpdate(
+            self.name.."ResetHandleSlotUpdatedCallback",
+            150,
+            function()
+                if self.callLaterReset then
+                    EVENT_MANAGER:UnregisterForUpdate(self.name.."HandleSlotUpdatedCallback")
+                    EVENT_MANAGER:UnregisterForUpdate(self.name.."ResetHandleSlotUpdatedCallback")
+                    self.callLaterActivated = false
+                    self.callLaterReset = false
+                    -- d("Call later was reset by waiting")
+                end
+            end
+        )
+    end
     
-    if normalAbilityUsed or buggedAbilityUsed or queuedBuggedAbilityUsed then
+    local abilityUsed = (duration > 0 and remaining > 0 and not IsMounted() and not ArePlayerWeaponsSheathed())              --more specified triggers for abilities
+    
+    if abilityUsed then
     
         self.gcd = remaining or self.queuedEvent.ability.delay
 
@@ -321,16 +351,7 @@ function Ability.Tracker:HandleSlotUpdated(e, slot)
         -- if (oldStart ~= self.eventStart) then
             -- _=self.log and d(""..time.." : Event start "..tostring(duration - remaining).."ms ago")
         -- end
-        if queuedBuggedAbilityUsed then                                                                     -- this part is for bugged abilities in scribing until fixed by ZOS
-            self.buggedAbilitySwitch = true                                                                 --              |             |             |             |
-        elseif buggedAbilityUsed and not self.buggedAbilitySwitch then                                      --              |             |             |             |
-            self.buggedAbilitySwitch = true                                                                 --              |             |             |             |
-        end                                                                                                 --              |             |             |             |
-                                                                                                            --              |             |             |             |
-        if self.queuedEvent and self.eventStart > oldStart and self.buggedAbilitySwitch then                --              |             |             |             |
-            self:AbilityUsed()
-            -- d("ability fired")
-        elseif self.queuedEvent and --[[self.queuedEvent.triggerOnSlotUpdated and]] self.eventStart > oldStart and normalAbilityUsed then
+        if self.queuedEvent and --[[self.queuedEvent.triggerOnSlotUpdated and]] self.eventStart > oldStart and abilityUsed then
             -- _=self.log and d(""..time.." : Moved queued "..self.queuedEvent.ability.name.." to current") 
             -- log("  Dispatching ", self.queuedEvent.ability.name)
             -- log("    oldStart = ", oldStart)
@@ -339,7 +360,6 @@ function Ability.Tracker:HandleSlotUpdated(e, slot)
             self:AbilityUsed()
             -- d("normal ability fired")
         end
-        -- if buggedAbilityUsed and self.slotCounter == 6 then self:CancelEvent() end
     end
 end
 
@@ -355,6 +375,9 @@ function Ability.Tracker:HandleSlotUsed(e, slot)
     else
         ability = Util.Ability:ForId(GetSlotBoundId(slot))
     end
+    
+    -- local remaining, duration, global, t = GetSlotCooldownInfo(slot)
+    -- d("Remaining: "..remaining.." - Duration: "..duration)
     
     -- local ability = Util.Ability:ForId(GetSlotBoundId(slot))--, slot)
     -- Util.log("SLOT NAME = ", GetSlotName(slot))
@@ -417,6 +440,35 @@ function Ability.Tracker:HandleCombatEvent(_,     res,  err,   aName, _, _,    s
             self:NewEvent(heavy, 2)
             self.eventStart = self.queuedEvent.recorded
             self:AbilityUsed()
+        end
+    end
+end
+
+function Ability.Tracker:TrackGCD()
+
+    -- if self.GCDTrigger then return end
+    
+    local slotRemaining, slotDuration, _, _ = GetSlotCooldownInfo(3)
+    local sR, sD, _, _ = GetSlotCooldownInfo(4)
+    if (sR > slotRemaining) or ( sD > slotDuration ) then
+        slotRemaining = sR
+        slotDuration = sD
+    end
+    if slotDuration < 1 then
+        slotDuration = 1
+    end
+    local gcdProgress = slotRemaining/slotDuration
+    
+    if gcdProgress > 0 then
+        if self.callLaterReset then
+            EVENT_MANAGER:UnregisterForUpdate(self.name.."HandleSlotUpdatedCallback")
+            EVENT_MANAGER:UnregisterForUpdate(self.name.."ResetHandleSlotUpdatedCallback")
+            self.callLaterActivated = false
+            self.callLaterReset = false
+            -- d("Call later was reset by trigger")
+            for i = 3,4 do
+                Ability.Tracker:HandleSlotUpdated(_, i)
+            end
         end
     end
 end

@@ -97,9 +97,36 @@ function CombatMetronome:Update()
 			---- Rolldodge Timer Updater----
 			--------------------------------
 			
-		if not self.rollDodgeFinished and gcdProgress > 0 then
-			self.timeLabel:SetText(string.format("%.1fs", gcdProgress))
-		end
+		-- if not self.rollDodgeFinished and gcdProgress > 0 then
+			-- self.timeLabel:SetText(string.format("%.1fs", gcdProgress))
+		-- end
+			-------------------------------
+			---- Mounting Timer Updater----
+			-------------------------------
+		
+		-- if self.mountStateChanged and self.trackGCD then
+			-- if self.config.showSpell then
+				-- self.spellLabel:SetHidden(false)
+				-- self.spellIcon:SetHidden(false)
+				-- self.spellIconBorder:SetHidden(false)
+				-- self.spellIcon:SetTexture(self.activeMountIcon)
+				-- self.spellLabel:SetText(self.mountAction)
+			-- else
+				-- self.spellLabel:SetHidden(true)
+				-- self.spellIcon:SetHidden(true)
+				-- self.spellIconBorder:SetHidden(true)
+			-- end
+			-- if self.config.showTimeRemaining then
+				-- self.timeLabel:SetHidden(false)
+			-- else
+				-- self.timeLabel:SetHidden(true)
+			-- end
+			-- if gcdProgress > 0 then
+				-- self.timeLabel:SetText(string.format("%.1fs", gcdProgress))
+			-- else
+				-- self.mountStateChanged = false
+			-- end
+		-- end
 		
 			---------------------
 			---- GCD Tracker ----
@@ -107,7 +134,7 @@ function CombatMetronome:Update()
 		if self.config.trackGCD and not self.currentEvent then
 			self.bar.segments[1].progress = 0
 			self.bar.segments[2].progress = gcdProgress
-			if self.rollDodge then
+			if not self.rollDodgeFinished then
 				if self.config.showSpell then
 					self.spellLabel:SetHidden(false)
 					self.spellIcon:SetHidden(false)
@@ -322,9 +349,7 @@ function CombatMetronome:Init()
         self.config = ZO_SavedVars:NewAccountWide("CombatMetronomeSavedVars", 1, nil, CM_DEFAULT_SAVED_VARS)
         self.config.global = true
     end
-	
-	self.language = GetCVar("Language.2")
-	
+		
 	self.classId = GetUnitClassId("player")
 	self.class = CM_CLASS[self.classId]
 
@@ -332,6 +357,7 @@ function CombatMetronome:Init()
 
     self.inCombat = IsUnitInCombat("player")
     self.currentEvent = nil
+	self.rollDodgeFinished = true
 
     self.gcd = 1000
 
@@ -405,6 +431,27 @@ function CombatMetronome:RegisterMetadata()
             -- self.stamGradient:Reset()
         end
     )
+	
+	-- EVENT_MANAGER:RegisterForEvent(
+		-- self.name.."MountedState",
+		-- EVENT_MOUNTED_STATE_CHANGED,
+		-- function(_, mounted)
+			-- self.mountStateChanged = true
+			-- self.activeMountIcon = GetCollectibleIcon(GetActiveCollectibleByType(COLLECTIBLE_CATEGORY_TYPE_MOUNT,GAMEPLAY_ACTOR_CATEGORY_PLAYER))
+			-- if mounted then
+				-- self.mountAction = "Mounting"
+			-- else
+				-- self.mountAction = "Dismounting"
+			-- end
+		-- end
+	-- )
+	
+	-- EVENT_MANAGER:RegisterForEvent(
+		-- self.name.."CollectibleUsed",
+		-- EVENT_COLLECTIBLE_USE_RESULT,
+		-- function(_,blockResult,attemptedUse)
+			-- if attemtedUse and blockResult == COLLECTIBLE_USAGE_BLOCK_REASON_NOT_BLOCKED then
+				
 end
 
 function CombatMetronome:RegisterCM()
@@ -490,13 +537,7 @@ end
 function CombatMetronome:UnregisterCM()
 	EVENT_MANAGER:UnregisterForUpdate(
         self.name.."Update")
-	
-	-- EVENT_MANAGER:UnregisterForUpdate(
-        -- self.name.."CurrentActionslotsOnHotbar")
 		
-	-- EVENT_MANAGER:UnregisterForEvent(
-		-- self.name.."CharacterLoaded")
-	
 	EVENT_MANAGER:UnregisterForEvent(
         self.name.."SlotUsed")
 	
@@ -508,7 +549,6 @@ function CombatMetronome:UnregisterCM()
 	EVENT_MANAGER:UnregisterForEvent(
 		self.name.."RollDodge")
 	-- d("cm is unregistered")
-	-- self.cmWarning = false
 end
 
 function CombatMetronome:UnregisterResourceTracker()
