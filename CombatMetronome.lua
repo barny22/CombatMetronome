@@ -93,13 +93,6 @@ function CombatMetronome:Update()
 			self.lastInterval = time
 			interval = true
 		end
-			--------------------------------
-			---- Rolldodge Timer Updater----
-			--------------------------------
-			
-		-- if not self.rollDodgeFinished and gcdProgress > 0 then
-			-- self.timeLabel:SetText(string.format("%.1fs", gcdProgress))
-		-- end
 			-------------------------------
 			---- Mounting Timer Updater----
 			-------------------------------
@@ -134,7 +127,7 @@ function CombatMetronome:Update()
 		if self.config.trackGCD and not self.currentEvent then
 			self.bar.segments[1].progress = 0
 			self.bar.segments[2].progress = gcdProgress
-			if not self.rollDodgeFinished then
+			if not self.rollDodgeFinished then											---- Rolldodge Timer Updater----
 				if self.config.showSpell then
 					self.spellLabel:SetHidden(false)
 					self.spellIcon:SetHidden(false)
@@ -174,7 +167,7 @@ function CombatMetronome:Update()
 			local channelTime = ability.delay + self.currentEvent.adjust
 			local timeRemaining = ((start + channelTime + GetLatency()) - time) / 1000
 			-- local playerDidDodge = CombatMetronome:CheckForDodge()
-			local playerDidBlock = IsBlockActive()
+			local playerDidBlock = (IsBlockActive() and not self.playerDidBlockCast) or (self.lastBlockStatus == false and IsBlockActive())
 			
 			if ability.heavy then
 				if self.config.displayPingOnHeavy then
@@ -276,7 +269,7 @@ function CombatMetronome:Update()
 			--------------------
 			---- Interrupts ----							-- check for interrupts by dodge, barswap or block
 			--------------------
-			if self.rollDodge and self.config.trackGCD then
+			if not self.rollDodgeFinished and self.config.trackGCD then
 				self:OnCDStop()
 				-- d("dodge should be interrupting now")
 				if self.config.showSpell then
@@ -305,8 +298,8 @@ function CombatMetronome:Update()
 					self.bar.backgroundTexture:SetWidth(gcdProgress*self.config.width)
 				end
 				self.bar:Update()
-				self.rollDodge = false
-			elseif (playerDidBlock or self.rollDodge or self.barswap) then
+				-- self.rollDodge = false
+			elseif playerDidBlock --[[(playerDidBlock or self.rollDodge or self.barswap) ]]then
 				-- local spellInterrupter = true
 				local eventAdjust = 0
 				if self.currentEvent then
@@ -318,24 +311,25 @@ function CombatMetronome:Update()
 					self:OnCDStop()
 					self.bar:Update()
 				end
-				if self.barswap then
-					self.barswap = false
-				end
-				if self.rollDodge then
-					self.rollDodge = false
-				end
+				-- if self.barswap then
+					-- self.barswap = false
+				-- end
+				-- if self.rollDodge then
+					-- self.rollDodge = false
+				-- end
 			end
 		else
 			self:OnCDStop()
 			self.bar:Update()
 		end
-		if self.barswap then
-			self.barswap = false
+		-- if self.barswap then
+			-- self.barswap = false
 			-- d("barswap reset")
-		end
-		if self.rollDodge then
-			self.rollDodge = false
-		end
+		-- end
+		-- if self.rollDodge then
+			-- self.rollDodge = false
+		-- end
+		self.lastBlockStatus = IsBlockActive()
 	end
 end
 
@@ -397,6 +391,9 @@ end
 
 --     CombatMetronome:Init()
 -- end)
+
+local carverId1 = 183122
+local carverId2 = 193397
 
 	-----------------------------
 	---- Register/Unregister ----
@@ -477,6 +474,9 @@ function CombatMetronome:RegisterCM()
 				ability = Util.Ability:ForId(GetSlotBoundId(slot))
 			end
 			
+			self.playerDidBlockCast = IsBlockActive()
+			-- if IsBlockActive() then zo_callLater(1000, function() self.playerDidBlockCast = false end)
+			
 			-- d("Slot used - Target: "..GetAbilityTargetDescription(GetSlotBoundId(slot)).." - "..ability.name)
             -- log("Abilty used - ", ability.name)
             if (ability and ability.heavy) then
@@ -492,10 +492,12 @@ function CombatMetronome:RegisterCM()
 		self.name.."BarSwap",
 		EVENT_ACTION_SLOTS_ACTIVE_HOTBAR_UPDATED,
 		function(_,barswap,_,category)
-			if barswap then
-				self.barswap = barswap
+			self.barswap = barswap == true
+			if self.barswap and self.currentEvent and self.currentEvent.ability and self.currentEvent.ability.delay > 1000 then
+				self.currentEvent = nil
+				self.barswap = false
+				d("interrupted spell by barswap")
 			end
-			return self.barswap
 		end
 	)
 	
@@ -504,11 +506,15 @@ function CombatMetronome:RegisterCM()
 		EVENT_EFFECT_CHANGED,
 		function(_,changeType,_,_,_,_,_,_,_,_,_,_,_,_,_,abilityId,sourceType)
 			if sourceType == COMBAT_UNIT_TYPE_PLAYER and abilityId == 29721 and changeType == 3 then			--- 69143 is DodgeFatigue
-				self.rollDodge = true
+				-- self.rollDodge = true
 				self.rollDodgeFinished = false
 				zo_callLater(function () self.rollDodgeFinished = true end, 1000)
 			end
-			return self.rollDodge
+			-- return self.rollDodge
+			if not self.rollDodgeFinished and self.currentEvent then
+				self.currentEvent = nil
+				d("interrupted spell by dodgeroll")
+			end
 		end
 	)
 	-- d("cm is registered")
