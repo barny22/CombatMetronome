@@ -154,11 +154,11 @@ function Ability.Tracker:Start()
 
     self.started = true
     self.callLaterActivated = false
-    self.callLaterReset = false
     
     self.slotCounter = 0
 
     self.log = false
+    self.mountedState = IsMounted()
     self.lastMounted = 0
     self.weaponLastSheathed = 0
 
@@ -176,10 +176,22 @@ function Ability.Tracker:Start()
         self:HandleCombatEvent(...)
     end)
     EVENT_MANAGER:RegisterForEvent(self.name.."MountedState", EVENT_MOUNTED_STATE_CHANGED, function(_, mounted)
+        self.mountedState = mounted
         if not mounted then
             self.lastMounted = GetFrameTimeMilliseconds()
         end
     end)
+    EVENT_MANAGER:RegisterForEvent(
+		self.name.."BarSwap",
+		EVENT_ACTION_SLOTS_ACTIVE_HOTBAR_UPDATED,
+		function(_,barswap,_,category)
+            if barswap then
+                self.barswap = barswap
+            end
+            -- d(self.barswap)
+			return self.barswap
+		end
+	)
 end
 
 function Ability.Tracker:Update()
@@ -218,7 +230,13 @@ function Ability.Tracker:Update()
         self.weaponLastSheathed = time
     end
     
+    if not self.callLaterActivated and self.barswap then
+        self.barswap = false
+    end
+    
     self.slotCounter = 0
+    
+    -- if self.barswap then d("Barswap was indicated") end
 end
 
 function Ability.Tracker:NewEvent(ability, slot, start)
@@ -304,14 +322,19 @@ end
 function Ability.Tracker:HandleSlotUpdated(e, slot)
     if (slot < 3) then return end
     
-    self.slotCounter = self.slotCounter + 1
     
     local time = GetFrameTimeMilliseconds()
     local remaining, duration, global, t = GetSlotCooldownInfo(slot)
-        
+    
+    ----------------------------------------
+    ---- Bugfix for elemental explosion ----
+    ----------------------------------------
+    self.slotCounter = self.slotCounter + 1
+            
     if self.slotCounter == 5 and remaining == 0 and duration == 0 and not self.callLaterActivated then
         -- d("call later activated")
         self.callLaterActivated = true
+        -- self.timeActivated = time
         EVENT_MANAGER:RegisterForUpdate(                                                                                          -- for whatever reason zo_callLater always returns a bug here, so I decided to just code it manually
             self.name.."HandleSlotUpdatedCallback",
             1000/60,
@@ -319,27 +342,28 @@ function Ability.Tracker:HandleSlotUpdated(e, slot)
                 Ability.Tracker:TrackGCD()
             end
         )
-        self.callLaterReset = false
     end
     
-    if not self.callLaterReset and self.callLaterActivated then
-        self.callLaterReset = true
+    if self.callLaterActivated then
         EVENT_MANAGER:RegisterForUpdate(
             self.name.."ResetHandleSlotUpdatedCallback",
-            150,
+            170,
             function()
-                if self.callLaterReset then
+                if self.callLaterActivated then
                     EVENT_MANAGER:UnregisterForUpdate(self.name.."HandleSlotUpdatedCallback")
                     EVENT_MANAGER:UnregisterForUpdate(self.name.."ResetHandleSlotUpdatedCallback")
                     self.callLaterActivated = false
-                    self.callLaterReset = false
-                    -- d("Call later was reset by waiting")
+                    -- d("call later reset by waiting")
                 end
             end
         )
     end
     
-    local abilityUsed = (duration > 0 and remaining > 0 and not IsMounted() and not ArePlayerWeaponsSheathed())              --more specified triggers for abilities
+    --------------------
+    ---- Bugfix end ----
+    --------------------
+    
+    local abilityUsed = (duration > 0 and remaining > 0 and not self.mountedState and not ArePlayerWeaponsSheathed())              --more specified triggers for abilities
     
     if abilityUsed then
     
@@ -445,8 +469,6 @@ function Ability.Tracker:HandleCombatEvent(_,     res,  err,   aName, _, _,    s
 end
 
 function Ability.Tracker:TrackGCD()
-
-    -- if self.GCDTrigger then return end
     
     local slotRemaining, slotDuration, _, _ = GetSlotCooldownInfo(3)
     local sR, sD, _, _ = GetSlotCooldownInfo(4)
@@ -459,16 +481,23 @@ function Ability.Tracker:TrackGCD()
     end
     local gcdProgress = slotRemaining/slotDuration
     
-    if gcdProgress > 0 then
-        if self.callLaterReset then
+    if self.barswap and self.callLaterActivated then                                                            -- unfortunately barswap triggers after slot update, so i have to reset here instead of not tracking gcd...
             EVENT_MANAGER:UnregisterForUpdate(self.name.."HandleSlotUpdatedCallback")
             EVENT_MANAGER:UnregisterForUpdate(self.name.."ResetHandleSlotUpdatedCallback")
             self.callLaterActivated = false
-            self.callLaterReset = false
+            self.barswap = false
+            -- d("Call later was reset because of barswap")
+            -- local deactivationTime = GetFrameTimeMilliseconds() - self.timeActivated
+            -- d("time to deactivate by was: "..deactivationTime)
+    elseif gcdProgress > 0 and self.callLaterActivated then
+            EVENT_MANAGER:UnregisterForUpdate(self.name.."HandleSlotUpdatedCallback")
+            EVENT_MANAGER:UnregisterForUpdate(self.name.."ResetHandleSlotUpdatedCallback")
+            self.callLaterActivated = false
             -- d("Call later was reset by trigger")
+            -- local deactivationTime = GetFrameTimeMilliseconds() - self.timeActivated
+            -- d("time to deactivate by was: "..deactivationTime)
             for i = 3,4 do
                 Ability.Tracker:HandleSlotUpdated(_, i)
             end
-        end
     end
 end
