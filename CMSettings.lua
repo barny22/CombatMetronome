@@ -493,7 +493,7 @@ function CombatMetronome:BuildMenu()
 						},
 						{
 							type = "submenu",
-							name = "GCDs to track",
+							name = "Show further gcd information",
 							disabled = function() return not self.config.trackGCD end,
 							controls = {
 								{
@@ -515,10 +515,22 @@ function CombatMetronome:BuildMenu()
 									setFunc = function(value)
 										self.config.trackMounting = value
 									end,
+									width = "half",
 								},
 								{
 									type = "checkbox",
-									name = "Collectibles",
+									name = "Show mount nickname",
+									disabled = function() return not self.config.trackMounting end,
+									default = false,
+									getFunc = function() return self.config.showMountNick end,
+									setFunc = function(value)
+										self.config.showMountNick = value
+									end,
+									width = "half",
+								},
+								{
+									type = "checkbox",
+									name = "Assistants and companions",
 									disabled = function() return not self.config.trackGCD end,
 									default = false,
 									getFunc = function() return self.config.trackCollectibles end,
@@ -526,6 +538,63 @@ function CombatMetronome:BuildMenu()
 										self.config.trackCollectibles = value
 									end,
 								},
+								-- {
+									-- type = "submenu",
+									-- name = "Collectible types",
+									-- disabled = function() return not self.config.trackCollectibles end,
+									-- controls = {
+										-- {
+											-- type = "checkbox",
+											-- name = "Assistants",
+											-- disabled = function() return not self.config.trackCollectibles end,
+											-- default = false,
+											-- getFunc = function() return self.config.trackRolldodge end,
+											-- setFunc = function(value)
+												-- self.config.trackRolldodge = value
+											-- end,
+										-- },
+										-- {
+											-- type = "checkbox",
+											-- name = "Companions",
+											-- disabled = function() return not self.config.trackCollectibles end,
+											-- default = false,
+											-- getFunc = function() return self.config.trackRolldodge end,
+											-- setFunc = function(value)
+												-- self.config.trackRolldodge = value
+											-- end,
+										-- },
+										-- {
+											-- type = "checkbox",
+											-- name = "Costumes",
+											-- disabled = function() return not self.config.trackCollectibles end,
+											-- default = false,
+											-- getFunc = function() return self.config.trackRolldodge end,
+											-- setFunc = function(value)
+												-- self.config.trackRolldodge = value
+											-- end,
+										-- },
+										-- {
+											-- type = "checkbox",
+											-- name = "Polymorphs",
+											-- disabled = function() return not self.config.trackCollectibles end,
+											-- default = false,
+											-- getFunc = function() return self.config.trackRolldodge end,
+											-- setFunc = function(value)
+												-- self.config.trackRolldodge = value
+											-- end,
+										-- },
+										-- {
+											-- type = "checkbox",
+											-- name = "Vanity pets",
+											-- disabled = function() return not self.config.trackCollectibles end,
+											-- default = false,
+											-- getFunc = function() return self.config.trackRolldodge end,
+											-- setFunc = function(value)
+												-- self.config.trackRolldodge = value
+											-- end,
+										-- },
+									-- },
+								-- },
 							},
 						},
 						{

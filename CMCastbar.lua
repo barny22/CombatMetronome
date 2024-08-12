@@ -99,15 +99,21 @@ function CombatMetronome:Update()
 					self.timeLabel:SetText(string.format("%.1fs", gcdProgress))
 				else
 					self.timeLabel:SetHidden(true)
+					self.timeLabel:SetText("")
+					self.spellLabel:SetText("")
 				end
 			end
-			if self.mountAction ~= "" and self.config.trackMounting then												---- Mounting/Dismounting Timer Updater----
+			if self.activeMount.action ~= "" and self.config.trackMounting then												---- Mounting/Dismounting Timer Updater----
 				if self.config.showSpell then
 					self.spellLabel:SetHidden(false)
 					self.spellIcon:SetHidden(false)
 					self.spellIconBorder:SetHidden(false)
-					self.spellIcon:SetTexture(self.activeMountIcon)
-					self.spellLabel:SetText(self.mountAction)
+					self.spellIcon:SetTexture(self.activeMount.icon)
+					if self.config.showMountNick then
+						self.spellLabel:SetText(self.activeMount.action..""..self.activeMount.name)
+					else
+						self.spellLabel:SetText(self.activeMount.action)
+					end
 				else
 					self.spellLabel:SetHidden(true)
 					self.spellIcon:SetHidden(true)
@@ -121,7 +127,9 @@ function CombatMetronome:Update()
 				if gcdProgress > 0 then
 					self.timeLabel:SetText(string.format("%.1fs", gcdProgress))
 				else
-					self.mountAction = ""
+					self.activeMount.action = ""
+					self.timeLabel:SetText("")
+					self.spellLabel:SetText("")
 				end
 			end
 			if self.collectibleInUse ~= nil and self.config.trackCollectibles then												---- Collectible Timer Updater----
@@ -145,6 +153,8 @@ function CombatMetronome:Update()
 					self.timeLabel:SetText(string.format("%.1fs", gcdProgress))
 				else
 					self.collectibleInUse = nil
+					self.timeLabel:SetText("")
+					self.spellLabel:SetText("")
 				end
 			end
 			

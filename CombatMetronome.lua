@@ -32,7 +32,10 @@ function CombatMetronome:Init()
 		
 	self.classId = GetUnitClassId("player")
 	self.class = CM_CLASS[self.classId]
-	self.mountAction = ""
+	self.activeMount = {}
+	self.activeMount.name = CombatMetronome:CropZOSString(GetCollectibleNickname(GetActiveCollectibleByType(COLLECTIBLE_CATEGORY_TYPE_MOUNT,GAMEPLAY_ACTOR_CATEGORY_PLAYER)))
+	self.activeMount.icon = GetCollectibleIcon(GetActiveCollectibleByType(COLLECTIBLE_CATEGORY_TYPE_MOUNT,GAMEPLAY_ACTOR_CATEGORY_PLAYER))
+	self.activeMount.action = ""
 	-- self.collectibleInUse = {}
 
     self.log = self.config.debug
@@ -137,9 +140,7 @@ function CombatMetronome:RegisterCM()
 			else
 				ability = Util.Ability:ForId(GetSlotBoundId(slot))
 			end
-			
-			-- self.playerDidBlockCast = IsBlockActive()
-			
+						
 			-- d("Slot used - Target: "..GetAbilityTargetDescription(GetSlotBoundId(slot)).." - "..ability.name)
             -- log("Abilty used - ", ability.name)
             if (ability and ability.heavy) then
@@ -169,11 +170,9 @@ function CombatMetronome:RegisterCM()
 		EVENT_EFFECT_CHANGED,
 		function(_,changeType,_,_,_,_,_,_,_,_,_,_,_,_,_,abilityId,sourceType)
 			if sourceType == COMBAT_UNIT_TYPE_PLAYER and abilityId == 29721 and changeType == 3 then			--- 69143 is DodgeFatigue
-				-- self.rollDodge = true
 				self.rollDodgeFinished = false
 				zo_callLater(function () self.rollDodgeFinished = true end, 1000)
 			end
-			-- return self.rollDodge
 			if not self.rollDodgeFinished and self.currentEvent then
 				self.currentEvent = nil
 				-- d("interrupted spell by dodgeroll")
@@ -185,22 +184,19 @@ function CombatMetronome:RegisterCM()
 		self.name.."CollectibleUsed",
 		EVENT_COLLECTIBLE_UPDATED,
 		function(_, id)
-			local name,_,icon,_,_,_,active,_,_ = GetCollectibleInfo(id)
-			self.collectibleInUse = {}
-			self.collectibleInUse.name = CombatMetronome:CropZOSString(name)
-			self.collectibleInUse.icon = icon
-			zo_callLater(function()
-				self.collectibleInUse = nil
-				end, 1000)
-			-- self.collectibleInUse.active = active
-			-- d(self.collectibleInUse.name)
-			-- if self.collectibleInUse.active then
-				-- self.collectibleInUse.preString = "Dismissing "
-			-- elseif not self.collectibleInUse.active then
-				-- self.collectibleInUse.preString = "Calling "
-			-- else
-				-- self.collectibleInUse.preString = ""
-			-- end
+			local name,_,icon,_,_,_,_,type,_ = GetCollectibleInfo(id)
+			if type == COLLECTIBLE_CATEGORY_TYPE_ASSISTANT or type == COLLECTIBLE_CATEGORY_TYPE_COMPANION then
+				self.collectibleInUse = {}
+				self.collectibleInUse.name = CombatMetronome:CropZOSString(name)
+				self.collectibleInUse.icon = icon
+				zo_callLater(function()
+					self.collectibleInUse = nil
+					end, 1000)
+			end
+			if type == COLLECTIBLE_CATEGORY_TYPE_MOUNT then
+				self.activeMount.name = CombatMetronome:CropZOSString(GetCollectibleNickname(id))
+				self.activeMount.icon = icon
+			end
 		end
 	)
 			
@@ -215,14 +211,10 @@ function CombatMetronome:RegisterCM()
 		function (_,     res,  err,   aName, _, _,    sName, sType, tName, 
 					tType, hVal, pType, dType, _, sUId, tUId,  aId,   _     )
 			if CombatMetronome:CropZOSString(sName) == self.currentCharacterName then
-				if IsMounted() and aId == 36432 and self.mountAction ~= "Dismounting" then
-					self.activeMountIcon = GetCollectibleIcon(GetActiveCollectibleByType(COLLECTIBLE_CATEGORY_TYPE_MOUNT,GAMEPLAY_ACTOR_CATEGORY_PLAYER))
-					self.mountAction = "Dismounting"
-					zo_callLater(function () self.mountAction = "" end, 1000)
-				elseif not IsMounted() and aId == 36010 and self.mountAction ~= "Mounting" then
-					self.activeMountIcon = GetCollectibleIcon(GetActiveCollectibleByType(COLLECTIBLE_CATEGORY_TYPE_MOUNT,GAMEPLAY_ACTOR_CATEGORY_PLAYER))
-					self.mountAction = "Mounting"
-					zo_callLater(function () self.mountAction = "" end, 1000)
+				if IsMounted() and aId == 36432 and self.activeMount.action ~= "Dismounting " then
+					self.activeMount.action = "Dismounting "
+				elseif not IsMounted() and aId == 36010 and self.activeMount.action ~= "Mounting " then
+					self.activeMount.action = "Mounting "
 				end
 			end
 			-- if CombatMetronome:CropZOSString(tName) == self.currentCharacterName then
