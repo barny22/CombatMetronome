@@ -177,8 +177,6 @@ function CombatMetronome:Update()
 			local duration = math.max(ability.heavy and 0 or (self.gcd or 1000), ability.delay) + self.currentEvent.adjust
 			local channelTime = ability.delay + self.currentEvent.adjust
 			local timeRemaining = ((start + channelTime + GetLatency()) - time) / 1000
-			-- local playerDidDodge = CombatMetronome:CheckForDodge()
-			-- local playerDidBlock = (IsBlockActive() and not self.playerDidBlockCast) or (self.lastBlockStatus == false and IsBlockActive())
 			local playerDidBlock = (self.lastBlockStatus == false) and IsBlockActive()
 			-- if playerDidBlock then d("Player blocked") end
 			
