@@ -14,6 +14,8 @@ local TargetGround = {
 ["ru"] = "Указанная область";
 ["zh"] = "地面";
 }
+local SlotNumbers = {3,4,5,6,7,8}
+
 local log = Util.log
 
 function Ability:ForId(id)
@@ -121,6 +123,8 @@ function Ability.Tracker:Start()
     self.log = false
     self.lastMounted = 0
     self.weaponLastSheathed = 0
+    
+    self.slotsNotUpdated = {3,4,5,6,7,8}
 
     EVENT_MANAGER:RegisterForUpdate(self.name.."Update", 1000 / 30, function(...)
         self:Update()
@@ -174,6 +178,7 @@ function Ability.Tracker:Update()
     if ArePlayerWeaponsSheathed() then
         self.weaponLastSheathed = time
     end
+    self.slotsNotUpdated = {3,4,5,6,7,8}
 end
 
 function Ability.Tracker:NewEvent(ability, slot, start)
@@ -187,11 +192,7 @@ function Ability.Tracker:NewEvent(ability, slot, start)
     local isMounted = time < self.lastMounted + DISMOUNT_PERIOD
     local weaponSheathed = time < self.weaponLastSheathed + SHEATHING_PERIOD
     event.allowForce = ability.casted and not (isMounted or weaponSheathed or ability.ground)
-
-    -- event.triggerOnCombatEvent = true
-    event.triggerOnSlotUpdated = true
-    -- event.triggerOnSlotUpdated = not ability.ground
-
+    
     event.slot = slot
     event.hotbar = GetActiveHotbarCategory()
 
@@ -258,12 +259,30 @@ end
 function Ability.Tracker:HandleSlotUpdated(e, slot)
     if (slot < 3) then return end
 
+    -- trigger for only elemental explosion
+    for i, num in ipairs(self.slotsNotUpdated) do
+        if num == slot then
+            table.remove(self.slotsNotUpdated, i)
+            break
+        end
+    end
+    if #self.slotsNotUpdated == 1 then
+        if GetSlotBoundId(self.slotsNotUpdated[1]) == 5 then
+            self.triggerForEleExplosion = true
+        end
+    elseif #self.slotsNotUpdated == 0 then
+        self:CancelEvent()
+    end
+    -- trigger is finished here
+    
     local remaining, duration, global, t = GetSlotCooldownInfo(slot)
     local time = GetFrameTimeMilliseconds()
 
-    local abilityUsed = duration > 0 and remaining > 0
+    local abilityUsed = (duration > 0 and remaining > 0) or (self.triggerForEleExplosion and duration == 0 and remaining == 0)
+    
+    if self.triggerForEleExplosion then self.triggerForEleExplosion = false end
 
-    if (duration > 0 and remaining > 0) then
+    if abilityUsed then
         self.gcd = remaining
 
         local oldStart = self.eventStart or 0
@@ -273,7 +292,7 @@ function Ability.Tracker:HandleSlotUpdated(e, slot)
             -- _=self.log and d(""..time.." : Event start "..tostring(duration - remaining).."ms ago")
         -- end
         
-        if (self.queuedEvent and self.queuedEvent.triggerOnSlotUpdated and self.eventStart > oldStart + 100) then
+        if (self.queuedEvent and self.eventStart > oldStart + 100) then
             -- _=self.log and d(""..time.." : Moved queued "..self.queuedEvent.ability.name.." to current") 
             -- log("  Dispatching ", self.queuedEvent.ability.name)
             -- log("    oldStart = ", oldStart)
@@ -354,4 +373,18 @@ function Ability.Tracker:HandleCombatEvent(_,     res,  err,   aName, _, _,    s
             self:AbilityUsed()
         end
     end
+end
+
+function Ability.Tracker:GCDCheck()
+    local slotRemaining, slotDuration, _, _ = GetSlotCooldownInfo(3)
+    local sR, sD, _, _ = GetSlotCooldownInfo(4)
+    if (sR > slotRemaining) or ( sD > slotDuration ) then
+        slotRemaining = sR
+        slotDuration = sD
+    end
+    if slotDuration < 1 then
+        slotDuration = 1
+    end
+    local gcdProgress = slotRemaining/slotDuration
+    return gcdProgress
 end
