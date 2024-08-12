@@ -492,6 +492,43 @@ function CombatMetronome:BuildMenu()
 							end,
 						},
 						{
+							type = "submenu",
+							name = "GCDs to track",
+							disabled = function() return not self.config.trackGCD end,
+							controls = {
+								{
+									type = "checkbox",
+									name = "Dodgeroll",
+									disabled = function() return not self.config.trackGCD end,
+									default = false,
+									getFunc = function() return self.config.trackRolldodge end,
+									setFunc = function(value)
+										self.config.trackRolldodge = value
+									end,
+								},
+								{
+									type = "checkbox",
+									name = "Mounting/Dismounting",
+									disabled = function() return not self.config.trackGCD end,
+									default = false,
+									getFunc = function() return self.config.trackMounting end,
+									setFunc = function(value)
+										self.config.trackMounting = value
+									end,
+								},
+								{
+									type = "checkbox",
+									name = "Collectibles",
+									disabled = function() return not self.config.trackGCD end,
+									default = false,
+									getFunc = function() return self.config.trackCollectibles end,
+									setFunc = function(value)
+										self.config.trackCollectibles = value
+									end,
+								},
+							},
+						},
+						{
 							type = "checkbox",
 							name = "Don't show ping zone",
 							tooltip = "Don't show Ping Zone on cast bar at all",
@@ -689,7 +726,7 @@ function CombatMetronome:BuildMenu()
 							setFunc = function(name)
 								if not name or #name == 0 then return end
 								for id = 0, 300000 do
-									if CombatMetronome:CropZOSSpellName(GetAbilityName(id)) == name then
+									if CombatMetronome:CropZOSString(GetAbilityName(id)) == name then
 										--[[_=self.log and]] d("Found ability for '"..name.."'", "id: "..id)
 										self.menu.curSkillName = name
 										self.menu.curSkillId = id
@@ -710,7 +747,7 @@ function CombatMetronome:BuildMenu()
 							setFunc = function(value) 
 								self.menu.curSkillName = value
 								for id, adj in pairs(self.config.abilityAdjusts) do
-									if CombatMetronome:CropZOSSpellName(GetAbilityName(id)) == value then
+									if CombatMetronome:CropZOSString(GetAbilityName(id)) == value then
 										self.menu.curSkillId = id
 									end
 								end
@@ -724,7 +761,7 @@ function CombatMetronome:BuildMenu()
 							step = 1,
 							getFunc = function()
 								for id, adj in pairs(self.config.abilityAdjusts) do
-									if CombatMetronome:CropZOSSpellName(GetAbilityName(id)) == self.menu.curSkillName then
+									if CombatMetronome:CropZOSString(GetAbilityName(id)) == self.menu.curSkillName then
 										self.menu.curSkillId = id
 									end
 								end

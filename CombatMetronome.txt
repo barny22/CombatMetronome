@@ -14,6 +14,7 @@
 ; You can read the full terms at https://account.elderscrollsonline.com/add-on-terms
 
 CombatMetronome.lua
+CMCastbar.lua
 CMFunctions.lua
 CMLabels.lua
 CMMiscellaneous.lua

@@ -81,7 +81,7 @@ function CombatMetronome:HideFancy(value)
 	self.bar.borderR:SetHidden(value)
 end
 
-function CombatMetronome:CropZOSSpellName(zosString)
+function CombatMetronome:CropZOSString(zosString)
     local _, zosSpellDivider = string.find(zosString, "%^")
     
     if zosSpellDivider then
@@ -143,7 +143,7 @@ function CombatMetronome:UpdateAdjustChoices()
 	for k in pairs(names) do names[k] = nil end
 
 	for id, adj in pairs(self.config.abilityAdjusts) do
-		local name = CombatMetronome:CropZOSSpellName(GetAbilityName(id))
+		local name = CombatMetronome:CropZOSString(GetAbilityName(id))
 		names[#names + 1] = name
 	end
 
@@ -175,7 +175,7 @@ end
 function CombatMetronome:CreateAdjustList()
 		local names = {}
 		for id, adj in pairs(self.config.abilityAdjusts) do
-			local name = CombatMetronome:CropZOSSpellName(GetAbilityName(id))
+			local name = CombatMetronome:CropZOSString(GetAbilityName(id))
 			names[#names + 1] = name
 		end
 		return names
@@ -389,7 +389,7 @@ function CombatMetronome:StoreAbilitiesOnActionBar()
 				actionSlot.id = GetSlotBoundId(i, j)
 			end
             actionSlot.icon = GetAbilityIcon(actionSlot.id)
-            actionSlot.name = self:CropZOSSpellName(GetAbilityName(actionSlot.id))
+            actionSlot.name = self:CropZOSString(GetAbilityName(actionSlot.id))
 
             table.insert(actionSlots, actionSlot)  -- Add the current action slot to the table
         end
