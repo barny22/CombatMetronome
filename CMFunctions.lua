@@ -82,10 +82,10 @@ function CombatMetronome:HideFancy(value)
 end
 
 function CombatMetronome:CropZOSString(zosString)
-    local _, zosSpellDivider = string.find(zosString, "%^")
+    local _, zosStringDivider = string.find(zosString, "%^")
     
-    if zosSpellDivider then
-        return string.sub(zosString, 1, zosSpellDivider - 1)
+    if zosStringDivider then
+        return string.sub(zosString, 1, zosStringDivider - 1)
     else
         return zosString
     end
