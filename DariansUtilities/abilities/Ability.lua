@@ -116,7 +116,7 @@ local SHEATHING_PERIOD = 250
 function Ability.Tracker:Start()
     if self.started then return end
 
-    -- d("Abiilty Tracker Started!")
+    -- d("Ability Tracker Started!")
 
     self.started = true
 
@@ -125,6 +125,7 @@ function Ability.Tracker:Start()
     self.weaponLastSheathed = 0
     
     self.slotsNotUpdated = {3,4,5,6,7,8}
+    -- self.eleExplosionCanBeUsed = true
 
     EVENT_MANAGER:RegisterForUpdate(self.name.."Update", 1000 / 30, function(...)
         self:Update()
@@ -278,11 +279,12 @@ function Ability.Tracker:HandleSlotUpdated(e, slot)
     local remaining, duration, global, t = GetSlotCooldownInfo(slot)
     local time = GetFrameTimeMilliseconds()
 
-    local abilityUsed = (duration > 0 and remaining > 0) or (self.triggerForEleExplosion and duration == 0 and remaining == 0)
+    local eleExplosionUsed = self.triggerForEleExplosion and duration == 0 and remaining == 0
+    local abilityUsed = duration > 0 and remaining > 0
     
     if self.triggerForEleExplosion then self.triggerForEleExplosion = false end
 
-    if abilityUsed then
+    if abilityUsed or eleExplosionUsed then
         self.gcd = remaining
 
         local oldStart = self.eventStart or 0
@@ -292,7 +294,11 @@ function Ability.Tracker:HandleSlotUpdated(e, slot)
             -- _=self.log and d(""..time.." : Event start "..tostring(duration - remaining).."ms ago")
         -- end
         
-        if (self.queuedEvent and self.eventStart > oldStart + 100) then
+        if eleExplosionUsed and self.queuedEvent and self.eventStart > oldStart + 100 and self.queuedEvent.ability.id == GetAbilityIdForCraftedAbilityId(GetSlotBoundId(self.slotsNotUpdated[1])) then
+            -- self.eleExplosionCanBeUsed = false
+            -- zo_callLater(function() self.eleExplosionCanBeUsed = true end, 500)
+            self:AbilityUsed()
+        elseif (abilityUsed and self.queuedEvent and self.eventStart > oldStart + 100) then
             -- _=self.log and d(""..time.." : Moved queued "..self.queuedEvent.ability.name.." to current") 
             -- log("  Dispatching ", self.queuedEvent.ability.name)
             -- log("    oldStart = ", oldStart)
