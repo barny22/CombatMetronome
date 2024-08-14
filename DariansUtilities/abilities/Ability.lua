@@ -116,24 +116,26 @@ local SHEATHING_PERIOD = 250
 function Ability.Tracker:Start()
     if self.started then return end
 
-    -- d("Ability Tracker Started!")
+    -- d("Abiilty Tracker Started!")
 
     self.started = true
 
     self.log = false
+    self.cdTriggerTime = 0
     self.lastMounted = 0
     self.weaponLastSheathed = 0
+    -- self.triggerForEleExplosion = false
+    -- self.triggerForEleExplosionAllowed = true
     
-    self.slotsNotUpdated = {3,4,5,6,7,8}
-    -- self.eleExplosionCanBeUsed = true
+    -- self.slotsNotUpdated = {3,4,5,6,7,8}
 
     EVENT_MANAGER:RegisterForUpdate(self.name.."Update", 1000 / 30, function(...)
         self:Update()
     end)
 
-    EVENT_MANAGER:RegisterForEvent(self.name.."SlotUpdated", EVENT_ACTION_SLOT_STATE_UPDATED, function(...) 
-        self:HandleSlotUpdated(...) 
-    end)
+    -- EVENT_MANAGER:RegisterForEvent(self.name.."SlotUpdated", EVENT_ACTION_SLOT_STATE_UPDATED, function(...) 
+        -- self:HandleSlotUpdated(...) 
+    -- end)
     EVENT_MANAGER:RegisterForEvent(self.name.."SlotUsed", EVENT_ACTION_SLOT_ABILITY_USED, function(...)
         self:HandleSlotUsed(...) 
     end)
@@ -145,6 +147,9 @@ function Ability.Tracker:Start()
         if not mounted then
             self.lastMounted = GetFrameTimeMilliseconds()
         end
+    end)
+    EVENT_MANAGER:RegisterForEvent(self.name.."CooldownsUpdated", EVENT_ACTION_UPDATE_COOLDOWNS, function()
+        self:HandleCooldownsUpdated()
     end)
 end
 
@@ -179,7 +184,7 @@ function Ability.Tracker:Update()
     if ArePlayerWeaponsSheathed() then
         self.weaponLastSheathed = time
     end
-    self.slotsNotUpdated = {3,4,5,6,7,8}
+    -- self.slotsNotUpdated = {3,4,5,6,7,8}
 end
 
 function Ability.Tracker:NewEvent(ability, slot, start)
@@ -188,7 +193,9 @@ function Ability.Tracker:NewEvent(ability, slot, start)
     local event = { }
 
     event.ability = ability
-    event.recorded = time - EVENT_RECORD_DELAY
+    -- event.recorded = start
+    self.eventStart = start
+    -- event.recorded = time - EVENT_RECORD_DELAY
 
     local isMounted = time < self.lastMounted + DISMOUNT_PERIOD
     local weaponSheathed = time < self.weaponLastSheathed + SHEATHING_PERIOD
@@ -198,7 +205,12 @@ function Ability.Tracker:NewEvent(ability, slot, start)
     event.hotbar = GetActiveHotbarCategory()
 
     self.queuedEvent = event
-
+    
+    if self.cdTriggerTime == start then
+        self:AbilityUsed()
+    end
+    -- local timeToCreateEvent = GetFrameTimeMilliseconds()-start
+    -- d("It took "..timeToCreateEvent.." ms to create the Event at "..start)
     -- d("  Allow force = "..tostring(self.queuedEvent.allowForce))
 end
 
@@ -257,60 +269,71 @@ function Ability.Tracker:CallbackAbilityCancelled(event)
     -- end
 end
 
-function Ability.Tracker:HandleSlotUpdated(e, slot)
-    if (slot < 3) then return end
+-- function Ability.Tracker:HandleSlotUpdated(e, slot)
+    -- if (slot < 3) then return end
 
     -- trigger for only elemental explosion
-    for i, num in ipairs(self.slotsNotUpdated) do
-        if num == slot then
-            table.remove(self.slotsNotUpdated, i)
-            break
-        end
-    end
-    if #self.slotsNotUpdated == 1 then
-        if GetSlotBoundId(self.slotsNotUpdated[1]) == 5 then
-            self.triggerForEleExplosion = true
-        end
-    elseif #self.slotsNotUpdated == 0 then
-        self:CancelEvent()
-    end
+    -- for i, num in ipairs(self.slotsNotUpdated) do
+        -- if num == slot then
+            -- table.remove(self.slotsNotUpdated, i)
+            -- break
+        -- end
+    -- end
+    -- if #self.slotsNotUpdated == 1 then
+        -- if GetSlotBoundId(self.slotsNotUpdated[1]) == 5 and self.queuedEvent and self.queuedEvent.ability.id == GetAbilityIdForCraftedAbilityId(GetSlotBoundId(self.slotsNotUpdated[1])) and self.triggerForEleExplosionAllowed then
+            -- self.triggerForEleExplosion = true
+            -- self.triggerForEleExplosionAllowed = false
+            -- zo_callLater(function() self.triggerForEleExplosionAllowed = true end, 500)
+        -- end
+    -- elseif #self.slotsNotUpdated == 0 then
+        -- self:CancelEvent()
+    -- end
     -- trigger is finished here
     
-    local remaining, duration, global, t = GetSlotCooldownInfo(slot)
-    local time = GetFrameTimeMilliseconds()
+    -- local remaining, duration, global, t = GetSlotCooldownInfo(slot)
+    -- local time = GetFrameTimeMilliseconds()
 
-    local eleExplosionUsed = self.triggerForEleExplosion and duration == 0 and remaining == 0
-    local abilityUsed = duration > 0 and remaining > 0
+    -- local abilityUsed = (duration > 0 and remaining > 0) or (self.triggerForEleExplosion and duration == 0 and remaining == 0)
     
-    if self.triggerForEleExplosion then self.triggerForEleExplosion = false end
+    -- if self.triggerForEleExplosion then self.triggerForEleExplosion = false end
 
-    if abilityUsed or eleExplosionUsed then
-        self.gcd = remaining
+    -- if abilityUsed then
+        -- self.gcd = remaining
 
-        local oldStart = self.eventStart or 0
-        self.eventStart = time + remaining - duration 
+        -- local oldStart = self.eventStart or 0
+        -- self.eventStart = time + remaining - duration 
 
         -- if (oldStart ~= self.eventStart) then
             -- _=self.log and d(""..time.." : Event start "..tostring(duration - remaining).."ms ago")
         -- end
         
-        if eleExplosionUsed and self.queuedEvent and self.eventStart > oldStart + 100 and self.queuedEvent.ability.id == GetAbilityIdForCraftedAbilityId(GetSlotBoundId(self.slotsNotUpdated[1])) then
-            -- self.eleExplosionCanBeUsed = false
-            -- zo_callLater(function() self.eleExplosionCanBeUsed = true end, 500)
-            self:AbilityUsed()
-        elseif (abilityUsed and self.queuedEvent and self.eventStart > oldStart + 100) then
+        -- if (self.queuedEvent and self.eventStart > oldStart + 100) then
             -- _=self.log and d(""..time.." : Moved queued "..self.queuedEvent.ability.name.." to current") 
             -- log("  Dispatching ", self.queuedEvent.ability.name)
             -- log("    oldStart = ", oldStart)
             -- log("    newStart = ", self.eventStart)
             -- log("    current  = ", GetFrameTimeMilliseconds())
-            self:AbilityUsed()
-        end
+            -- self:AbilityUsed()
+        -- end
+    -- end
+-- end
+
+function Ability.Tracker:HandleCooldownsUpdated()
+    self.cdTriggerTime = GetFrameTimeMilliseconds()
+    
+    local gcdProgress, slotRemaining, slotDuration = self:GCDCheck()
+    self.gcd = slotDuration
+    local oldStart = self.eventStart or 0
+    self.eventStart = self.cdTriggerTime - slotDuration + slotRemaining
+    
+    if self.queuedEvent then
+        self:AbilityUsed()
     end
 end
 
 function Ability.Tracker:HandleSlotUsed(e, slot)
     if (slot > 8) then return end
+    time = GetFrameTimeMilliseconds()
 
     local ability = {}
     local actionType = GetSlotType(slot)
@@ -329,8 +352,8 @@ function Ability.Tracker:HandleSlotUsed(e, slot)
 
     if (ability.heavy) then return end
 
-    -- _=self.log and d(""..getFrameTimeMilliseconds().." : New ability - "..ability.name)
-    self:NewEvent(ability, slot)
+    -- _=self.log and d(""..GetFrameTimeMilliseconds().." : New ability - "..ability.name)
+    self:NewEvent(ability, slot, time)
 end
 
 --                                      (a)bility | (d)amage | (p)ower | (t)arget | (s)ource | (h)it
@@ -392,5 +415,5 @@ function Ability.Tracker:GCDCheck()
         slotDuration = 1
     end
     local gcdProgress = slotRemaining/slotDuration
-    return gcdProgress
+    return gcdProgress, slotRemaining, slotDuration
 end
