@@ -3,7 +3,7 @@
 !  Ground targeted skills are now properly recognized
 !  More fixes to ability adjust section
 !  Removed some unnecessary code sections
-!  Temporary fix for elemental explosion
+!  Changed triggering of abilities in DariansUtilies, which should also fix elemental explosion recognition
 +  Added option to track rolldodge/mounting/dismounting and the use of collectibles to be differentiated on progressbar when tracking GCD
 
 2024-06-16 v1.6.6
