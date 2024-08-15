@@ -1,3 +1,7 @@
+local Util = DariansUtilities
+Util.Ability.Tracker = Util.Ability.Tracker or {}
+Util.Text = Util.Text or {}
+
 local INTERVAL = 200
 
 	--------------------------
@@ -58,16 +62,7 @@ function CombatMetronome:Update()
 		local time = GetFrameTimeMilliseconds()
 		
 		-- this is important for GCD Tracking
-		local slotRemaining, slotDuration, _, _ = GetSlotCooldownInfo(3)
-		local sR, sD, _, _ = GetSlotCooldownInfo(4)
-		if (sR > slotRemaining) or ( sD > slotDuration ) then
-			slotRemaining = sR
-			slotDuration = sD
-		end
-		if slotDuration < 1 then
-			slotDuration = 1
-		end
-		local gcdProgress = slotRemaining/slotDuration
+		local gcdProgress, slotRemaining, slotDuration = Util.Ability.Tracker:GCDCheck()
 
 		local interval = false
 		if time > self.lastInterval + INTERVAL then
@@ -132,7 +127,7 @@ function CombatMetronome:Update()
 					self.spellLabel:SetText("")
 				end
 			end
-			if self.collectibleInUse ~= nil and self.config.trackCollectibles then												---- Collectible Timer Updater----
+			if self.collectibleInUse and self.config.trackCollectibles then													---- Collectible Timer Updater----
 				if self.config.showSpell then
 					self.spellLabel:SetHidden(false)
 					self.spellIcon:SetHidden(false)
@@ -153,6 +148,31 @@ function CombatMetronome:Update()
 					self.timeLabel:SetText(string.format("%.1fs", gcdProgress))
 				else
 					self.collectibleInUse = nil
+					self.timeLabel:SetText("")
+					self.spellLabel:SetText("")
+				end
+			end
+			if self.itemUsed and self.config.trackItems then															---- Item Use Timer Updater----
+				if self.config.showSpell then
+					self.spellLabel:SetHidden(false)
+					self.spellIcon:SetHidden(false)
+					self.spellIconBorder:SetHidden(false)
+					self.spellIcon:SetTexture(self.itemUsed.icon)
+					self.spellLabel:SetText(self.itemUsed.name)
+				else
+					self.spellLabel:SetHidden(true)
+					self.spellIcon:SetHidden(true)
+					self.spellIconBorder:SetHidden(true)
+				end
+				if self.config.showTimeRemaining then
+					self.timeLabel:SetHidden(false)
+				else
+					self.timeLabel:SetHidden(true)
+				end
+				if gcdProgress > 0 then
+					self.timeLabel:SetText(string.format("%.1fs", gcdProgress))
+				else
+					self.itemUsed = nil
 					self.timeLabel:SetText("")
 					self.spellLabel:SetText("")
 				end
@@ -257,7 +277,7 @@ function CombatMetronome:Update()
 			---- Spell Label and Icon ----					--Spell Label on Castbar by barny
 			------------------------------
 			if self.config.showSpell and ability.delay > 0 and timeRemaining >= 0 and not ability.heavy then
-				local spellName = self:CropZOSString(ability.name)
+				local spellName = Util.Text.CropZOSString(ability.name)
 				self.spellLabel:SetText(spellName)
 				self.spellLabel:SetHidden(false)
 			--Spell Icon next to Castbar
@@ -309,8 +329,7 @@ function CombatMetronome:Update()
 					self.bar.backgroundTexture:SetWidth(gcdProgress*self.config.width)
 				end
 				self.bar:Update()
-				-- self.rollDodge = false
-			elseif playerDidBlock --[[(playerDidBlock or self.rollDodge or self.barswap) ]]then
+			elseif playerDidBlock then
 				local eventAdjust = 0
 				if self.currentEvent then
 					if self.currentEvent.adjust then
@@ -321,25 +340,11 @@ function CombatMetronome:Update()
 					self:OnCDStop()
 					self.bar:Update()
 				end
-				-- if self.barswap then
-					-- self.barswap = false
-				-- end
-				-- if self.rollDodge then
-					-- self.rollDodge = false
-				-- end
 			end
 		else
 			self:OnCDStop()
 			self.bar:Update()
 		end
-		-- if self.barswap then
-			-- self.barswap = false
-			-- d("barswap reset")
-		-- end
-		-- if self.rollDodge then
-			-- self.rollDodge = false
-		-- end
 		self.lastBlockStatus = IsBlockActive()
-		-- self.lastCurrentEvent = self.currentEvent
 	end
 end
