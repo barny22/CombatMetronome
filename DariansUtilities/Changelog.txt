@@ -1,4 +1,5 @@
 2024-08-14 v1.7.5
+!  Moved function to crop zos strings to Text.lua to use it from there
 !  Updated Ability.lua
 !  Changed trigger for abilities to new event to fix recognition of all abilities
 

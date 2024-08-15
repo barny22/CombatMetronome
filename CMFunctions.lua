@@ -1,5 +1,6 @@
 local LAM = LibAddonMenu2
 local Util = DariansUtilities
+Util.Text = Util.Text or {}
 
 -- IDs for easier access
 local cruxId = 184220
@@ -81,38 +82,6 @@ function CombatMetronome:HideFancy(value)
 	self.bar.borderR:SetHidden(value)
 end
 
-function CombatMetronome:CropZOSString(zosString)
-    local _, zosStringDivider = string.find(zosString, "%^")
-    
-    if zosStringDivider then
-        return string.sub(zosString, 1, zosStringDivider - 1)
-    else
-        return zosString
-    end
-end
-
-	-----------------------
-	---- Dodge Checker ----								--- changed in v1.6.6
-	-----------------------
-
--- function CombatMetronome:CheckForDodge()
-	-- local dodge = false
-	-- for i=1,GetNumBuffs("player") do
-		-- local _,startTime,endTime,_,_,_,_,_,_,_,abilityId = GetUnitBuffInfo("player", i)
-		-- if abilityId == dodgeId then
-			-- buffTimer = endTime - math.floor(GetGameTimeMilliseconds()/1000)
-			-- buffLength = endTime - startTime
-			--d(tostring(buffTimer))
-			-- if buffTimer > 3 and buffLength == 3 then
-			-- dodge = true
-			--d("dodge detected")
-			-- end
-		-- break
-		-- end
-	-- end
-	-- return dodge
--- end
-
 	-----------------------
 	---- Combat Events ----
 	-----------------------
@@ -143,7 +112,7 @@ function CombatMetronome:UpdateAdjustChoices()
 	for k in pairs(names) do names[k] = nil end
 
 	for id, adj in pairs(self.config.abilityAdjusts) do
-		local name = CombatMetronome:CropZOSString(GetAbilityName(id))
+		local name = Util.Text.CropZOSString(GetAbilityName(id))
 		names[#names + 1] = name
 	end
 
@@ -175,7 +144,7 @@ end
 function CombatMetronome:CreateAdjustList()
 		local names = {}
 		for id, adj in pairs(self.config.abilityAdjusts) do
-			local name = CombatMetronome:CropZOSString(GetAbilityName(id))
+			local name = Util.Text.CropZOSString(GetAbilityName(id))
 			names[#names + 1] = name
 		end
 		return names
@@ -389,7 +358,7 @@ function CombatMetronome:StoreAbilitiesOnActionBar()
 				actionSlot.id = GetSlotBoundId(i, j)
 			end
             actionSlot.icon = GetAbilityIcon(actionSlot.id)
-            actionSlot.name = self:CropZOSString(GetAbilityName(actionSlot.id))
+            actionSlot.name = Util.Text.CropZOSString(GetAbilityName(actionSlot.id))
 
             table.insert(actionSlots, actionSlot)  -- Add the current action slot to the table
         end

@@ -12,6 +12,7 @@ CombatMetronome = {
 
 -- local LAM = LibAddonMenu2
 local Util = DariansUtilities
+Util.Text = Util.Text or {}
 
 Util.onLoad(CombatMetronome, function(self) self:Init() end)
 
@@ -28,15 +29,16 @@ function CombatMetronome:Init()
         self.config.global = true
     end
 	
-	self.currentCharacterName = CombatMetronome:CropZOSString(GetUnitName("player"))
+	self.currentCharacterName = Util.Text.CropZOSString(GetUnitName("player"))
 		
 	self.classId = GetUnitClassId("player")
 	self.class = CM_CLASS[self.classId]
 	self.activeMount = {}
-	self.activeMount.name = CombatMetronome:CropZOSString(GetCollectibleNickname(GetActiveCollectibleByType(COLLECTIBLE_CATEGORY_TYPE_MOUNT,GAMEPLAY_ACTOR_CATEGORY_PLAYER)))
+	self.activeMount.name = Util.Text.CropZOSString(GetCollectibleNickname(GetActiveCollectibleByType(COLLECTIBLE_CATEGORY_TYPE_MOUNT,GAMEPLAY_ACTOR_CATEGORY_PLAYER)))
 	self.activeMount.icon = GetCollectibleIcon(GetActiveCollectibleByType(COLLECTIBLE_CATEGORY_TYPE_MOUNT,GAMEPLAY_ACTOR_CATEGORY_PLAYER))
 	self.activeMount.action = ""
-	-- self.collectibleInUse = {}
+	self.itemUsed = nil
+	self.collectibleInUse = nil
 
     self.log = self.config.debug
 
@@ -180,6 +182,21 @@ function CombatMetronome:RegisterCM()
 		end
 	)
 	
+	if self.config.trackCollectibles or (self.config.showMountNick and self.config.trackMounting) then
+		CombatMetronome:RegisterCollectiblesTracker()
+	end
+	
+	if self.config.trackItems then
+		CombatMetronome:RegisterItemsTracker()
+	end
+	
+	if self.config.trackMounting then
+		CombatMetronome:RegisterMountingTracker()
+	end
+	-- d("cm is registered")
+end
+
+function CombatMetronome:RegisterCollectiblesTracker()
 	EVENT_MANAGER:RegisterForEvent(
 		self.name.."CollectibleUsed",
 		EVENT_COLLECTIBLE_UPDATED,
@@ -187,42 +204,88 @@ function CombatMetronome:RegisterCM()
 			local name,_,icon,_,_,_,_,type,_ = GetCollectibleInfo(id)
 			if type == COLLECTIBLE_CATEGORY_TYPE_ASSISTANT or type == COLLECTIBLE_CATEGORY_TYPE_COMPANION then
 				self.collectibleInUse = {}
-				self.collectibleInUse.name = CombatMetronome:CropZOSString(name)
+				self.collectibleInUse.name = Util.Text.CropZOSString(name)
 				self.collectibleInUse.icon = icon
-				zo_callLater(function()
-					self.collectibleInUse = nil
-					end, 1000)
+				zo_callLater(function() self.collectibleInUse = nil end, 1000)
 			end
 			if type == COLLECTIBLE_CATEGORY_TYPE_MOUNT then
-				self.activeMount.name = CombatMetronome:CropZOSString(GetCollectibleNickname(id))
+				self.activeMount.name = Util.Text.CropZOSString(GetCollectibleNickname(id))
 				self.activeMount.icon = icon
 			end
 		end
 	)
-			
-			
+	
+	self.collectiblesTrackerRegistered = true
+end
+
+function CombatMetronome:RegisterItemsTracker()
+	EVENT_MANAGER:RegisterForEvent(
+		self.name.."InventoryItemUsed",
+		EVENT_INVENTORY_ITEM_USED,
+		function()
+			-- local time = GetFrameTimeMilliseconds()
+			-- local timeFinished = 0
+			local bagSize = GetBagSize(1)
+			self.itemUsed = {}
+			self.itemCache = {}
+			self.itemCache.name = {}
+			self.itemCache.icon = {}
+			for i = 1, bagSize do
+				self.itemCache.name[i] = Util.Text.CropZOSString(GetItemName(1, i))
+				self.itemCache.icon[i] = GetItemInfo(1, i)
+				-- if i == bagSize then
+					-- timeFinished = GetFrameTimeMilliseconds()
+				-- end
+			end
+			-- d(timeFinished-time)
+			zo_callLater(function() self.itemUsed = nil end, 1000)
+		end
+	)
+
+	EVENT_MANAGER:RegisterForEvent(
+		self.name.."InventoryItemInfo",
+		EVENT_INVENTORY_SINGLE_SLOT_UPDATE,
+		function(bagId, slotId, _, _, _, stackCountChange, _, _, _, _)
+			if stackCountChange == "-1" then
+				d("Stack Count -1 detected")
+				self.itemUsed.name = self.itemCache.name[slotId]
+				self.itemUsed.icon = self.itemCache.icon[slotId]
+			end
+			if stackCountChange < 0 then
+				d("Stack Count <0 detected")
+				self.itemUsed.name = self.itemCache.name[slotId]
+				self.itemUsed.icon = self.itemCache.icon[slotId]
+			end
+		end
+	)
+	
+	self.itemTrackerRegistered = true
+end
+
+function CombatMetronome:RegisterMountingTracker()
 	EVENT_MANAGER:RegisterForEvent(
 		self.name.."Mounting",
 		EVENT_COMBAT_EVENT,
---                (a)bility | (d)amage | (p)ower | (t)arget | (s)ource | (h)it
---                ------------------------------------------------------------
---                1      2     3      4     5  6      7      8      9
---                10     11    12     13    14 15     16     17     18
+--				  (a)bility | (d)amage | (p)ower | (t)arget | (s)ource | (h)it
+--    	          ------------------------------------------------------------
+--				  1      2     3      4     5  6      7      8      9
+--    	          10     11    12     13    14 15     16     17     18
 		function (_,     res,  err,   aName, _, _,    sName, sType, tName, 
-					tType, hVal, pType, dType, _, sUId, tUId,  aId,   _     )
-			if CombatMetronome:CropZOSString(sName) == self.currentCharacterName then
+				  tType, hVal, pType, dType, _, sUId, tUId,  aId,   _     )
+			if Util.Text.CropZOSString(sName) == self.currentCharacterName then
 				if IsMounted() and aId == 36432 and self.activeMount.action ~= "Dismounting " then
 					self.activeMount.action = "Dismounting "
 				elseif not IsMounted() and aId == 36010 and self.activeMount.action ~= "Mounting " then
 					self.activeMount.action = "Mounting "
 				end
 			end
-			-- if CombatMetronome:CropZOSString(tName) == self.currentCharacterName then
+			-- if Util.Text.CropZOSString(tName) == self.currentCharacterName then
 				-- d(aName.." - "..aId.." - "..sUId)
 			-- end
 		end
-	)	
-	-- d("cm is registered")
+	)
+	
+	self.mountingTrackerRegistered = true
 end
 
 function CombatMetronome:RegisterResourceTracker()
@@ -253,13 +316,25 @@ function CombatMetronome:UnregisterCM()
         self.name.."SlotUsed")
 	
 	self.cmRegistered = false
+	-- d("cm is unregistered")
 	
 	EVENT_MANAGER:UnregisterForEvent(
 		self.name.."BarSwap")
 		
 	EVENT_MANAGER:UnregisterForEvent(
 		self.name.."RollDodge")
-	-- d("cm is unregistered")
+	
+	if self.collectiblesTrackerRegistered then
+		CombatMetronome:UnregisterCollectiblesTracker()
+	end
+	
+	if self.itemsTrackerRegistered then
+		CombatMetronome:UnregisterItemsTracker()
+	end
+	
+	if self.mountingTrackerRegistered then
+		CombatMetronome:UnregisterMountingTracker()
+	end
 end
 
 function CombatMetronome:UnregisterResourceTracker()
@@ -276,4 +351,28 @@ function CombatMetronome:UnregisterTracker()
 	self.trackerRegistered = false
 	-- d("tracker is unregistered")
 	-- self.trackerWarning = false
+end
+
+function CombatMetronome:UnregisterCollectiblesTracker()
+	EVENT_MANAGER:UnregisterForEvent(
+		self.name.."CollectibleUsed")
+		
+	self.collectiblesTrackerRegistered = false
+end
+
+function CombatMetronome:UnregisterItemsTracker()
+	EVENT_MANAGER:UnregisterForEvent(
+		self.name.."InventoryItemUsed")
+	
+	EVENT_MANAGER:UnregisterForEvent(
+		self.name.."InventoryItemInfo")
+		
+	self.itemsTrackerRegistered = false
+end
+
+function CombatMetronome:UnregisterMountingTracker()
+	EVENT_MANAGER:UnregisterForEvent(
+		self.name.."Mounting")
+		
+	self.mountingTrackerRegistered = false
 end

@@ -31,3 +31,13 @@ function Util.Text.formatNumberCompact(value)
 	-- log(" under 100 -> ", string.format("%i", value))
 	return string.format("%i", value)
 end
+
+function Util.Text.CropZOSString(zosString)
+    local _, zosStringDivider = string.find(zosString, "%^")
+    
+    if zosStringDivider then
+        return string.sub(zosString, 1, zosStringDivider - 1)
+    else
+        return zosString
+    end
+end

@@ -1,5 +1,6 @@
 local LAM = LibAddonMenu2
 local Util = DariansUtilities
+Util.Text = Util.Text or {}
 
 local ABILITY_ADJUST_PLACEHOLDER = "Add ability adjust"
 local MAX_ADJUST = 200
@@ -514,6 +515,21 @@ function CombatMetronome:BuildMenu()
 									getFunc = function() return self.config.trackMounting end,
 									setFunc = function(value)
 										self.config.trackMounting = value
+										if value then
+											if not self.mountingTrackerRegistered then
+												CombatMetronome:RegisterMountingTracker()
+											end
+											if self.config.showMountNick and not self.collectiblesTrackerRegistered then
+												CombatMetronome:RegisterCollectiblesTracker()
+											end
+										else
+											if self.mountingTrackerRegistered then
+												CombatMetronome:UnregisterMountingTracker()
+											end
+											if not self.config.trackCollectibles and self.collectiblesTrackerRegistered then
+												CombatMetronome:UnregisterCollectiblesTracker()
+											end
+										end
 									end,
 									width = "half",
 								},
@@ -525,6 +541,15 @@ function CombatMetronome:BuildMenu()
 									getFunc = function() return self.config.showMountNick end,
 									setFunc = function(value)
 										self.config.showMountNick = value
+										if value then
+											if not self.collectiblesTrackerRegistered then
+												CombatMetronome:RegisterCollectiblesTracker()
+											end
+										else
+											if not self.config.trackCollectibles and self.collectiblesTrackerRegistered then
+												CombatMetronome:UnregisterCollectiblesTracker()
+											end
+										end
 									end,
 									width = "half",
 								},
@@ -536,6 +561,30 @@ function CombatMetronome:BuildMenu()
 									getFunc = function() return self.config.trackCollectibles end,
 									setFunc = function(value)
 										self.config.trackCollectibles = value
+										if value then
+											if not self.CollectiblesTrackerRegistered then
+												CombatMetronome:RegisterCollectiblesTracker()
+											end
+										else
+											if self.collectiblesTrackerRegistered and not self.config.showMountNick then
+												CombatMetronome:UnregisterCollectiblesTracker()
+											end
+										end
+									end,
+								},
+								{
+									type = "checkbox",
+									name = "Usage of Items",
+									disabled = function() return not self.config.trackGCD end,
+									default = false,
+									getFunc = function() return self.config.trackItems end,
+									setFunc = function(value)
+										self.config.trackItems = value
+										if value and not self.itemsTrackerRegistered then
+											CombatMetronome:RegisterItemsTracker()
+										elseif not value and self.itemsTrackerRegistered then
+											CombatMetronome:UnregisterItemsTracker()
+										end
 									end,
 								},
 								-- {
@@ -795,7 +844,7 @@ function CombatMetronome:BuildMenu()
 							setFunc = function(name)
 								if not name or #name == 0 then return end
 								for id = 0, 300000 do
-									if CombatMetronome:CropZOSString(GetAbilityName(id)) == name then
+									if Util.Text.CropZOSString(GetAbilityName(id)) == name then
 										--[[_=self.log and]] d("Found ability for '"..name.."'", "id: "..id)
 										self.menu.curSkillName = name
 										self.menu.curSkillId = id
@@ -816,7 +865,7 @@ function CombatMetronome:BuildMenu()
 							setFunc = function(value) 
 								self.menu.curSkillName = value
 								for id, adj in pairs(self.config.abilityAdjusts) do
-									if CombatMetronome:CropZOSString(GetAbilityName(id)) == value then
+									if Util.Text.CropZOSString(GetAbilityName(id)) == value then
 										self.menu.curSkillId = id
 									end
 								end
@@ -830,7 +879,7 @@ function CombatMetronome:BuildMenu()
 							step = 1,
 							getFunc = function()
 								for id, adj in pairs(self.config.abilityAdjusts) do
-									if CombatMetronome:CropZOSString(GetAbilityName(id)) == self.menu.curSkillName then
+									if Util.Text.CropZOSString(GetAbilityName(id)) == self.menu.curSkillName then
 										self.menu.curSkillId = id
 									end
 								end
