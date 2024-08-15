@@ -265,7 +265,7 @@ function Ability.Tracker:CallbackAbilityActivated(event)
 end
 
 function Ability.Tracker:CallbackLightAttackUsed(time)
-    if self.CombatMetronome then self.CombatMetronome:HandleLightAttacks(time) end
+    if self.CombatMetronome.LATracker then self.CombatMetronome.LATracker:HandleLightAttacks(time) end
 end
 
 function Ability.Tracker:CallbackAbilityCancelled(event)
@@ -426,7 +426,7 @@ function Ability.Tracker:HandleCombatEvent(_,     res,  err,   aName, _, _,    s
         end
         local lightId = GetSlotBoundId(1)
         if lightId == aId then
-            Ability.Tracker:CallbackLightAttackUsed()
+            Ability.Tracker:CallbackLightAttackUsed(time)
         end
     end
 end
