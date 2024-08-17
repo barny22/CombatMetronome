@@ -13,6 +13,9 @@ CombatMetronome = {
 -- local LAM = LibAddonMenu2
 local Util = DariansUtilities
 Util.Text = Util.Text or {}
+CombatMetronome.LATracker = CombatMetronome.LATracker or {}
+local LATracker = CombatMetronome.LATracker
+LATracker.name = CombatMetronome.name.."LightAttackTracker"
 
 Util.onLoad(CombatMetronome, function(self) self:Init() end)
 
@@ -73,7 +76,13 @@ function CombatMetronome:Init()
 	
 		self:RegisterTracker()
 		self.showSampleTracker = false
-	end	
+	end
+	
+	------------------------------
+	---- Light Attack Tracker ----
+	------------------------------
+	
+	LATracker:BuildLATracker()	
 end
 
 -- LOAD HOOK
@@ -116,6 +125,7 @@ function CombatMetronome:RegisterMetadata()
         function(_, inCombat) 
             self.inCombat = inCombat == true
             -- self.stamGradient:Reset()
+			LATracker:ManageLATracker(inCombat)
         end
     )		
 end
@@ -190,8 +200,8 @@ function CombatMetronome:RegisterCM()
 		CombatMetronome:RegisterItemsTracker()
 	end
 	
-	if self.config.trackMounting then
-		CombatMetronome:RegisterMountingTracker()
+	if self.config.trackMounting or self.config.trackKillingActions then
+		CombatMetronome:RegisterMountingAndKillingTracker()
 	end
 	-- d("cm is registered")
 end
@@ -223,38 +233,36 @@ function CombatMetronome:RegisterItemsTracker()
 		self.name.."InventoryItemUsed",
 		EVENT_INVENTORY_ITEM_USED,
 		function()
-			-- local time = GetFrameTimeMilliseconds()
-			-- local timeFinished = 0
 			local bagSize = GetBagSize(1)
-			self.itemUsed = {}
 			self.itemCache = {}
 			self.itemCache.name = {}
 			self.itemCache.icon = {}
-			for i = 1, bagSize do
-				self.itemCache.name[i] = Util.Text.CropZOSString(GetItemName(1, i))
-				self.itemCache.icon[i] = GetItemInfo(1, i)
-				-- if i == bagSize then
-					-- timeFinished = GetFrameTimeMilliseconds()
-				-- end
+			if not self.itemCache.switch then
+				for i = 1, bagSize do
+					self.itemCache.name[i] = Util.Text.CropZOSString(GetItemName(1, i))
+					self.itemCache.icon[i] = GetItemInfo(1, i)
+				end
+				zo_callLater(function() self.itemCache.switch = true end, 850)
 			end
-			-- d(timeFinished-time)
-			zo_callLater(function() self.itemUsed = nil end, 1000)
+			zo_callLater(function()
+				self.itemCache = nil
+				if self.itemUsed then
+					self.itemUsed = nil
+				end
+			end,
+			1000)
 		end
 	)
 
 	EVENT_MANAGER:RegisterForEvent(
 		self.name.."InventoryItemInfo",
 		EVENT_INVENTORY_SINGLE_SLOT_UPDATE,
-		function(bagId, slotId, _, _, _, stackCountChange, _, _, _, _)
-			if stackCountChange == "-1" then
-				d("Stack Count -1 detected")
+		function(_, _, slotId, _, _, _, stackCountChange, _, _, _, _)
+			if stackCountChange == -1 and self.itemCache then
+				self.itemUsed = {}
 				self.itemUsed.name = self.itemCache.name[slotId]
 				self.itemUsed.icon = self.itemCache.icon[slotId]
-			end
-			if stackCountChange < 0 then
-				d("Stack Count <0 detected")
-				self.itemUsed.name = self.itemCache.name[slotId]
-				self.itemUsed.icon = self.itemCache.icon[slotId]
+				self.itemUsed.switch = false
 			end
 		end
 	)
@@ -262,9 +270,9 @@ function CombatMetronome:RegisterItemsTracker()
 	self.itemTrackerRegistered = true
 end
 
-function CombatMetronome:RegisterMountingTracker()
+function CombatMetronome:RegisterMountingAndKillingTracker()
 	EVENT_MANAGER:RegisterForEvent(
-		self.name.."Mounting",
+		self.name.."MountingAndKilling",
 		EVENT_COMBAT_EVENT,
 --				  (a)bility | (d)amage | (p)ower | (t)arget | (s)ource | (h)it
 --    	          ------------------------------------------------------------
@@ -273,10 +281,19 @@ function CombatMetronome:RegisterMountingTracker()
 		function (_,     res,  err,   aName, _, _,    sName, sType, tName, 
 				  tType, hVal, pType, dType, _, sUId, tUId,  aId,   _     )
 			if Util.Text.CropZOSString(sName) == self.currentCharacterName then
-				if IsMounted() and aId == 36432 and self.activeMount.action ~= "Dismounting " then
-					self.activeMount.action = "Dismounting "
-				elseif not IsMounted() and aId == 36010 and self.activeMount.action ~= "Mounting " then
-					self.activeMount.action = "Mounting "
+				if IsMounted() and aId == 36432 and self.activeMount.action ~= "Dismounting" then
+					self.activeMount.action = "Dismounting"
+				elseif not IsMounted() and aId == 36010 and self.activeMount.action ~= "Mounting" then
+					self.activeMount.action = "Mounting"
+				end
+				if aId == 178780 then
+					self.killingAction = {}
+					self.killingAction.name = Util.Text.CropZOSString(aName)
+					self.killingAction.icon = "/esoui/art/icons/ability_u26_vampire_synergy_feed.dds"
+				elseif aId == 146301 then
+					self.killingAction = {}
+					self.killingAction.name = Util.Text.CropZOSString(aName)
+					self.killingAction.icon = "/esoui/art/icons/achievement_u23_skillmaster_darkbrotherhood.dds"
 				end
 			end
 			-- if Util.Text.CropZOSString(tName) == self.currentCharacterName then
@@ -332,8 +349,8 @@ function CombatMetronome:UnregisterCM()
 		CombatMetronome:UnregisterItemsTracker()
 	end
 	
-	if self.mountingTrackerRegistered then
-		CombatMetronome:UnregisterMountingTracker()
+	if self.mountingAndKillingTrackerRegistered then
+		CombatMetronome:UnregisterMountingAndKillingTracker()
 	end
 end
 
@@ -370,9 +387,9 @@ function CombatMetronome:UnregisterItemsTracker()
 	self.itemsTrackerRegistered = false
 end
 
-function CombatMetronome:UnregisterMountingTracker()
+function CombatMetronome:UnregisterMountingAndKillingTracker()
 	EVENT_MANAGER:UnregisterForEvent(
-		self.name.."Mounting")
+		self.name.."MountingAndKilling")
 		
-	self.mountingTrackerRegistered = false
+	self.mountingAndKillingTrackerRegistered = false
 end

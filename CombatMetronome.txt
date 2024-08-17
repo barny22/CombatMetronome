@@ -16,6 +16,7 @@
 CombatMetronome.lua
 CMCastbar.lua
 CMFunctions.lua
+CMLATracker.lua
 CMLabels.lua
 CMMiscellaneous.lua
 CMSettings.lua
