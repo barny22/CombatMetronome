@@ -77,108 +77,30 @@ function CombatMetronome:Update()
 		if self.config.trackGCD and not self.currentEvent then
 			self.bar.segments[1].progress = 0
 			self.bar.segments[2].progress = gcdProgress
-			if not self.rollDodgeFinished and self.config.trackRolldodge then											---- Rolldodge Timer Updater----
-				if self.config.showSpell then
-					self.spellLabel:SetHidden(false)
-					self.spellIcon:SetHidden(false)
-					self.spellIconBorder:SetHidden(false)
-					self.spellIcon:SetTexture("/esoui/art/icons/ability_rogue_035.dds")
-					self.spellLabel:SetText("Dodgeroll")
-				else
-					self.spellLabel:SetHidden(true)
-					self.spellIcon:SetHidden(true)
-					self.spellIconBorder:SetHidden(true)
-				end
-				if self.config.showTimeRemaining then
-					self.timeLabel:SetHidden(false)
-					self.timeLabel:SetText(string.format("%.1fs", gcdProgress))
-				else
-					self.timeLabel:SetHidden(true)
-					self.timeLabel:SetText("")
-					self.spellLabel:SetText("")
-				end
+			if not self.rollDodgeFinished and self.config.trackRolldodge then
+				CombatMetronome:GCDSpecifics("Dodgeroll", "/esoui/art/icons/ability_rogue_035.dds", gcdProgress)
 			end
-			if self.activeMount.action ~= "" and self.config.trackMounting then												---- Mounting/Dismounting Timer Updater----
-				if self.config.showSpell then
-					self.spellLabel:SetHidden(false)
-					self.spellIcon:SetHidden(false)
-					self.spellIconBorder:SetHidden(false)
-					self.spellIcon:SetTexture(self.activeMount.icon)
-					if self.config.showMountNick then
-						self.spellLabel:SetText(self.activeMount.action..""..self.activeMount.name)
-					else
-						self.spellLabel:SetText(self.activeMount.action)
-					end
-				else
-					self.spellLabel:SetHidden(true)
-					self.spellIcon:SetHidden(true)
-					self.spellIconBorder:SetHidden(true)
-				end
-				if self.config.showTimeRemaining then
-					self.timeLabel:SetHidden(false)
-				else
-					self.timeLabel:SetHidden(true)
-				end
-				if gcdProgress > 0 then
-					self.timeLabel:SetText(string.format("%.1fs", gcdProgress))
-				else
-					self.activeMount.action = ""
-					self.timeLabel:SetText("")
-					self.spellLabel:SetText("")
-				end
+			if self.activeMount.action ~= "" and self.config.trackMounting and self.config.showMountNick then
+				CombatMetronome:GCDSpecifics(tostring(self.activeMount.action.." "..self.activeMount.name), self.activeMount.icon, gcdProgress)
 			end
-			if self.collectibleInUse and self.config.trackCollectibles then													---- Collectible Timer Updater----
-				if self.config.showSpell then
-					self.spellLabel:SetHidden(false)
-					self.spellIcon:SetHidden(false)
-					self.spellIconBorder:SetHidden(false)
-					self.spellIcon:SetTexture(self.collectibleInUse.icon)
-					self.spellLabel:SetText(self.collectibleInUse.name)
-				else
-					self.spellLabel:SetHidden(true)
-					self.spellIcon:SetHidden(true)
-					self.spellIconBorder:SetHidden(true)
-				end
-				if self.config.showTimeRemaining then
-					self.timeLabel:SetHidden(false)
-				else
-					self.timeLabel:SetHidden(true)
-				end
-				if gcdProgress > 0 then
-					self.timeLabel:SetText(string.format("%.1fs", gcdProgress))
-				else
-					self.collectibleInUse = nil
-					self.timeLabel:SetText("")
-					self.spellLabel:SetText("")
-				end
+			if self.activeMount.action ~= "" and self.config.trackMounting and not self.config.showMountNick then
+				CombatMetronome:GCDSpecifics(self.activeMount.action, self.activeMount.icon, gcdProgress)
 			end
-			if self.itemUsed and self.config.trackItems then															---- Item Use Timer Updater----
-				if self.config.showSpell then
-					self.spellLabel:SetHidden(false)
-					self.spellIcon:SetHidden(false)
-					self.spellIconBorder:SetHidden(false)
-					self.spellIcon:SetTexture(self.itemUsed.icon)
-					self.spellLabel:SetText(self.itemUsed.name)
-				else
-					self.spellLabel:SetHidden(true)
-					self.spellIcon:SetHidden(true)
-					self.spellIconBorder:SetHidden(true)
-				end
-				if self.config.showTimeRemaining then
-					self.timeLabel:SetHidden(false)
-				else
-					self.timeLabel:SetHidden(true)
-				end
-				if gcdProgress > 0 then
-					self.timeLabel:SetText(string.format("%.1fs", gcdProgress))
-				else
-					self.itemUsed = nil
-					self.timeLabel:SetText("")
-					self.spellLabel:SetText("")
-				end
+			if self.collectibleInUse and self.config.trackCollectibles then
+				CombatMetronome:GCDSpecifics(self.collectibleInUse.name, self.collectibleInUse.icon, gcdProgress)
+			end
+			if self.itemUsed and self.config.trackItems then
+				CombatMetronome:GCDSpecifics(self.itemUsed.name, self.itemUsed.icon, gcdProgress)
+			end
+			if self.killingAction and self.config.trackKillingActions then
+				CombatMetronome:GCDSpecifics(self.killingAction.name, self.killingAction.icon, gcdProgress)
 			end
 			
-			if gcdProgress == 0 then
+			if gcdProgress <= 0 then
+				self.activeMount.action = ""
+				self.collectibleInUse = nil
+				self.itemUsed = nil
+				self.killingAction = nil
 				self:OnCDStop()
 			else
 				self:HideBar(false)

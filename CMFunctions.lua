@@ -82,6 +82,51 @@ function CombatMetronome:HideFancy(value)
 	self.bar.borderR:SetHidden(value)
 end
 
+	-------------------------
+	---- Menu Icons Path ----
+	-------------------------
+	
+function CombatMetronome:CreateMenuIconsPath(string1, string2, string3, string4, string5)
+	local number = 0
+	for i = 1,#CombatMetronomeOptions.controlsToRefresh do
+		if string1 == CombatMetronomeOptions.controlsToRefresh[i].data.name then
+			number1 = i
+		end
+		if string2 == CombatMetronomeOptions.controlsToRefresh[i].data.name then
+			number2 = i
+		end
+		if string3 == CombatMetronomeOptions.controlsToRefresh[i].data.name then
+			number3 = i
+		end
+		if string4 == CombatMetronomeOptions.controlsToRefresh[i].data.name then
+			number4 = i
+		end
+		if string5 == CombatMetronomeOptions.controlsToRefresh[i].data.name then
+			number5 = i
+		end
+	end
+	return number1, number2, number3, number4, number5
+end
+
+function CombatMetronome:GCDSpecifics(text, icon, gcdProgress)
+	if self.config.showSpell then
+		self.spellLabel:SetHidden(false)
+		self.spellIcon:SetHidden(false)
+		self.spellIconBorder:SetHidden(false)
+		self.spellIcon:SetTexture(icon)
+		self.spellLabel:SetText(text)
+	else
+		self.spellLabel:SetHidden(true)
+		self.spellIcon:SetHidden(true)
+		self.spellIconBorder:SetHidden(true)
+	end
+	if self.config.showTimeRemaining then
+		self.timeLabel:SetHidden(false)
+		self.timeLabel:SetText(string.format("%.1fs", gcdProgress))
+	else
+		self.timeLabel:SetHidden(true)
+	end
+end
 	-----------------------
 	---- Combat Events ----
 	-----------------------
