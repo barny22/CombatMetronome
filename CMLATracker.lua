@@ -29,8 +29,12 @@ function LATracker:NumberOfLightAttacks()
 end
 
 function LATracker:TimeBetweenLightAttacks(time)
-	if TimeOfLastLA ~= 0 then TimeBetweenLA = time - TimeOfLastLA end
-	if TimeOfLastLA == 0 then TimeOfLastLA = time end
+	if TimeOfLastLA ~= 0 then
+		TimeBetweenLA = time - TimeOfLastLA
+	else
+		TimeBetweenLA = 0
+	end
+	TimeOfLastLA = time
 end
 
 function LATracker:CalculateLightAttacksPerSecond(time)
@@ -63,7 +67,7 @@ end
 
 function LATracker:ResetLATracker()
 	LATracker:CalculateLightAttacksPerSecond(GetFrameTimeMilliseconds())
-	LATracker.label:SetText(string.format("%.2f", LightAttacksPerSecond).." la/s")
+	LATracker:DisplayText()
 	if CM.config.showLALogAfterFight then
 		d("End of combat")
 		d("You've been in combat for "..((GetFrameTimeMilliseconds()-self.combatStart)/1000).."s")
