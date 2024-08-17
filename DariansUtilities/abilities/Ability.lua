@@ -116,6 +116,7 @@ function Ability.Tracker:Start()
     self.lastMounted = 0
     self.weaponLastSheathed = 0
     self.eventStart = 0
+    self.lastSlotRemaining = 0
     
     self.slotsUpdated = {}
     
@@ -175,22 +176,6 @@ function Ability.Tracker:Update()
     -- self.slotsNotUpdated = {3,4,5,6,7,8}
 end
 
--- function Ability.Tracker:NewHeavyAttack(heavy, start)
-
-    -- local event = { }
-
-    -- event.ability = heavy
-    -- event.recorded = start
-    -- event.start = start
-    
-    -- event.slot = 2
-    -- event.hotbar = GetActiveHotbarCategory()
-    
-    -- self.currentEvent = event
-    
-    -- self:CallbackAbilityUsed(event)
--- end
-
 function Ability.Tracker:NewEvent(ability, slot, start)
     local time = GetFrameTimeMilliseconds()
 
@@ -233,18 +218,27 @@ function Ability.Tracker:CancelEvent()
 end
 
 function Ability.Tracker:AbilityUsed()
-    local event = self.queuedEvent
-    event.start = self.eventStart
-    self.queuedEvent = nil
-    self:CallbackAbilityUsed(event)
+    local gcdProgress, slotRemaining, slotDuration = Ability.Tracker:GCDCheck()
+    local abilityMayBeTriggered1 = self.currentEvent and self.currentEvent.ability.id == self.queuedEvent.ability.id and self.currentEvent.start + self.lastSlotRemaining < self.eventStart and gcdProgress > 0.5
+    local abilityMayBeTriggered2 = self.currentEvent and self.currentEvent.ability.id == not self.queuedEvent.ability.id and not (self.queuedEvent.ability.heavy and self.currentEvent.start + self.lastSlotRemaining > self.eventStart) and gcdProgress > 0.5
+    local abilityMayBeTriggered3 = self.currentEvent and self.currentEvent.start + self.lastSlotRemaining < self.eventStart and gcdProgress > 0.5
+    
+    if abilityMayBeTriggered1 or abilityMayBeTriggered2 or abilityMayBeTriggered3 or not self.currentEvent or gcdProgress == 0 then
+        local event = self.queuedEvent
+        event.start = self.eventStart
+        self.queuedEvent = nil
+        self.gcd = slotDuration
+        self:CallbackAbilityUsed(event)
 
-    if (event.ability.instant or event.ability.channeled) then
-        self:CallbackAbilityActivated(event)
-    end
+        if (event.ability.instant or event.ability.channeled) then
+            self:CallbackAbilityActivated(event)
+        end
 
-    if (not event.ability.instant) then
+    -- if (not event.ability.instant) then
         -- d("Putting "..event.ability.name.." on current")
         self.currentEvent = event
+        self.lastSlotRemaining = slotRemaining
+    -- end
     end
 end
 
@@ -292,6 +286,10 @@ function Ability.Tracker:HandleSlotUpdated(_, slot)
         end
     end,
     50)
+    
+    -- if slot == 1 then 
+        -- Ability.Tracker:CallbackLightAttackUsed(time)
+    -- end
     -- trigger for only elemental explosion
     -- for i, num in ipairs(self.slotsNotUpdated) do
         -- if num == slot then
