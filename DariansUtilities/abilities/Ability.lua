@@ -126,7 +126,7 @@ function Ability.Tracker:Start()
     end)
 
     EVENT_MANAGER:RegisterForEvent(self.name.."SlotUpdated", EVENT_ACTION_SLOT_STATE_UPDATED, function(_, slot) 
-        if slot > 2 and slot < 9 then self:HandleSlotUpdated(_, slot) end
+        if slot == 1 or (slot > 2 and slot < 9) then self:HandleSlotUpdated(_, slot) end
     end)
     EVENT_MANAGER:RegisterForEvent(self.name.."SlotUsed", EVENT_ACTION_SLOT_ABILITY_USED, function(_, slot)
         if slot > 1 and slot < 9 then self:HandleSlotUsed(_, slot) end
@@ -198,7 +198,7 @@ function Ability.Tracker:NewEvent(ability, slot, start)
 
     self.queuedEvent = event
         
-    if self.cdTriggerTime + 100 >= start then
+    if self.cdTriggerTime == start then
         self:AbilityUsed()
     end
     -- d("  Allow force = "..tostring(self.queuedEvent.allowForce))
@@ -222,12 +222,12 @@ end
 
 function Ability.Tracker:AbilityUsed()
     -- d("trying to use ability - "..self.queuedEvent.ability.name)
-    local gcdProgress, slotRemaining, slotDuration = Ability.Tracker:GCDCheck()
-    local abilityMayBeTriggered1 = self.currentEvent and self.currentEvent.ability.id == self.queuedEvent.ability.id and self.currentEvent.start + self.lastSlotRemaining < self.eventStart and gcdProgress > 0.7
-    local abilityMayBeTriggered2 = self.currentEvent and self.currentEvent.ability.id == not self.queuedEvent.ability.id and not (self.queuedEvent.ability.heavy and self.currentEvent.start + self.lastSlotRemaining > self.eventStart) and gcdProgress > 0.7
-    local abilityMayBeTriggered3 = self.currentEvent and self.currentEvent.start + self.lastSlotRemaining < self.eventStart and gcdProgress > 0.7
+    -- local gcdProgress, slotRemaining, slotDuration = Ability.Tracker:GCDCheck()
+    -- local abilityMayBeTriggered1 = self.currentEvent and self.currentEvent.ability.id == self.queuedEvent.ability.id and self.currentEvent.start + self.lastSlotRemaining < self.eventStart and gcdProgress > 0.7
+    -- local abilityMayBeTriggered2 = self.currentEvent and self.currentEvent.ability.id == not self.queuedEvent.ability.id and not (self.queuedEvent.ability.heavy and self.currentEvent.start + self.lastSlotRemaining > self.eventStart) and gcdProgress > 0.7
+    -- local abilityMayBeTriggered3 = self.currentEvent and self.currentEvent.start + self.lastSlotRemaining < self.eventStart and gcdProgress > 0.7
     
-    if abilityMayBeTriggered1 or abilityMayBeTriggered2 or abilityMayBeTriggered3 or not self.currentEvent or gcdProgress == 0 then
+    -- if abilityMayBeTriggered1 or abilityMayBeTriggered2 or abilityMayBeTriggered3 or not self.currentEvent or gcdProgress == 0 then
     -- d("using ability - "..self.queuedEvent.ability.name)
         local event = self.queuedEvent
         event.start = self.eventStart
@@ -242,9 +242,9 @@ function Ability.Tracker:AbilityUsed()
     -- if (not event.ability.instant) then
         -- d("Putting "..event.ability.name.." on current")
         self.currentEvent = event
-        self.lastSlotRemaining = slotRemaining
+        -- self.lastSlotRemaining = slotRemaining
     -- end
-    end
+    -- end
 end
 
 function Ability.Tracker:CallbackAbilityUsed(event)
@@ -277,6 +277,12 @@ end
 function Ability.Tracker:HandleSlotUpdated(_, slot)
     
     local time = GetFrameTimeMilliseconds()
+    
+    if slot == 1 then 
+        Ability.Tracker:CallbackLightAttackUsed(time)
+        return
+    end
+    
     table.insert(self.slotsUpdated, slot)
     zo_callLater(function(slot)
         if #self.slotsUpdated == 1 then
@@ -291,10 +297,6 @@ function Ability.Tracker:HandleSlotUpdated(_, slot)
         end
     end,
     50)
-    
-    -- if slot == 1 then 
-        -- Ability.Tracker:CallbackLightAttackUsed(time)
-    -- end
     -- trigger for only elemental explosion
     -- for i, num in ipairs(self.slotsNotUpdated) do
         -- if num == slot then
@@ -429,11 +431,11 @@ function Ability.Tracker:HandleCombatEvent(_,     res,  err,   aName, _, _,    s
             -- self.eventStart = self.queuedEvent.recorded
             -- self:AbilityUsed()
         end
-        local lightId = GetSlotBoundId(1)
-        if lightId == aId and res ~= 2350 and self.lastLightAttack ~= time then
-            Ability.Tracker:CallbackLightAttackUsed(time)
-            self.lastLightAttack = time
-        end
+        -- local lightId = GetSlotBoundId(1)
+        -- if lightId == aId and res ~= 2350 and self.lastLightAttack ~= time then
+            -- Ability.Tracker:CallbackLightAttackUsed(time)
+            -- self.lastLightAttack = time
+        -- end
     end
 end
 

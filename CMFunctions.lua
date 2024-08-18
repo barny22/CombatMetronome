@@ -234,9 +234,10 @@ function CombatMetronome:HandleAbilityUsed(event)
 		-- d(string.format("Fatecarver duration succesfully adjusted with %d crux(es)", cruxes))
 	end
 	if self.config.stopHATracking and event.ability.heavy then
-		self.currentEvent = nil
+		return
 	else
 		self.currentEvent = event
+		-- d("Got new Event "..event.ability.name)
 	end
     self.gcd = Util.Ability.Tracker.gcd
 end
