@@ -82,11 +82,11 @@ function CombatMetronome:HideFancy(value)
 	self.bar.borderR:SetHidden(value)
 end
 
-	-------------------------
-	---- Menu Icons Path ----
-	-------------------------
+	--------------------------------
+	---- GCD Tracking specifics ----
+	--------------------------------
 	
-function CombatMetronome:CreateMenuIconsPath(string1, string2, string3, string4, string5)
+function CombatMetronome:CreateMenuIconsPath(string1, string2, string3, string4, string5, string6)
 	local number = 0
 	for i = 1,#CombatMetronomeOptions.controlsToRefresh do
 		if string1 == CombatMetronomeOptions.controlsToRefresh[i].data.name then
@@ -104,8 +104,11 @@ function CombatMetronome:CreateMenuIconsPath(string1, string2, string3, string4,
 		if string5 == CombatMetronomeOptions.controlsToRefresh[i].data.name then
 			number5 = i
 		end
+		if string6 == CombatMetronomeOptions.controlsToRefresh[i].data.name then
+			number6 = i
+		end
 	end
-	return number1, number2, number3, number4, number5
+	return number1, number2, number3, number4, number5, number6
 end
 
 function CombatMetronome:GCDSpecifics(text, icon, gcdProgress)
@@ -127,6 +130,15 @@ function CombatMetronome:GCDSpecifics(text, icon, gcdProgress)
 		self.timeLabel:SetHidden(true)
 	end
 end
+
+function CombatMetronome:SetIconsAndNamesNil()
+	self.activeMount.action = ""
+	self.collectibleInUse = nil
+	self.itemUsed = nil
+	self.killingAction = nil
+	self.breakingFree = nil
+end
+
 	-----------------------
 	---- Combat Events ----
 	-----------------------
@@ -216,6 +228,13 @@ function CombatMetronome:CreateAdjustList()
 
 function CombatMetronome:HandleAbilityUsed(event)
     if not (self.inCombat or self.config.showOOC) then return end
+	if event == "cancel heavy" then
+		if self.currentEvent and self.currentEvent.ability.heavy then
+			self.currentEvent = nil
+			self.gcd = 0
+			return
+		end
+	end
 
     self.soundTickPlayed = false
     self.soundTockPlayed = false

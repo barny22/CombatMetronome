@@ -63,7 +63,7 @@ function CombatMetronome:BuildMenu()
 	local CreateIcons
 	CreateIcons = function(panel)
 		if panel == CombatMetronomeOptions then
-			local dodgeNum, mountNum, assistantsNum, itemsNum, killingNum = CombatMetronome:CreateMenuIconsPath("Dodgeroll", "Mounting/Dismounting", "Assistants and companions", "Usage of Items", "Killing actions")
+			local dodgeNum, mountNum, assistantsNum, itemsNum, killingNum, breakFreeNum = CombatMetronome:CreateMenuIconsPath("Dodgeroll", "Mounting/Dismounting", "Assistants and companions", "Usage of items", "Killing actions", "Breaking free")
 			dodgeIcon = WINDOW_MANAGER:CreateControl(nil, panel.controlsToRefresh[dodgeNum].checkbox, CT_TEXTURE)
 			dodgeIcon:SetAnchor(RIGHT, panel.controlsToRefresh[dodgeNum].checkbox, LEFT, -25, 0)
 			dodgeIcon:SetTexture("/esoui/art/icons/ability_rogue_035.dds")
@@ -104,6 +104,10 @@ function CombatMetronome:BuildMenu()
 			killingIcon:SetAnchor(RIGHT, panel.controlsToRefresh[killingNum].checkbox, LEFT, -25, 0)
 			killingIcon:SetTexture("/esoui/art/icons/achievement_u23_skillmaster_darkbrotherhood.dds")
 			killingIcon:SetDimensions(35, 35)
+			breakFreeIcon = WINDOW_MANAGER:CreateControl(nil, panel.controlsToRefresh[breakFreeNum].checkbox, CT_TEXTURE)
+			breakFreeIcon:SetAnchor(RIGHT, panel.controlsToRefresh[breakFreeNum].checkbox, LEFT, -25, 0)
+			breakFreeIcon:SetTexture("/esoui/art/icons/ability_debuff_stun.dds")
+			breakFreeIcon:SetDimensions(35, 35)
 			CALLBACK_MANAGER:UnregisterCallback("LAM-PanelControlsCreated", CreateIcons)
 		end
 	end
@@ -581,16 +585,16 @@ function CombatMetronome:BuildMenu()
 										self.config.trackMounting = value
 										if value then
 											-- mountIcon:SetDesaturation(0)
-											if not self.mountingTrackerRegistered then
-												CombatMetronome:RegisterMountingTracker()
+											if not self.combatEventsRegistered then
+												CombatMetronome:RegisterCombatEvents()
 											end
 											if self.config.showMountNick and not self.collectiblesTrackerRegistered then
 												CombatMetronome:RegisterCollectiblesTracker()
 											end
 										else
 											-- mountIcon:SetDesaturation(-100)
-											if self.mountingTrackerRegistered and not self.config.trackKillingActions then
-												CombatMetronome:UnregisterMountingTracker()
+											if self.mountingTrackerRegistered and not (self.config.trackKillingActions or self.config.trackBreakingFree) then
+												CombatMetronome:UnregisterCombatEvents()
 											end
 											if not self.config.trackCollectibles and self.collectiblesTrackerRegistered then
 												CombatMetronome:UnregisterCollectiblesTracker()
@@ -640,7 +644,7 @@ function CombatMetronome:BuildMenu()
 								},
 								{
 									type = "checkbox",
-									name = "Usage of Items",
+									name = "Usage of items",
 									disabled = function() return not self.config.trackGCD end,
 									default = false,
 									getFunc = function() return self.config.trackItems end,
@@ -672,10 +676,30 @@ function CombatMetronome:BuildMenu()
 										-- else
 											-- itemsIcon:SetDesaturation(-100)
 										-- end
-										if value and not self.mountingAndKillingTrackerRegistered then
-											CombatMetronome:RegisterMountingAndKillingTracker()
-										elseif not value and self.mountingAndKillingTrackerRegistered and not self.config.trackMounting then
-											CombatMetronome:UnregisterMountingAndKillingTracker()
+										if value and not self.combatEventsRegistered then
+											CombatMetronome:RegisterCombatEvents()
+										elseif not value and self.mountingAndKillingTrackerRegistered and not (self.config.trackMounting or self.config.trackBreakingFree) then
+											CombatMetronome:UnregisterCombatEvents()
+										end
+									end,
+								},
+								{
+									type = "checkbox",
+									name = "Breaking free",
+									disabled = function() return not self.config.trackGCD end,
+									default = false,
+									getFunc = function() return self.config.trackBreakingFree end,
+									setFunc = function(value)
+										self.config.trackBreakingFree = value
+										-- if value then
+											-- itemsIcon:SetDesaturation(0)
+										-- else
+											-- itemsIcon:SetDesaturation(-100)
+										-- end
+										if value and not self.combatEventsRegistered then
+											CombatMetronome:RegisterCombatEvents()
+										elseif not value and self.combatEventsRegistered and not (self.config.trackMounting or self.config.trackKillingActions) then
+											CombatMetronome:UnregisterCombatEvents()
 										end
 									end,
 								},

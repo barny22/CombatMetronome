@@ -95,12 +95,11 @@ function CombatMetronome:Update()
 			if self.killingAction and self.config.trackKillingActions then
 				CombatMetronome:GCDSpecifics(self.killingAction.name, self.killingAction.icon, gcdProgress)
 			end
+			if self.breakingFree and self.config.trackBreakingFree then
+				CombatMetronome:GCDSpecifics(self.breakingFree.name, self.breakingFree.icon, gcdProgress)
+			end
 			
 			if gcdProgress <= 0 then
-				self.activeMount.action = ""
-				self.collectibleInUse = nil
-				self.itemUsed = nil
-				self.killingAction = nil
 				self:OnCDStop()
 			else
 				self:HideBar(false)
