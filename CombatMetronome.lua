@@ -139,30 +139,30 @@ function CombatMetronome:RegisterCM()
         function(...) self:Update() end
     )
     
-    EVENT_MANAGER:RegisterForEvent(
-        self.name.."SlotUsed",
-        EVENT_ACTION_SLOT_ABILITY_USED,
-        function(e, slot)
+    -- EVENT_MANAGER:RegisterForEvent(
+        -- self.name.."SlotUsed",
+        -- EVENT_ACTION_SLOT_ABILITY_USED,
+        -- function(e, slot)
 			-- d(slot)
-			local ability = {}
-            local actionType = GetSlotType(slot)
+			-- local ability = {}
+            -- local actionType = GetSlotType(slot)
 			-- d(actionType)
-			if actionType == ACTION_TYPE_CRAFTED_ABILITY then --3 then
+			-- if actionType == ACTION_TYPE_CRAFTED_ABILITY then --3 then
 				-- d("Crafted ability executed")
-				ability = Util.Ability:ForId(GetAbilityIdForCraftedAbilityId(GetSlotBoundId(slot)))
+				-- ability = Util.Ability:ForId(GetAbilityIdForCraftedAbilityId(GetSlotBoundId(slot)))
 				-- d("Ability used - "..ability.name..", ID: "..ability.id)
-			else
-				ability = Util.Ability:ForId(GetSlotBoundId(slot))
-			end
+			-- else
+				-- ability = Util.Ability:ForId(GetSlotBoundId(slot))
+			-- end
 						
 			-- d("Slot used - Target: "..GetAbilityTargetDescription(GetSlotBoundId(slot)).." - "..ability.name)
             -- log("Abilty used - ", ability.name)
-            if (ability and ability.heavy) then
+            -- if slot == 2 then
                 -- log("Cancelling heavy")
-                self.currentEvent = nil
-            end
-        end
-    )
+                -- self.currentEvent = nil
+            -- end
+        -- end
+    -- )
 	
 	self.cmRegistered = true
 	
@@ -202,8 +202,8 @@ function CombatMetronome:RegisterCM()
 		CombatMetronome:RegisterItemsTracker()
 	end
 	
-	if self.config.trackMounting or self.config.trackKillingActions then
-		CombatMetronome:RegisterMountingAndKillingTracker()
+	if self.config.trackMounting or self.config.trackKillingActions or self.trackBreakingFree then
+		CombatMetronome:RegisterCombatEvents()
 	end
 	-- d("cm is registered")
 end
@@ -215,6 +215,7 @@ function CombatMetronome:RegisterCollectiblesTracker()
 		function(_, id)
 			local name,_,icon,_,_,_,_,type,_ = GetCollectibleInfo(id)
 			if type == COLLECTIBLE_CATEGORY_TYPE_ASSISTANT or type == COLLECTIBLE_CATEGORY_TYPE_COMPANION then
+				CombatMetronome:SetIconsAndNamesNil()
 				self.collectibleInUse = {}
 				self.collectibleInUse.name = Util.Text.CropZOSString(name)
 				self.collectibleInUse.icon = icon
@@ -236,6 +237,7 @@ function CombatMetronome:RegisterItemsTracker()
 		EVENT_INVENTORY_ITEM_USED,
 		function()
 			local bagSize = GetBagSize(1)
+			CombatMetronome:SetIconsAndNamesNil()
 			self.itemCache = {}
 			self.itemCache.name = {}
 			self.itemCache.icon = {}
@@ -255,6 +257,7 @@ function CombatMetronome:RegisterItemsTracker()
 		EVENT_INVENTORY_SINGLE_SLOT_UPDATE,
 		function(_, _, slotId, _, _, _, stackCountChange, _, _, _, _)
 			if stackCountChange == -1 and self.itemCache then
+				CombatMetronome:SetIconsAndNamesNil()
 				self.itemUsed = {}
 				self.itemUsed.name = self.itemCache.name[slotId]
 				self.itemUsed.icon = self.itemCache.icon[slotId]
@@ -273,9 +276,9 @@ function CombatMetronome:RegisterItemsTracker()
 	self.itemTrackerRegistered = true
 end
 
-function CombatMetronome:RegisterMountingAndKillingTracker()
+function CombatMetronome:RegisterCombatEvents()
 	EVENT_MANAGER:RegisterForEvent(
-		self.name.."MountingAndKilling",
+		self.name.."CombatEvents",
 		EVENT_COMBAT_EVENT,
 --				  (a)bility | (d)amage | (p)ower | (t)arget | (s)ource | (h)it
 --    	          ------------------------------------------------------------
@@ -285,20 +288,25 @@ function CombatMetronome:RegisterMountingAndKillingTracker()
 				  tType, hVal, pType, dType, _, sUId, tUId,  aId,   _     )
 			if Util.Text.CropZOSString(sName) == self.currentCharacterName then
 				if IsMounted() and aId == 36432 and self.activeMount.action ~= "Dismounting" then
+					CombatMetronome:SetIconsAndNamesNil()
 					self.activeMount.action = "Dismounting"
 				elseif not IsMounted() and aId == 36010 and self.activeMount.action ~= "Mounting" then
+					CombatMetronome:SetIconsAndNamesNil()
 					self.activeMount.action = "Mounting"
 				end
 				if aId == 178780 then
+					CombatMetronome:SetIconsAndNamesNil()
 					self.killingAction = {}
 					self.killingAction.name = Util.Text.CropZOSString(aName)
 					self.killingAction.icon = "/esoui/art/icons/ability_u26_vampire_synergy_feed.dds"
 				elseif aId == 146301 then
+					CombatMetronome:SetIconsAndNamesNil()
 					self.killingAction = {}
 					self.killingAction.name = Util.Text.CropZOSString(aName)
 					self.killingAction.icon = "/esoui/art/icons/achievement_u23_skillmaster_darkbrotherhood.dds"
 				end
 				if aId == 16565 then
+					CombatMetronome:SetIconsAndNamesNil()
 					self.breakingFree = {}
 					self.breakingFree.name = Util.Text.CropZOSString(aName)
 					self.breakingFree.icon = "/esoui/art/icons/ability_rogue_050.dds"
@@ -310,7 +318,7 @@ function CombatMetronome:RegisterMountingAndKillingTracker()
 		end
 	)
 	
-	self.mountingTrackerRegistered = true
+	self.combatEventsRegistered = true
 end
 
 function CombatMetronome:RegisterResourceTracker()
@@ -357,8 +365,8 @@ function CombatMetronome:UnregisterCM()
 		CombatMetronome:UnregisterItemsTracker()
 	end
 	
-	if self.mountingAndKillingTrackerRegistered then
-		CombatMetronome:UnregisterMountingAndKillingTracker()
+	if self.combatEventsRegistered then
+		CombatMetronome:UnregisterCombatEvents()
 	end
 end
 
@@ -395,9 +403,9 @@ function CombatMetronome:UnregisterItemsTracker()
 	self.itemsTrackerRegistered = false
 end
 
-function CombatMetronome:UnregisterMountingAndKillingTracker()
+function CombatMetronome:UnregisterCombatEvents()
 	EVENT_MANAGER:UnregisterForEvent(
-		self.name.."MountingAndKilling")
+		self.name.."CombatEvents")
 		
-	self.mountingAndKillingTrackerRegistered = false
+	self.combatEventsRegistered = false
 end

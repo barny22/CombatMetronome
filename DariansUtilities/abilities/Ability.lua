@@ -126,10 +126,10 @@ function Ability.Tracker:Start()
     end)
 
     EVENT_MANAGER:RegisterForEvent(self.name.."SlotUpdated", EVENT_ACTION_SLOT_STATE_UPDATED, function(_, slot) 
-        if slot == 1 or (slot > 2 and slot < 9) then self:HandleSlotUpdated(_, slot) end
+        if slot > 2 and slot < 9 then self:HandleSlotUpdated(_, slot) end
     end)
     EVENT_MANAGER:RegisterForEvent(self.name.."SlotUsed", EVENT_ACTION_SLOT_ABILITY_USED, function(_, slot)
-        if slot > 1 and slot < 9 then self:HandleSlotUsed(_, slot) end
+        if slot < 9 then self:HandleSlotUsed(_, slot) end
     end)
     EVENT_MANAGER:RegisterForEvent(self.name.."CombatEvent", EVENT_COMBAT_EVENT, function(...)
         self:HandleCombatEvent(...) 
@@ -159,8 +159,14 @@ function Ability.Tracker:Update()
     if (self.currentEvent and self.eventStart) then
         local event = self.currentEvent
         local ability = event.ability
+        
+        -- if ability.heavy and gcdProgress <= 0 then
+            -- self.eventStart = nil
+            -- self.currentEvent = nil
+            -- return
+        -- end
 
-        if (time > self.eventStart + math.max(ability.delay, 1000)) and gcdProgress <= 0 then
+        if (time > self.eventStart + ability.delay) and gcdProgress <= 0 then
             -- d("Event over!")
             self.eventStart = nil
             self.currentEvent = nil
@@ -175,7 +181,6 @@ function Ability.Tracker:Update()
     if ArePlayerWeaponsSheathed() then
         self.weaponLastSheathed = time
     end
-    -- self.slotsNotUpdated = {3,4,5,6,7,8}
 end
 
 function Ability.Tracker:NewEvent(ability, slot, start)
@@ -232,7 +237,7 @@ function Ability.Tracker:AbilityUsed()
         local event = self.queuedEvent
         event.start = self.eventStart
         self.queuedEvent = nil
-        self.gcd = slotDuration
+        -- self.gcd = slotDuration
         self:CallbackAbilityUsed(event)
 
         if (event.ability.instant or event.ability.channeled) then
@@ -277,11 +282,6 @@ end
 function Ability.Tracker:HandleSlotUpdated(_, slot)
     
     local time = GetFrameTimeMilliseconds()
-    
-    if slot == 1 then 
-        Ability.Tracker:CallbackLightAttackUsed(time)
-        return
-    end
     
     table.insert(self.slotsUpdated, slot)
     zo_callLater(function(slot)
@@ -368,16 +368,27 @@ function Ability.Tracker:HandleSlotUsed(_, slot)
     if actionType == ACTION_TYPE_CRAFTED_ABILITY then
         ability = Util.Ability:ForId(GetAbilityIdForCraftedAbilityId(GetSlotBoundId(slot)))
     else
-        ability = Util.Ability:ForId(GetSlotBoundId(slot))--, slot)
+        ability = Util.Ability:ForId(GetSlotBoundId(slot))
     end
     
-    -- if not (ability) then return end
-
-    -- if (ability.light) then return end
-
+    if slot == 1 then 
+        Ability.Tracker:CallbackLightAttackUsed(time)
+        return
+    end
+    
+    if slot == 2 and self.currentEvent and self.currentEvent.ability.heavy then
+        -- d("canelling heavy")
+        self.currentEvent = nil
+        self.gcd = 0
+        Ability.Tracker:CallbackAbilityUsed("cancel heavy")
+        return
+    elseif slot == 2 then
+        return
+    end
+    
     self:CancelEvent()
-
-    if (slot == 2) then return end
+    
+    -- if slot == 2 then return end
 
     -- _=self.log and d(""..GetFrameTimeMilliseconds().." : New ability - "..ability.name)
     self:NewEvent(ability, slot, time)
@@ -418,7 +429,7 @@ function Ability.Tracker:HandleCombatEvent(_,     res,  err,   aName, _, _,    s
         -- log("Not error!")
 
         local heavyId = GetSlotBoundId(2)
-        if (heavyId == aId) then
+        if (heavyId == aId and res == 2200) then
             -- d("Heavy ability is current combat event")
             if (self.currentEvent and self.currentEvent.ability.id == heavyId) then
                 return
@@ -431,11 +442,6 @@ function Ability.Tracker:HandleCombatEvent(_,     res,  err,   aName, _, _,    s
             -- self.eventStart = self.queuedEvent.recorded
             -- self:AbilityUsed()
         end
-        -- local lightId = GetSlotBoundId(1)
-        -- if lightId == aId and res ~= 2350 and self.lastLightAttack ~= time then
-            -- Ability.Tracker:CallbackLightAttackUsed(time)
-            -- self.lastLightAttack = time
-        -- end
     end
 end
 
