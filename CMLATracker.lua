@@ -8,17 +8,21 @@ local TimeBetweenLA = 0
 local LightAttacksPerSecond = 0
 
 function LATracker:HandleLightAttacks(time)
-	if CM.inCombat and not self.combatStart then
-		self.combatStart = time
-		LATracker:NumberOfLightAttacks()
-		LATracker:TimeBetweenLightAttacks(time)
-		LATracker:CalculateLightAttacksPerSecond(time)
-		LATracker:DisplayText()
-	elseif CM.inCombat and self.combatStart then
-		LATracker:NumberOfLightAttacks()
-		LATracker:TimeBetweenLightAttacks(time)
-		LATracker:CalculateLightAttacksPerSecond(time)
-		LATracker:DisplayText()
+	if CM.config.hideLATrackerInPVP and CM.inPVPZone then
+		return
+	else
+		if CM.inCombat and not self.combatStart then
+			self.combatStart = time
+			LATracker:NumberOfLightAttacks()
+			LATracker:TimeBetweenLightAttacks(time)
+			LATracker:CalculateLightAttacksPerSecond(time)
+			LATracker:DisplayText()
+		elseif CM.inCombat and self.combatStart then
+			LATracker:NumberOfLightAttacks()
+			LATracker:TimeBetweenLightAttacks(time)
+			LATracker:CalculateLightAttacksPerSecond(time)
+			LATracker:DisplayText()
+		end
 	end
 end
 
@@ -45,7 +49,7 @@ function LATracker:CalculateLightAttacksPerSecond(time)
 end
 
 function LATracker:DisplayText()
-	if (CM.config.hideLATrackerInPVP and CM.inPVPZone) or CM.config.laTrackerChoice == "Nothing" then
+	if CM.config.laTrackerChoice == "Nothing" then
 		LATracker.label:SetHidden(true)
 	else
 		if CM.inCombat or CM.config.laTrackerIsUnlocked then
