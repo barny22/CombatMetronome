@@ -82,7 +82,9 @@ function CombatMetronome:Init()
 	---- Light Attack Tracker ----
 	------------------------------
 	
-	LATracker:BuildLATracker()	
+	LATracker:BuildLATracker()
+	LATracker.frame:SetUnlocked(self.config.laTrackerIsUnlocked)
+	LATracker:DisplayText()
 end
 
 -- LOAD HOOK
@@ -237,20 +239,14 @@ function CombatMetronome:RegisterItemsTracker()
 			self.itemCache = {}
 			self.itemCache.name = {}
 			self.itemCache.icon = {}
-			if not self.itemCache.switch then
-				for i = 1, bagSize do
-					self.itemCache.name[i] = Util.Text.CropZOSString(GetItemName(1, i))
-					self.itemCache.icon[i] = GetItemInfo(1, i)
-				end
-				zo_callLater(function() self.itemCache.switch = true end, 850)
+			for i = 1, bagSize do
+				self.itemCache.name[i] = Util.Text.CropZOSString(GetItemName(1, i))
+				self.itemCache.icon[i] = GetItemInfo(1, i)
 			end
 			zo_callLater(function()
 				self.itemCache = nil
-				if self.itemUsed then
-					self.itemUsed = nil
-				end
 			end,
-			1000)
+			200)
 		end
 	)
 
@@ -262,7 +258,14 @@ function CombatMetronome:RegisterItemsTracker()
 				self.itemUsed = {}
 				self.itemUsed.name = self.itemCache.name[slotId]
 				self.itemUsed.icon = self.itemCache.icon[slotId]
-				self.itemUsed.switch = false
+				zo_callLater(function()
+					if self.itemUsed then
+						self.itemUsed.name = nil
+						self.itemUsed.icon = nil
+						self.itemUsed = nil
+					end
+				end,
+				950)
 			end
 		end
 	)
@@ -294,6 +297,11 @@ function CombatMetronome:RegisterMountingAndKillingTracker()
 					self.killingAction = {}
 					self.killingAction.name = Util.Text.CropZOSString(aName)
 					self.killingAction.icon = "/esoui/art/icons/achievement_u23_skillmaster_darkbrotherhood.dds"
+				end
+				if aId == 16565 then
+					self.breakingFree = {}
+					self.breakingFree.name = Util.Text.CropZOSString(aName)
+					self.breakingFree.icon = "/esoui/art/icons/ability_rogue_050.dds"
 				end
 			end
 			-- if Util.Text.CropZOSString(tName) == self.currentCharacterName then

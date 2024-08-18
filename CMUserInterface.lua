@@ -1,5 +1,6 @@
 -- local LAM = LibAddonMenu2
 local Util = DariansUtilities
+local CM = CombatMetronome
 
 local MIN_WIDTH = 50
 local MAX_WIDTH = 500
@@ -473,10 +474,8 @@ end
 	------------------------------------
 	---- Build Light Attack Tracker ----
 	------------------------------------
-local CM = CombatMetronome
 CM.LATracker = CM.LATracker or {}
 local LATracker = CombatMetronome.LATracker
--- LATracker.name = LATracker.name or CM.name.."LightAttackTracker"
 
 function LATracker:BuildLATracker()
 	if not LATracker.frame then
@@ -490,7 +489,7 @@ function LATracker:BuildLATracker()
 	LATracker.label = LATracker.label or WINDOW_MANAGER:CreateControl(self.name.."Label", LATracker.frame, CT_LABEL)
 	LATracker.label:SetText("")
 	LATracker.label:ClearAnchors()
-	LATracker.label:SetAnchorFill()
+	LATracker.label:SetAnchor(CENTER, LATracker.frame, CENTER, 0, 0)
 	
 	local function LabelSettings()
 		LATracker.label:SetFont(Util.Text.getFontString(tostring("$("..CM.config.labelFont..")"), LATracker.frame:GetHeight(), CM.config.fontStyle))

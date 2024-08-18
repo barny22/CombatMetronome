@@ -48,7 +48,7 @@ function LATracker:DisplayText()
 	if (CM.config.hideLATrackerInPVP and CM.inPVPZone) or CM.config.laTrackerChoice == "Nothing" then
 		LATracker.label:SetHidden(true)
 	else
-		if CM.inCombat then
+		if CM.inCombat or CM.config.laTrackerIsUnlocked then
 			LATracker.label:SetHidden(false)
 			if CM.config.laTrackerChoice == "Time between light attacks" then
 				LATracker.label:SetText(TimeBetweenLA.." ms")

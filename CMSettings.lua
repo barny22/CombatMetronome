@@ -1641,9 +1641,11 @@ function CombatMetronome:BuildMenu()
 						if value then
 							LATracker.frame:SetDrawTier(DT_HIGH)
 							LATracker.frame:SetHidden(false)
+							LATracker:DisplayText()
 						else
 							LATracker.frame:SetDrawTier(DT_LOW)
 							LATracker.frame:SetHidden(true)
+							LATracker.label:SetHidden(true)
 						end
 					end,
 				},
