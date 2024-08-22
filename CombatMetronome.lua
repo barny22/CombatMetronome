@@ -195,17 +195,17 @@ function CombatMetronome:RegisterCM()
 		end
 	)
 	
-	-- if self.config.trackCollectibles or (self.config.showMountNick and self.config.trackMounting) then
+	if self.config.trackCollectibles or (self.config.showMountNick and self.config.trackMounting) then
 		CombatMetronome:RegisterCollectiblesTracker()
-	-- end
+	end
 	
-	-- if self.config.trackItems then
+	if self.config.trackItems then
 		CombatMetronome:RegisterItemsTracker()
-	-- end
+	end
 	
-	-- if self.config.trackMounting or self.config.trackKillingActions or self.trackBreakingFree then
+	if self.config.trackMounting or self.config.trackKillingActions or self.trackBreakingFree then
 		CombatMetronome:RegisterCombatEvents()
-	-- end
+	end
 	-- d("cm is registered")
 end
 
@@ -358,17 +358,17 @@ function CombatMetronome:UnregisterCM()
 	EVENT_MANAGER:UnregisterForEvent(
 		self.name.."RollDodge")
 	
-	-- if self.collectiblesTrackerRegistered then
+	if self.collectiblesTrackerRegistered then
 		CombatMetronome:UnregisterCollectiblesTracker()
-	-- end
+	end
 	
-	-- if self.itemsTrackerRegistered then
+	if self.itemsTrackerRegistered then
 		CombatMetronome:UnregisterItemsTracker()
-	-- end
+	end
 	
-	-- if self.combatEventsRegistered then
+	if self.combatEventsRegistered then
 		CombatMetronome:UnregisterCombatEvents()
-	-- end
+	end
 end
 
 function CombatMetronome:UnregisterResourceTracker()
