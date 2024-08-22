@@ -295,7 +295,7 @@ function CombatMetronome:RegisterCombatEvents()
 					CombatMetronome:SetIconsAndNamesNil()
 					self.activeMount.action = "Mounting"
 				end
-				if aId == 178780 then
+				if aId == 138780 then
 					CombatMetronome:SetIconsAndNamesNil()
 					self.killingAction = {}
 					self.killingAction.name = Util.Text.CropZOSString(aName)
@@ -305,8 +305,7 @@ function CombatMetronome:RegisterCombatEvents()
 					self.killingAction = {}
 					self.killingAction.name = Util.Text.CropZOSString(aName)
 					self.killingAction.icon = "/esoui/art/icons/achievement_u23_skillmaster_darkbrotherhood.dds"
-				end
-				if aId == 16565 then
+				elseif aId == 16565 then
 					CombatMetronome:SetIconsAndNamesNil()
 					self.breakingFree = {}
 					self.breakingFree.name = Util.Text.CropZOSString(aName)
