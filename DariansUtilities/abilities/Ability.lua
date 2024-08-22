@@ -129,7 +129,7 @@ function Ability.Tracker:Start()
         if slot > 2 and slot < 9 then self:HandleSlotUpdated(_, slot) end
     end)
     EVENT_MANAGER:RegisterForEvent(self.name.."SlotUsed", EVENT_ACTION_SLOT_ABILITY_USED, function(_, slot)
-        if slot < 9 then self:HandleSlotUsed(_, slot) end
+        if slot >1 and slot < 9 then self:HandleSlotUsed(_, slot) end
     end)
     EVENT_MANAGER:RegisterForEvent(self.name.."CombatEvent", EVENT_COMBAT_EVENT, function(...)
         self:HandleCombatEvent(...) 
@@ -353,7 +353,7 @@ function Ability.Tracker:HandleCooldownsUpdated()
     
     if self.queuedEvent then
         self.eventStart = self.cdTriggerTime - slotDuration + slotRemaining
-        if self.eventStart + 100 >= self.cdTriggerTime then
+        if self.eventStart + 200 >= self.cdTriggerTime then
             self:AbilityUsed()
         end
     end
@@ -362,19 +362,11 @@ end
 function Ability.Tracker:HandleSlotUsed(_, slot)
 
     local time = GetFrameTimeMilliseconds()
-
-    local ability = {}
-    local actionType = GetSlotType(slot)
-    if actionType == ACTION_TYPE_CRAFTED_ABILITY then
-        ability = Util.Ability:ForId(GetAbilityIdForCraftedAbilityId(GetSlotBoundId(slot)))
-    else
-        ability = Util.Ability:ForId(GetSlotBoundId(slot))
-    end
     
-    if slot == 1 then 
-        Ability.Tracker:CallbackLightAttackUsed(time)
-        return
-    end
+    -- if slot == 1 then 
+        -- Ability.Tracker:CallbackLightAttackUsed(time)
+        -- return
+    -- end
     
     if slot == 2 and self.currentEvent and self.currentEvent.ability.heavy then
         -- d("canelling heavy")
@@ -384,6 +376,14 @@ function Ability.Tracker:HandleSlotUsed(_, slot)
         return
     elseif slot == 2 then
         return
+    end
+
+    local ability = {}
+    local actionType = GetSlotType(slot)
+    if actionType == ACTION_TYPE_CRAFTED_ABILITY then
+        ability = Util.Ability:ForId(GetAbilityIdForCraftedAbilityId(GetSlotBoundId(slot)))
+    else
+        ability = Util.Ability:ForId(GetSlotBoundId(slot))
     end
     
     self:CancelEvent()
@@ -442,6 +442,9 @@ function Ability.Tracker:HandleCombatEvent(_,     res,  err,   aName, _, _,    s
             -- self.eventStart = self.queuedEvent.recorded
             -- self:AbilityUsed()
         end
+        local lightId = GetSlotBoundId(1)
+        if lightId == aId and res == 2240 and time ~= self.lastLightAttack then Ability.Tracker:CallbackLightAttackUsed(time) end
+        self.lastLightAttack = time
     end
 end
 
