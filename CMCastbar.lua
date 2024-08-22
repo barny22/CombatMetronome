@@ -100,6 +100,7 @@ function CombatMetronome:Update()
 			end
 			
 			if gcdProgress <= 0 then
+				CombatMetronome:SetIconsAndNamesNil()
 				self:OnCDStop()
 			else
 				self:HideBar(false)

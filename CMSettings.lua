@@ -593,12 +593,12 @@ function CombatMetronome:BuildMenu()
 											end
 										else
 											-- mountIcon:SetDesaturation(-100)
-											if self.mountingTrackerRegistered and not (self.config.trackKillingActions or self.config.trackBreakingFree) then
-												CombatMetronome:UnregisterCombatEvents()
-											end
-											if not self.config.trackCollectibles and self.collectiblesTrackerRegistered then
-												CombatMetronome:UnregisterCollectiblesTracker()
-											end
+											-- if self.mountingTrackerRegistered and not (self.config.trackKillingActions or self.config.trackBreakingFree) then
+												-- CombatMetronome:UnregisterCombatEvents()
+											-- end
+											-- if not self.config.trackCollectibles and self.collectiblesTrackerRegistered then
+												-- CombatMetronome:UnregisterCollectiblesTracker()
+											-- end
 										end
 									end,
 								},
@@ -615,9 +615,9 @@ function CombatMetronome:BuildMenu()
 												CombatMetronome:RegisterCollectiblesTracker()
 											end
 										else
-											if not self.config.trackCollectibles and self.collectiblesTrackerRegistered then
-												CombatMetronome:UnregisterCollectiblesTracker()
-											end
+											-- if not self.config.trackCollectibles and self.collectiblesTrackerRegistered then
+												-- CombatMetronome:UnregisterCollectiblesTracker()
+											-- end
 										end
 									end,
 								},
@@ -636,9 +636,9 @@ function CombatMetronome:BuildMenu()
 											end
 										else
 											-- assistantsIcon:SetDesaturation(-100)
-											if self.collectiblesTrackerRegistered and not self.config.showMountNick then
-												CombatMetronome:UnregisterCollectiblesTracker()
-											end
+											-- if self.collectiblesTrackerRegistered and not self.config.showMountNick then
+												-- CombatMetronome:UnregisterCollectiblesTracker()
+											-- end
 										end
 									end,
 								},
@@ -657,8 +657,8 @@ function CombatMetronome:BuildMenu()
 										-- end
 										if value and not self.itemsTrackerRegistered then
 											CombatMetronome:RegisterItemsTracker()
-										elseif not value and self.itemsTrackerRegistered then
-											CombatMetronome:UnregisterItemsTracker()
+										-- elseif not value and self.itemsTrackerRegistered then
+											-- CombatMetronome:UnregisterItemsTracker()
 										end
 									end,
 								},
@@ -678,8 +678,8 @@ function CombatMetronome:BuildMenu()
 										-- end
 										if value and not self.combatEventsRegistered then
 											CombatMetronome:RegisterCombatEvents()
-										elseif not value and self.mountingAndKillingTrackerRegistered and not (self.config.trackMounting or self.config.trackBreakingFree) then
-											CombatMetronome:UnregisterCombatEvents()
+										-- elseif not value and self.combatEventsRegistered and not (self.config.trackMounting or self.config.trackBreakingFree) then
+											-- CombatMetronome:UnregisterCombatEvents()
 										end
 									end,
 								},
@@ -698,8 +698,8 @@ function CombatMetronome:BuildMenu()
 										-- end
 										if value and not self.combatEventsRegistered then
 											CombatMetronome:RegisterCombatEvents()
-										elseif not value and self.combatEventsRegistered and not (self.config.trackMounting or self.config.trackKillingActions) then
-											CombatMetronome:UnregisterCombatEvents()
+										-- elseif not value and self.combatEventsRegistered and not (self.config.trackMounting or self.config.trackKillingActions) then
+											-- CombatMetronome:UnregisterCombatEvents()
 										end
 									end,
 								},

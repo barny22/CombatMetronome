@@ -129,6 +129,7 @@ function CombatMetronome:GCDSpecifics(text, icon, gcdProgress)
 	else
 		self.timeLabel:SetHidden(true)
 	end
+	if gcdProgress == 0 then CombatMetronome:SetIconsAndNamesNil() end
 end
 
 function CombatMetronome:SetIconsAndNamesNil()
