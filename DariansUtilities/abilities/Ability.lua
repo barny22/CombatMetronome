@@ -353,7 +353,7 @@ function Ability.Tracker:HandleCooldownsUpdated()
     
     if self.queuedEvent then
         self.eventStart = self.cdTriggerTime - slotDuration + slotRemaining
-        if self.eventStart + 200 >= self.cdTriggerTime then
+        if self.eventStart + 170 >= self.cdTriggerTime then
             self:AbilityUsed()
         end
     end
