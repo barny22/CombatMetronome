@@ -125,9 +125,9 @@ function Ability.Tracker:Start()
         self:Update()
     end)
 
-    EVENT_MANAGER:RegisterForEvent(self.name.."SlotUpdated", EVENT_ACTION_SLOT_STATE_UPDATED, function(_, slot) 
-        if slot > 2 and slot < 9 then self:HandleSlotUpdated(_, slot) end
-    end)
+    -- EVENT_MANAGER:RegisterForEvent(self.name.."SlotUpdated", EVENT_ACTION_SLOT_STATE_UPDATED, function(_, slot) 
+        -- if slot > 2 and slot < 9 then self:HandleSlotUpdated(_, slot) end
+    -- end)
     EVENT_MANAGER:RegisterForEvent(self.name.."SlotUsed", EVENT_ACTION_SLOT_ABILITY_USED, function(_, slot)
         if slot >1 and slot < 9 then self:HandleSlotUsed(_, slot) end
     end)
@@ -148,13 +148,13 @@ function Ability.Tracker:Update()
     local gcdProgress = Ability.Tracker:GCDCheck()
 
     -- Fire off late events if no SLOT_UPDATE events
-    -- if (not self.eventStart and self.queuedEvent and self.queuedEvent.allowForce) then
-        -- if (time > self.queuedEvent.recorded + EVENT_FORCE_WAIT) then
+    if (not self.eventStart and self.queuedEvent and self.queuedEvent.allowForce and not self.currentEvent) then
+        if (time > self.queuedEvent.recorded) then
             -- _=self.log and d("Event force "..tostring(time - self.queuedEvent.recorded).."ms ago")
-            -- self.eventStart = self.queuedEvent.recorded
-            -- self:AbilityUsed()
-        -- end
-    -- end
+            self.eventStart = self.queuedEvent.recorded
+            self:AbilityUsed()
+        end
+    end
 
     if (self.currentEvent and self.eventStart) then
         local event = self.currentEvent
@@ -279,24 +279,24 @@ function Ability.Tracker:CallbackAbilityCancelled(event)
     -- end
 end
 
-function Ability.Tracker:HandleSlotUpdated(_, slot)
+-- function Ability.Tracker:HandleSlotUpdated(_, slot)
     
-    local time = GetFrameTimeMilliseconds()
+    -- local time = GetFrameTimeMilliseconds()
     
-    table.insert(self.slotsUpdated, slot)
-    zo_callLater(function(slot)
-        if #self.slotsUpdated == 1 then
-            local slotRemaining = GetSlotCooldownInfo(slot)
-            if not self.currentEvent and slotRemaining > 0 then
-                local ability = Ability:ForId(GetSlotBoundId(slot))
-                self:NewEvent(ability, slot, time)
-                self.eventStart = time
-                self:AbilityUsed()
-                self.slotsUpdated = {}
-            end
-        end
-    end,
-    50)
+    -- table.insert(self.slotsUpdated, slot)
+    -- zo_callLater(function(slot)
+        -- if #self.slotsUpdated == 1 then
+            -- local slotRemaining = GetSlotCooldownInfo(slot)
+            -- if not self.currentEvent and slotRemaining > 0 then
+                -- local ability = Ability:ForId(GetSlotBoundId(slot))
+                -- self:NewEvent(ability, slot, time)
+                -- self.eventStart = time
+                -- self:AbilityUsed()
+                -- self.slotsUpdated = {}
+            -- end
+        -- end
+    -- end,
+    -- 50)
     -- trigger for only elemental explosion
     -- for i, num in ipairs(self.slotsNotUpdated) do
         -- if num == slot then
@@ -342,7 +342,7 @@ function Ability.Tracker:HandleSlotUpdated(_, slot)
             -- self:AbilityUsed()
         -- end
     -- end
-end
+-- end
 
 function Ability.Tracker:HandleCooldownsUpdated()
     self.cdTriggerTime = GetFrameTimeMilliseconds()
@@ -353,7 +353,7 @@ function Ability.Tracker:HandleCooldownsUpdated()
     
     if self.queuedEvent then
         self.eventStart = self.cdTriggerTime - slotDuration + slotRemaining
-        if self.eventStart + 170 >= self.cdTriggerTime then
+        if self.eventStart + 100 >= self.cdTriggerTime then
             self:AbilityUsed()
         end
     end
