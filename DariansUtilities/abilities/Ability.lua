@@ -463,9 +463,8 @@ function Ability.Tracker:HandleCombatEvent(_,     res,  err,   aName, _, _,    s
     if (Util.Targeting.isUnitPlayer(sName, sUId)) then
         -- log("Source is player")
 
-        if (res == ACTION_RESULT_CANNOT_USE and not self.queuedEvent.allowForce) then
+        if (res == ACTION_RESULT_CANNOT_USE and self.queuedEvent and not self.queuedEvent.allowForce) then
             self:CancelEvent()
-            self.currentEvent = nil
             return
         end
 
