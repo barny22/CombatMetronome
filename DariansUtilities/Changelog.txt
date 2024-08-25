@@ -1,6 +1,6 @@
 2024-08-14 v1.7.5
 !  Moved function to crop zos strings to Text.lua to use it from there
-!  Updated Ability.lua
+!  Updated Ability.lua - interrupts now are triggered here, also abilities cast right after dodgerolling are now properly triggered
 !  Changed trigger for abilities to new event to fix recognition of all abilities
 
 2024-04-19 v1.7.4

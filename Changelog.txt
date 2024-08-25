@@ -4,6 +4,7 @@
 !  More fixes to ability adjust section
 !  Removed some unnecessary code sections
 !  Changed triggering of abilities in DariansUtilies, which should also fix elemental explosion recognition
+!  Moved interrupts to DariansUtilies' Ability.lua
 +  Added option to track rolldodge/mounting/dismounting/killing actions and the use of collectibles to be differentiated on progressbar when tracking GCD
 +  Added a light attack tracker
 

@@ -118,8 +118,10 @@ function Ability.Tracker:Start()
     self.eventStart = 0
     self.lastSlotRemaining = 0
     self.lastLightAttack = 0
+    self.rollDodgeFinished = true
+    self.lastBlockStatus = false
     
-    self.slotsUpdated = {}
+    -- self.slotsUpdated = {}
     
     EVENT_MANAGER:RegisterForUpdate(self.name.."Update", 1000 / 30, function(...)
         self:Update()
@@ -141,14 +143,71 @@ function Ability.Tracker:Start()
     EVENT_MANAGER:RegisterForEvent(self.name.."CooldownsUpdated", EVENT_ACTION_UPDATE_COOLDOWNS, function()
         self:HandleCooldownsUpdated()
     end)
+	EVENT_MANAGER:RegisterForEvent(self.name.."RollDodge", EVENT_EFFECT_CHANGED, function(...)
+        self:HandleRollDodge(...)
+	end)
+	EVENT_MANAGER:RegisterForEvent(self.name.."BarSwap", EVENT_ACTION_SLOTS_ACTIVE_HOTBAR_UPDATED, function(...)
+        self:HandleBarSwap(...)
+    end)
+end
+
+function Ability.Tracker:GCDCheck()
+    local slotRemaining, slotDuration, _, _ = GetSlotCooldownInfo(3)
+    local sR, sD, _, _ = GetSlotCooldownInfo(4)
+    if (sR > slotRemaining) or ( sD > slotDuration ) then
+        slotRemaining = sR
+        slotDuration = sD
+    end
+    if slotDuration < 1 then
+        slotDuration = 1
+    end
+    local gcdProgress = slotRemaining/slotDuration
+    return gcdProgress, slotRemaining, slotDuration
+end
+
+function Ability.Tracker:HandleRollDodge(_,changeType,_,_,_,_,_,_,_,_,_,_,_,_,_,abilityId,sourceType)
+    if sourceType == COMBAT_UNIT_TYPE_PLAYER and abilityId == 29721 and changeType == EFFECT_RESULT_UPDATED then			--- 69143 is DodgeFatigue
+        self.rollDodgeFinished = false
+        local remaining = GetSlotCooldownInfo(3)
+        zo_callLater(function() self.rollDodgeFinished = true end, remaining)
+    end
+    if not self.rollDodgeFinished and self.currentEvent then
+        self.currentEvent = nil
+        if self.CombatMetronome and self.CombatMetronome.currentEvent then
+            self.CombatMetronome.currentEvent = nil
+            self.CombatMetronome:SetIconsAndNamesNil()
+        end
+    end
+end
+
+function Ability.Tracker:HandleBarSwap(_, barswap, _, _)
+    self.barswap = barswap == true
+    if self.barswap and self.currentEvent and self.currentEvent.ability and self.currentEvent.ability.delay > 1000 then
+        self.currentEvent = nil
+        if self.CombatMetronome and self.CombatMetronome.currentEvent then
+            self.CombatMetronome.currentEvent = nil
+        end
+        self.barswap = false
+    end
 end
 
 function Ability.Tracker:Update()
     local time = GetFrameTimeMilliseconds()
     local gcdProgress = Ability.Tracker:GCDCheck()
+    if (self.lastBlockStatus == false) and IsBlockActive() then
+        self.currentEvent = nil
+        if self.CombatMetronome and self.CombatMetronome.currentEvent then
+            self.CombatMetronome.currentEvent = nil
+        end
+    end
 
-    -- Fire off late events if no SLOT_UPDATE events
-    if (not self.eventStart and self.queuedEvent and self.queuedEvent.allowForce and not self.currentEvent) then
+    -- Fire off late events if no UPDATE_COOLDOWNS events
+    if self.queuedEvent and self.queuedEvent.castDuringRollDodge and self.rollDodgeFinished and not self.currentEvent and gcdProgress > 0 then
+        if time > self.queuedEvent.recorded then
+            self.eventStart = time
+            self:AbilityUsed()
+        end
+    elseif (not self.eventStart and self.queuedEvent and self.queuedEvent.allowForce and not self.queuedEvent.castDuringRollDodge and not self.currentEvent) then
         if (time > self.queuedEvent.recorded) then
             -- _=self.log and d("Event force "..tostring(time - self.queuedEvent.recorded).."ms ago")
             self.eventStart = self.queuedEvent.recorded
@@ -156,19 +215,13 @@ function Ability.Tracker:Update()
         end
     end
 
-    if (self.currentEvent and self.eventStart) then
+    if (self.currentEvent and self.currentEvent.start) then
         local event = self.currentEvent
         local ability = event.ability
         
-        -- if ability.heavy and gcdProgress <= 0 then
-            -- self.eventStart = nil
-            -- self.currentEvent = nil
-            -- return
-        -- end
-
-        if (time > self.eventStart + ability.delay) and gcdProgress <= 0 then
+        if (time > event.start + ability.delay) then
             -- d("Event over!")
-            self.eventStart = nil
+            -- self.eventStart = nil
             self.currentEvent = nil
 
             if (event.channeled) then
@@ -181,6 +234,7 @@ function Ability.Tracker:Update()
     if ArePlayerWeaponsSheathed() then
         self.weaponLastSheathed = time
     end
+    self.lastBlockStatus = IsBlockActive()
 end
 
 function Ability.Tracker:NewEvent(ability, slot, start)
@@ -191,7 +245,7 @@ function Ability.Tracker:NewEvent(ability, slot, start)
 
     event.ability = ability
     event.recorded = start
-    self.eventStart = start
+    if not self.rollDodgeFinished then event.castDuringRollDodge = true end
     -- event.recorded = time - EVENT_RECORD_DELAY
 
     local isMounted = time < self.lastMounted + DISMOUNT_PERIOD
@@ -203,7 +257,8 @@ function Ability.Tracker:NewEvent(ability, slot, start)
 
     self.queuedEvent = event
         
-    if self.cdTriggerTime == start then
+    if self.cdTriggerTime == start and not self.currentEvent and self.rollDodgeFinished and not event.castDuringRollDodge then
+        self.eventStart = start
         self:AbilityUsed()
     end
     -- d("  Allow force = "..tostring(self.queuedEvent.allowForce))
@@ -211,6 +266,7 @@ end
 
 function Ability.Tracker:CancelEvent()
     -- self.eventStart = nil
+    local gcdProgress = self:GCDCheck()
     self.queuedEvent = nil
 
     if (self.currentEvent) then
@@ -221,34 +277,26 @@ function Ability.Tracker:CancelEvent()
             self:CallbackAbilityCancelled(self.currentEvent)
         end
     end
-
-    self.currentEvent = nil
+    
+    -- self.currentEvent = nil
 end
 
 function Ability.Tracker:AbilityUsed()
-    -- d("trying to use ability - "..self.queuedEvent.ability.name)
-    -- local gcdProgress, slotRemaining, slotDuration = Ability.Tracker:GCDCheck()
-    -- local abilityMayBeTriggered1 = self.currentEvent and self.currentEvent.ability.id == self.queuedEvent.ability.id and self.currentEvent.start + self.lastSlotRemaining < self.eventStart and gcdProgress > 0.7
-    -- local abilityMayBeTriggered2 = self.currentEvent and self.currentEvent.ability.id == not self.queuedEvent.ability.id and not (self.queuedEvent.ability.heavy and self.currentEvent.start + self.lastSlotRemaining > self.eventStart) and gcdProgress > 0.7
-    -- local abilityMayBeTriggered3 = self.currentEvent and self.currentEvent.start + self.lastSlotRemaining < self.eventStart and gcdProgress > 0.7
-    
-    -- if abilityMayBeTriggered1 or abilityMayBeTriggered2 or abilityMayBeTriggered3 or not self.currentEvent or gcdProgress == 0 then
-    -- d("using ability - "..self.queuedEvent.ability.name)
-        local event = self.queuedEvent
-        event.start = self.eventStart
-        self.queuedEvent = nil
-        -- self.gcd = slotDuration
-        self:CallbackAbilityUsed(event)
+    local gcdProgress, slotRemaining, slotDuration = Ability.Tracker:GCDCheck()
+    local event = self.queuedEvent
+    event.start = self.eventStart
+    self.queuedEvent = nil
+    self.gcd = slotDuration
+    self:CallbackAbilityUsed(event)
 
-        if (event.ability.instant or event.ability.channeled) then
-            self:CallbackAbilityActivated(event)
-        end
+    if (event.ability.instant or event.ability.channeled) then
+        self:CallbackAbilityActivated(event)
+    end
 
-    -- if (not event.ability.instant) then
+    if (not event.ability.instant) then
         -- d("Putting "..event.ability.name.." on current")
         self.currentEvent = event
-        -- self.lastSlotRemaining = slotRemaining
-    -- end
+    end
     -- end
 end
 
@@ -351,9 +399,9 @@ function Ability.Tracker:HandleCooldownsUpdated()
     self.gcd = slotDuration
     -- local oldStart = self.eventStart or 0
     
-    if self.queuedEvent then
+    if self.queuedEvent and not self.currentEvent and self.rollDodgeFinished and not self.queuedEvent.castDuringRollDodge then
         self.eventStart = self.cdTriggerTime - slotDuration + slotRemaining
-        if self.eventStart + 100 >= self.cdTriggerTime then
+        if self.eventStart + 170 >= self.cdTriggerTime then
             self:AbilityUsed()
         end
     end
@@ -362,11 +410,6 @@ end
 function Ability.Tracker:HandleSlotUsed(_, slot)
 
     local time = GetFrameTimeMilliseconds()
-    
-    -- if slot == 1 then 
-        -- Ability.Tracker:CallbackLightAttackUsed(time)
-        -- return
-    -- end
     
     if slot == 2 and self.currentEvent and self.currentEvent.ability.heavy then
         -- d("canelling heavy")
@@ -405,8 +448,9 @@ function Ability.Tracker:HandleCombatEvent(_,     res,  err,   aName, _, _,    s
             or res == ACTION_RESULT_PACIFIED
             or res == ACTION_RESULT_STAGGERED
             or res == ACTION_RESULT_STUNNED
-            or res == ACTION_RESULT_INTERRUPTED) then
+            or res == ACTION_RESULT_INTERRUPT) then
             self:CancelEvent()
+            self.currentEvent = nil
             return
         end
     end
@@ -419,8 +463,9 @@ function Ability.Tracker:HandleCombatEvent(_,     res,  err,   aName, _, _,    s
     if (Util.Targeting.isUnitPlayer(sName, sUId)) then
         -- log("Source is player")
 
-        if (res == COMBAT_RESULT_CANNOT_USE and not self.queuedEvent.allowForce) then
+        if (res == ACTION_RESULT_CANNOT_USE and not self.queuedEvent.allowForce) then
             self:CancelEvent()
+            self.currentEvent = nil
             return
         end
 
@@ -446,18 +491,4 @@ function Ability.Tracker:HandleCombatEvent(_,     res,  err,   aName, _, _,    s
         if lightId == aId and res == 2240 and time ~= self.lastLightAttack then Ability.Tracker:CallbackLightAttackUsed(time) end
         self.lastLightAttack = time
     end
-end
-
-function Ability.Tracker:GCDCheck()
-    local slotRemaining, slotDuration, _, _ = GetSlotCooldownInfo(3)
-    local sR, sD, _, _ = GetSlotCooldownInfo(4)
-    if (sR > slotRemaining) or ( sD > slotDuration ) then
-        slotRemaining = sR
-        slotDuration = sD
-    end
-    if slotDuration < 1 then
-        slotDuration = 1
-    end
-    local gcdProgress = slotRemaining/slotDuration
-    return gcdProgress, slotRemaining, slotDuration
 end

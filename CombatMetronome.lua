@@ -12,6 +12,7 @@ CombatMetronome = {
 
 -- local LAM = LibAddonMenu2
 local Util = DariansUtilities
+Util.Ability = Util.Ability or {}
 Util.Text = Util.Text or {}
 CombatMetronome.LATracker = CombatMetronome.LATracker or {}
 local LATracker = CombatMetronome.LATracker
@@ -47,7 +48,7 @@ function CombatMetronome:Init()
 
     self.inCombat = IsUnitInCombat("player")
     self.currentEvent = nil
-	self.rollDodgeFinished = true
+	-- self.rollDodgeFinished = true
 
     self.gcd = 1000
 
@@ -165,35 +166,6 @@ function CombatMetronome:RegisterCM()
     -- )
 	
 	self.cmRegistered = true
-	
-	EVENT_MANAGER:RegisterForEvent(
-		self.name.."BarSwap",
-		EVENT_ACTION_SLOTS_ACTIVE_HOTBAR_UPDATED,
-		function(_,barswap,_,category)
-			self.barswap = barswap == true
-			if self.barswap and self.currentEvent and self.currentEvent.ability and self.currentEvent.ability.delay > 1000 then
-				self.currentEvent = nil
-				self.barswap = false
-				-- d("interrupted spell by barswap")
-			end
-		end
-	)
-	
-	EVENT_MANAGER:RegisterForEvent(
-		self.name.."RollDodge",
-		EVENT_EFFECT_CHANGED,
-		function(_,changeType,_,_,_,_,_,_,_,_,_,_,_,_,_,abilityId,sourceType)
-			if sourceType == COMBAT_UNIT_TYPE_PLAYER and abilityId == 29721 and changeType == 3 then			--- 69143 is DodgeFatigue
-				CombatMetronome:SetIconsAndNamesNil()
-				self.rollDodgeFinished = false
-				zo_callLater(function () self.rollDodgeFinished = true end, 1000)
-			end
-			if not self.rollDodgeFinished and self.currentEvent then
-				self.currentEvent = nil
-				-- d("interrupted spell by dodgeroll")
-			end
-		end
-	)
 	
 	if self.config.trackCollectibles or (self.config.showMountNick and self.config.trackMounting) then
 		CombatMetronome:RegisterCollectiblesTracker()
@@ -345,17 +317,17 @@ function CombatMetronome:UnregisterCM()
 	EVENT_MANAGER:UnregisterForUpdate(
         self.name.."Update")
 		
-	EVENT_MANAGER:UnregisterForEvent(
-        self.name.."SlotUsed")
+	-- EVENT_MANAGER:UnregisterForEvent(
+        -- self.name.."SlotUsed")
 	
 	self.cmRegistered = false
 	-- d("cm is unregistered")
 	
-	EVENT_MANAGER:UnregisterForEvent(
-		self.name.."BarSwap")
+	-- EVENT_MANAGER:UnregisterForEvent(
+		-- self.name.."BarSwap")
 		
-	EVENT_MANAGER:UnregisterForEvent(
-		self.name.."RollDodge")
+	-- EVENT_MANAGER:UnregisterForEvent(
+		-- self.name.."RollDodge")
 	
 	if self.collectiblesTrackerRegistered then
 		CombatMetronome:UnregisterCollectiblesTracker()

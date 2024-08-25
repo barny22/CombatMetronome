@@ -1,4 +1,5 @@
 local Util = DariansUtilities
+Util.Ability = Util.Ability or {}
 Util.Ability.Tracker = Util.Ability.Tracker or {}
 Util.Text = Util.Text or {}
 
@@ -77,7 +78,7 @@ function CombatMetronome:Update()
 		if self.config.trackGCD and not self.currentEvent then
 			self.bar.segments[1].progress = 0
 			self.bar.segments[2].progress = gcdProgress
-			if not self.rollDodgeFinished and self.config.trackRolldodge then
+			if not Util.Ability.Tracker.rollDodgeFinished and self.config.trackRolldodge then
 				CombatMetronome:GCDSpecifics("Dodgeroll", "/esoui/art/icons/ability_rogue_035.dds", gcdProgress)
 			end
 			if self.activeMount.action ~= "" and self.config.trackMounting and self.config.showMountNick then
@@ -119,7 +120,7 @@ function CombatMetronome:Update()
 			local duration = math.max(ability.heavy and 0 or (self.gcd or 1000), ability.delay) + self.currentEvent.adjust
 			local channelTime = ability.delay + self.currentEvent.adjust
 			local timeRemaining = ((start + channelTime + GetLatency()) - time) / 1000
-			local playerDidBlock = (self.lastBlockStatus == false) and IsBlockActive()
+			-- local playerDidBlock = (self.lastBlockStatus == false) and IsBlockActive()
 			-- if playerDidBlock then d("Player blocked") end
 			
 			if ability.heavy then
@@ -222,7 +223,7 @@ function CombatMetronome:Update()
 			--------------------
 			---- Interrupts ----							-- check for interrupts by dodge, barswap or block
 			--------------------
-			if not self.rollDodgeFinished and self.config.trackGCD then
+			if not Util.Ability.Tracker.rollDodgeFinished and self.config.trackGCD then
 				self:OnCDStop()
 				-- d("dodge should be interrupting now")
 				if self.config.showSpell then
@@ -251,22 +252,23 @@ function CombatMetronome:Update()
 					self.bar.backgroundTexture:SetWidth(gcdProgress*self.config.width)
 				end
 				self.bar:Update()
-			elseif playerDidBlock then
-				local eventAdjust = 0
-				if self.currentEvent then
-					if self.currentEvent.adjust then
-						eventAdjust = self.currentEvent.adjust
-					end
-				end
-				if duration > 1000+latency+eventAdjust then
-					self:OnCDStop()
-					self.bar:Update()
-				end
+			-- elseif playerDidBlock then
+				-- local eventAdjust = 0
+				-- if self.currentEvent then
+					-- if self.currentEvent.adjust then
+						-- eventAdjust = self.currentEvent.adjust
+					-- end
+				-- end
+				-- if duration > 1000+latency+eventAdjust then
+					-- Util.Ability.Tracker.currentEvent = nil
+					-- self:OnCDStop()
+					-- self.bar:Update()
+				-- end
 			end
 		else
 			self:OnCDStop()
 			self.bar:Update()
 		end
-		self.lastBlockStatus = IsBlockActive()
+		-- self.lastBlockStatus = IsBlockActive()
 	end
 end
