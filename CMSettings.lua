@@ -1,5 +1,8 @@
 local LAM = LibAddonMenu2
 local Util = DariansUtilities
+Util.Text = Util.Text or {}
+CombatMetronome.LATracker = CombatMetronome.LATracker or {}
+local LATracker = CombatMetronome.LATracker
 
 local ABILITY_ADJUST_PLACEHOLDER = "Add ability adjust"
 local MAX_ADJUST = 200
@@ -45,11 +48,70 @@ local fontStyles = {
 	"outline",
 }
 
+local LATrackerChoices = {
+	"la/s",
+	"Time between light attacks",
+	"Nothing",
+}
+
 function CombatMetronome:BuildMenu()
     -- sounds = { }
     -- for _, sound in pairs(SOUNDS) do
     --     sounds[#sounds + 1] = sound
     -- end
+	local LATrackerSettings = LATracker:BuildLATracker()
+	local CreateIcons
+	CreateIcons = function(panel)
+		if panel == CombatMetronomeOptions then
+			local dodgeNum, mountNum, assistantsNum, itemsNum, killingNum, breakFreeNum, othersNum = CombatMetronome:CreateMenuIconsPath("Dodgeroll", "Mounting/Dismounting", "Assistants and companions", "Usage of items", "Killing actions", "Breaking free", "Other synergies that cause GCD")
+			dodgeIcon = WINDOW_MANAGER:CreateControl(nil, panel.controlsToRefresh[dodgeNum].checkbox, CT_TEXTURE)
+			dodgeIcon:SetAnchor(RIGHT, panel.controlsToRefresh[dodgeNum].checkbox, LEFT, -25, 0)
+			dodgeIcon:SetTexture("/esoui/art/icons/ability_rogue_035.dds")
+			dodgeIcon:SetDimensions(35, 35)
+			-- if self.config.trackRolldodge then
+				-- dodgeIcon:SetDesaturation(0)
+			-- else
+				-- dodgeIcon:SetDesaturation(-100)
+			-- end
+			mountIcon = WINDOW_MANAGER:CreateControl(nil, panel.controlsToRefresh[mountNum].checkbox, CT_TEXTURE)
+			mountIcon:SetAnchor(RIGHT, panel.controlsToRefresh[mountNum].checkbox, LEFT, -20, 0)
+			mountIcon:SetTexture(self.activeMount.icon)
+			mountIcon:SetDimensions(45, 45)
+			-- if self.config.trackMounting then
+				-- mountIcon:SetDesaturation(0)
+			-- else
+				-- mountIcon:SetDesaturation(-100)
+			-- end
+			assistantsIcon = WINDOW_MANAGER:CreateControl(nil, panel.controlsToRefresh[assistantsNum].checkbox, CT_TEXTURE)
+			assistantsIcon:SetAnchor(RIGHT, panel.controlsToRefresh[assistantsNum].checkbox, LEFT, -20, 0)
+			assistantsIcon:SetTexture("/esoui/art/icons/assistant_ezabibanker.dds")
+			assistantsIcon:SetDimensions(45, 45)
+			-- if self.config.trackCollectibles then
+				-- assistantsIcon:SetColor(1,1,1,1)
+			-- else
+				-- assistantsIcon:SetColor(0,0,0,1)
+			-- end
+			itemsIcon = WINDOW_MANAGER:CreateControl(nil, panel.controlsToRefresh[itemsNum].checkbox, CT_TEXTURE)
+			itemsIcon:SetAnchor(RIGHT, panel.controlsToRefresh[itemsNum].checkbox, LEFT, -25, 0)
+			itemsIcon:SetTexture("/esoui/art/tribute/tributeendofgamereward_overflow.dds")
+			itemsIcon:SetDimensions(35, 35)
+			-- if self.config.trackItems then
+				-- itemsIcon:SetDesaturation(0)
+			-- else
+				-- itemsIcon:SetDesaturation(-100)
+			-- end
+			killingIcon = WINDOW_MANAGER:CreateControl(nil, panel.controlsToRefresh[killingNum].checkbox, CT_TEXTURE)
+			killingIcon:SetAnchor(RIGHT, panel.controlsToRefresh[killingNum].checkbox, LEFT, -25, 0)
+			killingIcon:SetTexture("/esoui/art/icons/achievement_u23_skillmaster_darkbrotherhood.dds")
+			killingIcon:SetDimensions(35, 35)
+			breakFreeIcon = WINDOW_MANAGER:CreateControl(nil, panel.controlsToRefresh[breakFreeNum].checkbox, CT_TEXTURE)
+			breakFreeIcon:SetAnchor(RIGHT, panel.controlsToRefresh[breakFreeNum].checkbox, LEFT, -25, 0)
+			breakFreeIcon:SetTexture("/esoui/art/icons/ability_debuff_stun.dds")
+			breakFreeIcon:SetDimensions(35, 35)
+			CALLBACK_MANAGER:UnregisterCallback("LAM-PanelControlsCreated", CreateIcons)
+		end
+	end
+	CALLBACK_MANAGER:RegisterCallback("LAM-PanelControlsCreated", CreateIcons)
 
     self.menu = { }
     self.menu.abilityAdjustChoices = self:CreateAdjustList()
@@ -398,6 +460,7 @@ function CombatMetronome:BuildMenu()
 							setFunc = function(value)
 								self.config.labelFont = value
 								self.progressbar.Fonts()
+								LATrackerSettings.LabelSettings()
 								-- self:BuildProgressBar()
 							end,
 						},
@@ -411,6 +474,7 @@ function CombatMetronome:BuildMenu()
 							setFunc = function(value)
 								self.config.fontStyle = value
 								self.progressbar.Fonts()
+								LATrackerSettings.LabelSettings()
 								-- self:BuildProgressBar()
 							end,
 						},
@@ -490,6 +554,228 @@ function CombatMetronome:BuildMenu()
 							setFunc = function(value)
 								self.config.trackGCD = value
 							end,
+						},
+						{
+							type = "submenu",
+							name = "Show further gcd information",
+							disabled = function() return not self.config.trackGCD end,
+							controls = {
+								{
+									type = "checkbox",
+									name = "Dodgeroll",
+									disabled = function() return not self.config.trackGCD end,
+									default = false,
+									getFunc = function() return self.config.trackRolldodge end,
+									setFunc = function(value)
+										self.config.trackRolldodge = value
+										-- if value then
+											-- dodgeIcon:SetDesaturation(0)
+										-- else
+											-- dodgeIcon:SetDesaturation(-100)
+										-- end
+									end,
+								},
+								{
+									type = "checkbox",
+									name = "Mounting/Dismounting",
+									disabled = function() return not self.config.trackGCD end,
+									default = false,
+									getFunc = function() return self.config.trackMounting end,
+									setFunc = function(value)
+										self.config.trackMounting = value
+										if value then
+											-- mountIcon:SetDesaturation(0)
+											if not self.combatEventsRegistered then
+												CombatMetronome:RegisterCombatEvents()
+											end
+											if self.config.showMountNick and not self.collectiblesTrackerRegistered then
+												CombatMetronome:RegisterCollectiblesTracker()
+											end
+										else
+											-- mountIcon:SetDesaturation(-100)
+											if self.mountingTrackerRegistered and not (self.config.trackKillingActions or self.config.trackBreakingFree or self.config.trackOthers) then
+												CombatMetronome:UnregisterCombatEvents()
+											end
+											if not self.config.trackCollectibles and self.collectiblesTrackerRegistered then
+												CombatMetronome:UnregisterCollectiblesTracker()
+											end
+										end
+									end,
+								},
+								{
+									type = "checkbox",
+									name = "Show mount nickname",
+									disabled = function() return not self.config.trackMounting end,
+									default = false,
+									getFunc = function() return self.config.showMountNick end,
+									setFunc = function(value)
+										self.config.showMountNick = value
+										if value then
+											if not self.collectiblesTrackerRegistered then
+												CombatMetronome:RegisterCollectiblesTracker()
+											end
+										else
+											if not self.config.trackCollectibles and self.collectiblesTrackerRegistered then
+												CombatMetronome:UnregisterCollectiblesTracker()
+											end
+										end
+									end,
+								},
+								{
+									type = "checkbox",
+									name = "Assistants and companions",
+									disabled = function() return not self.config.trackGCD end,
+									default = false,
+									getFunc = function() return self.config.trackCollectibles end,
+									setFunc = function(value)
+										self.config.trackCollectibles = value
+										if value then
+											-- assistantsIcon:SetDesaturation(0)
+											if not self.CollectiblesTrackerRegistered then
+												CombatMetronome:RegisterCollectiblesTracker()
+											end
+										else
+											-- assistantsIcon:SetDesaturation(-100)
+											if self.collectiblesTrackerRegistered and not self.config.showMountNick then
+												CombatMetronome:UnregisterCollectiblesTracker()
+											end
+										end
+									end,
+								},
+								{
+									type = "checkbox",
+									name = "Usage of items",
+									disabled = function() return not self.config.trackGCD end,
+									default = false,
+									getFunc = function() return self.config.trackItems end,
+									setFunc = function(value)
+										self.config.trackItems = value
+										-- if value then
+											-- itemsIcon:SetDesaturation(0)
+										-- else
+											-- itemsIcon:SetDesaturation(-100)
+										-- end
+										if value and not self.itemsTrackerRegistered then
+											CombatMetronome:RegisterItemsTracker()
+										elseif not value and self.itemsTrackerRegistered then
+											CombatMetronome:UnregisterItemsTracker()
+										end
+									end,
+								},
+								{
+									type = "checkbox",
+									name = "Killing actions",
+									tooltip = "Toggle displaying killing actions like vampire feed and blade of woe",
+									disabled = function() return not self.config.trackGCD end,
+									default = false,
+									getFunc = function() return self.config.trackKillingActions end,
+									setFunc = function(value)
+										self.config.trackKillingActions = value
+										-- if value then
+											-- itemsIcon:SetDesaturation(0)
+										-- else
+											-- itemsIcon:SetDesaturation(-100)
+										-- end
+										if value and not self.combatEventsRegistered then
+											CombatMetronome:RegisterCombatEvents()
+										elseif not value and self.mountingAndKillingTrackerRegistered and not (self.config.trackMounting or self.config.trackBreakingFree or self.config.trackOthers) then
+											CombatMetronome:UnregisterCombatEvents()
+										end
+									end,
+								},
+								{
+									type = "checkbox",
+									name = "Breaking free",
+									disabled = function() return not self.config.trackGCD end,
+									default = false,
+									getFunc = function() return self.config.trackBreakingFree end,
+									setFunc = function(value)
+										self.config.trackBreakingFree = value
+										-- if value then
+											-- itemsIcon:SetDesaturation(0)
+										-- else
+											-- itemsIcon:SetDesaturation(-100)
+										-- end
+										if value and not self.combatEventsRegistered then
+											CombatMetronome:RegisterCombatEvents()
+										elseif not value and self.combatEventsRegistered and not (self.config.trackMounting or self.config.trackKillingActions or self.config.trackOthers) then
+											CombatMetronome:UnregisterCombatEvents()
+										end
+									end,
+								},
+								-- {
+									-- type = "checkbox",
+									-- name = "Other synergies that cause GCD",
+									-- disabled = function() return not self.config.trackGCD end,
+									-- default = false,
+									-- getFunc = function() return self.config.trackOthers end,
+									-- setFunc = function(value)
+										-- self.config.trackOthers = value
+										-- if value and not self.collectiblesTrackerRegistered then
+												-- CombatMetronome:RegisterCollectiblesTracker()
+										-- elseif not value and self.config.combatEventsRegistered and not (self.config.trackMounting or self.config.trackKillingActions or self.config.trackBreakingFree) then
+												-- CombatMetronome:UnregisterCollectiblesTracker()
+										-- end
+									-- end,
+								-- },
+								-- {
+									-- type = "submenu",
+									-- name = "Collectible types",
+									-- disabled = function() return not self.config.trackCollectibles end,
+									-- controls = {
+										-- {
+											-- type = "checkbox",
+											-- name = "Assistants",
+											-- disabled = function() return not self.config.trackCollectibles end,
+											-- default = false,
+											-- getFunc = function() return self.config.trackRolldodge end,
+											-- setFunc = function(value)
+												-- self.config.trackRolldodge = value
+											-- end,
+										-- },
+										-- {
+											-- type = "checkbox",
+											-- name = "Companions",
+											-- disabled = function() return not self.config.trackCollectibles end,
+											-- default = false,
+											-- getFunc = function() return self.config.trackRolldodge end,
+											-- setFunc = function(value)
+												-- self.config.trackRolldodge = value
+											-- end,
+										-- },
+										-- {
+											-- type = "checkbox",
+											-- name = "Costumes",
+											-- disabled = function() return not self.config.trackCollectibles end,
+											-- default = false,
+											-- getFunc = function() return self.config.trackRolldodge end,
+											-- setFunc = function(value)
+												-- self.config.trackRolldodge = value
+											-- end,
+										-- },
+										-- {
+											-- type = "checkbox",
+											-- name = "Polymorphs",
+											-- disabled = function() return not self.config.trackCollectibles end,
+											-- default = false,
+											-- getFunc = function() return self.config.trackRolldodge end,
+											-- setFunc = function(value)
+												-- self.config.trackRolldodge = value
+											-- end,
+										-- },
+										-- {
+											-- type = "checkbox",
+											-- name = "Vanity pets",
+											-- disabled = function() return not self.config.trackCollectibles end,
+											-- default = false,
+											-- getFunc = function() return self.config.trackRolldodge end,
+											-- setFunc = function(value)
+												-- self.config.trackRolldodge = value
+											-- end,
+										-- },
+									-- },
+								-- },
+							},
 						},
 						{
 							type = "checkbox",
@@ -689,16 +975,17 @@ function CombatMetronome:BuildMenu()
 							setFunc = function(name)
 								if not name or #name == 0 then return end
 								for id = 0, 300000 do
-									if CombatMetronome:CropZOSSpellName(GetAbilityName(id)) == name then
+									if Util.Text.CropZOSString(GetAbilityName(id)) == name then
 										--[[_=self.log and]] d("Found ability for '"..name.."'", "id: "..id)
 										self.menu.curSkillName = name
 										self.menu.curSkillId = id
 										self.config.abilityAdjusts[id] = 0
 										self:UpdateAdjustChoices()
-										return
+										break
+									elseif id == 300000 then
+										d("CM - Could not find valid ability named "..name.."!")
 									end
 								end
-								d("CM - Could not find valid ability named "..name.."!")
 							end
 						},
 						{
@@ -709,7 +996,7 @@ function CombatMetronome:BuildMenu()
 							setFunc = function(value) 
 								self.menu.curSkillName = value
 								for id, adj in pairs(self.config.abilityAdjusts) do
-									if CombatMetronome:CropZOSSpellName(GetAbilityName(id)) == value then
+									if Util.Text.CropZOSString(GetAbilityName(id)) == value then
 										self.menu.curSkillId = id
 									end
 								end
@@ -723,7 +1010,7 @@ function CombatMetronome:BuildMenu()
 							step = 1,
 							getFunc = function()
 								for id, adj in pairs(self.config.abilityAdjusts) do
-									if CombatMetronome:CropZOSSpellName(GetAbilityName(id)) == self.menu.curSkillName then
+									if Util.Text.CropZOSString(GetAbilityName(id)) == self.menu.curSkillName then
 										self.menu.curSkillId = id
 									end
 								end
@@ -1360,6 +1647,81 @@ function CombatMetronome:BuildMenu()
 				},
 			},
 		},
+		{	type = "divider",},
+		------------------------------
+		---- Light Attack Tracker ----
+		------------------------------
+		{	type = "submenu",
+			name = "Light Attack Tracker",
+			tooltip = "Lets you track your light attacks, to better analyze your parses",
+			controls = {
+				{
+					type = "checkbox",
+					name = "Hide la tracker in PVP Zones",
+					tooltip = "Hides la tracker in PVPZones to keep UI clean",
+					default = true,
+					disabled = function()
+						return self.config.laTrackerChoice == "Nothing"
+					end,
+					getFunc = function() return self.config.hideLATrackerInPVP end,
+					setFunc = function(value)
+						self.config.hideLATrackerInPVP = value
+						LATracker:DisplayText()
+					end,
+				},
+				{	type = "checkbox",
+					name = "Unlock light attack tracker",
+					tooltip = "Enable moving the tracker label",
+					default = false,
+					getFunc = function() return self.config.laTrackerIsUnlocked end,
+					setFunc = function(value)
+						self.config.laTrackerIsUnlocked = value
+						LATracker.frame:SetUnlocked(value)
+						if value then
+							LATracker.frame:SetDrawTier(DT_HIGH)
+							LATracker.frame:SetHidden(false)
+							LATracker:DisplayText()
+						else
+							LATracker.frame:SetDrawTier(DT_LOW)
+							LATracker.frame:SetHidden(true)
+							LATracker.label:SetHidden(true)
+						end
+					end,
+				},
+				{	type = "dropdown",
+					name = "What to track",
+					tooltip = "Define whether tracker should be displaying light attacks per second, time between light attacks, or nothing at all",
+					choices = LATrackerChoices,
+					default = "Nothing",
+					getFunc = function() return self.config.laTrackerChoice end,
+					setFunc = function(value)
+						self.config.laTrackerChoice = value
+						LATracker:DisplayText()
+					end,					
+				},
+				{	type = "slider",
+					name = "Time until tracker hides after a fight",
+					tooltip = "This is the amount of seconds the tracker will keep displaying your values after a fight is finished",
+					default = 15,
+					min = 1,
+					max = 30,
+					step = 1,
+					getFunc = function() return self.config.timeTilHidingLATracker end,
+					setFunc = function(value)
+						self.config.timeTilHidingLATracker = value
+					end,
+				},
+				{	type = "checkbox",
+					name = "Show LA record after fight",
+					tooltip = "Gives you a small record of duration of the fight, la/s and the total amount of light attacks",
+					default = false,
+					getFunc = function() return self.config.showLALogAfterFight end,
+					setFunc = function(value)
+						self.config.showLALogAfterFight = value
+					end,
+				},
+			},
+		},
 		-- end
 		----------------------
 		---- Experimental ----
@@ -1469,6 +1831,6 @@ function CombatMetronome:BuildMenu()
 
     self.menu.panel = LAM:RegisterAddonPanel(self.name.."Options", self.menu.metadata)
     LAM:RegisterOptionControls(self.name.."Options", self.menu.options)
-
+	
     -- self:UpdateAdjustChoices()
 end

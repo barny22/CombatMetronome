@@ -12,6 +12,8 @@ I added some fixes and new options:
 
 Should there be any bugs, feel free to report them on my [URL="https://www.esoui.com/portal.php?id=386&a=listbugs"]ESOUI Portal[/URL].
 
+Beta versions are available on [URL="https://github.com/barny22/CombatMetronome/tree/Development"]Github[/URL]. Install at your own risk.
+
 Here is the original description by Darianopolis:
 
 [QUOTE]Track your heavy swings, ability cooldowns and cast/channels all in one bar to help you perfect your rotation timing and take advantage of abilty queuing with live latency information.

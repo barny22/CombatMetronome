@@ -1,9 +1,21 @@
 -- local Util = DAL:Ext("DariansUtilities")
 local Util = DariansUtilities
 Util.Ability = Util.Ability or { }
+Util.Text = Util.Text or {}
 local Ability = Util.Ability
 Ability.cache = { }
 Ability.nameCache = { }
+Util.language = GetCVar("Language.2")
+
+local TargetGround = {
+["en"] = "Ground";
+["de"] = "Bodenziel";
+["es"] = "Suelo";
+["fr"] = "Sol";
+["ru"] = "Указанная область";
+["zh"] = "地面";
+}
+local SlotNumbers = {3,4,5,6,7,8}
 
 local log = Util.log
 
@@ -21,24 +33,16 @@ function Ability:ForId(id)
 	setmetatable(o, self)
 	self.__index = self
 
-	local name, actionSlotType, passive
-    for i = 1, 300000 do
-        if (id == GetAbilityIdByIndex(i)) then
-            name, _, _, actionSlotType, passive, _ = GetAbilityInfoByIndex(i)
-            break
-        end
-    end
-    -- if actionSlotType == 3 then
-        -- id = GetAbilityIdForCraftedAbilityId(id)
+	-- local name, actionSlotType, passive
+    -- for i = 1, 300000 do
+        -- if (id == GetAbilityIdByIndex(i)) then
+            -- name, _, _, actionSlotType, passive, _ = GetAbilityInfoByIndex(i)
+            -- break
+        -- end
     -- end
 
     o.id = id
-    o.name = Ability:CropZOSSpellName(GetAbilityName(id))
-    -- if APIVersion < 101042 then
-    -- o.channeled, 
-    -- o.castTime, 
-    -- o.channelTime = GetAbilityCastInfo(id)                                                   --- this was pre API 101042
-    -- if o.channelTime == nil then
+    o.name = Util.Text.CropZOSString(GetAbilityName(id))
     local channeled, duration = GetAbilityCastInfo(id)
     o.channeled = channeled
     if channeled then
@@ -49,12 +53,10 @@ function Ability:ForId(id)
         o.channelTime = 0
     end
     -- end
-    o.delay = math.max(o.castTime, o.channelTime)
+    o.delay = duration or 0
     o.instant = not (o.castTime > 0 or (o.channeled and o.channelTime > 0))
     o.casted = not (o.instant or o.channeled)
-    o.passive = passive
     o.target = GetAbilityTargetDescription(id)
-    o.type = actionSlotType
 	o.icon = GetAbilityIcon(id)
 
     o.duration = GetAbilityDuration(id)
@@ -63,9 +65,9 @@ function Ability:ForId(id)
     o.isHealerAbility, 
     o.isDamageAbility = GetAbilityRoles(id)
 
-    o.ground = o.target == "Ground"
-    o.heavy = o.type == ACTION_SLOT_TYPE_HEAVY_ATTACK
-    o.light = o.type == ACTION_SLOT_TYPE_LIGHT_ATTACK
+    o.ground = o.target == TargetGround[Util.language]
+    o.heavy = o.id == GetSlotBoundId(2)
+    o.light = o.id == GetSlotBoundId(1)
 
     o.hasProgression,
     o.progressionIndex = GetAbilityProgressionXPInfoFromAbilityId(id)
@@ -88,37 +90,6 @@ function Ability:ForId(id)
     return o
 end
 
-function Ability:ForName(name)
-    local o = self.nameCache[name]
-    if (o) then
-        -- d(" Ability "..o.id.." is cached for name, "..name)
-        return o 
-    end
-
-    return self:ForId(Ability.getIdFromName(name))
-end
-
-function Ability:CropZOSSpellName(zosString)
-    local _, zosSpellDivider = string.find(zosString, "%^")
-    
-    if zosSpellDivider then
-        return string.sub(zosString, 1, zosSpellDivider - 1)
-    else
-        return zosString
-    end
-end
-
-function Ability.getIdFromName(name)
-    local hotbar = GetActiveHotbarCategory()
-    for i = 1, 300000 do
-        if (CanAbilityBeUsedFromHotbar(i, hotbar) and name == GetAbilityName(i)) then
-            return i
-        end
-    end
-
-    return nil
-end
-
 -- -------- --
 -- Tracking --
 -- -------- --
@@ -130,52 +101,127 @@ Ability.Tracker.name = "Util.Ability.Tracker"
 
 local EVENT_RECORD_DELAY = 10
 local EVENT_FORCE_WAIT = 100
-local DISMOUNT_PERIOD = 500
+local DISMOUNT_PERIOD = 300
+local SHEATHING_PERIOD = 250
 
 function Ability.Tracker:Start()
     if self.started then return end
 
-    -- d("Abiilty Tracker Started!")
+    -- d("Ability Tracker Started!")
 
     self.started = true
 
     self.log = false
+    self.cdTriggerTime = 0
     self.lastMounted = 0
-
+    self.weaponLastSheathed = 0
+    self.eventStart = 0
+    self.lastSlotRemaining = 0
+    self.lastLightAttack = 0
+    self.rollDodgeFinished = true
+    self.lastBlockStatus = false
+    
+    -- self.slotsUpdated = {}
+    
     EVENT_MANAGER:RegisterForUpdate(self.name.."Update", 1000 / 30, function(...)
         self:Update()
     end)
 
-    EVENT_MANAGER:RegisterForEvent(self.name.."SlotUpdated", EVENT_ACTION_SLOT_STATE_UPDATED, function(...) 
-        self:HandleSlotUpdated(...) 
-    end)
-    EVENT_MANAGER:RegisterForEvent(self.name.."SlotUsed", EVENT_ACTION_SLOT_ABILITY_USED, function(...)
-        self:HandleSlotUsed(...) 
+    -- EVENT_MANAGER:RegisterForEvent(self.name.."SlotUpdated", EVENT_ACTION_SLOT_STATE_UPDATED, function(_, slot) 
+        -- if slot > 2 and slot < 9 then self:HandleSlotUpdated(_, slot) end
+    -- end)
+    EVENT_MANAGER:RegisterForEvent(self.name.."SlotUsed", EVENT_ACTION_SLOT_ABILITY_USED, function(_, slot)
+        if slot >1 and slot < 9 then self:HandleSlotUsed(_, slot) end
     end)
     EVENT_MANAGER:RegisterForEvent(self.name.."CombatEvent", EVENT_COMBAT_EVENT, function(...)
         self:HandleCombatEvent(...) 
     end)
+    EVENT_MANAGER:RegisterForEvent(self.name.."MountedState", EVENT_MOUNTED_STATE_CHANGED, function(_, mounted)
+        self.mountedState = mounted
+        if not mounted then self.lastMounted = GetFrameTimeMilliseconds() end
+    end)
+    EVENT_MANAGER:RegisterForEvent(self.name.."CooldownsUpdated", EVENT_ACTION_UPDATE_COOLDOWNS, function()
+        self:HandleCooldownsUpdated()
+    end)
+	EVENT_MANAGER:RegisterForEvent(self.name.."RollDodge", EVENT_EFFECT_CHANGED, function(...)
+        self:HandleRollDodge(...)
+	end)
+	EVENT_MANAGER:RegisterForEvent(self.name.."BarSwap", EVENT_ACTION_SLOTS_ACTIVE_HOTBAR_UPDATED, function(...)
+        self:HandleBarSwap(...)
+    end)
+end
+
+function Ability.Tracker:GCDCheck()
+    local slotRemaining, slotDuration, _, _ = GetSlotCooldownInfo(3)
+    local sR, sD, _, _ = GetSlotCooldownInfo(4)
+    if (sR > slotRemaining) or ( sD > slotDuration ) then
+        slotRemaining = sR
+        slotDuration = sD
+    end
+    if slotDuration < 1 then
+        slotDuration = 1
+    end
+    local gcdProgress = slotRemaining/slotDuration
+    return gcdProgress, slotRemaining, slotDuration
+end
+
+function Ability.Tracker:HandleRollDodge(_,changeType,_,_,_,_,_,_,_,_,_,_,_,_,_,abilityId,sourceType)
+    if sourceType == COMBAT_UNIT_TYPE_PLAYER and abilityId == 29721 and changeType == EFFECT_RESULT_UPDATED then			--- 69143 is DodgeFatigue
+        self.rollDodgeFinished = false
+        local remaining = GetSlotCooldownInfo(3)
+        zo_callLater(function() self.rollDodgeFinished = true end, remaining)
+    end
+    if not self.rollDodgeFinished and self.currentEvent then
+        self.currentEvent = nil
+        if self.CombatMetronome and self.CombatMetronome.currentEvent then
+            self.CombatMetronome.currentEvent = nil
+            self.CombatMetronome:SetIconsAndNamesNil()
+        end
+    end
+end
+
+function Ability.Tracker:HandleBarSwap(_, barswap, _, _)
+    self.barswap = barswap == true
+    if self.barswap and self.currentEvent and self.currentEvent.ability and self.currentEvent.ability.delay > 1000 then
+        self.currentEvent = nil
+        if self.CombatMetronome and self.CombatMetronome.currentEvent then
+            self.CombatMetronome.currentEvent = nil
+        end
+        self.barswap = false
+    end
 end
 
 function Ability.Tracker:Update()
     local time = GetFrameTimeMilliseconds()
+    local gcdProgress = Ability.Tracker:GCDCheck()
+    if (self.lastBlockStatus == false) and IsBlockActive() then
+        self.currentEvent = nil
+        if self.CombatMetronome and self.CombatMetronome.currentEvent then
+            self.CombatMetronome.currentEvent = nil
+        end
+    end
 
-    -- Fire off late events if no SLOT_UPDATE events
-    if (not self.eventStart and self.queuedEvent and self.queuedEvent.allowForce) then
-        if (time > self.queuedEvent.recorded + EVENT_FORCE_WAIT) then
+    -- Fire off late events if no UPDATE_COOLDOWNS events
+    if self.queuedEvent and self.queuedEvent.castDuringRollDodge and self.rollDodgeFinished and not self.currentEvent and gcdProgress > 0 then
+        if time > self.queuedEvent.recorded then
+            self.eventStart = time
+            self:AbilityUsed()
+        end
+    elseif (not self.eventStart and self.queuedEvent and self.queuedEvent.allowForce and not self.queuedEvent.castDuringRollDodge and not self.currentEvent) then
+        if (time > self.queuedEvent.recorded) then
             -- _=self.log and d("Event force "..tostring(time - self.queuedEvent.recorded).."ms ago")
             self.eventStart = self.queuedEvent.recorded
             self:AbilityUsed()
         end
     end
 
-    if (self.currentEvent and self.eventStart) then
+    if (self.currentEvent and self.currentEvent.start) then
         local event = self.currentEvent
         local ability = event.ability
-
-        if (time > self.eventStart + ability.delay) then
+        
+        if (time > event.start + ability.delay) then
             -- d("Event over!")
-            self.eventStart = nil
+            -- self.eventStart = nil
             self.currentEvent = nil
 
             if (event.channeled) then
@@ -185,37 +231,42 @@ function Ability.Tracker:Update()
             end
         end
     end
-
-    if (IsMounted()) then
-        self.lastMounted = time
+    if ArePlayerWeaponsSheathed() then
+        self.weaponLastSheathed = time
     end
+    self.lastBlockStatus = IsBlockActive()
 end
 
 function Ability.Tracker:NewEvent(ability, slot, start)
+    -- d("creating new event -"..ability.name)
     local time = GetFrameTimeMilliseconds()
 
     local event = { }
 
     event.ability = ability
-    event.recorded = time - EVENT_RECORD_DELAY
+    event.recorded = start
+    if not self.rollDodgeFinished then event.castDuringRollDodge = true end
+    -- event.recorded = time - EVENT_RECORD_DELAY
 
     local isMounted = time < self.lastMounted + DISMOUNT_PERIOD
-    event.allowForce = ability.casted and not (isMounted or ability.ground)
-
-    -- event.triggerOnCombatEvent = true
-    event.triggerOnSlotUpdated = true
-    -- event.triggerOnSlotUpdated = not ability.ground
-
+    local weaponSheathed = time < self.weaponLastSheathed + SHEATHING_PERIOD
+    event.allowForce = ability.casted and not (isMounted or weaponSheathed or ability.ground)
+    
     event.slot = slot
     event.hotbar = GetActiveHotbarCategory()
 
     self.queuedEvent = event
-
+        
+    if self.cdTriggerTime == start and not self.currentEvent and self.rollDodgeFinished and not event.castDuringRollDodge then
+        self.eventStart = start
+        self:AbilityUsed()
+    end
     -- d("  Allow force = "..tostring(self.queuedEvent.allowForce))
 end
 
 function Ability.Tracker:CancelEvent()
     -- self.eventStart = nil
+    local gcdProgress = self:GCDCheck()
     self.queuedEvent = nil
 
     if (self.currentEvent) then
@@ -226,14 +277,16 @@ function Ability.Tracker:CancelEvent()
             self:CallbackAbilityCancelled(self.currentEvent)
         end
     end
-
-    self.currentEvent = nil
+    
+    -- self.currentEvent = nil
 end
 
 function Ability.Tracker:AbilityUsed()
+    local gcdProgress, slotRemaining, slotDuration = Ability.Tracker:GCDCheck()
     local event = self.queuedEvent
     event.start = self.eventStart
     self.queuedEvent = nil
+    self.gcd = slotDuration
     self:CallbackAbilityUsed(event)
 
     if (event.ability.instant or event.ability.channeled) then
@@ -244,6 +297,7 @@ function Ability.Tracker:AbilityUsed()
         -- d("Putting "..event.ability.name.." on current")
         self.currentEvent = event
     end
+    -- end
 end
 
 function Ability.Tracker:CallbackAbilityUsed(event)
@@ -262,6 +316,10 @@ function Ability.Tracker:CallbackAbilityActivated(event)
     if self.CombatAuras then self.CombatAuras:HandleAbilityActivated(event) end
 end
 
+function Ability.Tracker:CallbackLightAttackUsed(time)
+    if self.CombatMetronome.LATracker then self.CombatMetronome.LATracker:HandleLightAttacks(time) end
+end
+
 function Ability.Tracker:CallbackAbilityCancelled(event)
     -- DAL:Log("EVENT - "..event.ability.name.." ended!")
     -- for name, callback in pairs(self.callbacks[self.CALLBACK_ABILITY_CANCELLED]) do
@@ -269,78 +327,136 @@ function Ability.Tracker:CallbackAbilityCancelled(event)
     -- end
 end
 
-function Ability.Tracker:HandleSlotUpdated(e, slot)
-    if (slot < 3) then return end
+-- function Ability.Tracker:HandleSlotUpdated(_, slot)
+    
+    -- local time = GetFrameTimeMilliseconds()
+    
+    -- table.insert(self.slotsUpdated, slot)
+    -- zo_callLater(function(slot)
+        -- if #self.slotsUpdated == 1 then
+            -- local slotRemaining = GetSlotCooldownInfo(slot)
+            -- if not self.currentEvent and slotRemaining > 0 then
+                -- local ability = Ability:ForId(GetSlotBoundId(slot))
+                -- self:NewEvent(ability, slot, time)
+                -- self.eventStart = time
+                -- self:AbilityUsed()
+                -- self.slotsUpdated = {}
+            -- end
+        -- end
+    -- end,
+    -- 50)
+    -- trigger for only elemental explosion
+    -- for i, num in ipairs(self.slotsNotUpdated) do
+        -- if num == slot then
+            -- table.remove(self.slotsNotUpdated, i)
+            -- break
+        -- end
+    -- end
+    -- if #self.slotsNotUpdated == 1 then
+        -- if GetSlotBoundId(self.slotsNotUpdated[1]) == 5 and self.queuedEvent and self.queuedEvent.ability.id == GetAbilityIdForCraftedAbilityId(GetSlotBoundId(self.slotsNotUpdated[1])) and self.triggerForEleExplosionAllowed then
+            -- self.triggerForEleExplosion = true
+            -- self.triggerForEleExplosionAllowed = false
+            -- zo_callLater(function() self.triggerForEleExplosionAllowed = true end, 500)
+        -- end
+    -- elseif #self.slotsNotUpdated == 0 then
+        -- self:CancelEvent()
+    -- end
+    -- trigger is finished here
+    
+    -- local remaining, duration, global, t = GetSlotCooldownInfo(slot)
+    -- local gcdProgress, remaining, duration = Ability.Tracker:GCDCheck()
+    -- local time = GetFrameTimeMilliseconds()
 
-    local remaining, duration, global, t = GetSlotCooldownInfo(slot)
-    local time = GetFrameTimeMilliseconds()
+    -- local abilityUsed = (duration > 0 and remaining > 0)
+    
+    -- if self.triggerForEleExplosion then self.triggerForEleExplosion = false end
 
-    if (duration > 0 and remaining > 0) then
-        self.gcd = duration
+    -- if abilityUsed then
+        -- self.gcd = remaining
 
-        local oldStart = self.eventStart or 0
-        self.eventStart = time + remaining - duration 
+        -- local oldStart = self.eventStart or 0
+        -- self.eventStart = time + remaining - duration 
 
-        if (oldStart ~= self.eventStart) then
+        -- if (oldStart ~= self.eventStart) then
             -- _=self.log and d(""..time.." : Event start "..tostring(duration - remaining).."ms ago")
-        end
+        -- end
         
-        if (self.queuedEvent and self.queuedEvent.triggerOnSlotUpdated and self.eventStart > oldStart + 100) then
+        -- if (self.queuedEvent and self.eventStart > oldStart + 100) then
             -- _=self.log and d(""..time.." : Moved queued "..self.queuedEvent.ability.name.." to current") 
             -- log("  Dispatching ", self.queuedEvent.ability.name)
             -- log("    oldStart = ", oldStart)
             -- log("    newStart = ", self.eventStart)
             -- log("    current  = ", GetFrameTimeMilliseconds())
+            -- self:AbilityUsed()
+        -- end
+    -- end
+-- end
+
+function Ability.Tracker:HandleCooldownsUpdated()
+    self.cdTriggerTime = GetFrameTimeMilliseconds()
+    
+    local gcdProgress, slotRemaining, slotDuration = self:GCDCheck()
+    self.gcd = slotDuration
+    -- local oldStart = self.eventStart or 0
+    
+    if self.queuedEvent and not self.currentEvent and self.rollDodgeFinished and not self.queuedEvent.castDuringRollDodge then
+        self.eventStart = self.cdTriggerTime - slotDuration + slotRemaining
+        if self.eventStart + 170 >= self.cdTriggerTime then
             self:AbilityUsed()
         end
     end
 end
 
-function Ability.Tracker:HandleSlotUsed(e, slot)
-    if (slot > 8) then return end
+function Ability.Tracker:HandleSlotUsed(_, slot)
+
+    local time = GetFrameTimeMilliseconds()
     
+    if slot == 2 and self.currentEvent and self.currentEvent.ability.heavy then
+        -- d("canelling heavy")
+        self.currentEvent = nil
+        self.gcd = 0
+        Ability.Tracker:CallbackAbilityUsed("cancel heavy")
+        return
+    elseif slot == 2 then
+        return
+    end
+
     local ability = {}
     local actionType = GetSlotType(slot)
-    if actionType == 3 then --ACTION_TYPE_CRAFTED_ABILITY then
-        -- d("Crafted ability executed")
+    if actionType == ACTION_TYPE_CRAFTED_ABILITY then
         ability = Util.Ability:ForId(GetAbilityIdForCraftedAbilityId(GetSlotBoundId(slot)))
-        -- d("Ability used - ", ability.name)
     else
         ability = Util.Ability:ForId(GetSlotBoundId(slot))
     end
-    -- local ability = Util.Ability:ForId(GetSlotBoundId(slot))--, slot)
-    -- Util.log("SLOT NAME = ", GetSlotName(slot))
-    -- local ability = Util.Ability:ForName(GetSlotName(slot), slot)
-    if not (ability) then return end
-
-    if (ability.light) then return end
-
+    
     self:CancelEvent()
+    
+    -- if slot == 2 then return end
 
-    if (ability.heavy) then return end
-
-    -- _=self.log and d(""..getFrameTimeMilliseconds().." : New ability - "..ability.name)
-    self:NewEvent(ability, slot)
+    -- _=self.log and d(""..GetFrameTimeMilliseconds().." : New ability - "..ability.name)
+    self:NewEvent(ability, slot, time)
 end
-
-local CHECK_PLAYER_UNIT_ID_INTERVAL = 5000
 
 --                                      (a)bility | (d)amage | (p)ower | (t)arget | (s)ource | (h)it
 --                                      ------------------------------------------------------------
---                                         1      2     3      4     5  6      7      8      9
---                                         10     11    12     13    14 15     16     17     18
-function Ability.Tracker:HandleCombatEvent(_,     res,  err,   aName, _, _,    sName, sType, tName, 
-                                           tType, hVal, pType, dType, _, sUId, tUId,  aId,   _     )
+--                                         1      2     3      4     5  	6      7      8      9
+--                                         10     11    12     13    14 	15     16     17     18
+function Ability.Tracker:HandleCombatEvent(_,     res,  err,   aName, _, aSlotType, sName, sType, tName, 
+                                           tType, hVal, pType, dType, _, sUId, tUId,  aId, overflow)
     if (not err and Util.Targeting.isUnitPlayer(tName, tUId)) then
         if (   res == ACTION_RESULT_KNOCKBACK
             or res == ACTION_RESULT_PACIFIED
             or res == ACTION_RESULT_STAGGERED
             or res == ACTION_RESULT_STUNNED
-            or res == ACTION_RESULT_INTERRUPTED) then
+            or res == ACTION_RESULT_INTERRUPT)
+            and not (IsUnitInAir("player") and self.currentEvent) then
             self:CancelEvent()
+            self.currentEvent = nil
             return
         end
     end
+    
+    local time = GetFrameTimeMilliseconds()
 
     -- log("Checking combat event")
     -- log("sName = ", sName, ", sUId = ", sUId)
@@ -348,7 +464,7 @@ function Ability.Tracker:HandleCombatEvent(_,     res,  err,   aName, _, _,    s
     if (Util.Targeting.isUnitPlayer(sName, sUId)) then
         -- log("Source is player")
 
-        if (res == COMBAT_RESULT_CANNOT_USE and not self.abilityAllowForce) then
+        if (res == ACTION_RESULT_CANNOT_USE and self.queuedEvent and not self.queuedEvent.allowForce) then
             self:CancelEvent()
             return
         end
@@ -357,18 +473,23 @@ function Ability.Tracker:HandleCombatEvent(_,     res,  err,   aName, _, _,    s
 
         -- log("Not error!")
 
-        local heavyId = GetSlotBoundId(2)
-        if (heavyId == aId) then
+        -- local heavyId = GetSlotBoundId(2)
+        -- if (heavyId == aId and res == 2200) then
+		if (aSlotType == ACTION_SLOT_TYPE_HEAVY_ATTACK and res == 2200) then
             -- d("Heavy ability is current combat event")
-            if (self.currentEvent and self.currentEvent.ability.id == heavyId) then
+            if (self.currentEvent and self.currentEvent.ability.id == aId) then
                 return
             end
 
-            local heavy = Util.Ability:ForId(heavyId)
+            local heavy = Util.Ability:ForId(aId)
             -- _=self.log and d("New heavy ability - "..heavy.name)
-            self:NewEvent(heavy, 2)
-            self.eventStart = self.queuedEvent.recorded
-            self:AbilityUsed()
+            self:NewEvent(heavy, 2, time)
+            
+            -- self.eventStart = self.queuedEvent.recorded
+            -- self:AbilityUsed()
         end
+        -- local lightId = GetSlotBoundId(1)
+        if aSlotType == ACTION_SLOT_TYPE_LIGHT_ATTACK and res == 2240 and time ~= self.lastLightAttack then Ability.Tracker:CallbackLightAttackUsed(time) end
+        self.lastLightAttack = time
     end
 end

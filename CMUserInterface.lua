@@ -1,5 +1,6 @@
 -- local LAM = LibAddonMenu2
 local Util = DariansUtilities
+local CM = CombatMetronome
 
 local MIN_WIDTH = 50
 local MAX_WIDTH = 500
@@ -467,5 +468,46 @@ function CombatMetronome:BuildStackTracker()
 	indicator = indicator,
 	FadeScenes = FadeScenes,
 	Position = Position,
+	}
+end
+
+	------------------------------------
+	---- Build Light Attack Tracker ----
+	------------------------------------
+CM.LATracker = CM.LATracker or {}
+local LATracker = CombatMetronome.LATracker
+
+function LATracker:BuildLATracker()
+	if not LATracker.frame then
+		LATracker.frame = Util.Controls:NewFrame(self.name.."Frame")
+		LATracker.frame:SetDimensionConstraints(50, 10, 300, 50)
+		LATracker.frame:SetHeight(CM.config.LATrackerHeight)
+		LATracker.frame:SetWidth(CM.config.LATrackerWidth)
+		LATracker.frame:SetAnchor(TOPLEFT, GuiRoot, TOPLEFT, CM.config.LATrackerXOffset, CM.config.LATrackerYOffset)
+	end
+	
+	LATracker.label = LATracker.label or WINDOW_MANAGER:CreateControl(self.name.."Label", LATracker.frame, CT_LABEL)
+	LATracker.label:SetText("")
+	LATracker.label:ClearAnchors()
+	LATracker.label:SetAnchor(CENTER, LATracker.frame, CENTER, 0, 0)
+	
+	local function LabelSettings()
+		LATracker.label:SetFont(Util.Text.getFontString(tostring("$("..CM.config.labelFont..")"), LATracker.frame:GetHeight(), CM.config.fontStyle))
+	end
+	
+	LATracker.frame:SetHandler("OnMoveStop", function(...)
+		CM.config.LATrackerXOffset = LATracker.frame:GetLeft()
+		CM.config.LATrackerYOffset = LATracker.frame:GetTop()
+	end)
+	LATracker.frame:SetHandler("OnResizeStop", function(...)
+		CM.config.LATrackerWidth = LATracker.frame:GetWidth()
+		CM.config.LATrackerHeight = LATracker.frame:GetHeight()
+		LATracker.label:SetFont(Util.Text.getFontString(tostring("$("..CM.config.labelFont..")"), LATracker.frame:GetHeight(), CM.config.fontStyle))
+	end)
+	
+	LabelSettings()
+	
+	return {
+		LabelSettings = LabelSettings,
 	}
 end

@@ -2,6 +2,10 @@ The All-in-one Combat Timing bar with the update all of you guys have been waiti
 
 Since Darianopolis can no longer maintain the Addon, I will probably do further updates only on the "optional Update", as it is easier for me to maintain. - barny
 
+Should there be any bugs, feel free to report them on my [URL="https://www.esoui.com/portal.php?id=386&a=listbugs"]ESOUI Portal[/URL].
+
+Beta versions are available on [URL="https://github.com/barny22/CombatMetronome/tree/Development"]Github[/URL]. Install at your own risk.
+
 ! Fixed time adjustment on exhausting fatecarver depending on crux
 ! Fixed: Channeled abilities or abilities with cast time are now interrupted by block, dodgeroll or barswap
 ! Fixed a bug after resizing the cast bar in unlock mode

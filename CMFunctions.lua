@@ -1,5 +1,6 @@
 local LAM = LibAddonMenu2
 local Util = DariansUtilities
+Util.Text = Util.Text or {}
 
 -- IDs for easier access
 local cruxId = 184220
@@ -81,57 +82,87 @@ function CombatMetronome:HideFancy(value)
 	self.bar.borderR:SetHidden(value)
 end
 
-function CombatMetronome:CropZOSSpellName(zosString)
-    local _, zosSpellDivider = string.find(zosString, "%^")
-    
-    if zosSpellDivider then
-        return string.sub(zosString, 1, zosSpellDivider - 1)
-    else
-        return zosString
-    end
+	--------------------------------
+	---- GCD Tracking specifics ----
+	--------------------------------
+	
+function CombatMetronome:CreateMenuIconsPath(string1, string2, string3, string4, string5, string6, string7)
+	local number = 0
+	for i = 1,#CombatMetronomeOptions.controlsToRefresh do
+		if string1 == CombatMetronomeOptions.controlsToRefresh[i].data.name then
+			number1 = i
+		end
+		if string2 == CombatMetronomeOptions.controlsToRefresh[i].data.name then
+			number2 = i
+		end
+		if string3 == CombatMetronomeOptions.controlsToRefresh[i].data.name then
+			number3 = i
+		end
+		if string4 == CombatMetronomeOptions.controlsToRefresh[i].data.name then
+			number4 = i
+		end
+		if string5 == CombatMetronomeOptions.controlsToRefresh[i].data.name then
+			number5 = i
+		end
+		if string6 == CombatMetronomeOptions.controlsToRefresh[i].data.name then
+			number6 = i
+		end
+		if string7 == CombatMetronomeOptions.controlsToRefresh[i].data.name then
+			number7 = i-1
+		end
+	end
+	return number1, number2, number3, number4, number5, number6
 end
 
-	-----------------------
-	---- Dodge Checker ----								--- changed in v1.6.6
-	-----------------------
+function CombatMetronome:GCDSpecifics(text, icon, gcdProgress)
+	if self.config.showSpell then
+		self.spellLabel:SetHidden(false)
+		self.spellIcon:SetHidden(false)
+		self.spellIconBorder:SetHidden(false)
+		self.spellIcon:SetTexture(icon)
+		self.spellLabel:SetText(text)
+	else
+		self.spellLabel:SetHidden(true)
+		self.spellIcon:SetHidden(true)
+		self.spellIconBorder:SetHidden(true)
+	end
+	if self.config.showTimeRemaining then
+		self.timeLabel:SetHidden(false)
+		self.timeLabel:SetText(string.format("%.1fs", gcdProgress))
+	else
+		self.timeLabel:SetHidden(true)
+	end
+	if gcdProgress == 0 then CombatMetronome:SetIconsAndNamesNil() end
+end
 
--- function CombatMetronome:CheckForDodge()
-	-- local dodge = false
-	-- for i=1,GetNumBuffs("player") do
-		-- local _,startTime,endTime,_,_,_,_,_,_,_,abilityId = GetUnitBuffInfo("player", i)
-		-- if abilityId == dodgeId then
-			-- buffTimer = endTime - math.floor(GetGameTimeMilliseconds()/1000)
-			-- buffLength = endTime - startTime
-			--d(tostring(buffTimer))
-			-- if buffTimer > 3 and buffLength == 3 then
-			-- dodge = true
-			--d("dodge detected")
-			-- end
-		-- break
-		-- end
-	-- end
-	-- return dodge
--- end
+function CombatMetronome:SetIconsAndNamesNil()
+	self.activeMount.action = ""
+	self.collectibleInUse = nil
+	self.itemUsed = nil
+	self.killingAction = nil
+	self.breakingFree = nil
+	self.otherSynergies = nil
+end
 
 	-----------------------
 	---- Combat Events ----
 	-----------------------
 
-function CombatMetronome:HandleCombatEvents(...)
-    local e = Util.CombatEvent:New(...)
+-- function CombatMetronome:HandleCombatEvents(...)
+    -- local e = Util.CombatEvent:New(...)
 
-    if e:IsPlayerTarget() and not e:IsError() then
-        local r = e:GetResult()
-        if r == ACTION_RESULT_KNOCKBACK
-        or r == ACTION_RESULT_PACIFIED
-        or r == ACTION_RESULT_STAGGERED
-        or r == ACTION_RESULT_STUNNED
-        or r == ACTION_RESULT_INTERRUPTED then
-            self.currentEvent = nil
-            return
-        end
-    end
-end
+    -- if e:IsPlayerTarget() and not e:IsError() then
+        -- local r = e:GetResult()
+        -- if r == ACTION_RESULT_KNOCKBACK
+        -- or r == ACTION_RESULT_PACIFIED
+        -- or r == ACTION_RESULT_STAGGERED
+        -- or r == ACTION_RESULT_STUNNED
+        -- or r == ACTION_RESULT_INTERRUPT then
+            -- self.currentEvent = nil
+            -- return
+        -- end
+    -- end
+-- end
 
 	-------------------------
 	---- Ability Adjusts ----
@@ -143,7 +174,7 @@ function CombatMetronome:UpdateAdjustChoices()
 	for k in pairs(names) do names[k] = nil end
 
 	for id, adj in pairs(self.config.abilityAdjusts) do
-		local name = CombatMetronome:CropZOSSpellName(GetAbilityName(id))
+		local name = Util.Text.CropZOSString(GetAbilityName(id))
 		names[#names + 1] = name
 	end
 
@@ -175,7 +206,7 @@ end
 function CombatMetronome:CreateAdjustList()
 		local names = {}
 		for id, adj in pairs(self.config.abilityAdjusts) do
-			local name = CombatMetronome:CropZOSSpellName(GetAbilityName(id))
+			local name = Util.Text.CropZOSString(GetAbilityName(id))
 			names[#names + 1] = name
 		end
 		return names
@@ -202,6 +233,13 @@ function CombatMetronome:CreateAdjustList()
 
 function CombatMetronome:HandleAbilityUsed(event)
     if not (self.inCombat or self.config.showOOC) then return end
+	if event == "cancel heavy" then
+		if self.currentEvent and self.currentEvent.ability.heavy then
+			self.currentEvent = nil
+			self.gcd = 0
+			return
+		end
+	end
 
     self.soundTickPlayed = false
     self.soundTockPlayed = false
@@ -219,10 +257,11 @@ function CombatMetronome:HandleAbilityUsed(event)
 		event.adjust = event.adjust + (338 * cruxes)
 		-- d(string.format("Fatecarver duration succesfully adjusted with %d crux(es)", cruxes))
 	end
-	if self.config.stopHATracking and event.ability.type == ACTION_SLOT_TYPE_HEAVY_ATTACK then
-		self.currentEvent = nil
+	if self.config.stopHATracking and event.ability.heavy then
+		return
 	else
 		self.currentEvent = event
+		-- d("Got new Event "..event.ability.name)
 	end
     self.gcd = Util.Ability.Tracker.gcd
 end
@@ -379,12 +418,17 @@ function CombatMetronome:StoreAbilitiesOnActionBar()
     for j = 0, 1 do
         for i = 3, 8 do
             local actionSlot = {}  -- Create a new table for each action slot
+			local slotType = GetSlotType(i, j)
             -- setmetatable(actionSlot, {__index = index})
             
             actionSlot.place = tostring(i .. j)
-            actionSlot.id = GetSlotBoundId(i, j)
+			if slotType == ACTION_TYPE_CRAFTED_ABILITY then
+				actionSlot.id = GetAbilityIdForCraftedAbilityId(GetSlotBoundId(i, j))
+			else
+				actionSlot.id = GetSlotBoundId(i, j)
+			end
             actionSlot.icon = GetAbilityIcon(actionSlot.id)
-            actionSlot.name = self:CropZOSSpellName(GetAbilityName(actionSlot.id))
+            actionSlot.name = Util.Text.CropZOSString(GetAbilityName(actionSlot.id))
 
             table.insert(actionSlots, actionSlot)  -- Add the current action slot to the table
         end

@@ -10,275 +10,17 @@ CombatMetronome = {
     version = "1.6.7"
 }
 
-local LAM = LibAddonMenu2
+-- local LAM = LibAddonMenu2
 local Util = DariansUtilities
+Util.Ability = Util.Ability or {}
+Util.Text = Util.Text or {}
+CombatMetronome.LATracker = CombatMetronome.LATracker or {}
+local LATracker = CombatMetronome.LATracker
+LATracker.name = CombatMetronome.name.."LightAttackTracker"
 
 Util.onLoad(CombatMetronome, function(self) self:Init() end)
 
-local INTERVAL = 200
-
 ZO_CreateStringId("SI_BINDING_NAME_COMBATMETRONOME_FORCE", "Force display")
-
-	-------------------------
-	---- Update Cast Bar ----
-	-------------------------
-
-function CombatMetronome:Update()
-
-	------------------------
-	---- Sample Section ----
-	------------------------
-
-	if self.showSampleBar then
-		self.bar.segments[2].progress = 0.7
-		self.bar.backgroundTexture:SetWidth(0.7*self.config.width)
-		if self.config.dontShowPing then
-			self.bar.segments[1].progress = 0
-		else
-			self.bar.segments[1].progress = 0.071
-		end
-		if self.config.showSpell then
-			self.spellLabel:SetText("Generic sample text")
-			self.spellLabel:SetHidden(false)
-			self.spellIcon:SetTexture("/esoui/art/icons/ability_dualwield_002_b.dds")
-			self.spellIcon:SetHidden(false)
-			self.spellIconBorder:SetHidden(false)
-		else
-			self.spellLabel:SetHidden(true)
-			self.spellIcon:SetHidden(true)
-			self.spellIconBorder:SetHidden(true)
-		end
-		if self.config.showTimeRemaining then
-			self.timeLabel:SetText("7.8s")
-			self.timeLabel:SetHidden(false)
-		else
-			self.timeLabel:SetHidden(true)
-		end
-		if self.config.changeOnChanneled then
-			self.bar.segments[2].color = self.config.channelColor
-		else
-			self.bar.segments[2].color = self.config.progressColor
-		end
-		self.bar:Update()
-	else
-	
-	-------------------------
-	---- Actual Updating ----
-	-------------------------
-
-		if self.config.dontShowPing then
-			latency = 0
-		else
-			latency = math.min(GetLatency(), self.config.maxLatency)
-		end
-		
-		local time = GetFrameTimeMilliseconds()
-		
-		-- local dodgeTrigger = CombatMetronome:CheckForDodge()
-		
-		-- this is important for GCD Tracking
-		local gcdTrigger = false
-		local slotRemaining, slotDuration, _, _ = GetSlotCooldownInfo(3)
-		local sR, sD, _, _ = GetSlotCooldownInfo(4)
-		if (sR > slotRemaining) or ( sD > slotDuration ) then
-			slotRemaining = sR
-			slotDuration = sD
-		end
-		if slotDuration < 1 then
-			slotDuration = 1
-		end
-		if slotRemaining/slotDuration > 0.97 then
-			gcdTrigger = true
-		end
-		local gcdProgress = slotRemaining/slotDuration
-		
-		--if gcdTrigger then d("gcd was triggered") end
-		--if dodgeTrigger then d("dodge was triggered") end
-		
-		-- local playerDidDodge = dodgeTrigger and gcdTrigger
-
-		local interval = false
-		if time > self.lastInterval + INTERVAL then
-			self.lastInterval = time
-			interval = true
-		end
-			---------------------
-			---- GCD Tracker ----
-			---------------------
-		if self.config.trackGCD and not self.currentEvent then
-			self.bar.segments[1].progress = 0
-			self.bar.segments[2].progress = gcdProgress
-			
-			if gcdProgress == 0 then
-				self:OnCDStop()
-			else
-				self:HideBar(false)
-				self.bar.backgroundTexture:SetWidth(gcdProgress*self.config.width)
-			end
-			self.bar:Update()
-		elseif self.currentEvent then
-			local ability = self.currentEvent.ability
-			local start = self.currentEvent.start
-			if time - start < 0 then
-				cdTimer = 0
-			else
-				cdTimer = time - start
-			end
-			
-			local duration = math.max(ability.heavy and 0 or (self.gcd or 1000), ability.delay) + self.currentEvent.adjust
-			local channelTime = ability.delay + self.currentEvent.adjust
-			local timeRemaining = ((start + channelTime + GetLatency()) - time) / 1000
-			-- local playerDidDodge = CombatMetronome:CheckForDodge()
-			local playerDidBlock = IsBlockActive()
-			
-			if ability.heavy then
-				if self.config.displayPingOnHeavy then
-					duration = duration + latency
-				else
-					latency = 0
-				end
-			end
-			----------------------
-			---- Progress Bar ----
-			----------------------
-			if time > start + duration then
-				self:OnCDStop()
-			else
-				-- Sound contributed to by Seltiix --
-
-				local length = duration - latency
-
-				if not self.soundTockPlayed and self.config.soundTockEnabled and time > start + (length / 2) - self.config.soundTockOffset then
-					self.soundTockPlayed = true
-					local uiVolume = GetSetting(SETTING_TYPE_AUDIO, AUDIO_SETTING_UI_VOLUME)
-					local tockQueue = ZO_QueuedSoundPlayer:New(0)
-					tockQueue:SetFinishedAllSoundsCallback(function()
-						SetSetting(SETTING_TYPE_AUDIO, AUDIO_SETTING_UI_VOLUME, uiVolume)
-					end)
-					SetSetting(SETTING_TYPE_AUDIO, AUDIO_SETTING_UI_VOLUME, self.config.tickVolume)
-					tockQueue:PlaySound(self.config.soundTockEffect, 250)
-				end
-
-				if not self.soundTickPlayed and self.config.soundTickEnabled and time > start + length - self.config.soundTickOffset then
-					self.soundTickPlayed = true
-					local uiVolume = GetSetting(SETTING_TYPE_AUDIO, AUDIO_SETTING_UI_VOLUME)
-					local tickQueue = ZO_QueuedSoundPlayer:New(0)
-					tickQueue:SetFinishedAllSoundsCallback(function()
-						SetSetting(SETTING_TYPE_AUDIO, AUDIO_SETTING_UI_VOLUME, uiVolume)
-						-- d("Sound is finished playing. Volume adjusted. Volume is now "..GetSetting(SETTING_TYPE_AUDIO, AUDIO_SETTING_UI_VOLUME))
-					end)
-					SetSetting(SETTING_TYPE_AUDIO, AUDIO_SETTING_UI_VOLUME, self.config.tickVolume)
-					tickQueue:PlaySound(self.config.soundTickEffect, 250)
-				end
-			------------------------------------------------
-			---- Switching Color on channeled abilities ----
-			------------------------------------------------
-				if self.config.changeOnChanneled then
-					if not ability.instant and ability.delay <= 1000 then
-						-- d("Ability with cast time < 1s detected")
-						if timeRemaining >= 0 then
-							if self.bar.segments[2].color == self.config.progressColor then
-								self.bar.segments[2].color = self.config.channelColor
-								-- d("Trying to update Channel Color")
-							end
-						elseif timeRemaining <= 0 then
-							if self.bar.segments[2].color == self.config.channelColor then
-								self.bar.segments[2].color = self.config.progressColor
-								-- d("Turning back to Progress Color")
-							end
-						end
-					else
-						if self.bar.segments[2].color == self.config.channelColor then
-							self.bar.segments[2].color = self.config.progressColor
-						end
-					end
-				end
-				
-				self.bar.segments[2].progress = 1 - (cdTimer/duration)
-				self.bar.segments[1].progress = latency / duration
-				if cdTimer >= (duration+latency) then
-					self:OnCDStop()
-				else
-					self:HideBar(false)
-					self.bar.backgroundTexture:SetWidth((1 - (cdTimer/duration))*self.config.width)
-				end
-				self.bar:Update()
-			end
-			------------------------------
-			---- Spell Label and Icon ----					--Spell Label on Castbar by barny
-			------------------------------
-			if self.config.showSpell and ability.delay > 0 and timeRemaining >= 0 and not ability.heavy then
-				local spellName = self:CropZOSSpellName(ability.name)
-				self.spellLabel:SetText(spellName)
-				self.spellLabel:SetHidden(false)
-			--Spell Icon next to Castbar
-				self.spellIcon:SetTexture(ability.icon)
-				self.spellIcon:SetHidden(false)
-				self.spellIconBorder:SetHidden(false)
-			else
-				self.spellLabel:SetHidden(true)
-				self.spellIcon:SetHidden(true)
-				self.spellIconBorder:SetHidden(true)
-			end
-				
-			--Remaining time on Castbar by barny
-			if self.config.showTimeRemaining and ability.delay > 0 and timeRemaining >= 0 and not ability.heavy then
-				self.timeLabel:SetText(string.format("%.1fs", timeRemaining))
-				self.timeLabel:SetHidden(false)
-			else
-				self.timeLabel:SetHidden(true)
-			end
-			--------------------
-			---- Interrupts ----							-- check for interrupts by dodge, barswap or block
-			--------------------
-			if (playerDidBlock or self.rollDodge or self.barswap) then
-				-- local spellInterrupter = true
-				local eventAdjust = 0
-				if self.currentEvent then
-					if self.currentEvent.adjust then
-						eventAdjust = self.currentEvent.adjust
-					end
-				end
-				-- if spellInterrupter then
-					-- d(self.currentEvent.adjust)
-					if duration > 1000+latency+eventAdjust then
-						self:OnCDStop()
-						self.bar:Update()
-					end
-					if self.barswap then
-						self.barswap = false
-					end
-					if self.rollDodge then
-						self.rollDodge = false
-					end
-					-- spellInterrupter = false
-				-- end
-			elseif self.rollDodge and trackGCD then
-				self:HideLabels(true)
-				self.bar.segments[1].progress = 0
-				self.bar.segments[2].progress = gcdProgress
-				if gcdProgress == 0 then
-					self:OnCDStop()
-				else
-					self:HideBar(false)
-					self.bar.backgroundTexture:SetWidth(gcdProgress*self.config.width)
-				end
-				self.bar:Update()
-				self.rollDodge = false
-			end
-		else
-			self:OnCDStop()
-			self.bar:Update()
-		end
-		if self.barswap then
-			self.barswap = false
-			-- d("barswap reset")
-		end
-		if self.rollDodge then
-			self.rollDodge = false
-		end
-	end
-end
 
 	-------------------------------------
 	---- Initialize Combat Metronome ----
@@ -291,13 +33,22 @@ function CombatMetronome:Init()
         self.config.global = true
     end
 	
+	self.currentCharacterName = Util.Text.CropZOSString(GetUnitName("player"))
+		
 	self.classId = GetUnitClassId("player")
 	self.class = CM_CLASS[self.classId]
+	self.activeMount = {}
+	self.activeMount.name = Util.Text.CropZOSString(GetCollectibleNickname(GetActiveCollectibleByType(COLLECTIBLE_CATEGORY_TYPE_MOUNT,GAMEPLAY_ACTOR_CATEGORY_PLAYER)))
+	self.activeMount.icon = GetCollectibleIcon(GetActiveCollectibleByType(COLLECTIBLE_CATEGORY_TYPE_MOUNT,GAMEPLAY_ACTOR_CATEGORY_PLAYER))
+	self.activeMount.action = ""
+	self.itemUsed = nil
+	self.collectibleInUse = nil
 
     self.log = self.config.debug
 
     self.inCombat = IsUnitInCombat("player")
     self.currentEvent = nil
+	-- self.rollDodgeFinished = true
 
     self.gcd = 1000
 
@@ -307,7 +58,7 @@ function CombatMetronome:Init()
 	-- CombatMetronome:UpdateAdjustChoices()
 
     self.lastInterval = 0
-	-- self.actionSlotCache = CombatMetronome:StoreAbilitiesOnActionBar()
+	self.actionSlotCache = CombatMetronome:StoreAbilitiesOnActionBar()
 
 	self:RegisterMetadata()
 	
@@ -326,7 +77,15 @@ function CombatMetronome:Init()
 	
 		self:RegisterTracker()
 		self.showSampleTracker = false
-	end	
+	end
+	
+	------------------------------
+	---- Light Attack Tracker ----
+	------------------------------
+	
+	LATracker:BuildLATracker()
+	LATracker.frame:SetUnlocked(self.config.laTrackerIsUnlocked)
+	LATracker:DisplayText()
 end
 
 -- LOAD HOOK
@@ -343,9 +102,9 @@ end
 	-----------------------------
 
 function CombatMetronome:RegisterMetadata()
-	EVENT_MANAGER:RegisterForUpdate(
+	EVENT_MANAGER:RegisterForEvent(
         self.name.."CurrentActionslotsOnHotbar",
-        1000 / 60,
+        EVENT_ACTION_SLOT_UPDATED,
         function()
 			self.actionSlotCache = CombatMetronome:StoreAbilitiesOnActionBar()
 			-- self.menu.abilityAdjustChoices = CombatMetronome:BuildListForAbilityAdjusts()
@@ -369,8 +128,9 @@ function CombatMetronome:RegisterMetadata()
         function(_, inCombat) 
             self.inCombat = inCombat == true
             -- self.stamGradient:Reset()
+			LATracker:ManageLATracker(inCombat)
         end
-    )
+    )		
 end
 
 function CombatMetronome:RegisterCM()
@@ -380,54 +140,161 @@ function CombatMetronome:RegisterCM()
         function(...) self:Update() end
     )
     
-    EVENT_MANAGER:RegisterForEvent(
-        self.name.."SlotUsed",
-        EVENT_ACTION_SLOT_ABILITY_USED,
-        function(e, slot)
+    -- EVENT_MANAGER:RegisterForEvent(
+        -- self.name.."SlotUsed",
+        -- EVENT_ACTION_SLOT_ABILITY_USED,
+        -- function(e, slot)
 			-- d(slot)
-			local ability = {}
-            local actionType = GetSlotType(slot)
+			-- local ability = {}
+            -- local actionType = GetSlotType(slot)
 			-- d(actionType)
-			if actionType == 3 then --ACTION_TYPE_CRAFTED_ABILITY then
+			-- if actionType == ACTION_TYPE_CRAFTED_ABILITY then --3 then
 				-- d("Crafted ability executed")
-				ability = Util.Ability:ForId(GetAbilityIdForCraftedAbilityId(GetSlotBoundId(slot)))
+				-- ability = Util.Ability:ForId(GetAbilityIdForCraftedAbilityId(GetSlotBoundId(slot)))
 				-- d("Ability used - "..ability.name..", ID: "..ability.id)
-			else
-				ability = Util.Ability:ForId(GetSlotBoundId(slot))
-			end
+			-- else
+				-- ability = Util.Ability:ForId(GetSlotBoundId(slot))
+			-- end
+						
+			-- d("Slot used - Target: "..GetAbilityTargetDescription(GetSlotBoundId(slot)).." - "..ability.name)
             -- log("Abilty used - ", ability.name)
-            if (ability and ability.heavy) then
+            -- if slot == 2 then
                 -- log("Cancelling heavy")
-                self.currentEvent = nil
-            end
-        end
-    )
+                -- self.currentEvent = nil
+            -- end
+        -- end
+    -- )
+	
 	self.cmRegistered = true
 	
+	if self.config.trackCollectibles or (self.config.showMountNick and self.config.trackMounting) then
+		CombatMetronome:RegisterCollectiblesTracker()
+	end
+	
+	if self.config.trackItems then
+		CombatMetronome:RegisterItemsTracker()
+	end
+	
+	if self.config.trackMounting or self.config.trackKillingActions or self.trackBreakingFree then
+		CombatMetronome:RegisterCombatEvents()
+	end
+	-- d("cm is registered")
+end
+
+function CombatMetronome:RegisterCollectiblesTracker()
 	EVENT_MANAGER:RegisterForEvent(
-		self.name.."BarSwap",
-		EVENT_ACTION_SLOTS_ACTIVE_HOTBAR_UPDATED,
-		function(_,barswap,_,category)
-			if barswap then
-				self.barswap = barswap
-				-- d("barswap occured. Hotbar was "..category)
+		self.name.."CollectibleUsed",
+		EVENT_COLLECTIBLE_UPDATED,
+		function(_, id)
+			local name,_,icon,_,_,_,_,type,_ = GetCollectibleInfo(id)
+			if type == COLLECTIBLE_CATEGORY_TYPE_ASSISTANT or type == COLLECTIBLE_CATEGORY_TYPE_COMPANION then
+				CombatMetronome:SetIconsAndNamesNil()
+				self.collectibleInUse = {}
+				self.collectibleInUse.name = Util.Text.CropZOSString(name)
+				self.collectibleInUse.icon = icon
+				zo_callLater(function() self.collectibleInUse = nil end, 1000)
 			end
-			return self.barswap
+			if type == COLLECTIBLE_CATEGORY_TYPE_MOUNT then
+				self.activeMount.name = Util.Text.CropZOSString(GetCollectibleNickname(id))
+				self.activeMount.icon = icon
+			end
 		end
 	)
 	
+	self.collectiblesTrackerRegistered = true
+end
+
+function CombatMetronome:RegisterItemsTracker()
 	EVENT_MANAGER:RegisterForEvent(
-		self.name.."RollDodge",
-		EVENT_EFFECT_CHANGED,
-		function(_,changeType,_,_,_,_,_,_,_,_,_,_,_,_,_,abilityId,sourceType)
-			if sourceType == COMBAT_UNIT_TYPE_PLAYER and abilityId == 29721 and changeType == 3 then			--- 69143 is DodgeFatigue
-				self.rollDodge = true
-				-- d("Dodge detected")
+		self.name.."InventoryItemUsed",
+		EVENT_INVENTORY_ITEM_USED,
+		function()
+			local bagSize = GetBagSize(1)
+			CombatMetronome:SetIconsAndNamesNil()
+			self.itemCache = {}
+			self.itemCache.name = {}
+			self.itemCache.icon = {}
+			for i = 1, bagSize do
+				self.itemCache.name[i] = Util.Text.CropZOSString(GetItemName(1, i))
+				self.itemCache.icon[i] = GetItemInfo(1, i)
 			end
-			return self.rollDodge
+			zo_callLater(function()
+				self.itemCache = nil
+			end,
+			400)
 		end
 	)
-	-- d("cm is registered")
+
+	EVENT_MANAGER:RegisterForEvent(
+		self.name.."InventoryItemInfo",
+		EVENT_INVENTORY_SINGLE_SLOT_UPDATE,
+		function(_, _, slotId, _, _, _, stackCountChange, _, _, _, _)
+			if stackCountChange == -1 and self.itemCache then
+				CombatMetronome:SetIconsAndNamesNil()
+				self.itemUsed = {}
+				self.itemUsed.name = self.itemCache.name[slotId]
+				self.itemUsed.icon = self.itemCache.icon[slotId]
+				zo_callLater(function()
+					if self.itemUsed then
+						self.itemUsed.name = nil
+						self.itemUsed.icon = nil
+						self.itemUsed = nil
+					end
+				end,
+				950)
+			end
+		end
+	)
+	
+	self.itemTrackerRegistered = true
+end
+
+function CombatMetronome:RegisterCombatEvents()
+	EVENT_MANAGER:RegisterForEvent(
+		self.name.."CombatEvents",
+		EVENT_COMBAT_EVENT,
+--				  (a)bility | (d)amage | (p)ower | (t)arget | (s)ource | (h)it
+--    	          ------------------------------------------------------------
+--				  1      2     3      4		5		6      7      8      9
+--    	          10     11    12     13    14 		15     16     17     18
+		function (_,   res,  err, aName, aGraphic, aSlotType, sName, sType, tName, 
+				  tType, hVal, pType, dType, _, 	sUId, tUId,  aId,   _     )
+			if Util.Text.CropZOSString(sName) == self.currentCharacterName then
+				if IsMounted() and aId == 36432 and self.activeMount.action ~= "Dismounting" then
+					CombatMetronome:SetIconsAndNamesNil()
+					self.activeMount.action = "Dismounting"
+				elseif not IsMounted() and aId == 36010 and self.activeMount.action ~= "Mounting" then
+					CombatMetronome:SetIconsAndNamesNil()
+					self.activeMount.action = "Mounting"
+				elseif aId == 138780 then
+					CombatMetronome:SetIconsAndNamesNil()
+					self.killingAction = {}
+					self.killingAction.name = Util.Text.CropZOSString(aName)
+					self.killingAction.icon = "/esoui/art/icons/ability_u26_vampire_synergy_feed.dds"
+				elseif aId == 146301 then
+					CombatMetronome:SetIconsAndNamesNil()
+					self.killingAction = {}
+					self.killingAction.name = Util.Text.CropZOSString(aName)
+					self.killingAction.icon = "/esoui/art/icons/achievement_u23_skillmaster_darkbrotherhood.dds"
+				elseif aId == 16565 then
+					CombatMetronome:SetIconsAndNamesNil()
+					self.breakingFree = {}
+					self.breakingFree.name = Util.Text.CropZOSString(aName)
+					self.breakingFree.icon = "/esoui/art/icons/ability_rogue_050.dds"
+				-- elseif aGraphic ~= nil and aName ~= nil and res == 2240 and aId ~= (36432 or 36010 or 138780 or 146301 or 16565) and aSlotType == ACTION_SLOT_TYPE_OTHER then
+					-- CombatMetronome:SetIconsAndNamesNil()
+					-- self.otherSynergies = {}
+					-- self.otherSynergies.icon = aGraphic
+					-- self.otherSynergies.name = Util.Text.CropZOSString(aName)
+				end
+			end
+			-- if Util.Text.CropZOSString(tName) == self.currentCharacterName then
+				-- d(aName.." - "..aId.." - "..sUId)
+			-- end
+		end
+	)
+	
+	self.combatEventsRegistered = true
 end
 
 function CombatMetronome:RegisterResourceTracker()
@@ -453,25 +320,30 @@ end
 function CombatMetronome:UnregisterCM()
 	EVENT_MANAGER:UnregisterForUpdate(
         self.name.."Update")
-	
-	-- EVENT_MANAGER:UnregisterForUpdate(
-        -- self.name.."CurrentActionslotsOnHotbar")
 		
 	-- EVENT_MANAGER:UnregisterForEvent(
-		-- self.name.."CharacterLoaded")
-	
-	EVENT_MANAGER:UnregisterForEvent(
-        self.name.."SlotUsed")
+        -- self.name.."SlotUsed")
 	
 	self.cmRegistered = false
-	
-	EVENT_MANAGER:UnregisterForEvent(
-		self.name.."BarSwap")
-		
-	EVENT_MANAGER:UnregisterForEvent(
-		self.name.."RollDodge")
 	-- d("cm is unregistered")
-	-- self.cmWarning = false
+	
+	-- EVENT_MANAGER:UnregisterForEvent(
+		-- self.name.."BarSwap")
+		
+	-- EVENT_MANAGER:UnregisterForEvent(
+		-- self.name.."RollDodge")
+	
+	if self.collectiblesTrackerRegistered then
+		CombatMetronome:UnregisterCollectiblesTracker()
+	end
+	
+	if self.itemsTrackerRegistered then
+		CombatMetronome:UnregisterItemsTracker()
+	end
+	
+	if self.combatEventsRegistered then
+		CombatMetronome:UnregisterCombatEvents()
+	end
 end
 
 function CombatMetronome:UnregisterResourceTracker()
@@ -487,5 +359,29 @@ function CombatMetronome:UnregisterTracker()
 	
 	self.trackerRegistered = false
 	-- d("tracker is unregistered")
-	self.trackerWarning = false
+	-- self.trackerWarning = false
+end
+
+function CombatMetronome:UnregisterCollectiblesTracker()
+	EVENT_MANAGER:UnregisterForEvent(
+		self.name.."CollectibleUsed")
+		
+	self.collectiblesTrackerRegistered = false
+end
+
+function CombatMetronome:UnregisterItemsTracker()
+	EVENT_MANAGER:UnregisterForEvent(
+		self.name.."InventoryItemUsed")
+	
+	EVENT_MANAGER:UnregisterForEvent(
+		self.name.."InventoryItemInfo")
+		
+	self.itemsTrackerRegistered = false
+end
+
+function CombatMetronome:UnregisterCombatEvents()
+	EVENT_MANAGER:UnregisterForEvent(
+		self.name.."CombatEvents")
+		
+	self.combatEventsRegistered = false
 end
