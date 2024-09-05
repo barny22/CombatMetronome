@@ -63,7 +63,7 @@ function CombatMetronome:BuildMenu()
 	local CreateIcons
 	CreateIcons = function(panel)
 		if panel == CombatMetronomeOptions then
-			local dodgeNum, mountNum, assistantsNum, itemsNum, killingNum, breakFreeNum = CombatMetronome:CreateMenuIconsPath("Dodgeroll", "Mounting/Dismounting", "Assistants and companions", "Usage of items", "Killing actions", "Breaking free")
+			local dodgeNum, mountNum, assistantsNum, itemsNum, killingNum, breakFreeNum, othersNum = CombatMetronome:CreateMenuIconsPath("Dodgeroll", "Mounting/Dismounting", "Assistants and companions", "Usage of items", "Killing actions", "Breaking free", "Other synergies that cause GCD")
 			dodgeIcon = WINDOW_MANAGER:CreateControl(nil, panel.controlsToRefresh[dodgeNum].checkbox, CT_TEXTURE)
 			dodgeIcon:SetAnchor(RIGHT, panel.controlsToRefresh[dodgeNum].checkbox, LEFT, -25, 0)
 			dodgeIcon:SetTexture("/esoui/art/icons/ability_rogue_035.dds")
@@ -593,7 +593,7 @@ function CombatMetronome:BuildMenu()
 											end
 										else
 											-- mountIcon:SetDesaturation(-100)
-											if self.mountingTrackerRegistered and not (self.config.trackKillingActions or self.config.trackBreakingFree) then
+											if self.mountingTrackerRegistered and not (self.config.trackKillingActions or self.config.trackBreakingFree or self.config.trackOthers) then
 												CombatMetronome:UnregisterCombatEvents()
 											end
 											if not self.config.trackCollectibles and self.collectiblesTrackerRegistered then
@@ -678,7 +678,7 @@ function CombatMetronome:BuildMenu()
 										-- end
 										if value and not self.combatEventsRegistered then
 											CombatMetronome:RegisterCombatEvents()
-										elseif not value and self.mountingAndKillingTrackerRegistered and not (self.config.trackMounting or self.config.trackBreakingFree) then
+										elseif not value and self.mountingAndKillingTrackerRegistered and not (self.config.trackMounting or self.config.trackBreakingFree or self.config.trackOthers) then
 											CombatMetronome:UnregisterCombatEvents()
 										end
 									end,
@@ -698,11 +698,26 @@ function CombatMetronome:BuildMenu()
 										-- end
 										if value and not self.combatEventsRegistered then
 											CombatMetronome:RegisterCombatEvents()
-										elseif not value and self.combatEventsRegistered and not (self.config.trackMounting or self.config.trackKillingActions) then
+										elseif not value and self.combatEventsRegistered and not (self.config.trackMounting or self.config.trackKillingActions or self.config.trackOthers) then
 											CombatMetronome:UnregisterCombatEvents()
 										end
 									end,
 								},
+								-- {
+									-- type = "checkbox",
+									-- name = "Other synergies that cause GCD",
+									-- disabled = function() return not self.config.trackGCD end,
+									-- default = false,
+									-- getFunc = function() return self.config.trackOthers end,
+									-- setFunc = function(value)
+										-- self.config.trackOthers = value
+										-- if value and not self.collectiblesTrackerRegistered then
+												-- CombatMetronome:RegisterCollectiblesTracker()
+										-- elseif not value and self.config.combatEventsRegistered and not (self.config.trackMounting or self.config.trackKillingActions or self.config.trackBreakingFree) then
+												-- CombatMetronome:UnregisterCollectiblesTracker()
+										-- end
+									-- end,
+								-- },
 								-- {
 									-- type = "submenu",
 									-- name = "Collectible types",

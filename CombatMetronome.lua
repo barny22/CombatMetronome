@@ -221,7 +221,7 @@ function CombatMetronome:RegisterItemsTracker()
 			zo_callLater(function()
 				self.itemCache = nil
 			end,
-			200)
+			400)
 		end
 	)
 
@@ -255,10 +255,10 @@ function CombatMetronome:RegisterCombatEvents()
 		EVENT_COMBAT_EVENT,
 --				  (a)bility | (d)amage | (p)ower | (t)arget | (s)ource | (h)it
 --    	          ------------------------------------------------------------
---				  1      2     3      4     5  6      7      8      9
---    	          10     11    12     13    14 15     16     17     18
-		function (_,     res,  err,   aName, _, _,    sName, sType, tName, 
-				  tType, hVal, pType, dType, _, sUId, tUId,  aId,   _     )
+--				  1      2     3      4		5		6      7      8      9
+--    	          10     11    12     13    14 		15     16     17     18
+		function (_,   res,  err, aName, aGraphic, aSlotType, sName, sType, tName, 
+				  tType, hVal, pType, dType, _, 	sUId, tUId,  aId,   _     )
 			if Util.Text.CropZOSString(sName) == self.currentCharacterName then
 				if IsMounted() and aId == 36432 and self.activeMount.action ~= "Dismounting" then
 					CombatMetronome:SetIconsAndNamesNil()
@@ -266,8 +266,7 @@ function CombatMetronome:RegisterCombatEvents()
 				elseif not IsMounted() and aId == 36010 and self.activeMount.action ~= "Mounting" then
 					CombatMetronome:SetIconsAndNamesNil()
 					self.activeMount.action = "Mounting"
-				end
-				if aId == 138780 then
+				elseif aId == 138780 then
 					CombatMetronome:SetIconsAndNamesNil()
 					self.killingAction = {}
 					self.killingAction.name = Util.Text.CropZOSString(aName)
@@ -282,6 +281,11 @@ function CombatMetronome:RegisterCombatEvents()
 					self.breakingFree = {}
 					self.breakingFree.name = Util.Text.CropZOSString(aName)
 					self.breakingFree.icon = "/esoui/art/icons/ability_rogue_050.dds"
+				-- elseif aGraphic ~= nil and aName ~= nil and res == 2240 and aId ~= (36432 or 36010 or 138780 or 146301 or 16565) and aSlotType == ACTION_SLOT_TYPE_OTHER then
+					-- CombatMetronome:SetIconsAndNamesNil()
+					-- self.otherSynergies = {}
+					-- self.otherSynergies.icon = aGraphic
+					-- self.otherSynergies.name = Util.Text.CropZOSString(aName)
 				end
 			end
 			-- if Util.Text.CropZOSString(tName) == self.currentCharacterName then

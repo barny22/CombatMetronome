@@ -99,6 +99,9 @@ function CombatMetronome:Update()
 			if self.breakingFree and self.config.trackBreakingFree then
 				CombatMetronome:GCDSpecifics(self.breakingFree.name, self.breakingFree.icon, gcdProgress)
 			end
+			-- if self.otherSynergies and self.config.trackOthers then
+				-- CombatMetronome:GCDSpecifics(self.otherSynergies.name, self.otherSynergies.icon, gcdProgress)
+			-- end
 			
 			if gcdProgress <= 0 then
 				CombatMetronome:SetIconsAndNamesNil()

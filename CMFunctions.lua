@@ -86,7 +86,7 @@ end
 	---- GCD Tracking specifics ----
 	--------------------------------
 	
-function CombatMetronome:CreateMenuIconsPath(string1, string2, string3, string4, string5, string6)
+function CombatMetronome:CreateMenuIconsPath(string1, string2, string3, string4, string5, string6, string7)
 	local number = 0
 	for i = 1,#CombatMetronomeOptions.controlsToRefresh do
 		if string1 == CombatMetronomeOptions.controlsToRefresh[i].data.name then
@@ -106,6 +106,9 @@ function CombatMetronome:CreateMenuIconsPath(string1, string2, string3, string4,
 		end
 		if string6 == CombatMetronomeOptions.controlsToRefresh[i].data.name then
 			number6 = i
+		end
+		if string7 == CombatMetronomeOptions.controlsToRefresh[i].data.name then
+			number7 = i-1
 		end
 	end
 	return number1, number2, number3, number4, number5, number6
@@ -138,27 +141,28 @@ function CombatMetronome:SetIconsAndNamesNil()
 	self.itemUsed = nil
 	self.killingAction = nil
 	self.breakingFree = nil
+	self.otherSynergies = nil
 end
 
 	-----------------------
 	---- Combat Events ----
 	-----------------------
 
-function CombatMetronome:HandleCombatEvents(...)
-    local e = Util.CombatEvent:New(...)
+-- function CombatMetronome:HandleCombatEvents(...)
+    -- local e = Util.CombatEvent:New(...)
 
-    if e:IsPlayerTarget() and not e:IsError() then
-        local r = e:GetResult()
-        if r == ACTION_RESULT_KNOCKBACK
-        or r == ACTION_RESULT_PACIFIED
-        or r == ACTION_RESULT_STAGGERED
-        or r == ACTION_RESULT_STUNNED
-        or r == ACTION_RESULT_INTERRUPTED then
-            self.currentEvent = nil
-            return
-        end
-    end
-end
+    -- if e:IsPlayerTarget() and not e:IsError() then
+        -- local r = e:GetResult()
+        -- if r == ACTION_RESULT_KNOCKBACK
+        -- or r == ACTION_RESULT_PACIFIED
+        -- or r == ACTION_RESULT_STAGGERED
+        -- or r == ACTION_RESULT_STUNNED
+        -- or r == ACTION_RESULT_INTERRUPT then
+            -- self.currentEvent = nil
+            -- return
+        -- end
+    -- end
+-- end
 
 	-------------------------
 	---- Ability Adjusts ----
