@@ -439,16 +439,17 @@ end
 
 --                                      (a)bility | (d)amage | (p)ower | (t)arget | (s)ource | (h)it
 --                                      ------------------------------------------------------------
---                                         1      2     3      4     5  6      7      8      9
---                                         10     11    12     13    14 15     16     17     18
-function Ability.Tracker:HandleCombatEvent(_,     res,  err,   aName, _, _,    sName, sType, tName, 
+--                                         1      2     3      4     5  	6      7      8      9
+--                                         10     11    12     13    14 	15     16     17     18
+function Ability.Tracker:HandleCombatEvent(_,     res,  err,   aName, _, aSlotType, sName, sType, tName, 
                                            tType, hVal, pType, dType, _, sUId, tUId,  aId, overflow)
     if (not err and Util.Targeting.isUnitPlayer(tName, tUId)) then
         if (   res == ACTION_RESULT_KNOCKBACK
             or res == ACTION_RESULT_PACIFIED
             or res == ACTION_RESULT_STAGGERED
             or res == ACTION_RESULT_STUNNED
-            or res == ACTION_RESULT_INTERRUPT) then
+            or res == ACTION_RESULT_INTERRUPT)
+            and not (IsUnitInAir("player") and self.currentEvent) then
             self:CancelEvent()
             self.currentEvent = nil
             return
@@ -472,22 +473,23 @@ function Ability.Tracker:HandleCombatEvent(_,     res,  err,   aName, _, _,    s
 
         -- log("Not error!")
 
-        local heavyId = GetSlotBoundId(2)
-        if (heavyId == aId and res == 2200) then
+        -- local heavyId = GetSlotBoundId(2)
+        -- if (heavyId == aId and res == 2200) then
+		if (aSlotType == ACTION_SLOT_TYPE_HEAVY_ATTACK and res == 2200) then
             -- d("Heavy ability is current combat event")
-            if (self.currentEvent and self.currentEvent.ability.id == heavyId) then
+            if (self.currentEvent and self.currentEvent.ability.id == aId) then
                 return
             end
 
-            local heavy = Util.Ability:ForId(heavyId)
+            local heavy = Util.Ability:ForId(aId)
             -- _=self.log and d("New heavy ability - "..heavy.name)
             self:NewEvent(heavy, 2, time)
             
             -- self.eventStart = self.queuedEvent.recorded
             -- self:AbilityUsed()
         end
-        local lightId = GetSlotBoundId(1)
-        if lightId == aId and res == 2240 and time ~= self.lastLightAttack then Ability.Tracker:CallbackLightAttackUsed(time) end
+        -- local lightId = GetSlotBoundId(1)
+        if aSlotType == ACTION_SLOT_TYPE_LIGHT_ATTACK and res == 2240 and time ~= self.lastLightAttack then Ability.Tracker:CallbackLightAttackUsed(time) end
         self.lastLightAttack = time
     end
 end
