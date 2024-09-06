@@ -81,6 +81,7 @@ CM_DEFAULT_SAVED_VARS = {
 	["LATrackerWidth"] = 200;
 	["LATrackerHeight"] = 50;
 	["laTrackerChoice"] = "Nothing";
+	["timeTilHidingLATracker"] = 15;
 }
 
 CM_TRACKER_CLASS_ATTRIBUTES = {
