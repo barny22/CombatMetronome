@@ -104,7 +104,7 @@ end
 function CombatMetronome:RegisterMetadata()
 	EVENT_MANAGER:RegisterForEvent(
         self.name.."CurrentActionslotsOnHotbar",
-        EVENT_ACTION_SLOT_UPDATED,
+        EVENT_ACTION_SLOTS_ALL_HOTBARS_UPDATED,
         function()
 			self.actionSlotCache = CombatMetronome:StoreAbilitiesOnActionBar()
 			-- self.menu.abilityAdjustChoices = CombatMetronome:BuildListForAbilityAdjusts()

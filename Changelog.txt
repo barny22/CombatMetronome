@@ -1,3 +1,6 @@
+2024-09-07 v1.6.8
+!  Minor fixes
+
 2024-09-05 v1.6.7
 !  Moved updater for castbar to CMCastbar.lua
 !  Ground targeted skills are now properly recognized
