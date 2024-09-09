@@ -175,7 +175,7 @@ function CombatMetronome:RegisterCM()
 		CombatMetronome:RegisterItemsTracker()
 	end
 	
-	if self.config.trackMounting or self.config.trackKillingActions or self.trackBreakingFree then
+	if self.config.trackMounting or self.config.trackKillingActions or self.config.trackBreakingFree --[[or self.config.trackOthers]] then
 		CombatMetronome:RegisterCombatEvents()
 	end
 	-- d("cm is registered")
