@@ -478,6 +478,20 @@ function CombatMetronome:BuildMenu()
 								-- self:BuildProgressBar()
 							end,
 						},
+						{
+							type = "slider",
+							name = "Font size",
+							warning = "Font size only applies to time remaining or spell name!",
+							min = 5,
+							max = self.config.height,
+							step = 1,
+							disabled = function() return not (self.config.showTimeRemaining or self.config.showSpell) end,
+							getFunc = function() return self.config.spellSize end,
+							setFunc = function(value)
+								self.config.spellSize = value
+								self.progressbar.Fonts()
+							end,
+						},
 					},
 				},
 		------------------
@@ -535,6 +549,36 @@ function CombatMetronome:BuildMenu()
 								self.config.globalAbilityAdjust = value
 							end,
 						},
+						{
+							type = "submenu",
+							name = "Trigger debug",
+							controls = {
+								{
+									type = "checkbox",
+									name = "Activate trigger debug",
+									tooltip = "In case you are having trouble with abilities being triggered",
+									width = "half",
+									getFunc = function() return self.config.triggerDebug end,
+									setFunc = function(value)
+										self.config.triggerDebug = value
+									end,
+								},
+								{
+									type = "slider",
+									name = "Ability trigger timer",
+									tooltip = "The goal is to set it as low as possible and still have all the spells triggered",
+									min = 50,
+									max = 400,
+									step = 10,
+									width = "half",
+									disabled = function() return not self.config.triggerDebug end,
+									getFunc = function() return self.config.triggerTimer or 170 end,
+									setFunc = function(value)
+										self.config.triggerTimer = value
+									end,
+								},
+							},
+						},
 						--[[
 						{
 							type = "checkbox",
@@ -548,7 +592,7 @@ function CombatMetronome:BuildMenu()
 						]]
 						{
 							type = "checkbox",
-							name = "Show GCD",
+							name = "Always show GCD",
 							tooltip = "Track GCDs whilst out of combat",
 							getFunc = function() return self.config.trackGCD end,
 							setFunc = function(value)

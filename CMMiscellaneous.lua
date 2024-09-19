@@ -21,6 +21,7 @@ CM_DEFAULT_SAVED_VARS = {
 	["trackGCD"] = false,
     ["showOOC"] = true,
     ["displayPingOnHeavy"] = true,
+	["spellSize"] = 25,
     ["debug"] = false,
     ["globalHeavyAdjust"] = 25,
     ["globalAbilityAdjust"] = 25,
@@ -76,12 +77,12 @@ CM_DEFAULT_SAVED_VARS = {
 	["trackerVolume"] = 100,
 	["hightlightOnFullStacks"] = false,
 	["trackerSound"] = "Ability_Companion_Ultimate_Ready",
-	["LATrackerXOffset"] = GuiRoot:GetWidth()/2;
-	["LATrackerYOffset"] = GuiRoot:GetHeight()/2;
-	["LATrackerWidth"] = 200;
-	["LATrackerHeight"] = 50;
-	["laTrackerChoice"] = "Nothing";
-	["timeTilHidingLATracker"] = 15;
+	["LATrackerXOffset"] = GuiRoot:GetWidth()/2,
+	["LATrackerYOffset"] = GuiRoot:GetHeight()/2,
+	["LATrackerWidth"] = 200,
+	["LATrackerHeight"] = 50,
+	["laTrackerChoice"] = "Nothing",
+	["timeTilHidingLATracker"] = 15,
 }
 
 CM_TRACKER_CLASS_ATTRIBUTES = {
