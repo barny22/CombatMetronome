@@ -237,8 +237,8 @@ function CombatMetronome:HandleAbilityUsed(event)
 		if self.currentEvent and self.currentEvent.ability.heavy then
 			self.currentEvent = nil
 			self.gcd = 0
-			return
 		end
+		return
 	end
 
     self.soundTickPlayed = false

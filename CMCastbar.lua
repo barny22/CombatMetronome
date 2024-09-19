@@ -81,11 +81,12 @@ function CombatMetronome:Update()
 			if not Util.Ability.Tracker.rollDodgeFinished and self.config.trackRolldodge then
 				CombatMetronome:GCDSpecifics("Dodgeroll", "/esoui/art/icons/ability_rogue_035.dds", gcdProgress)
 			end
-			if self.activeMount.action ~= "" and self.config.trackMounting and self.config.showMountNick then
-				CombatMetronome:GCDSpecifics(tostring(self.activeMount.action.." "..self.activeMount.name), self.activeMount.icon, gcdProgress)
-			end
-			if self.activeMount.action ~= "" and self.config.trackMounting and not self.config.showMountNick then
-				CombatMetronome:GCDSpecifics(self.activeMount.action, self.activeMount.icon, gcdProgress)
+			if self.activeMount.action ~= "" and self.config.trackMounting then
+				if self.config.showMountNick then
+					CombatMetronome:GCDSpecifics(tostring(self.activeMount.action.." "..self.activeMount.name), self.activeMount.icon, gcdProgress)
+				else
+					CombatMetronome:GCDSpecifics(self.activeMount.action, self.activeMount.icon, gcdProgress)
+				end
 			end
 			if self.collectibleInUse and self.config.trackCollectibles then
 				CombatMetronome:GCDSpecifics(self.collectibleInUse.name, self.collectibleInUse.icon, gcdProgress)

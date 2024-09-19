@@ -120,6 +120,8 @@ function Ability.Tracker:Start()
     self.lastLightAttack = 0
     self.rollDodgeFinished = true
     self.lastBlockStatus = false
+    self.cdUpdatedDuringHeavy = false
+    self.heavyUsedDuringHeavy = false
     
     -- self.slotsUpdated = {}
     
@@ -235,6 +237,8 @@ function Ability.Tracker:Update()
         self.weaponLastSheathed = time
     end
     self.lastBlockStatus = IsBlockActive()
+    self.cdUpdatedDuringHeavy = false
+    self.heavyUsedDuringHeavy = false
 end
 
 function Ability.Tracker:NewEvent(ability, slot, start)
@@ -320,6 +324,17 @@ function Ability.Tracker:CallbackLightAttackUsed(time)
     if self.CombatMetronome.LATracker then self.CombatMetronome.LATracker:HandleLightAttacks(time) end
 end
 
+function Ability.Tracker:CallbackCancelHeavy()
+    if not (self.cdTriggerTime == self.heavyUsedDuringHeavy) then
+        self.currentEvent = nil
+        self.gcd = 0
+        -- d("cancelling heavy")
+        if self.CombatMetronome then
+            Ability.Tracker:CallbackAbilityUsed("cancel heavy")
+        end
+    end
+end
+
 function Ability.Tracker:CallbackAbilityCancelled(event)
     -- DAL:Log("EVENT - "..event.ability.name.." ended!")
     -- for name, callback in pairs(self.callbacks[self.CALLBACK_ABILITY_CANCELLED]) do
@@ -399,9 +414,9 @@ function Ability.Tracker:HandleCooldownsUpdated()
     self.gcd = slotDuration
     -- local oldStart = self.eventStart or 0
     
-    if self.queuedEvent and not self.currentEvent and self.rollDodgeFinished and not self.queuedEvent.castDuringRollDodge then
+    if self.queuedEvent and self.rollDodgeFinished and not self.queuedEvent.castDuringRollDodge then
         self.eventStart = self.cdTriggerTime - slotDuration + slotRemaining
-        if self.eventStart + 170 >= self.cdTriggerTime then
+        if self.eventStart + ((CombatMetronome.config.triggerDebug and CombatMetronome.config.triggerTimer) or 170) >= self.cdTriggerTime then
             self:AbilityUsed()
         end
     end
@@ -412,12 +427,13 @@ function Ability.Tracker:HandleSlotUsed(_, slot)
     local time = GetFrameTimeMilliseconds()
     
     if slot == 2 and self.currentEvent and self.currentEvent.ability.heavy then
-        -- d("canelling heavy")
-        self.currentEvent = nil
-        self.gcd = 0
-        Ability.Tracker:CallbackAbilityUsed("cancel heavy")
+        self.heavyUsedDuringHeavy = time
+        self:CallbackCancelHeavy()
         return
     elseif slot == 2 then
+        -- local heavy = Util.Ability:ForId(GetSlotBoundId(2))
+        -- d("New Heavy")
+        -- self:NewEvent(heavy, 2, time)
         return
     end
 
@@ -479,6 +495,8 @@ function Ability.Tracker:HandleCombatEvent(_,     res,  err,   aName, _, aSlotTy
             -- d("Heavy ability is current combat event")
             if (self.currentEvent and self.currentEvent.ability.id == aId) then
                 return
+            elseif aId ~= GetSlotBoundId(2) then
+                return
             end
 
             local heavy = Util.Ability:ForId(aId)
@@ -489,7 +507,12 @@ function Ability.Tracker:HandleCombatEvent(_,     res,  err,   aName, _, aSlotTy
             -- self:AbilityUsed()
         end
         -- local lightId = GetSlotBoundId(1)
-        if aSlotType == ACTION_SLOT_TYPE_LIGHT_ATTACK and res == 2240 and time ~= self.lastLightAttack then Ability.Tracker:CallbackLightAttackUsed(time) end
+        if aSlotType == ACTION_SLOT_TYPE_LIGHT_ATTACK --[[and res == 2240 and time ~= self.lastLightAttack ]]then
+            if res == 2240 and time ~= self.lastLightAttack then
+                Ability.Tracker:CallbackLightAttackUsed(time)
+            end
+            -- d(res.." - "..hVal.." - "..overflow)
+        end
         self.lastLightAttack = time
     end
 end
