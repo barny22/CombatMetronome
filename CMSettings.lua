@@ -481,7 +481,7 @@ function CombatMetronome:BuildMenu()
 						{
 							type = "slider",
 							name = "Font size",
-							warning = "Font size only applies to time remaining or spell name!",
+							warning = "Font size only applies to time remaining and spell name!",
 							min = 5,
 							max = self.config.height,
 							step = 1,
