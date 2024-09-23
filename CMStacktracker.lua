@@ -95,7 +95,7 @@ function CombatMetronome:TrackerUpdate()
 				if self.config.trackerPlaySound then
 					local uiVolume = GetSetting(SETTING_TYPE_AUDIO, AUDIO_SETTING_UI_VOLUME)											--Sound cue when stacks are full
 					if previousStack == oneOff then
-						d("One off full stacks")
+						-- d("One off full stacks")
 						if stacks == attributes.iMax then
 							local trackerCue = ZO_QueuedSoundPlayer:New(0)
 							trackerCue:SetFinishedAllSoundsCallback(function()
@@ -103,9 +103,9 @@ function CombatMetronome:TrackerUpdate()
 								-- d("Sound is finished playing. Volume adjusted. Volume is now "..GetSetting(SETTING_TYPE_AUDIO, AUDIO_SETTING_UI_VOLUME))
 							end)
 							SetSetting(SETTING_TYPE_AUDIO, AUDIO_SETTING_UI_VOLUME, self.config.trackerVolume)
-							d("Volume adjusted. Volume is now "..GetSetting(SETTING_TYPE_AUDIO, AUDIO_SETTING_UI_VOLUME))
+							-- d("Volume adjusted. Volume is now "..GetSetting(SETTING_TYPE_AUDIO, AUDIO_SETTING_UI_VOLUME))
 							trackerCue:PlaySound(SOUNDS[self.config.trackerSound],250)
-							d("Stacks are full")
+							-- d("Stacks are full")
 						end
 					end
 				end
