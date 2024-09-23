@@ -175,9 +175,9 @@ function Ability.Tracker:HandleRollDodge(_,changeType,_,_,_,_,_,_,_,_,_,_,_,_,_,
     end
     if not self.rollDodgeFinished and self.currentEvent then
         self.currentEvent = nil
-        if self.CombatMetronome and self.CombatMetronome.currentEvent then
-            self.CombatMetronome.currentEvent = nil
-            self.CombatMetronome:SetIconsAndNamesNil()
+        if self.CombatMetronome and CombatMetronome.currentEvent then
+            CombatMetronome.currentEvent = nil
+            CombatMetronome:SetIconsAndNamesNil()
         end
     end
 end
@@ -186,8 +186,8 @@ function Ability.Tracker:HandleBarSwap(_, barswap, _, _)
     self.barswap = barswap == true
     if self.barswap and self.currentEvent and self.currentEvent.ability and self.currentEvent.ability.delay > 1000 then
         self.currentEvent = nil
-        if self.CombatMetronome and self.CombatMetronome.currentEvent then
-            self.CombatMetronome.currentEvent = nil
+        if self.CombatMetronome and CombatMetronome.currentEvent then
+            CombatMetronome.currentEvent = nil
         end
         self.barswap = false
     end
@@ -198,8 +198,8 @@ function Ability.Tracker:Update()
     local gcdProgress = Ability.Tracker:GCDCheck()
     if (self.lastBlockStatus == false) and IsBlockActive() then
         self.currentEvent = nil
-        if self.CombatMetronome and self.CombatMetronome.currentEvent then
-            self.CombatMetronome.currentEvent = nil
+        if self.CombatMetronome and CombatMetronome.currentEvent then
+            CombatMetronome.currentEvent = nil
         end
     end
 
@@ -216,6 +216,14 @@ function Ability.Tracker:Update()
             self:AbilityUsed()
         end
     end
+    
+    -- Fire off events if all the triggers failed
+    if self.queuedEvent and gcdProgress > 0.97 and not self.currentEvent then 
+        if not (self.queuedEvent.recorded + math.max(self.queuedEvent.ability.delay,1000) > time) then
+            self.eventStart = time
+            Ability.Tracker:AbilityUsed()
+        end
+    end
 
     if (self.currentEvent and self.currentEvent.start) then
         local event = self.currentEvent
@@ -230,6 +238,12 @@ function Ability.Tracker:Update()
                 Ability.Tracker:CallbackAbilityCancelled(event)
             else
                 Ability.Tracker:CallbackAbilityActivated(event)
+            end
+        end
+        if gcdProgress == 0 and not self.currentEvent.ability.heavy then
+            self.currentEvent = nil
+            if self.CombatMetronome and CombatMetronome.currentEvent then
+                CombatMetronome.currentEvent = nil
             end
         end
     end
@@ -270,8 +284,9 @@ end
 
 function Ability.Tracker:CancelEvent()
     -- self.eventStart = nil
-    local gcdProgress = self:GCDCheck()
-    self.queuedEvent = nil
+    if not (self.queuedEvent and self.queuedEvent.allowForce) then
+        self.queuedEvent = nil
+    end
 
     if (self.currentEvent) then
         local ability = self.currentEvent.ability
@@ -329,9 +344,7 @@ function Ability.Tracker:CallbackCancelHeavy()
         self.currentEvent = nil
         self.gcd = 0
         -- d("cancelling heavy")
-        if self.CombatMetronome then
-            Ability.Tracker:CallbackAbilityUsed("cancel heavy")
-        end
+        Ability.Tracker:CallbackAbilityUsed("cancel heavy")
     end
 end
 
