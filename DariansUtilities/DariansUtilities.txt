@@ -25,3 +25,4 @@ controls/Frame.lua
 controls/Cooldown.lua
 controls/Bar.lua
 abilities/Ability.lua
+abilities/Stacks.lua

@@ -1,3 +1,6 @@
+local Util = DariansUtilities
+Util.Stacks = Util.Stacks or {}
+
         -------------------------------
         ---- Stack Tracker Updater ----
         -------------------------------
@@ -52,24 +55,24 @@ function CombatMetronome:TrackerUpdate()
 		
 		if trackerShouldBeVisible then
 			local abilitySlotted = CombatMetronome:CheckIfSlotted()
-			if self.morphChanged then
+			if Util.Stacks.morphChanged then
 				self.stackTracker.indicator.ApplyIcon()
-				self.morphChanged = false
+				Util.Stacks.morphChanged = false
 			end
 			if abilitySlotted then
 				self.stackTracker.FadeScenes("UI")
 				local attributes = CM_TRACKER_CLASS_ATTRIBUTES[self.class]
 				local oneOff = attributes.iMax - 1
 				if self.class == "ARC" then
-						stacks = self:GetCurrentNumCruxOnPlayer()
+						stacks = Util.Stacks:GetCurrentNumCruxOnPlayer()
 				elseif self.class == "DK" then
-						stacks = self:GetCurrentNumMWOnPlayer()
+						stacks = Util.Stacks:GetCurrentNumMWOnPlayer()
 				elseif self.class == "SORC" then
-						stacks = self:GetCurrentNumBAOnPlayer()
+						stacks = Util.Stacks:GetCurrentNumBAOnPlayer()
 				elseif self.class == "NB" then
-						stacks = self:GetCurrentNumGFOnPlayer()
+						stacks = Util.Stacks:GetCurrentNumGFOnPlayer()
 				elseif self.class == "CRO" then
-						stacks = self:GetCurrentNumFSOnPlayer()
+						stacks = Util.Stacks:GetCurrentNumFSOnPlayer()
 				end
 				for i=1,attributes.iMax do 
 					self.stackTracker.indicator[i].Deactivate()

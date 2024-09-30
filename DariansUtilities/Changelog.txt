@@ -1,5 +1,6 @@
 2024-09-18 v1.7.6
 !  Minor fixes to Ability.lua
+!  Moved some functions from CombatMetronome to a new file Stacks.lua
 
 2024-09-05 v1.7.5
 !  Moved function to crop zos strings to Text.lua to use it from there
