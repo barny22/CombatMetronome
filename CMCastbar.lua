@@ -113,6 +113,7 @@ function CombatMetronome:Update()
 			end
 			self.bar:Update()
 		elseif self.currentEvent then
+			CombatMetronome:SetIconsAndNamesNil()
 			local ability = self.currentEvent.ability
 			local start = self.currentEvent.start
 			if time - start < 0 then
