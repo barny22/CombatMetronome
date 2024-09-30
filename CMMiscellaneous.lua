@@ -83,6 +83,118 @@ CM_DEFAULT_SAVED_VARS = {
 	["LATrackerHeight"] = 50,
 	["laTrackerChoice"] = "Nothing",
 	["timeTilHidingLATracker"] = 15,
+	["CCTrackerXOffset"] = 0,
+	["CCTrackerYOffset"] = 0,
+	["CCTrackerSize"] = 30,
+	["CC"] = {}
+}
+
+CM_MENU_CONTROLS = {
+{
+		["Name"] = "Dodgeroll",
+		["Icon"] = "/esoui/art/icons/ability_rogue_035.dds",
+		["Dimensions"] = 35,
+		["Offset"] = -25,
+	},
+{
+		["Name"] = "Mounting/Dismounting",
+		["Dimensions"] = 45,
+		["Offset"] = -20,
+	},
+{
+		["Name"] = "Assistants and companions",
+		["Icon"] = "/esoui/art/icons/assistant_ezabibanker.dds",
+		["Dimensions"] = 45,
+		["Offset"] = -20,
+	},
+{
+		["Name"] = "Usage of items",
+		["Icon"] = "/esoui/art/tribute/tributeendofgamereward_overflow.dds",
+		["Dimensions"] = 35,
+		["Offset"] = -25,
+	},
+{
+		["Name"] = "Killing actions",
+		["Icon"] = "/esoui/art/icons/achievement_u23_skillmaster_darkbrotherhood.dds",
+		["Dimensions"] = 35,
+		["Offset"] = -25,
+	},
+{
+		["Name"] = "Breaking free",
+		["Icon"] = "/esoui/art/icons/ability_debuff_stun.dds",
+		["Dimensions"] = 35,
+		["Offset"] = -25,
+	},
+{
+		["Name"] = "Disoriented",
+		["Icon"] = "/esoui/art/icons/ability_debuff_disorient.dds",
+		["Dimensions"] = 35,
+		["Offset"] = -25,
+		-- ["Id"] = 2340
+	},
+{
+		["Name"] = "Fear",
+		["Icon"] = "/esoui/art/icons/ability_debuff_fear.dds",
+		["Dimensions"] = 35,
+		["Offset"] = -25,
+		-- ["Id"] = 15 --2320
+	},
+{
+		["Name"] = "Knockback",
+		["Icon"] = "/esoui/art/icons/ability_debuff_knockback.dds",
+		["Dimensions"] = 35,
+		["Offset"] = -25,
+		-- ["Id"] = 2475
+	}, 
+{
+		["Name"] = "Levitate",
+		["Icon"] = "/esoui/art/icons/ability_debuff_levitate.dds",
+		["Dimensions"] = 35,
+		["Offset"] = -25,
+		-- ["Id"] = 18 --2400
+	},
+{
+		["Name"] = "Offbalance",
+		["Icon"] = "/esoui/art/icons/ability_debuff_offbalance.dds",
+		["Dimensions"] = 35,
+		["Offset"] = -25,
+		-- ["Id"] = 2440
+	},
+-- {
+		-- ["Name"] = "Root",
+		-- ["Icon"] = "/esoui/art/icons/ability_debuff_root.dds",
+		-- ["Dimensions"] = 35,
+		-- ["Offset"] = -25,
+		-- ["Id"] = 1 --2480
+	-- },
+{
+		["Name"] = "Silence",
+		["Icon"] = "/esoui/art/icons/ability_debuff_silence.dds",
+		["Dimensions"] = 35,
+		["Offset"] = -25,
+		-- ["Id"] = 13 --2010
+	},
+{
+		["Name"] = "Snare",
+		["Icon"] = "/esoui/art/icons/ability_debuff_snare.dds",
+		["Dimensions"] = 35,
+		["Offset"] = -25,
+		-- ["Id"] = 2 --2025
+	},
+{
+		["Name"] = "Stagger",
+		["Icon"] = "/esoui/art/icons/ability_debuff_stagger.dds",
+		["Dimensions"] = 35,
+		["Offset"] = -25,
+		-- ["Id"] = 2470
+	},
+{
+		["Name"] = "Stun",
+		["Icon"] = "/esoui/art/icons/ability_debuff_stun.dds",
+		["Dimensions"] = 35,
+		["Offset"] = -25,
+		-- ["Id"] = 19 --2020
+	},
 }
 
 CM_TRACKER_CLASS_ATTRIBUTES = {

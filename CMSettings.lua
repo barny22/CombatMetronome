@@ -3,6 +3,8 @@ local Util = DariansUtilities
 Util.Text = Util.Text or {}
 CombatMetronome.LATracker = CombatMetronome.LATracker or {}
 local LATracker = CombatMetronome.LATracker
+CombatMetronome.CCTracker = CombatMetronome.CCTracker or {}
+local CCTracker = CombatMetronome.CCTracker
 
 local ABILITY_ADJUST_PLACEHOLDER = "Add ability adjust"
 local MAX_ADJUST = 200
@@ -54,66 +56,59 @@ local LATrackerChoices = {
 	"Nothing",
 }
 
+
 function CombatMetronome:BuildMenu()
     -- sounds = { }
     -- for _, sound in pairs(SOUNDS) do
     --     sounds[#sounds + 1] = sound
     -- end
+    self.menu = { }
+	self.menu.icons = {}
 	local LATrackerSettings = LATracker:BuildLATracker()
 	local CreateIcons
 	CreateIcons = function(panel)
 		if panel == CombatMetronomeOptions then
-			local dodgeNum, mountNum, assistantsNum, itemsNum, killingNum, breakFreeNum, othersNum = CombatMetronome:CreateMenuIconsPath("Dodgeroll", "Mounting/Dismounting", "Assistants and companions", "Usage of items", "Killing actions", "Breaking free", "Other synergies that cause GCD")
-			dodgeIcon = WINDOW_MANAGER:CreateControl(nil, panel.controlsToRefresh[dodgeNum].checkbox, CT_TEXTURE)
-			dodgeIcon:SetAnchor(RIGHT, panel.controlsToRefresh[dodgeNum].checkbox, LEFT, -25, 0)
-			dodgeIcon:SetTexture("/esoui/art/icons/ability_rogue_035.dds")
-			dodgeIcon:SetDimensions(35, 35)
-			-- if self.config.trackRolldodge then
-				-- dodgeIcon:SetDesaturation(0)
-			-- else
-				-- dodgeIcon:SetDesaturation(-100)
-			-- end
-			mountIcon = WINDOW_MANAGER:CreateControl(nil, panel.controlsToRefresh[mountNum].checkbox, CT_TEXTURE)
-			mountIcon:SetAnchor(RIGHT, panel.controlsToRefresh[mountNum].checkbox, LEFT, -20, 0)
-			mountIcon:SetTexture(self.activeMount.icon)
-			mountIcon:SetDimensions(45, 45)
-			-- if self.config.trackMounting then
-				-- mountIcon:SetDesaturation(0)
-			-- else
-				-- mountIcon:SetDesaturation(-100)
-			-- end
-			assistantsIcon = WINDOW_MANAGER:CreateControl(nil, panel.controlsToRefresh[assistantsNum].checkbox, CT_TEXTURE)
-			assistantsIcon:SetAnchor(RIGHT, panel.controlsToRefresh[assistantsNum].checkbox, LEFT, -20, 0)
-			assistantsIcon:SetTexture("/esoui/art/icons/assistant_ezabibanker.dds")
-			assistantsIcon:SetDimensions(45, 45)
-			-- if self.config.trackCollectibles then
-				-- assistantsIcon:SetColor(1,1,1,1)
-			-- else
-				-- assistantsIcon:SetColor(0,0,0,1)
-			-- end
-			itemsIcon = WINDOW_MANAGER:CreateControl(nil, panel.controlsToRefresh[itemsNum].checkbox, CT_TEXTURE)
-			itemsIcon:SetAnchor(RIGHT, panel.controlsToRefresh[itemsNum].checkbox, LEFT, -25, 0)
-			itemsIcon:SetTexture("/esoui/art/tribute/tributeendofgamereward_overflow.dds")
-			itemsIcon:SetDimensions(35, 35)
-			-- if self.config.trackItems then
-				-- itemsIcon:SetDesaturation(0)
-			-- else
-				-- itemsIcon:SetDesaturation(-100)
-			-- end
-			killingIcon = WINDOW_MANAGER:CreateControl(nil, panel.controlsToRefresh[killingNum].checkbox, CT_TEXTURE)
-			killingIcon:SetAnchor(RIGHT, panel.controlsToRefresh[killingNum].checkbox, LEFT, -25, 0)
-			killingIcon:SetTexture("/esoui/art/icons/achievement_u23_skillmaster_darkbrotherhood.dds")
-			killingIcon:SetDimensions(35, 35)
-			breakFreeIcon = WINDOW_MANAGER:CreateControl(nil, panel.controlsToRefresh[breakFreeNum].checkbox, CT_TEXTURE)
-			breakFreeIcon:SetAnchor(RIGHT, panel.controlsToRefresh[breakFreeNum].checkbox, LEFT, -25, 0)
-			breakFreeIcon:SetTexture("/esoui/art/icons/ability_debuff_stun.dds")
-			breakFreeIcon:SetDimensions(35, 35)
+			for i = 1, #CM_MENU_CONTROLS do
+				local number = CombatMetronome:CreateMenuIconsPath(CM_MENU_CONTROLS[i].Name)
+				self.menu.icons[i] = WINDOW_MANAGER:CreateControl(self.name.."MenuIcon"..i, panel.controlsToRefresh[number].checkbox, CT_TEXTURE)
+				self.menu.icons[i]:SetAnchor(RIGHT, panel.controlsToRefresh[number].checkbox, LEFT, CM_MENU_CONTROLS[i].Offset, 0)
+				self.menu.icons[i]:SetTexture(CM_MENU_CONTROLS[i].Icon)
+				self.menu.icons[i]:SetDimensions(CM_MENU_CONTROLS[i].Dimensions, CM_MENU_CONTROLS[i].Dimensions)
+			end
+			self.menu.icons[2]:SetTexture(self.activeMount.icon)
 			CALLBACK_MANAGER:UnregisterCallback("LAM-PanelControlsCreated", CreateIcons)
 		end
 	end
 	CALLBACK_MANAGER:RegisterCallback("LAM-PanelControlsCreated", CreateIcons)
+	
+	local CCControls = {}
+	local function CreateCCControls()
+		for i = 7, #CM_MENU_CONTROLS do
+			local control = {}
+			control.type = "checkbox"
+			control.name = CM_MENU_CONTROLS[i].Name
+			control.width = "half"
+			control.default = false
+			control.getFunc = function() return self.config.CC[CM_MENU_CONTROLS[i].Name] end
+			control.setFunc = function(value)
+				self.config.CC[CM_MENU_CONTROLS[i].Name] = value
+				-- CCTracker.variables[CM_MENU_CONTROLS[i].Id][2] = value
+				-- if value and not self.combatEventsRegistered then
+					-- CombatMetronome:RegisterCombatEvents()
+				-- elseif not value and self.combatEventsRegistered and not CombatMetronome:CheckForCombatEventsRegister() then
+					-- CombatMetronome:UnregisterCombatEvents()
+				-- end
+				if value and not self.effectsChangedRegistered then
+					CombatMetronome:RegisterEffectsChanged()
+				elseif not value and self.effectsChangedRegistered and not CombatMetronome:CheckForCCRegister() then
+					CombatMetronome:UnregisterEffectsChanged()
+				end
+			end
+			table.insert(CCControls, control)
+		end
+	end
+	CreateCCControls()
 
-    self.menu = { }
     self.menu.abilityAdjustChoices = self:CreateAdjustList()
     self.menu.curSkillName = ABILITY_ADJUST_PLACEHOLDER
     self.menu.curSkillId = -1
@@ -243,26 +238,6 @@ function CombatMetronome:BuildMenu()
 								end
 							end,
 						},
-						-- {
-							-- type = "checkbox",
-							-- name = "Show bar over settings menu",
-							-- tooltip = "Shows progressbar over settings menu in unlocked mode",
-							-- disabled = function() return not self.frame.IsUnlocked() end,
-							-- width = "half",
-							-- getFunc = function() return false end,
-							-- setFunc = function(value)
-								-- if value then
-									-- self.frame:SetDrawTier(DT_HIGH)
-									-- self.frame:SetHidden(false)
-								-- elseif not self.frame.IsUnlocked() then
-									-- self.frame:SetDrawTier(DT_LOW)
-									-- self.frame:SetHidden(true)
-								-- else
-									-- self.frame:SetDrawTier(DT_LOW)
-									-- self.frame:SetHidden(true)
-								-- end
-							-- end,
-						-- },
 						{
 							type = "slider",
 							name = "X Offset",
@@ -606,7 +581,7 @@ function CombatMetronome:BuildMenu()
 							controls = {
 								{
 									type = "checkbox",
-									name = "Dodgeroll",
+									name = CM_MENU_CONTROLS[1].Name,
 									disabled = function() return not self.config.trackGCD end,
 									default = false,
 									getFunc = function() return self.config.trackRolldodge end,
@@ -621,7 +596,7 @@ function CombatMetronome:BuildMenu()
 								},
 								{
 									type = "checkbox",
-									name = "Mounting/Dismounting",
+									name = CM_MENU_CONTROLS[2].Name,
 									disabled = function() return not self.config.trackGCD end,
 									default = false,
 									getFunc = function() return self.config.trackMounting end,
@@ -637,7 +612,7 @@ function CombatMetronome:BuildMenu()
 											end
 										else
 											-- mountIcon:SetDesaturation(-100)
-											if self.mountingTrackerRegistered and not (self.config.trackKillingActions or self.config.trackBreakingFree or self.config.trackOthers) then
+											if self.mountingTrackerRegistered and not CombatMetronome:CheckForCombatEventsRegister() then
 												CombatMetronome:UnregisterCombatEvents()
 											end
 											if not self.config.trackCollectibles and self.collectiblesTrackerRegistered then
@@ -667,7 +642,7 @@ function CombatMetronome:BuildMenu()
 								},
 								{
 									type = "checkbox",
-									name = "Assistants and companions",
+									name = CM_MENU_CONTROLS[3].Name,
 									disabled = function() return not self.config.trackGCD end,
 									default = false,
 									getFunc = function() return self.config.trackCollectibles end,
@@ -688,7 +663,7 @@ function CombatMetronome:BuildMenu()
 								},
 								{
 									type = "checkbox",
-									name = "Usage of items",
+									name = CM_MENU_CONTROLS[4].Name,
 									disabled = function() return not self.config.trackGCD end,
 									default = false,
 									getFunc = function() return self.config.trackItems end,
@@ -708,7 +683,7 @@ function CombatMetronome:BuildMenu()
 								},
 								{
 									type = "checkbox",
-									name = "Killing actions",
+									name = CM_MENU_CONTROLS[5].Name,
 									tooltip = "Toggle displaying killing actions like vampire feed and blade of woe",
 									disabled = function() return not self.config.trackGCD end,
 									default = false,
@@ -722,14 +697,14 @@ function CombatMetronome:BuildMenu()
 										-- end
 										if value and not self.combatEventsRegistered then
 											CombatMetronome:RegisterCombatEvents()
-										elseif not value and self.mountingAndKillingTrackerRegistered and not (self.config.trackMounting or self.config.trackBreakingFree or self.config.trackOthers) then
+										elseif not value and self.combatEventsRegistered and not CombatMetronome:CheckForCombatEventsRegister() then
 											CombatMetronome:UnregisterCombatEvents()
 										end
 									end,
 								},
 								{
 									type = "checkbox",
-									name = "Breaking free",
+									name = CM_MENU_CONTROLS[6].Name,
 									disabled = function() return not self.config.trackGCD end,
 									default = false,
 									getFunc = function() return self.config.trackBreakingFree end,
@@ -742,7 +717,7 @@ function CombatMetronome:BuildMenu()
 										-- end
 										if value and not self.combatEventsRegistered then
 											CombatMetronome:RegisterCombatEvents()
-										elseif not value and self.combatEventsRegistered and not (self.config.trackMounting or self.config.trackKillingActions or self.config.trackOthers) then
+										elseif not value and self.combatEventsRegistered and not CombatMetronome:CheckForCombatEventsRegister() then
 											CombatMetronome:UnregisterCombatEvents()
 										end
 									end,
@@ -839,23 +814,6 @@ function CombatMetronome:BuildMenu()
 								self.config.stopHATracking = value
 							end,
 						},
-						--[[
-						{
-							type = "dropdown",
-							name = "Show Ping Zone",
-							tooltip = "Show Ping Zone on HA and abilities', only on abilities or not at all",
-							if self.config.stopHATracking then
-								choices = {"Only abilities", "No"},
-							else
-								choices = {"On HA and abilities", "Only abilities", "No"},
-							end,
-							getFunc = function() return self.config.showPing end,
-							setFunc = function(value)
-								self.config.showPing = value
-								self:BuildProgressBar()
-							end,
-						},
-						]]
 						{
 							type = "checkbox",
 							name = "Display ping zone on heavy attacks",
@@ -1766,26 +1724,66 @@ function CombatMetronome:BuildMenu()
 				},
 			},
 		},
+		{	type = "divider",},
+		--------------------
+		---- CC Tracker ----
+		--------------------
+		{	type = "submenu",
+			name = "CC Tracker",
+			tooltip = "Shows an icon on screen, if you are hit with CC of a certain kind",
+			controls = {
+				{	type = "checkbox",
+					name = "Unlock CCTracker",
+					tooltip = "Reposition tracker by dragging center.",
+					-- width = "half",
+					-- disabled = function() return self.showSampleBar end,
+					getFunc = function() return CCTracker.frame.IsUnlocked() end,
+					setFunc = function(value)
+						CCTracker.frame:SetUnlocked(value)
+						if value then
+							CCTracker.frame:SetDrawTier(DT_HIGH)
+							CCTracker.frame:SetHidden(false)
+						else
+							CCTracker.frame:SetDrawTier(DT_LOW)
+							CCTracker.frame:SetHidden(true)
+						end
+					end,
+				},
+				{	type = "slider",
+					name = "Icon size",
+					default = 30,
+					min = 20,
+					max = 80,
+					step = 1,
+					getFunc = function() return self.config.CCTrackerSize end,
+					setFunc = function(value)
+						self.config.CCTrackerSize = value
+						CCTracker.UI.indicator.ApplySize(value)
+						CCTracker.UI.indicator.ApplyDistance(value)
+					end,
+				},
+				{	type = "header",
+					name = "CC to track",
+				},
+				unpack(CCControls),
+			},
+		},
 		-- end
-		----------------------
-		---- Experimental ----
-		----------------------
---[[will be added again later
-        {
-            type = "header",
-            name = "Experimental",
-            description = "Features under development"
-        },
-        {
-            type = "checkbox",
+		---------------
+		---- DEBUG ----
+		---------------
+        {	type = "header",
             name = "Debug",
-            getFunc = function() return self.config.debug end,
+            description = "Debug section"
+        },
+        {	type = "checkbox",
+            name = "Debug ability triggers",
+            getFunc = function() return self.config.debugTriggers end,
             setFunc = function(value)
-                self.config.debug = value
-                self.log = value
+                self.config.debugTriggers = value
+                -- self.log = value
             end
         },
-]]
 		---------------------------
 		---- Get Ability Infos ----
 		---------------------------

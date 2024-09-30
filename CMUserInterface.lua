@@ -441,10 +441,10 @@ function CombatMetronome:BuildStackTracker()
 	
 	local function ApplyIcon()
 		if self.class == "NB" then
-			local value = self:CheckForGFMorph()
+			local value = Util.Stacks:CheckForGFMorph()
 			attributes.graphic = attributes.icon[value]
 		elseif self.class == "CRO" then
-			local value = self:CheckForFSMorph()
+			local value = Util.Stacks:CheckForFSMorph()
 			attributes.graphic = attributes.icon[value]
 		end
 		for i=1,attributes.iMax do
@@ -509,5 +509,86 @@ function LATracker:BuildLATracker()
 	
 	return {
 		LabelSettings = LabelSettings,
+	}
+end
+
+	--------------------------
+	---- Build CC Tracker ----
+	--------------------------
+CM.CCTracker = CM.CCTracker or {}
+local CCTracker = CM.CCTracker
+
+function CCTracker:BuildCCTracker()
+	if not CCTracker.frame then
+		CCTracker.frame = Util.Controls:NewFrame(self.name.."Frame")
+		CCTracker.frame:SetDimensionConstraints(14, 5, 504, 101)
+		CCTracker.frame:SetHeight((CM.config.CCTrackerSize*2)+1)
+		CCTracker.frame:SetWidth((CM.config.CCTrackerSize*5)+4)
+		CCTracker.frame:SetAnchor(TOPLEFT, GuiRoot, TOPLEFT, CM.config.CCTrackerXOffset, CM.config.CCTrackerYOffset)
+		CCTracker.frame:SetDrawTier(DT_HIGH)
+	end
+	
+	CCTracker.frame:SetHandler("OnMoveStop", function(...)
+		CM.config.CCTrackerXOffset = CCTracker.frame:GetLeft()
+		CM.config.CCTrackerYOffset = CCTracker.frame:GetTop()
+	end)
+	
+	local indicator = {}
+	
+	local function GetIndicator(i)
+		local ccIndicator = WINDOW_MANAGER:CreateControl(self.name.."CCIndicator"..tostring(i), CCTracker.frame, CT_CONTROL)
+		
+		local icon = WINDOW_MANAGER:CreateControl(self.name.."CCIndicatorIcon"..tostring(i), ccIndicator, CT_TEXTURE)
+		icon:ClearAnchors()
+		icon:SetAnchor(TOPLEFT, ccIndicator, TOPLEFT, 0, 0)
+		icon:SetHidden(true)
+		
+		local frame = WINDOW_MANAGER:CreateControl(self.name.."CCIndicatorFrame"..tostring(i), ccIndicator, CT_TEXTURE)
+		frame:ClearAnchors()
+		frame:SetAnchor(TOPLEFT, ccIndicator, TOPLEFT, 0, 0)
+		frame:SetTexture("/esoui/art/actionbar/abilityframe64_up.dds")
+		frame:SetHidden(true)
+		
+		local controls = {
+		ccIndicator = ccIndicator,
+		frame = frame,
+		icon = icon,
+		}
+		return {
+		controls = controls,
+		}
+	end
+	
+	for i=1,10 do
+		indicator[i] = GetIndicator(i)
+	end
+	
+	local function ApplySize(size) 
+		for i=1,10 do 
+			indicator[i].controls.frame:SetDimensions(size,size)
+			indicator[i].controls.icon:SetDimensions(size,size)
+		end
+		CCTracker.frame:SetHeight(CM.config.CCTrackerSize*2+1)
+		CCTracker.frame:SetWidth(CM.config.CCTrackerSize*5+4)
+		
+	end
+	indicator.ApplySize = ApplySize
+	
+	local function ApplyDistance(size) 
+		for i=1,5 do
+			local xOffset = (i-1)*(size+1)
+			indicator[i].controls.ccIndicator:ClearAnchors()
+			indicator[i].controls.ccIndicator:SetAnchor(TOPLEFT, CCTracker.frame, TOPLEFT, xOffset, 0)
+		end
+		for i=6,10 do
+			local xOffset = (i-6)*(size+1)
+			indicator[i].controls.ccIndicator:ClearAnchors()
+			indicator[i].controls.ccIndicator:SetAnchor(TOPLEFT, CCTracker.frame, TOPLEFT, xOffset, size+1)
+		end
+	end
+	indicator.ApplyDistance = ApplyDistance
+	
+	return {
+	indicator = indicator,
 	}
 end
