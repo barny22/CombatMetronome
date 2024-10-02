@@ -171,7 +171,7 @@ end
 
 function CombatMetronome:CheckForCombatEventsRegister()
 	-- local ccTrackingActive = CombatMetronome:CheckForCCRegister()
-	local CombatEventsNeedToBeRegistered = (self.config.trackMounting or self.config.trackKillingActions or	self.config.trackBreakingFree)
+	local CombatEventsNeedToBeRegistered = self.config.trackMounting or self.config.trackKillingActions or	self.config.trackBreakingFree or CombatMetronome:CheckForCCRegister()
 	return CombatEventsNeedToBeRegistered
 end
 
@@ -273,13 +273,13 @@ function CombatMetronome:UpdateAdjustChoices()
 end
 
 function CombatMetronome:CreateAdjustList()
-		local names = {}
-		for id, adj in pairs(self.config.abilityAdjusts) do
-			local name = Util.Text.CropZOSString(GetAbilityName(id))
-			names[#names + 1] = name
-		end
-		return names
+	local names = {}
+	for id, adj in pairs(self.config.abilityAdjusts) do
+		local name = Util.Text.CropZOSString(GetAbilityName(id))
+		names[#names + 1] = name
 	end
+	return names
+end
 
 -- function CombatMetronome:BuildListOfCurrentSkills()
 	-- local list = {}
@@ -319,13 +319,7 @@ function CombatMetronome:HandleAbilityUsed(event)
                     + ((ability.instant and self.config.gcdAdjust)
                     or (ability.heavy and self.config.globalHeavyAdjust)
                     or self.config.globalAbilityAdjust)
-	
-	-- d(event.ability.id)						--gives 183122 for Fatecarver
-	-- if	event.ability.id == carverId1 or event.ability.id == carverId2 then
-		-- local cruxes = CombatMetronome:GetCurrentNumCruxOnPlayer()
-		-- event.adjust = event.adjust + (338 * cruxes)
-		-- d(string.format("Fatecarver duration succesfully adjusted with %d crux(es)", cruxes))
-	-- end
+					
 	if self.config.stopHATracking and event.ability.heavy then
 		return
 	else
@@ -334,126 +328,6 @@ function CombatMetronome:HandleAbilityUsed(event)
 	end
     self.gcd = Util.Ability.Tracker.gcd
 end
-
-	-----------------------
-	---- Crux Tracking ----
-	-----------------------
-
--- function CombatMetronome:GetCurrentNumCruxOnPlayer()					-- Crux Tracking by barny (special thanks to akasha who basically did all the work)
-	-- local start = GetGameTimeMilliseconds()
-	-- local crux = 0
-	-- if self.class == "ARC" then
-		-- for i=1,GetNumBuffs("player") do
-			-- local name,_,_,_,stack,_,_,_,_,statusEffectType,abilityId = GetUnitBuffInfo("player", i)
-			-- if	abilityId == cruxId then
-				-- crux = stack
-				-- d("You currently have "..tostring(crux).." Crux")
-			-- break 
-			-- end
-		-- end
-	-- end
-	-- d(string.format("found %d crux(es); search time %d ms", crux, GetGameTimeMilliseconds() - start))
-	-- return crux
--- end
-
-	---------------------------------
-	---- Bound Armaments Tracker ----
-	---------------------------------
-
--- function CombatMetronome:GetCurrentNumBAOnPlayer()
-	-- local start = GetGameTimeMilliseconds()
-	-- local bAStacks = 0
-	-- for i=1,GetNumBuffs("player") do
-		-- local _,_,_,_,stack,_,_,_,_,_,abilityId = GetUnitBuffInfo("player", i)
-		-- if	abilityId == bAId.buff then
-			-- bAStacks = stack
-			-- d("You currently have "..tostring(bAStacks).." Stacks of Bound Armaments")
-		-- break 
-		-- end
-	-- end
-	-- return bAStacks
--- end
-
-	-----------------------------
-	---- Molten Whip Tracker ----
-	-----------------------------
-
--- function CombatMetronome:GetCurrentNumMWOnPlayer()
-	-- local start = GetGameTimeMilliseconds()
-	-- local mWStacks = 0
-	-- for i=1,GetNumBuffs("player") do
-		-- local _,_,_,_,stack,_,_,_,_,_,abilityId = GetUnitBuffInfo("player", i)
-		-- if	abilityId == mWId.buff then
-			-- mWStacks = stack
-			-- d("You currently have "..tostring(mWStacks).." Stacks of Molten Whip")
-		-- break 
-		-- end
-	-- end
-	-- return mWStacks
--- end
-
-	----------------------------------------------------------------
-	---- Grimm Focus/Merciless Resolve/Relentless Focus Tracker ----
-	----------------------------------------------------------------
-	
--- function CombatMetronome:CheckForGFMorph()
-	-- local morph = ""
-	-- local morphId = GetProgressionSkillCurrentMorphSlot(GetProgressionSkillProgressionId(1, 1, 6))
-		-- if morphId == 0 then morph = "gF"
-		-- elseif morphId == 1 then morph = "rF"
-		-- elseif morphId == 2 then morph = "mR"
-		-- end
-	-- if morph ~= self.oldMorph and morph ~= "" then self.morphChanged = true end --self.stackTracker.indicator.ApplyIcon() end
-	-- if morphChanged then d("How dare you change morphs midgame??") end
-	-- self.oldMorph = morph
-	-- return morph
--- end
-
--- function CombatMetronome:GetCurrentNumGFOnPlayer()
-	-- local morph,_ = CombatMetronome:CheckForGFMorph()
-	-- local gFStacks = 0
-	-- for i=1,GetNumBuffs("player") do
-		-- local _,_,_,_,stack,_,_,_,_,_,abilityId = GetUnitBuffInfo("player", i)
-		-- if	abilityId == gFId[morph].buff then
-			-- gFStacks = stack
-			-- d("You currently have "..tostring(gFStacks).." Stacks of Grimm Focus")
-		-- break 
-		-- end
-	-- end
-	-- return gFStacks
--- end
-
-	-----------------------------
-	---- Necro skull Tracker ----
-	-----------------------------
-	
--- function CombatMetronome:CheckForFSMorph()
-	-- local morph = ""
-	-- local morphId = GetProgressionSkillCurrentMorphSlot(GetProgressionSkillProgressionId(1, 1, 2))
-		-- if morphId == 0 then morph = "fS"
-		-- elseif morphId == 1 then morph = "vS"
-		-- elseif morphId == 2 then morph = "rS"
-		-- end
-	-- if morph ~= self.oldMorph and morph ~= "" then self.morphChanged = true end -- self.stackTracker.indicator.ApplyIcon() end
-	-- self.oldMorph = morph
-	-- return morph
--- end
-
--- function CombatMetronome:GetCurrentNumFSOnPlayer()
-	-- local morph,_ = CombatMetronome:CheckForFSMorph()
-	-- local fSStacks = 0
-	-- for i=2,3 do
-			-- ability = fSId[morph].ability[i]
-			-- for j=1,12 do
-				-- if self.actionSlotCache[j].id == ability then
-					-- fSStacks = i-1
-					-- break
-				-- end
-			-- end
-		-- if fSStacks ~= 0 then break	end
-		-- end
-	-- return fSStacks
--- end
 
 	------------------------------------
 	---- Check if Tracker is active ----

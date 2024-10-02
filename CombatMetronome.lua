@@ -49,19 +49,20 @@ function CombatMetronome:Init()
 	self.collectibleInUse = nil
 	
 	CCTracker.cc = {}
+	CCTracker.ccCache = {}
 	CCTracker.variables = {
 	-- Effects Changed
 	
-	[32] = {"/esoui/art/icons/ability_debuff_disorient.dds", self.config.CC.Disoriented}, --ABILITY_TYPE_DISORIENT
-	[27] = {"/esoui/art/icons/ability_debuff_fear.dds", self.config.CC.Fear}, --ABILITY_TYPE_FEAR
-	[17] = {"/esoui/art/icons/ability_debuff_knockback.dds", self.config.CC.Knockback}, --ABILITY_TYPE_KNOCKBACK
-	[48] = {"/esoui/art/icons/ability_debuff_levitate.dds", self.config.CC.Levitate}, --ABILITY_TYPE_LEVITATE
-	[53] = {"/esoui/art/icons/ability_debuff_offbalance.dds", self.config.CC.Offbalance}, --ABILITY_TYPE_OFFBALANCE
-	-- [2480] = {"/esoui/art/icons/ability_debuff_root.dds", self.config.CC.Root}, --ACTION_RESULT_ROOTED
-	[11] = {"/esoui/art/icons/ability_debuff_silence.dds", self.config.CC.Silence}, --ABILITY_TYPE_SILENCE
-	[10] = {"/esoui/art/icons/ability_debuff_snare.dds", self.config.CC.Snare}, --ABILITY_TYPE_SNARE
-	[33] = {"/esoui/art/icons/ability_debuff_stagger.dds", self.config.CC.Stagger}, --ABILITY_TYPE_STAGGER
-	[9] = {"/esoui/art/icons/ability_debuff_stun.dds", self.config.CC.Stun}, --ABILITY_TYPE_STUN
+	[32] = {"/esoui/art/icons/ability_debuff_disorient.dds", self.config.CC.Disoriented, 2340}, --ABILITY_TYPE_DISORIENT
+	[27] = {"/esoui/art/icons/ability_debuff_fear.dds", self.config.CC.Fear, 2320}, --ABILITY_TYPE_FEAR
+	[17] = {"/esoui/art/icons/ability_debuff_knockback.dds", self.config.CC.Knockback, 2475}, --ABILITY_TYPE_KNOCKBACK
+	[48] = {"/esoui/art/icons/ability_debuff_levitate.dds", self.config.CC.Levitate, 2400}, --ABILITY_TYPE_LEVITATE
+	[53] = {"/esoui/art/icons/ability_debuff_offbalance.dds", self.config.CC.Offbalance, 2440}, --ABILITY_TYPE_OFFBALANCE
+	-- [2480] = {"/esoui/art/icons/ability_debuff_root.dds", self.config.CC.Root, 2480}, --ACTION_RESULT_ROOTED
+	[11] = {"/esoui/art/icons/ability_debuff_silence.dds", self.config.CC.Silence, 2010}, --ABILITY_TYPE_SILENCE
+	[10] = {"/esoui/art/icons/ability_debuff_snare.dds", self.config.CC.Snare, 2025}, --ABILITY_TYPE_SNARE
+	[33] = {"/esoui/art/icons/ability_debuff_stagger.dds", self.config.CC.Stagger, 2470}, --ABILITY_TYPE_STAGGER
+	[9] = {"/esoui/art/icons/ability_debuff_stun.dds", self.config.CC.Stun, 2020}, --ABILITY_TYPE_STUN
 	
 	
 	-- Combat Events:
@@ -340,8 +341,16 @@ function CombatMetronome:RegisterCombatEvents()
 					-- self.otherSynergies.name = Util.Text.CropZOSString(aName)
 				end
 			end
-			-- if Util.Text.CropZOSString(tName) == self.currentCharacterName and not err then
-				-- local newAbility = {aId, res, aName}
+			if Util.Text.CropZOSString(tName) == self.currentCharacterName and not err then
+				for ccType, check in pairs(CCTracker.variables) do
+					if check[2] and check[3] == res then
+						-- d("caching cc ability")
+						CCTracker.ccCache = {}
+						local newAbility = {aId, ccType, GetFrameTimeMilliseconds()}
+						table.insert(CCTracker.ccCache, newAbility)
+						break
+					end
+				end
 				-- if CCTracker.variables[res] and CCTracker.variables[res][2] then
 					-- if not CCTracker:ResInList(res) then CCTracker.ccChanged = true end
 					-- if not CCTracker:AIdInList(aId) then table.insert(CCTracker.cc, newAbility) end
@@ -358,7 +367,8 @@ function CombatMetronome:RegisterCombatEvents()
 					-- end
 				-- end
 				-- if CCTracker.ccChanged then CCTracker:ApplyIcons() end
-			-- end
+			else return
+			end
 		end
 	)
 	

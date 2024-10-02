@@ -93,11 +93,11 @@ function CombatMetronome:BuildMenu()
 			control.setFunc = function(value)
 				self.config.CC[CM_MENU_CONTROLS[i].Name] = value
 				-- CCTracker.variables[CM_MENU_CONTROLS[i].Id][2] = value
-				-- if value and not self.combatEventsRegistered then
-					-- CombatMetronome:RegisterCombatEvents()
-				-- elseif not value and self.combatEventsRegistered and not CombatMetronome:CheckForCombatEventsRegister() then
-					-- CombatMetronome:UnregisterCombatEvents()
-				-- end
+				if value and not self.combatEventsRegistered then
+					CombatMetronome:RegisterCombatEvents()
+				elseif not value and self.combatEventsRegistered and not CombatMetronome:CheckForCombatEventsRegister() then
+					CombatMetronome:UnregisterCombatEvents()
+				end
 				if value and not self.effectsChangedRegistered then
 					CombatMetronome:RegisterEffectsChanged()
 				elseif not value and self.effectsChangedRegistered and not CombatMetronome:CheckForCCRegister() then
@@ -976,16 +976,25 @@ function CombatMetronome:BuildMenu()
 							getFunc = function() return self.menu.curSkillName end,
 							setFunc = function(name)
 								if not name or #name == 0 then return end
-								for id = 0, 300000 do
-									if Util.Text.CropZOSString(GetAbilityName(id)) == name then
-										--[[_=self.log and]] d("Found ability for '"..name.."'", "id: "..id)
-										self.menu.curSkillName = name
-										self.menu.curSkillId = id
-										self.config.abilityAdjusts[id] = 0
-										self:UpdateAdjustChoices()
-										break
-									elseif id == 300000 then
-										d("CM - Could not find valid ability named "..name.."!")
+								if Util.Ability.nameCache[name] then
+									self.menu.curSkillName = name
+									local id = Util.Ability.nameCache[name].id
+									d("Found ability for '"..name.."'", "id: "..id)
+									self.menu.curSkillId = id
+									self.config.abilityAdjusts[id] = 0
+									self:UpdateAdjustChoices()
+								else
+									for id = 0, 300000 do
+										if Util.Text.CropZOSString(GetAbilityName(id)) == name then
+											--[[_=self.log and]] d("Found ability for '"..name.."'", "id: "..id)
+											self.menu.curSkillName = name
+											self.menu.curSkillId = id
+											self.config.abilityAdjusts[id] = 0
+											self:UpdateAdjustChoices()
+											break
+										elseif id == 300000 then
+											d("CM - Could not find valid ability named "..name.."!")
+										end
 									end
 								end
 							end
