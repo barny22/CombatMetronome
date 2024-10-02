@@ -34,7 +34,6 @@ local SlotNumbers = {3,4,5,6,7,8}
 local log = Util.log
 
 function Ability:ForId(id)
-    -- local APIVersion = GetAPIVersion()
 	local o = self.cache[id]
 	if (o) then 
         -- d(" Ability "..o.name.." is cached for id, "..id)
@@ -98,7 +97,7 @@ function Ability:ForId(id)
         -- d(" Caching from id! slot = "..tostring(o.slot))
         self.nameCache[name] = o
     end
-
+    
     self.cache[id] = o
 
     return o
@@ -135,7 +134,6 @@ function Ability.Tracker:Start()
     self.lastLightAttack = 0
     self.rollDodgeFinished = true
     self.lastBlockStatus = false
-    self.cdUpdatedDuringHeavy = false
     self.heavyUsedDuringHeavy = false
     
     self.abilityTriggerCounters = {}
@@ -254,6 +252,11 @@ function Ability.Tracker:Update()
             end
         -- end
     end
+    
+    -- delete queued Events, if they weren't fired and also shouldn't be
+    if not self.currentEvent and self.queuedEvent and self.queuedEvent.recorded + self.queuedEvent.ability.delay > time then
+        self:CancelEvent()
+    end
 
     if (self.currentEvent and self.currentEvent.start) then
         local event = self.currentEvent
@@ -284,11 +287,17 @@ function Ability.Tracker:Update()
             end
         end
     end
+    
+    -- reset for fatecarver delay
+    if (self.currentEvent and self.currentEvent.ability.id ~= (carverId1 or carverId2)) or not self.currentEvent then
+        if Ability.cache[carverId1] then Ability.cache[carverId1].delay = 4500 end
+        if Ability.cache[carverId2] then Ability.cache[carverId2].delay = 4500 end
+    end
+    
     if ArePlayerWeaponsSheathed() then
         self.weaponLastSheathed = time
     end
     self.lastBlockStatus = IsBlockActive()
-    self.cdUpdatedDuringHeavy = false
     self.heavyUsedDuringHeavy = false
 end
 
@@ -299,13 +308,7 @@ function Ability.Tracker:NewEvent(ability, slot, start)
     local event = { }
 
     event.ability = ability
-    
-    if	ability.id == carverId1 or ability.id == carverId2 then
-        local cruxes = Util.Stacks:GetCurrentNumCruxOnPlayer() or 0
-        event.ability.delay = ability.delay + (338 * cruxes)
-        -- d(string.format("Fatecarver duration succesfully adjusted with %d crux(es)", cruxes))
-    end
-    
+        
     event.recorded = start
     if not self.rollDodgeFinished then event.castDuringRollDodge = true end
     -- event.recorded = time - EVENT_RECORD_DELAY
@@ -349,7 +352,15 @@ function Ability.Tracker:AbilityUsed()
     local gcdProgress, slotRemaining, slotDuration = Ability.Tracker:GCDCheck()
     local event = self.queuedEvent
     event.start = self.eventStart
+    
     self.queuedEvent = nil
+    
+    if	event.ability.id == (carverId1 or carverId2) then
+        local cruxes = Util.Stacks:GetCurrentNumCruxOnPlayer()
+        event.ability.delay = event.ability.delay + (338 * cruxes)
+        -- d(string.format("Fatecarver duration succesfully adjusted with %d crux(es)", cruxes))
+    end
+    
     self.gcd = slotDuration
     self:CallbackAbilityUsed(event)
 
@@ -361,7 +372,6 @@ function Ability.Tracker:AbilityUsed()
         -- d("Putting "..event.ability.name.." on current")
         self.currentEvent = event
     end
-    self.lastEvent = event
 end
 
 function Ability.Tracker:CallbackAbilityUsed(event)
@@ -490,9 +500,6 @@ function Ability.Tracker:HandleSlotUsed(_, slot)
         self:CallbackCancelHeavy()
         return
     elseif slot == 2 then
-        -- local heavy = Util.Ability:ForId(GetSlotBoundId(2))
-        -- d("New Heavy")
-        -- self:NewEvent(heavy, 2, time)
         return
     end
 
@@ -533,14 +540,14 @@ function Ability.Tracker:HandleCombatEvent(_,     res,  err,   aName, _, aSlotTy
             -- d("Reset because of action result")
             return
         end
-        -- if self.currentEvent and self.currentEvent.ability.id == aId and res == ACTION_RESULT_EFFECT_FADED then
+        if self.currentEvent and self.currentEvent.ability.id == aId and res == ACTION_RESULT_EFFECT_FADED then
             -- self:CancelEvent()
-            -- self.currentEvent = nil
-            -- if self.CombatMetronome and CombatMetronome.currentEvent then
-                -- CombatMetronome.currentEvent = nil
-            -- end
-            -- return
-        -- end
+            self.currentEvent = nil
+            if self.CombatMetronome and CombatMetronome.currentEvent then
+                CombatMetronome.currentEvent = nil
+            end
+            return
+        end
     end
     
     local time = GetFrameTimeMilliseconds()
@@ -551,18 +558,16 @@ function Ability.Tracker:HandleCombatEvent(_,     res,  err,   aName, _, aSlotTy
     if (Util.Targeting.isUnitPlayer(sName, sUId)) then
         -- log("Source is player")
 
-        if res == ACTION_RESULT_CANNOT_USE then
+        -- if res == ACTION_RESULT_CANNOT_USE then
             -- d("Cannot use")
-            self:CancelEvent()
-            return
-        end
+            -- self:CancelEvent()
+            -- return
+        -- end
 
         if err then return end
 
         -- log("Not error!")
 
-        -- local heavyId = GetSlotBoundId(2)
-        -- if (heavyId == aId and res == 2200) then
 		if (aSlotType == ACTION_SLOT_TYPE_HEAVY_ATTACK and res == (ACTION_RESULT_BEGIN or ACTION_RESULT_BEGIN_CHANNEL)) then
             -- d("Heavy ability is current combat event")
             if (self.currentEvent and self.currentEvent.ability.id == aId) then
@@ -575,8 +580,6 @@ function Ability.Tracker:HandleCombatEvent(_,     res,  err,   aName, _, aSlotTy
             -- _=self.log and d("New heavy ability - "..heavy.name)
             self:NewEvent(heavy, 2, time)
             
-            -- self.eventStart = self.queuedEvent.recorded
-            -- self:AbilityUsed()
         end
         -- local lightId = GetSlotBoundId(1)
         if aSlotType == ACTION_SLOT_TYPE_LIGHT_ATTACK --[[and res == 2240 and time ~= self.lastLightAttack ]]then
@@ -592,7 +595,7 @@ function Ability.Tracker:HandleCombatEvent(_,     res,  err,   aName, _, aSlotTy
 end
 
 function Ability.Tracker:HandleWeaponLockChange(locked)
-    if not locked and self.currentEvent and ((GetFrameTimeMilliseconds()-self.currentEvent.start) < self.currentEvent.ability.delay and self.currentEvent.start ~= GetFrameTimeMilliseconds()) then
+    if not locked and self.currentEvent and self.currentEvent.ability.casted and ((GetFrameTimeMilliseconds()-self.currentEvent.start) < self.currentEvent.ability.delay and self.currentEvent.start ~= GetFrameTimeMilliseconds()) then
         self.currentEvent = nil
         if self.CombatMetronome and CombatMetronome.currentEvent then
             CombatMetronome.currentEvent = nil
