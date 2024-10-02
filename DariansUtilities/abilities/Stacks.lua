@@ -6,8 +6,6 @@ local Stacks = Util.Stacks
 --IDs for easy access
 
 local cruxId = 184220
-local carverId1 = 183122
-local carverId2 = 193397
 local dodgeId = 29721
 local bAId = { ["buff"] = 203447, ["ability"] = 24165,}
 local mWId = { ["buff"] = 122658, ["ability"] = 20805,} -- 122729
