@@ -208,16 +208,16 @@ end
 
 function CCTracker:AIdInList(aId)
 	for i, entry in ipairs(CCTracker.cc) do
-        if entry[1] == aId then
+        if entry.id == aId then
             return true, i -- 'aId' wurde gefunden
         end
     end
     return false -- 'aId' wurde nicht gefunden
 end
 
-function CCTracker:ResInList(res)
-	for i, entry in ipairs(CCTracker.cc) do
-        if entry[2] == res then
+function CCTracker:ResInList(res, table)
+	for _, entry in ipairs(table) do
+        if entry == res then
             return true -- 'res' wurde gefunden
         end
     end

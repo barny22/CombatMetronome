@@ -53,16 +53,16 @@ function CombatMetronome:Init()
 	CCTracker.variables = {
 	-- Effects Changed
 	
-	[32] = {"/esoui/art/icons/ability_debuff_disorient.dds", self.config.CC.Disoriented, 2340}, --ABILITY_TYPE_DISORIENT
-	[27] = {"/esoui/art/icons/ability_debuff_fear.dds", self.config.CC.Fear, 2320}, --ABILITY_TYPE_FEAR
-	[17] = {"/esoui/art/icons/ability_debuff_knockback.dds", self.config.CC.Knockback, 2475}, --ABILITY_TYPE_KNOCKBACK
-	[48] = {"/esoui/art/icons/ability_debuff_levitate.dds", self.config.CC.Levitate, 2400}, --ABILITY_TYPE_LEVITATE
-	[53] = {"/esoui/art/icons/ability_debuff_offbalance.dds", self.config.CC.Offbalance, 2440}, --ABILITY_TYPE_OFFBALANCE
-	-- [2480] = {"/esoui/art/icons/ability_debuff_root.dds", self.config.CC.Root, 2480}, --ACTION_RESULT_ROOTED
-	[11] = {"/esoui/art/icons/ability_debuff_silence.dds", self.config.CC.Silence, 2010}, --ABILITY_TYPE_SILENCE
-	[10] = {"/esoui/art/icons/ability_debuff_snare.dds", self.config.CC.Snare, 2025}, --ABILITY_TYPE_SNARE
-	[33] = {"/esoui/art/icons/ability_debuff_stagger.dds", self.config.CC.Stagger, 2470}, --ABILITY_TYPE_STAGGER
-	[9] = {"/esoui/art/icons/ability_debuff_stun.dds", self.config.CC.Stun, 2020}, --ABILITY_TYPE_STUN
+	[32] = {["icon"] = "/esoui/art/icons/ability_debuff_disorient.dds", ["tracked"] = self.config.CC.Disoriented, ["res"] = 2340, ["active"] = false,}, --ABILITY_TYPE_DISORIENT
+	[27] = {["icon"] = "/esoui/art/icons/ability_debuff_fear.dds", ["tracked"] = self.config.CC.Fear, ["res"] = 2320, ["active"] = false,}, --ABILITY_TYPE_FEAR
+	[17] = {["icon"] = "/esoui/art/icons/ability_debuff_knockback.dds", ["tracked"] = self.config.CC.Knockback, ["res"] = 2475, ["active"] = false,}, --ABILITY_TYPE_KNOCKBACK
+	[48] = {["icon"] = "/esoui/art/icons/ability_debuff_levitate.dds", ["tracked"] = self.config.CC.Levitate, ["res"] = 2400, ["active"] = false,}, --ABILITY_TYPE_LEVITATE
+	[53] = {["icon"] = "/esoui/art/icons/ability_debuff_offbalance.dds", ["tracked"] = self.config.CC.Offbalance, ["res"] = 2440, ["active"] = false,}, --ABILITY_TYPE_OFFBALANCE
+	-- ["rootPlaceholder"] = {["icon"] = "/esoui/art/icons/ability_debuff_root.dds", ["tracked"] = self.config.CC.Root, ["res"] = 2480 ["active"] = false,}, --ACTION_RESULT_ROOTED
+	[11] = {["icon"] = "/esoui/art/icons/ability_debuff_silence.dds", ["tracked"] = self.config.CC.Silence, ["res"] = 2010, ["active"] = false,}, --ABILITY_TYPE_SILENCE
+	[10] = {["icon"] = "/esoui/art/icons/ability_debuff_snare.dds", ["tracked"] = self.config.CC.Snare, ["res"] = 2025, ["active"] = false,}, --ABILITY_TYPE_SNARE
+	[33] = {["icon"] = "/esoui/art/icons/ability_debuff_stagger.dds", ["tracked"] = self.config.CC.Stagger, ["res"] = 2470, ["active"] = false,}, --ABILITY_TYPE_STAGGER
+	[9] = {["icon"] = "/esoui/art/icons/ability_debuff_stun.dds", ["tracked"] = self.config.CC.Stun, ["res"] = 2020, ["active"] = false,}, --ABILITY_TYPE_STUN
 	
 	
 	-- Combat Events:
@@ -343,10 +343,10 @@ function CombatMetronome:RegisterCombatEvents()
 			end
 			if Util.Text.CropZOSString(tName) == self.currentCharacterName and not err then
 				for ccType, check in pairs(CCTracker.variables) do
-					if check[2] and check[3] == res then
+					if check.tracked and check.res == res then
 						-- d("caching cc ability")
 						CCTracker.ccCache = {}
-						local newAbility = {aId, ccType, GetFrameTimeMilliseconds()}
+						local newAbility = {["type"] = ccType, ["recorded"] = GetFrameTimeMilliseconds()}
 						table.insert(CCTracker.ccCache, newAbility)
 						break
 					end
