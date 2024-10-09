@@ -18,8 +18,8 @@ CMCastbar.lua
 CMCCTracker.lua
 CMFunctions.lua
 CMLATracker.lua
-CMLabels.lua
 CMMiscellaneous.lua
+CMResources.lua
 CMSettings.lua
 CMStacktracker.lua
 CMUserInterface.lua
