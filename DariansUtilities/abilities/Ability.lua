@@ -199,21 +199,14 @@ function Ability.Tracker:HandleRollDodge(_,changeType,_,name,_,_,_,_,icon,_,_,_,
         zo_callLater(function() self.rollDodgeFinished = true end, remaining)
     end
     if not self.rollDodgeFinished and self.currentEvent then
-        self.currentEvent = nil
-        if self.CombatMetronome and CombatMetronome.currentEvent then
-            CombatMetronome.currentEvent = nil
-            CombatMetronome:SetIconsAndNamesNil()
-        end
+        self:CancelCurrentEvent("Rolldodge")
     end
 end
 
 function Ability.Tracker:HandleBarSwap(_, barswap, _, _)
     self.barswap = barswap == true
     if self.barswap and self.currentEvent and self.currentEvent.ability and self.currentEvent.ability.delay > 1000 then
-        self.currentEvent = nil
-        if self.CombatMetronome and CombatMetronome.currentEvent then
-            CombatMetronome.currentEvent = nil
-        end
+        self:CancelCurrentEvent("Barswap")
         self.barswap = false
     end
 end
@@ -221,11 +214,8 @@ end
 function Ability.Tracker:Update()
     local time = GetFrameTimeMilliseconds()
     local gcdProgress = Ability.Tracker:GCDCheck()
-    if (self.lastBlockStatus == false) and IsBlockActive() then
-        self.currentEvent = nil
-        if self.CombatMetronome and CombatMetronome.currentEvent then
-            CombatMetronome.currentEvent = nil
-        end
+    if (self.lastBlockStatus == false) and IsBlockActive() and self.currentEvent then
+        self:CancelCurrentEvent("Blocked")
     end
 
     -- Fire off late events if no UPDATE_COOLDOWNS events
@@ -244,7 +234,7 @@ function Ability.Tracker:Update()
         end
     -- Fire off events if all the triggers failed
     elseif self.queuedEvent and gcdProgress > 0.92 and not self.currentEvent then
-        -- if CombatMetronome.config.debugTriggers then   
+        -- if CombatMetronome.config.debug.triggers then   
             if not (self.queuedEvent.recorded + math.max(self.queuedEvent.ability.delay,1000) > time) then
                 self.eventStart = time
                 Ability.Tracker:AbilityUsed()
@@ -262,10 +252,10 @@ function Ability.Tracker:Update()
         local event = self.currentEvent
         local ability = event.ability
         
-        if (time > event.start + ability.delay) then
+        if (time > event.start + math.max(ability.delay, 1000)) then
             -- d("Event over!")
             -- self.eventStart = nil
-            self.currentEvent = nil
+            self:CancelCurrentEvent("Event over")
 
             if (event.channeled) then
                 Ability.Tracker:CallbackAbilityCancelled(event)
@@ -281,10 +271,7 @@ function Ability.Tracker:Update()
             -- end
         -- end
         if IsUnitDead("player") and self.currentEvent then
-            self.currentEvent = nil
-            if self.CombatMetronome and CombatMetronome.currentEvent then
-                CombatMetronome.currentEvent = nil
-            end
+            self:CancelCurrentEvent("Canceled since player is dead")
         end
     end
     
@@ -397,6 +384,7 @@ end
 function Ability.Tracker:CallbackCancelHeavy()
     if not (self.cdTriggerTime == self.heavyUsedDuringHeavy) then
         self.currentEvent = nil
+        if CombatMetronome.config.debug.currentEvent then d("Canceled heavy") end
         self.gcd = 0
         -- d("cancelling heavy")
         Ability.Tracker:CallbackAbilityUsed("cancel heavy")
@@ -533,19 +521,12 @@ function Ability.Tracker:HandleCombatEvent(_,     res,  err,   aName, _, aSlotTy
             or res == ACTION_RESULT_INTERRUPT)
             and not (IsUnitInAir("player") and self.currentEvent) then
             self:CancelEvent()
-            self.currentEvent = nil
-            if self.CombatMetronome and CombatMetronome.currentEvent then
-                CombatMetronome.currentEvent = nil
-            end
-            -- d("Reset because of action result")
+            self:CancelCurrentEvent("Action result")
             return
         end
         if self.currentEvent and self.currentEvent.ability.id == aId and res == ACTION_RESULT_EFFECT_FADED then
             -- self:CancelEvent()
-            self.currentEvent = nil
-            if self.CombatMetronome and CombatMetronome.currentEvent then
-                CombatMetronome.currentEvent = nil
-            end
+            self:CancelCurrentEvent("Result faded")
             return
         end
     end
@@ -596,22 +577,17 @@ end
 
 function Ability.Tracker:HandleWeaponLockChange(locked)
     if not locked and self.currentEvent and self.currentEvent.ability.casted and ((GetFrameTimeMilliseconds()-self.currentEvent.start) < self.currentEvent.ability.delay and self.currentEvent.start ~= GetFrameTimeMilliseconds()) then
-        self.currentEvent = nil
-        if self.CombatMetronome and CombatMetronome.currentEvent then
-            CombatMetronome.currentEvent = nil
-            -- d("killed CombatMetronome event")
-        end
-        -- d("reset because of weapon lock change")
+        self:CancelCurrentEvent("Weapon lock change")
     end
 end
 
-------------------
---Debug Triggers--
-------------------
+------------------------
+---- Debug Triggers ----
+------------------------
 
 function Ability.Tracker:ResetDebugCount(inCombat)
     if not inCombat and not self.debugCountReset then
-        if CombatMetronome.config.debugTriggers and self.abilityTriggerCounters.extra > 0 then
+        if CombatMetronome.config.debug.triggers and self.abilityTriggerCounters.extra > 0 then
             d("Normal triggers: "..self.abilityTriggerCounters.normal)
             d("Direct triggers: "..self.abilityTriggerCounters.direct)
             d("Late triggers: "..self.abilityTriggerCounters.late)
@@ -625,5 +601,17 @@ function Ability.Tracker:ResetDebugCount(inCombat)
         self.debugCountReset = true
     elseif inCombat and self.debugCountReset then
         self.debugCountReset = false
+    end
+end
+
+----------------------------
+---- Debug currentEvent ----
+----------------------------
+
+function Ability.Tracker:CancelCurrentEvent(reason)
+    self.currentEvent = nil
+    if CombatMetronome.config.debug.currentEvent and (self.currentEvent.ability.id == carverId1 or self.currentEvent.ability.id == carverId2) then d(reason) end
+    if self.CombatMetronome and CombatMetronome.currentEvent then
+        CombatMetronome.currentEvent = nil
     end
 end
