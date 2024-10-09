@@ -57,33 +57,37 @@ end
 function CCTracker:ApplyIcons()
 	local active = {}
 	-- d("got "..#self.cc.."debuffs in list")
-	-- for num, _ in pairs(self.variables) do
-		for _, entry in ipairs(self.cc) do
-			if not self:ResInList(entry.type, active) then
-				table.insert(active, entry.type)
-			end
-		end
-	-- end
-	-- for i= 1, #self.cc do
-		-- if CCTracker.variables[entry[2]] then
-			-- if not active[self.cc[i][2]] then table.insert(active, self.cc[i][2]) end
+	for _, entry in pairs(self.variables) do
+		entry.active = false
+		self.UI.indicator[entry.name].controls.frame:SetHidden(true)
+		self.UI.indicator[entry.name].controls.icon:SetHidden(true)
+	end
+	
+	for _, entry in ipairs(self.cc) do
+		-- if not self:ResInList(entry.type, active) then
+			-- table.insert(active, entry.type)
+			self.variables[entry.type].active = true
+			self.UI.indicator[self.variables[entry.type].name].controls.frame:SetHidden(false)
+			self.UI.indicator[self.variables[entry.type].name].controls.icon:SetHidden(false)
+		-- end
+	end
+	
+	
+	-- if active then
+		-- for i=1, #active do
+			-- self.UI.indicator[i].controls.icon:SetTexture(self.variables[active[i]].icon)
+			-- self.UI.indicator[i].controls.icon:SetHidden(false)
+			-- self.UI.indicator[i].controls.frame:SetHidden(false)
+		-- end
+		-- for i = #active+1, (#CM_MENU_CONTROLS-6) do
+			-- self.UI.indicator[i].controls.icon:SetHidden(true)
+			-- self.UI.indicator[i].controls.frame:SetHidden(true)
+		-- end
+	-- else 
+		-- for i=1, (#CM_MENU_CONTROLS-6) do
+			-- self.UI.indicator[i].controls.icon:SetHidden(true)
+			-- self.UI.indicator[i].controls.frame:SetHidden(true)
 		-- end
 	-- end
-	if active then
-		for i=1, #active do
-			self.UI.indicator[i].controls.icon:SetTexture(self.variables[active[i]].icon)
-			self.UI.indicator[i].controls.icon:SetHidden(false)
-			self.UI.indicator[i].controls.frame:SetHidden(false)
-		end
-		for i = #active+1, (#CM_MENU_CONTROLS-6) do
-			self.UI.indicator[i].controls.icon:SetHidden(true)
-			self.UI.indicator[i].controls.frame:SetHidden(true)
-		end
-	else 
-		for i=1, (#CM_MENU_CONTROLS-6) do
-			self.UI.indicator[i].controls.icon:SetHidden(true)
-			self.UI.indicator[i].controls.frame:SetHidden(true)
-		end
-	end
 	self.ccChanged = false
 end
