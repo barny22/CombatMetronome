@@ -233,6 +233,15 @@ function CCTracker:NameInList(aName)
     return false -- 'aName' wurde nicht gefunden
 end
 
+function CCTracker:IsUnlocked()
+	for _, entry in pairs(self.variables) do
+		if self.UI.indicator[entry.name].controls.tlw.IsUnlocked() then 
+			return true
+		end
+	end
+	return false
+end
+
 	-------------------------
 	---- Ability Adjusts ----
 	-------------------------
