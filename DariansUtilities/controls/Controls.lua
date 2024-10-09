@@ -47,9 +47,11 @@ local function SetUnlocked(frame, state)
 	end
 
 	frame.dmui.shadow:SetHidden(not state)
+	frame.dmui.label:SetFont(Util.Text.getFontString(tostring("$MEDIUM_FONT"), math.min(frame:GetHeight(), (frame:GetWidth())/5), "outline"))
+	frame.dmui.label:SetHidden(not state)
 end
 
-local function InitFrame(frame)
+local function InitFrame(frame, label)
 	local dmui = { }
 
 	frame.dmui = dmui
@@ -83,6 +85,11 @@ local function InitFrame(frame)
 	frame.IsUnlocked = function()
 		return dmui.unlocked
 	end
+	
+	-- Add resizer label
+	dmui.label = Controls:New(CT_LABEL, name.."Label", frame)
+	dmui.label:SetAnchor(CENTER, frame, CENTER, 0, 0)
+	dmui.label:SetText(label)
 
 	-- Add HUD visibility management
 	dmui.unlocked = false
@@ -94,10 +101,10 @@ local function InitFrame(frame)
 	-- return tools
 end
 
-function Controls:NewFrame(name)
+function Controls:NewFrame(name, label)
 	local frame = WINDOW_MANAGER:CreateTopLevelWindow(name)
 
-	InitFrame(frame)
+	InitFrame(frame, label)
 
 	return frame
 end
