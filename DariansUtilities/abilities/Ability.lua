@@ -587,7 +587,7 @@ end
 
 function Ability.Tracker:ResetDebugCount(inCombat)
     if not inCombat and not self.debugCountReset then
-        if CombatMetronome.config.debug.triggers and self.abilityTriggerCounters.extra > 0 then
+        if CombatMetronome.config.debug.enabled and CombatMetronome.config.debug.triggers and self.abilityTriggerCounters.extra > 0 then
             d("Normal triggers: "..self.abilityTriggerCounters.normal)
             d("Direct triggers: "..self.abilityTriggerCounters.direct)
             d("Late triggers: "..self.abilityTriggerCounters.late)
@@ -610,7 +610,7 @@ end
 
 function Ability.Tracker:CancelCurrentEvent(reason)
     self.currentEvent = nil
-    if CombatMetronome.config.debug.currentEvent and (self.currentEvent.ability.id == carverId1 or self.currentEvent.ability.id == carverId2) then d(reason) end
+    if CombatMetronome.config.debug.enabled and CombatMetronome.config.debug.currentEvent and (self.currentEvent.ability.id == carverId1 or self.currentEvent.ability.id == carverId2) then d(reason) end
     if self.CombatMetronome and CombatMetronome.currentEvent then
         CombatMetronome.currentEvent = nil
     end
