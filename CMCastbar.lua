@@ -76,7 +76,7 @@ function CombatMetronome:Update()
 			---------------------
 			
 		if self.config.trackGCD and not self.currentEvent then
-			self.bar.segments[1].progress = 0
+			self.bar.segments[1].progress = (self.config.showPingOnGCD and latency/1000) or 0
 			self.bar.segments[2].progress = gcdProgress
 			if not Util.Ability.Tracker.rollDodgeFinished and self.config.trackRolldodge then
 				CombatMetronome:GCDSpecifics("Dodgeroll", "/esoui/art/icons/ability_rogue_035.dds", gcdProgress)
@@ -248,7 +248,7 @@ function CombatMetronome:Update()
 				else
 					self.timeLabel:SetHidden(true)
 				end
-				self.bar.segments[1].progress = 0
+				self.bar.segments[1].progress = (self.config.showPingOnGCD and latency/1000) or 0
 				self.bar.segments[2].progress = gcdProgress
 				if gcdProgress == 0 then
 					self:OnCDStop()
