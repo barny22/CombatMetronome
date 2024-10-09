@@ -19,7 +19,7 @@ function CombatMetronome:BuildProgressBar()
 	
 	local function CreateControls()
 		if not self.frame then
-			self.frame = Util.Controls:NewFrame(self.name.."ProgressbarFrame")
+			self.frame = Util.Controls:NewFrame(self.name.."ProgressbarFrame", "Progressbar")
 			self.frame:SetDimensionConstraints(MIN_WIDTH, MIN_HEIGHT, MAX_WIDTH, MAX_HEIGHT)
 			self.frame:SetHandler("OnMoveStop", function(...)
 				self.config.xOffset = self.frame:GetLeft()
@@ -69,7 +69,7 @@ function CombatMetronome:BuildProgressBar()
 
 		-- self.labelFrame = self.labelFrame or Util.Controls:NewFrame(self.name.."LabelFrame")
 		if not self.labelFrame then
-			self.labelFrame = Util.Controls:NewFrame(self.name.."LabelFrame")
+			self.labelFrame = Util.Controls:NewFrame(self.name.."LabelFrame", "Resource Labels")
 			self.labelFrame:SetDimensionConstraints(MIN_WIDTH, MIN_HEIGHT, MAX_WIDTH, MAX_HEIGHT)
 			self.labelFrame:SetHandler("OnMoveStop", function(...)
 				self.config.labelFrameXOffset = self.labelFrame:GetLeft()
@@ -276,8 +276,11 @@ end
 	---- Build Stack Tracker ----
 	-----------------------------
 
-function CombatMetronome:BuildStackTracker()
-	local attributes = CM_TRACKER_CLASS_ATTRIBUTES[self.class]
+CombatMetronome.StackTracker = CombatMetronome.StackTracker or {}
+local StackTracker = CombatMetronome.StackTracker
+
+function StackTracker:BuildStackTracker()
+	local attributes = StackTracker.CLASS_ATTRIBUTES[self.class]
 	local size = self.config.indicatorSize
 	local distance = size/5
 	
@@ -502,7 +505,7 @@ function LATracker:BuildLATracker()
 	LATracker.frame:SetHandler("OnResizeStop", function(...)
 		CM.config.LATrackerWidth = LATracker.frame:GetWidth()
 		CM.config.LATrackerHeight = LATracker.frame:GetHeight()
-		LATracker.label:SetFont(Util.Text.getFontString(tostring("$("..CM.config.labelFont..")"), LATracker.frame:GetHeight(), CM.config.fontStyle))
+		LATracker.label:SetFont(Util.Text.getFontString(tostring("$("..CM.config.labelFont..")"), math.min(LATracker.frame:GetHeight(), LATracker.frane:GetWidth()/5), CM.config.fontStyle))
 	end)
 	
 	LabelSettings()
@@ -519,38 +522,36 @@ CM.CCTracker = CM.CCTracker or {}
 local CCTracker = CM.CCTracker
 
 function CCTracker:BuildCCTracker()
-	if not CCTracker.frame then
-		CCTracker.frame = Util.Controls:NewFrame(self.name.."Frame")
-		CCTracker.frame:SetDimensionConstraints(14, 5, 504, 101)
-		CCTracker.frame:SetHeight((CM.config.CCTrackerSize*2)+1)
-		CCTracker.frame:SetWidth((CM.config.CCTrackerSize*5)+4)
-		CCTracker.frame:SetAnchor(TOPLEFT, GuiRoot, TOPLEFT, CM.config.CCTrackerXOffset, CM.config.CCTrackerYOffset)
-		CCTracker.frame:SetDrawTier(DT_HIGH)
-	end
-	
-	CCTracker.frame:SetHandler("OnMoveStop", function(...)
-		CM.config.CCTrackerXOffset = CCTracker.frame:GetLeft()
-		CM.config.CCTrackerYOffset = CCTracker.frame:GetTop()
-	end)
 	
 	local indicator = {}
 	
-	local function GetIndicator(i)
-		local ccIndicator = WINDOW_MANAGER:CreateControl(self.name.."CCIndicator"..tostring(i), CCTracker.frame, CT_CONTROL)
+	local function GetIndicator(name, iconPath)
 		
-		local icon = WINDOW_MANAGER:CreateControl(self.name.."CCIndicatorIcon"..tostring(i), ccIndicator, CT_TEXTURE)
+		local tlw = Util.Controls:NewFrame(self.name..name.."Frame", name)
+		tlw:SetDimensionConstraints(10, 10, 200, 200)
+		tlw:SetHeight(CM.config.CCTrackerSize)
+		tlw:SetWidth(CM.config.CCTrackerSize)
+		tlw:SetAnchor(TOPLEFT, GuiRoot, TOPLEFT, CM.config.CCTracker.xOffset[name], CM.config.CCTracker.yOffset[name])
+		tlw:SetDrawTier(DT_HIGH)
+		tlw:SetHandler("OnMoveStop", function(...)
+			CM.config.CCTracker.xOffset[name] = tlw:GetLeft()
+			CM.config.CCTracker.yOffset[name] = tlw:GetTop()
+		end)
+		
+		local icon = WINDOW_MANAGER:CreateControl(self.name.."CCIcon"..name, tlw, CT_TEXTURE)
 		icon:ClearAnchors()
-		icon:SetAnchor(TOPLEFT, ccIndicator, TOPLEFT, 0, 0)
+		icon:SetAnchor(TOPLEFT, tlw, TOPLEFT, 0, 0)
+		icon:SetTexture(iconPath)
 		icon:SetHidden(true)
 		
-		local frame = WINDOW_MANAGER:CreateControl(self.name.."CCIndicatorFrame"..tostring(i), ccIndicator, CT_TEXTURE)
+		local frame = WINDOW_MANAGER:CreateControl(self.name.."CCFrame"..name, tlw, CT_TEXTURE)
 		frame:ClearAnchors()
-		frame:SetAnchor(TOPLEFT, ccIndicator, TOPLEFT, 0, 0)
+		frame:SetAnchor(TOPLEFT, tlw, TOPLEFT, 0, 0)
 		frame:SetTexture("/esoui/art/actionbar/abilityframe64_up.dds")
 		frame:SetHidden(true)
 		
 		local controls = {
-		ccIndicator = ccIndicator,
+		tlw = tlw,
 		frame = frame,
 		icon = icon,
 		}
@@ -559,34 +560,60 @@ function CCTracker:BuildCCTracker()
 		}
 	end
 	
-	for i=1,10 do
-		indicator[i] = GetIndicator(i)
+	for _, entry in pairs(self.variables) do
+		indicator[entry.name] = GetIndicator(entry.name, entry.icon)
 	end
+	-- for i=1,10 do
+		-- indicator[i] = GetIndicator(i)
+	-- end
 	
-	local function ApplySize(size) 
-		for i=1,10 do 
-			indicator[i].controls.frame:SetDimensions(size,size)
-			indicator[i].controls.icon:SetDimensions(size,size)
+	local function SetUnlocked(value)
+		for _, entry in pairs(self.variables) do
+			if entry.tracked then
+				if value then
+					indicator[entry.name].controls.tlw:SetDrawTier(DT_HIGH)
+					indicator[entry.name].controls.tlw:SetHidden(false)
+					indicator[entry.name].controls.icon:SetHidden(false)
+				else
+					indicator[entry.name].controls.tlw:SetDrawTier(DT_Low)
+					indicator[entry.name].controls.tlw:SetHidden(true)
+					indicator[entry.name].controls.icon:SetHidden(true)
+				end
+				indicator[entry.name].controls.tlw:SetUnlocked(value)
+			end
 		end
-		CCTracker.frame:SetHeight(CM.config.CCTrackerSize*2+1)
-		CCTracker.frame:SetWidth(CM.config.CCTrackerSize*5+4)
+	end
+	indicator.SetUnlocked = SetUnlocked
+	
+	local function ApplySize(size)
+		for _, entry in pairs(self.variables) do 
+			indicator[entry.name].controls.tlw:SetDimensions(size, size)
+			indicator[entry.name].controls.frame:SetDimensions(size, size)
+			indicator[entry.name].controls.icon:SetDimensions(size, size)
+		end
+		-- for i=1,10 do 
+			-- indicator[i].controls.frame:SetDimensions(size,size)
+			-- indicator[i].controls.icon:SetDimensions(size,size)
+		-- end
+		-- CCTracker.frame:SetHeight(CM.config.CCTrackerSize*2+1)
+		-- CCTracker.frame:SetWidth(CM.config.CCTrackerSize*5+4)
 		
 	end
 	indicator.ApplySize = ApplySize
 	
-	local function ApplyDistance(size) 
-		for i=1,5 do
-			local xOffset = (i-1)*(size+1)
-			indicator[i].controls.ccIndicator:ClearAnchors()
-			indicator[i].controls.ccIndicator:SetAnchor(TOPLEFT, CCTracker.frame, TOPLEFT, xOffset, 0)
-		end
-		for i=6,10 do
-			local xOffset = (i-6)*(size+1)
-			indicator[i].controls.ccIndicator:ClearAnchors()
-			indicator[i].controls.ccIndicator:SetAnchor(TOPLEFT, CCTracker.frame, TOPLEFT, xOffset, size+1)
-		end
-	end
-	indicator.ApplyDistance = ApplyDistance
+	-- local function ApplyDistance(size) 
+		-- for i=1,5 do
+			-- local xOffset = (i-1)*(size+1)
+			-- indicator[i].controls.ccIndicator:ClearAnchors()
+			-- indicator[i].controls.ccIndicator:SetAnchor(TOPLEFT, CCTracker.frame, TOPLEFT, xOffset, 0)
+		-- end
+		-- for i=6,10 do
+			-- local xOffset = (i-6)*(size+1)
+			-- indicator[i].controls.ccIndicator:ClearAnchors()
+			-- indicator[i].controls.ccIndicator:SetAnchor(TOPLEFT, CCTracker.frame, TOPLEFT, xOffset, size+1)
+		-- end
+	-- end
+	-- indicator.ApplyDistance = ApplyDistance
 	
 	return {
 	indicator = indicator,
