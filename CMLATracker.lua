@@ -1,6 +1,7 @@
 local CM = CombatMetronome
 CM.LATracker = CM.LATracker or {}
 local LATracker = CM.LATracker
+CombatMetronome.SV = CombatMetronome.SV or {}
 
 local NumLA = 0
 local TimeOfLastLA = 0
@@ -8,7 +9,7 @@ local TimeBetweenLA = 0
 local LightAttacksPerSecond = 0
 
 function LATracker:HandleLightAttacks(time)
-	if CM.config.hideLATrackerInPVP and CM.inPVPZone then
+	if CombatMetronome.SV.LATracker.hideInPVP and CM.inPVPZone then
 		return
 	else
 		if CM.inCombat and not self.combatStart then
@@ -49,14 +50,14 @@ function LATracker:CalculateLightAttacksPerSecond(time)
 end
 
 function LATracker:DisplayText()
-	if CM.config.laTrackerChoice == "Nothing" then
+	if CombatMetronome.SV.LATracker.choice == "Nothing" then
 		LATracker.label:SetHidden(true)
 	else
-		if CM.inCombat or CM.config.laTrackerIsUnlocked then
+		if CM.inCombat or CombatMetronome.SV.LATracker.isUnlocked then
 			LATracker.label:SetHidden(false)
-			if CM.config.laTrackerChoice == "Time between light attacks" then
+			if CombatMetronome.SV.LATracker.choice == "Time between light attacks" then
 				LATracker.label:SetText(TimeBetweenLA.." ms")
-			elseif CM.config.laTrackerChoice == "la/s" then
+			elseif CombatMetronome.SV.LATracker.choice == "la/s" then
 				LATracker.label:SetText(string.format("%.2f", LightAttacksPerSecond).." la/s")
 			end
 		end
@@ -72,7 +73,7 @@ end
 function LATracker:ResetLATracker()
 	LATracker:CalculateLightAttacksPerSecond(GetFrameTimeMilliseconds())
 	LATracker:DisplayText()
-	if CM.config.showLALogAfterFight then
+	if CombatMetronome.SV.LATracker.showLALogAfterFight then
 		d("End of combat")
 		d("You've been in combat for "..((GetFrameTimeMilliseconds()-self.combatStart)/1000).."s")
 		d("Total amount of light attacks: "..NumLA)
@@ -88,7 +89,7 @@ function LATracker:ResetLATracker()
 			LATracker.label:SetHidden(true)
 		end
 	end,
-	CM.config.timeTilHidingLATracker*1000)
+	CombatMetronome.SV.LATracker.timeTilHiding*1000)
 end
 
 function LATracker:ManageLATracker(inCombat)

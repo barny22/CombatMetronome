@@ -234,7 +234,7 @@ function Ability.Tracker:Update()
         end
     -- Fire off events if all the triggers failed
     elseif self.queuedEvent and gcdProgress > 0.92 and not self.currentEvent then
-        -- if CombatMetronome.config.debug.triggers then   
+        -- if CombatMetronome.SV.debug.triggers then   
             if not (self.queuedEvent.recorded + math.max(self.queuedEvent.ability.delay,1000) > time) then
                 self.eventStart = time
                 Ability.Tracker:AbilityUsed()
@@ -384,7 +384,7 @@ end
 function Ability.Tracker:CallbackCancelHeavy()
     if not (self.cdTriggerTime == self.heavyUsedDuringHeavy) then
         self.currentEvent = nil
-        if CombatMetronome.config.debug.currentEvent then d("Canceled heavy") end
+        if CombatMetronome.SV.debug.currentEvent then d("Canceled heavy") end
         self.gcd = 0
         -- d("cancelling heavy")
         Ability.Tracker:CallbackAbilityUsed("cancel heavy")
@@ -472,7 +472,7 @@ function Ability.Tracker:HandleCooldownsUpdated()
     
     if self.queuedEvent and self.rollDodgeFinished and not self.queuedEvent.castDuringRollDodge then
         self.eventStart = self.cdTriggerTime - slotDuration + slotRemaining
-        if self.eventStart + ((CombatMetronome.config.triggerDebug and CombatMetronome.config.triggerTimer) or 170) >= self.cdTriggerTime then
+        if self.eventStart + ((CombatMetronome.SV.debug.triggers and CombatMetronome.SV.debug.triggerTimer) or 170) >= self.cdTriggerTime then
             self:AbilityUsed()
             self.abilityTriggerCounters.normal = self.abilityTriggerCounters.normal + 1
         end
@@ -587,7 +587,7 @@ end
 
 function Ability.Tracker:ResetDebugCount(inCombat)
     if not inCombat and not self.debugCountReset then
-        if CombatMetronome.config.debug.enabled and CombatMetronome.config.debug.triggers and self.abilityTriggerCounters.extra > 0 then
+        if CombatMetronome.SV.debug.enabled and CombatMetronome.SV.debug.triggers and self.abilityTriggerCounters.extra > 0 then
             d("Normal triggers: "..self.abilityTriggerCounters.normal)
             d("Direct triggers: "..self.abilityTriggerCounters.direct)
             d("Late triggers: "..self.abilityTriggerCounters.late)
@@ -609,9 +609,11 @@ end
 ----------------------------
 
 function Ability.Tracker:CancelCurrentEvent(reason)
-    self.currentEvent = nil
-    if CombatMetronome.config.debug.enabled and CombatMetronome.config.debug.currentEvent and (self.currentEvent.ability.id == carverId1 or self.currentEvent.ability.id == carverId2) then d(reason) end
-    if self.CombatMetronome and CombatMetronome.currentEvent then
-        CombatMetronome.currentEvent = nil
+    if self.currentEvent then
+        if CombatMetronome.SV.debug.enabled and CombatMetronome.SV.debug.currentEvent and (self.currentEvent.ability.id == carverId1 or self.currentEvent.ability.id == carverId2) then d(reason) end
+        self.currentEvent = nil
+        if self.CombatMetronome and CombatMetronome.currentEvent then
+            CombatMetronome.currentEvent = nil
+        end
     end
 end

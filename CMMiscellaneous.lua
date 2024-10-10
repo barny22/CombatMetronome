@@ -1,194 +1,233 @@
-CM_DEFAULT_SAVED_VARS = {
-	["hideProgressbar"] = false,
-    ["hideCMInPVP"] = false,
-	["xOffset"] = (GuiRoot:GetWidth() - 303) / 2,
-    ["yOffset"] = (GuiRoot:GetHeight() - 30) / 2,
-    ["width"] = 303,
-    ["height"] = 30,
-	["dontHide"] = false,
-	["dontShowPing"] = false,
-    ["lastBackgroundColor"] = { 0, 0, 0, 0.5 },
-    ["backgroundColor"] = { 0, 0, 0, 0.5 },
-    ["progressColor"] = { 1, 0.84, 0.24, 0.63 },
-    ["pingColor"] = { 1, 0, 0, 0.63 },
-	["channelColor"] = { 1, 0, 1, 0.63},
-	["colorCache"] = { 1, 0.84, 0.24, 0.63},
-	["changeOnChanneled"] = false,
-    ["gcdAdjust"] = 0,
-    ["barAlign"] = "Center",
-	["labelFont"] = "CHAT_FONT",
-	["fontStyle"] = "outline",
-	["trackGCD"] = false,
-    ["showOOC"] = true,
-    ["displayPingOnHeavy"] = true,
-	["spellSize"] = 25,
-    ["debug"] = false,
-    ["globalHeavyAdjust"] = 25,
-    ["globalAbilityAdjust"] = 25,
-    ["abilityAdjusts"] = { },
-	["anchorResourcesToProgressbar"] = true,
-	["hideResourcesInPVP"] = false,
-	["labelFrameXOffset"] = (GuiRoot:GetWidth() - 303) / 2,
-	["labelFrameYOffset"] = (GuiRoot:GetHeight() - 80) / 2,
-	["labelFrameWidth"] = 303,
-	["labelFrameHeight"] = 50,
-	["showResources"] = false,
-    ["showUltimate"] = true,
-    ["showStamina"] = true,
-	["showMagicka"] = true,
-    ["showHealth"] = true,
-	["ultColor"] = {1, 1, 1, 1},
-	["magColor"] = {0, 0.5, 1, 1},
-	["stamColor"] = {0, 0.8, 0.3, 1},
-	["healthColor"] = {0.8, 0, 0, 1},
-	["healthHighligtColor"] = {1, 1, 1, 1},
-	["stamSize"] = 21,
-	["magSize"] = 21,
-	["ultSize"] = 40,
-	["healthSize"] = 35,
-	["showSpell"] = true,
-	["showTimeRemaining"] = true,
-    ["showResourcesForGuard"] = false,
-    ["maxLatency"] = 150,
-    ["global"] = true,
-    ["hpHighlightThreshold"] = 25,
-    ["reticleHp"] = false,
-    ["soundTickEnabled"] = false,
-	["tickVolume"] = 100,
-    ["soundTickEffect"] = "Justice_PickpocketFailed",
-    ["soundTickOffset"] = 200,
-    ["soundTockEnabled"] = false,
-    ["soundTockEffect"] = "Dialog_Decline",
-    ["soundTockOffset"] = 300,
-	["stopHATracking"] = false,
-	["makeItFancy"] = false,
-	["trackerIsUnlocked"] = false,
-	["hideTrackerInPVP"] = false,
-	["trackMW"] = false,
-	["trackBA"] = false,
-	["trackGF"] = false,
-	["trackCrux"] = false,
-	["trackFS"] = false,
-	["indicatorSize"] = 30,
-	["trackerX"] = 0,
-	["trackerY"] = 0,
-	["hideTracker"] = true,
-	["trackerPlaySound"] = false,
-	["trackerVolume"] = 100,
-	["hightlightOnFullStacks"] = false,
-	["trackerSound"] = "Ability_Companion_Ultimate_Ready",
-	["LATrackerXOffset"] = GuiRoot:GetWidth()/2,
-	["LATrackerYOffset"] = GuiRoot:GetHeight()/2,
-	["LATrackerWidth"] = 200,
-	["LATrackerHeight"] = 50,
-	["laTrackerChoice"] = "Nothing",
-	["timeTilHidingLATracker"] = 15,
-	["CCTrackerXOffset"] = 0,
-	["CCTrackerYOffset"] = 0,
-	["CCTrackerSize"] = 30,
-	["CC"] = {}
+CombatMetronome.StackTracker = CombatMetronome.StackTracker or {}
+CombatMetronome.menu = CombatMetronome.menu or {}
+
+CombatMetronome.SV.DEFAULT = {
+	["version"] = 1,
+	["global"] = true,
+	["Progressbar"] = {
+		["hideProgressbar"] = false,
+		["hideCMInPVP"] = false,
+		["xOffset"] = (GuiRoot:GetWidth() - 303) / 2,
+		["yOffset"] = (GuiRoot:GetHeight() - 30) / 2,
+		["width"] = 303,
+		["height"] = 30,
+		["dontHide"] = false,
+		["dontShowPing"] = false,
+		["lastBackgroundColor"] = { 0, 0, 0, 0.5 },
+		["backgroundColor"] = { 0, 0, 0, 0.5 },
+		["progressColor"] = { 1, 0.84, 0.24, 0.63 },
+		["pingColor"] = { 1, 0, 0, 0.63 },
+		["channelColor"] = { 1, 0, 1, 0.63},
+		["colorCache"] = { 1, 0.84, 0.24, 0.63},
+		["changeOnChanneled"] = false,
+		["gcdAdjust"] = 0,
+		["barAlign"] = "Center",
+		["labelFont"] = "CHAT_FONT",
+		["fontStyle"] = "outline",
+		["trackGCD"] = false,
+		["displayPingOnHeavy"] = true,
+		["spellSize"] = 25,
+		["globalHeavyAdjust"] = 25,
+		["globalAbilityAdjust"] = 25,
+		["abilityAdjusts"] = { },
+		["showSpell"] = true,
+		["showTimeRemaining"] = true,
+		["soundTickEnabled"] = false,
+		["tickVolume"] = 100,
+		["soundTickEffect"] = "Justice_PickpocketFailed",
+		["soundTickOffset"] = 200,
+		["soundTockEnabled"] = false,
+		["soundTockEffect"] = "Dialog_Decline",
+		["soundTockOffset"] = 300,
+		["stopHATracking"] = false,
+		["makeItFancy"] = false,
+		["maxLatency"] = 150,
+		["showPingOnGCD"] = true,
+	},
+	["Resources"] = {
+		["anchorResourcesToProgressbar"] = true,
+		["hideResourcesInPVP"] = false,
+		["labelFrameXOffset"] = (GuiRoot:GetWidth() - 303) / 2,
+		["labelFrameYOffset"] = (GuiRoot:GetHeight() - 80) / 2,
+		["labelFrameWidth"] = 303,
+		["labelFrameHeight"] = 50,
+		["showResources"] = false,
+		["showUltimate"] = true,
+		["showStamina"] = true,
+		["showMagicka"] = true,
+		["showHealth"] = true,
+		["ultColor"] = {1, 1, 1, 1},
+		["magColor"] = {0, 0.5, 1, 1},
+		["stamColor"] = {0, 0.8, 0.3, 1},
+		["healthColor"] = {0.8, 0, 0, 1},
+		["healthHighligtColor"] = {1, 1, 1, 1},
+		["stamSize"] = 21,
+		["magSize"] = 21,
+		["ultSize"] = 40,
+		["healthSize"] = 35,
+		["showResourcesForGuard"] = false,
+		["hpHighlightThreshold"] = 25,
+		["reticleHp"] = false,
+	},
+	["StackTracker"] = {
+		["isUnlocked"] = false,
+		["hideInPVP"] = false,
+		["trackMW"] = false,
+		["trackBA"] = false,
+		["trackGF"] = false,
+		["trackCrux"] = false,
+		["trackFS"] = false,
+		["indicatorSize"] = 30,
+		["xOffset"] = 0,
+		["yOffset"] = 0,
+		["hideTracker"] = true,
+		["playSound"] = false,
+		["volume"] = 100,
+		["hightlightOnFullStacks"] = false,
+		["sound"] = "Ability_Companion_Ultimate_Ready",
+	},
+	["LATracker"] = {
+		["xOffset"] = GuiRoot:GetWidth()/2,
+		["yOffset"] = GuiRoot:GetHeight()/2,
+		["width"] = 200,
+		["height"] = 50,
+		["choice"] = "Nothing",
+		["timeTilHiding"] = 15,
+	},
+	["CCTracker"] = {
+		["xOffset"] = {
+			["Disoriented"] = 0,
+			["Fear"] = 30,
+			["Knockback"] = 60,
+			["Levitating"] = 90,
+			["Offbalance"] = 120,
+			["Silence"] = 150,
+			["Snare"] = 180,
+			["Stagger"] = 210,
+			["Stun"] = 240,
+		},
+		["yOffset"] = {
+			["Disoriented"] = 0,
+			["Fear"] = 0,
+			["Knockback"] = 0,
+			["Levitating"] = 0,
+			["Offbalance"] = 0,
+			["Silence"] = 0,
+			["Snare"] = 0,
+			["Stagger"] = 0,
+			["Stun"] = 0,
+		},
+		["size"] = 30,
+		["CC"] = {},
+	},
+	["debug"] = {
+		["enabled"] = false,
+		["triggers"] = false,
+		["triggerTimer"] = 170,
+		["currentEvent"] = false,
+	},
 }
 
-CM_MENU_CONTROLS = {
-{
+CombatMetronome.menu.CONTROLS = {
+	{
 		["Name"] = "Dodgeroll",
 		["Icon"] = "/esoui/art/icons/ability_rogue_035.dds",
 		["Dimensions"] = 35,
 		["Offset"] = -25,
 	},
-{
+	{
 		["Name"] = "Mounting/Dismounting",
 		["Dimensions"] = 45,
 		["Offset"] = -20,
 	},
-{
+	{
 		["Name"] = "Assistants and companions",
 		["Icon"] = "/esoui/art/icons/assistant_ezabibanker.dds",
 		["Dimensions"] = 45,
 		["Offset"] = -20,
 	},
-{
+	{
 		["Name"] = "Usage of items",
 		["Icon"] = "/esoui/art/tribute/tributeendofgamereward_overflow.dds",
 		["Dimensions"] = 35,
 		["Offset"] = -25,
 	},
-{
+	{
 		["Name"] = "Killing actions",
 		["Icon"] = "/esoui/art/icons/achievement_u23_skillmaster_darkbrotherhood.dds",
 		["Dimensions"] = 35,
 		["Offset"] = -25,
 	},
-{
+	{
 		["Name"] = "Breaking free",
 		["Icon"] = "/esoui/art/icons/ability_debuff_stun.dds",
 		["Dimensions"] = 35,
 		["Offset"] = -25,
 	},
-{
+	{
 		["Name"] = "Disoriented",
 		["Icon"] = "/esoui/art/icons/ability_debuff_disorient.dds",
 		["Dimensions"] = 35,
 		["Offset"] = -25,
 		-- ["Id"] = 2340
 	},
-{
+	{
 		["Name"] = "Fear",
 		["Icon"] = "/esoui/art/icons/ability_debuff_fear.dds",
 		["Dimensions"] = 35,
 		["Offset"] = -25,
 		-- ["Id"] = 15 --2320
 	},
-{
+	{
 		["Name"] = "Knockback",
 		["Icon"] = "/esoui/art/icons/ability_debuff_knockback.dds",
 		["Dimensions"] = 35,
 		["Offset"] = -25,
 		-- ["Id"] = 2475
 	}, 
-{
+	{
 		["Name"] = "Levitate",
 		["Icon"] = "/esoui/art/icons/ability_debuff_levitate.dds",
 		["Dimensions"] = 35,
 		["Offset"] = -25,
 		-- ["Id"] = 18 --2400
 	},
-{
+	{
 		["Name"] = "Offbalance",
 		["Icon"] = "/esoui/art/icons/ability_debuff_offbalance.dds",
 		["Dimensions"] = 35,
 		["Offset"] = -25,
 		-- ["Id"] = 2440
 	},
--- {
+	-- {
 		-- ["Name"] = "Root",
 		-- ["Icon"] = "/esoui/art/icons/ability_debuff_root.dds",
 		-- ["Dimensions"] = 35,
 		-- ["Offset"] = -25,
 		-- ["Id"] = 1 --2480
 	-- },
-{
+	{
 		["Name"] = "Silence",
 		["Icon"] = "/esoui/art/icons/ability_debuff_silence.dds",
 		["Dimensions"] = 35,
 		["Offset"] = -25,
 		-- ["Id"] = 13 --2010
 	},
-{
+	{
 		["Name"] = "Snare",
 		["Icon"] = "/esoui/art/icons/ability_debuff_snare.dds",
 		["Dimensions"] = 35,
 		["Offset"] = -25,
 		-- ["Id"] = 2 --2025
 	},
-{
+	{
 		["Name"] = "Stagger",
 		["Icon"] = "/esoui/art/icons/ability_debuff_stagger.dds",
 		["Dimensions"] = 35,
 		["Offset"] = -25,
 		-- ["Id"] = 2470
 	},
-{
+	{
 		["Name"] = "Stun",
 		["Icon"] = "/esoui/art/icons/ability_debuff_stun.dds",
 		["Dimensions"] = 35,
@@ -197,7 +236,7 @@ CM_MENU_CONTROLS = {
 	},
 }
 
-CM_TRACKER_CLASS_ATTRIBUTES = {
+CombatMetronome.StackTracker.CLASS_ATTRIBUTES = {
 	["ARC"] = {
 		["iMax"] = 3,
 		["graphic"] = "/esoui/art/icons/class_buff_arcanist_crux.dds",
@@ -240,7 +279,7 @@ CM_TRACKER_CLASS_ATTRIBUTES = {
 	},
 }
 
-CM_CLASS = {
+CombatMetronome.StackTracker.CLASS = {
 	[1] = "DK",
 	[2] = "SORC",
 	[3] = "NB",

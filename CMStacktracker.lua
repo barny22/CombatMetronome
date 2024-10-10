@@ -1,42 +1,44 @@
 local Util = DariansUtilities
 Util.Stacks = Util.Stacks or {}
+CombatMetronome.StackTracker = CombatMetronome.StackTracker or {}
+local StackTracker = CombatMetronome.StackTracker
+local CM = CombatMetronome
 
-        -------------------------------
-        ---- Stack Tracker Updater ----
-        -------------------------------
+	-------------------------------
+	---- Stack Tracker Updater ----
+	-------------------------------
 
 local animStart = false
 local trackerShouldBeVisible = false
 local sampleAnimationStarted = false
 local stacks, previousStack
 
-function CombatMetronome:TrackerUpdate()
-
+function StackTracker:Update()
 
     ------------------------
 	---- Sample Section ----
 	------------------------
 	
 	if self.showSampleTracker then
-		local attributes = CM_TRACKER_CLASS_ATTRIBUTES[self.class]
+		local attributes = self.CLASS_ATTRIBUTES[self.class]
 		for i = 1, attributes.iMax-1 do
-			self.stackTracker.indicator[i].Activate()
+			self.UI.indicator[i].Activate()
 		end
-		if self.config.hightlightOnFullStacks and not sampleAnimationStarted then
+		if CombatMetronome.SV.StackTracker.hightlightOnFullStacks and not sampleAnimationStarted then
 			for i = 1, attributes.iMax do
-				self.stackTracker.indicator[i].Animate()
+				self.UI.indicator[i].Animate()
 			end
 			sampleAnimationStarted = true
-		elseif not self.config.hightlightOnFullStacks then
+		elseif not CombatMetronome.SV.StackTracker.hightlightOnFullStacks then
 			for i = 1, attributes.iMax do
-				self.stackTracker.indicator[i].StopAnimation()
+				self.UI.indicator[i].StopAnimation()
 			end
 			sampleAnimationStarted = false
 		end
 	elseif not self.showSampleTracker and sampleAnimationStarted then
-		local attributes = CM_TRACKER_CLASS_ATTRIBUTES[self.class]
+		local attributes = self.CLASS_ATTRIBUTES[self.class]
 		for i = 1, attributes.iMax do
-			self.stackTracker.indicator[i].StopAnimation()
+			self.UI.indicator[i].StopAnimation()
 		end
 		sampleAnimationStarted = false
 		
@@ -47,21 +49,21 @@ function CombatMetronome:TrackerUpdate()
 	else
 		if self:TrackerIsActive() then
 			trackerShouldBeVisible = true
-		elseif self.config.trackerIsUnlocked then
+		elseif CombatMetronome.SV.StackTracker.isUnlocked then
 			trackerShouldBeVisible = true
 		else
 			trackerShouldBeVisible = false
 		end
 		
 		if trackerShouldBeVisible then
-			local abilitySlotted = CombatMetronome:CheckIfSlotted()
+			local abilitySlotted = self:CheckIfSlotted()
 			if Util.Stacks.morphChanged then
-				self.stackTracker.indicator.ApplyIcon()
+				self.UI.indicator.ApplyIcon()
 				Util.Stacks.morphChanged = false
 			end
 			if abilitySlotted then
-				self.stackTracker.FadeScenes("UI")
-				local attributes = CM_TRACKER_CLASS_ATTRIBUTES[self.class]
+				self.UI.FadeScenes("UI")
+				local attributes = self.CLASS_ATTRIBUTES[self.class]
 				local oneOff = attributes.iMax - 1
 				if self.class == "ARC" then
 						stacks = Util.Stacks:GetCurrentNumCruxOnPlayer()
@@ -75,27 +77,27 @@ function CombatMetronome:TrackerUpdate()
 						stacks = Util.Stacks:GetCurrentNumFSOnPlayer()
 				end
 				for i=1,attributes.iMax do 
-					self.stackTracker.indicator[i].Deactivate()
+					self.UI.indicator[i].Deactivate()
 				end
 				-- if stacks == 0 then return end
 				for i=1,stacks do
-					self.stackTracker.indicator[i].Activate()
+					self.UI.indicator[i].Activate()
 				end
-				if self.config.hightlightOnFullStacks then											--Animation when stacks are full
+				if CombatMetronome.SV.StackTracker.hightlightOnFullStacks then											--Animation when stacks are full
 					if stacks == attributes.iMax and animStart == false then
 						for i=1,attributes.iMax do
-							self.stackTracker.indicator[i].Animate()
+							self.UI.indicator[i].Animate()
 						end
 						animStart = true
 					end
 					if animStart == true and stacks ~= attributes.iMax then
 						for i=1,attributes.iMax do
-							self.stackTracker.indicator[i].StopAnimation()
+							self.UI.indicator[i].StopAnimation()
 						end
 						animStart = false
 					end
 				end
-				if self.config.trackerPlaySound then
+				if CombatMetronome.SV.StackTracker.playSound then
 					local uiVolume = GetSetting(SETTING_TYPE_AUDIO, AUDIO_SETTING_UI_VOLUME)											--Sound cue when stacks are full
 					if previousStack == oneOff then
 						-- d("One off full stacks")
@@ -105,19 +107,19 @@ function CombatMetronome:TrackerUpdate()
 								SetSetting(SETTING_TYPE_AUDIO, AUDIO_SETTING_UI_VOLUME, uiVolume)
 								-- d("Sound is finished playing. Volume adjusted. Volume is now "..GetSetting(SETTING_TYPE_AUDIO, AUDIO_SETTING_UI_VOLUME))
 							end)
-							SetSetting(SETTING_TYPE_AUDIO, AUDIO_SETTING_UI_VOLUME, self.config.trackerVolume)
+							SetSetting(SETTING_TYPE_AUDIO, AUDIO_SETTING_UI_VOLUME, CombatMetronome.SV.StackTracker.volume)
 							-- d("Volume adjusted. Volume is now "..GetSetting(SETTING_TYPE_AUDIO, AUDIO_SETTING_UI_VOLUME))
-							trackerCue:PlaySound(SOUNDS[self.config.trackerSound],250)
+							trackerCue:PlaySound(SOUNDS[CombatMetronome.SV.StackTracker.sound],250)
 							-- d("Stacks are full")
 						end
 					end
 				end
 				previousStack = stacks
 			else
-				self.stackTracker.FadeScenes("NoUI")
+				self.UI.FadeScenes("NoUI")
 			end
 		else
-			self.stackTracker.FadeScenes("NoUI")
+			self.UI.FadeScenes("NoUI")
 		end
 	end
 end

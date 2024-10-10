@@ -2,14 +2,11 @@ local LAM = LibAddonMenu2
 local Util = DariansUtilities
 Util.Text = Util.Text or {}
 Util.Stacks = Util.Stacks or {}
+CombatMetronome.StackTracker = CombatMetronome.StackTracker or {}
+local StackTracker = CombatMetronome.StackTracker
 CombatMetronome.CCTracker = CombatMetronome.CCTracker or {}
 local CCTracker = CombatMetronome.CCTracker
 
--- IDs for easier access
-local cruxId = 184220
-local carverId1 = 183122
-local carverId2 = 193397
-local dodgeId = 29721
 local bAId = { ["buff"] = 203447, ["ability"] = 24165,}
 local mWId = { ["buff"] = 122658, ["ability"] = 20805,} -- 122729
 local gFId = {
@@ -42,8 +39,8 @@ local fSId = {
 	--------------------------
 
 function CombatMetronome:OnCDStop()
-	if self.config.dontHide then
-		if self.config.makeItFancy then
+	if CombatMetronome.SV.Progressbar.dontHide then
+		if CombatMetronome.SV.Progressbar.makeItFancy then
 			self:HideFancy(false)
 		else
 			self:HideFancy(true)
@@ -57,7 +54,7 @@ function CombatMetronome:OnCDStop()
 end
 
 function CombatMetronome:HideBar(value)
-	if self.config.makeItFancy then
+	if CombatMetronome.SV.Progressbar.makeItFancy then
 		self:HideFancy(value)
 	else
 		self:HideFancy(true)
@@ -132,7 +129,7 @@ function CombatMetronome:CreateMenuIconsPath(ControlName)
 end
 
 function CombatMetronome:GCDSpecifics(text, icon, gcdProgress)
-	if self.config.showSpell then
+	if CombatMetronome.SV.Progressbar.showSpell then
 		self.spellLabel:SetHidden(false)
 		self.spellIcon:SetHidden(false)
 		self.spellIconBorder:SetHidden(false)
@@ -143,7 +140,7 @@ function CombatMetronome:GCDSpecifics(text, icon, gcdProgress)
 		self.spellIcon:SetHidden(true)
 		self.spellIconBorder:SetHidden(true)
 	end
-	if self.config.showTimeRemaining then
+	if CombatMetronome.SV.Progressbar.showTimeRemaining then
 		self.timeLabel:SetHidden(false)
 		self.timeLabel:SetText(string.format("%.1fs", gcdProgress))
 	else
@@ -171,7 +168,7 @@ end
 
 function CombatMetronome:CheckForCombatEventsRegister()
 	-- local ccTrackingActive = CombatMetronome:CheckForCCRegister()
-	local CombatEventsNeedToBeRegistered = self.config.trackMounting or self.config.trackKillingActions or	self.config.trackBreakingFree or CombatMetronome:CheckForCCRegister()
+	local CombatEventsNeedToBeRegistered = CombatMetronome.SV.Progressbar.trackMounting or CombatMetronome.SV.Progressbar.trackKillingActions or CombatMetronome.SV.Progressbar.trackBreakingFree or CombatMetronome:CheckForCCRegister()
 	return CombatEventsNeedToBeRegistered
 end
 
@@ -197,8 +194,8 @@ end
 
 CCTracker.cc = CCTracker.cc or {}
 	
-function CombatMetronome:CheckForCCRegister()
-	for _, check in pairs(self.config.CC) do
+function CCTracker:CheckForCCRegister()
+	for _, check in pairs(CombatMetronome.SV.CCTracker.CC) do
 		if check == true then
 			return true
 		end
@@ -251,7 +248,7 @@ function CombatMetronome:UpdateAdjustChoices()
 
 	for k in pairs(names) do names[k] = nil end
 
-	for id, adj in pairs(self.config.abilityAdjusts) do
+	for id, adj in pairs(CombatMetronome.SV.Progressbar.abilityAdjusts) do
 		local name = Util.Text.CropZOSString(GetAbilityName(id))
 		names[#names + 1] = name
 	end
@@ -261,8 +258,8 @@ function CombatMetronome:UpdateAdjustChoices()
         self.menu.curSkillName = ABILITY_ADJUST_PLACEHOLDER
         self.menu.curSkillId = -1
     else
-        if not self.config.abilityAdjusts[self.menu.curSkillId] then
-            for id, _ in pairs(self.config.abilityAdjusts) do
+        if not CombatMetronome.SV.Progressbar.abilityAdjusts[self.menu.curSkillId] then
+            for id, _ in pairs(CombatMetronome.SV.Progressbar.abilityAdjusts) do
                 self.menu.curSkillId = id
                 self.menu.curSkillName = GetAbilityName(id)
                 break
@@ -283,7 +280,7 @@ end
 
 function CombatMetronome:CreateAdjustList()
 	local names = {}
-	for id, adj in pairs(self.config.abilityAdjusts) do
+	for id, adj in pairs(CombatMetronome.SV.Progressbar.abilityAdjusts) do
 		local name = Util.Text.CropZOSString(GetAbilityName(id))
 		names[#names + 1] = name
 	end
@@ -310,7 +307,7 @@ end
 	-------------------------
 
 function CombatMetronome:HandleAbilityUsed(event)
-    if not (self.inCombat or self.config.showOOC) then return end
+    if not (self.inCombat or CombatMetronome.SV.Progressbar.trackGCD) then return end
 	if event == "cancel heavy" then
 		if self.currentEvent and self.currentEvent.ability.heavy then
 			self.currentEvent = nil
@@ -324,12 +321,12 @@ function CombatMetronome:HandleAbilityUsed(event)
 
     local ability = event.ability
 
-    event.adjust = (self.config.abilityAdjusts[ability.id] or 0)
-                    + ((ability.instant and self.config.gcdAdjust)
-                    or (ability.heavy and self.config.globalHeavyAdjust)
-                    or self.config.globalAbilityAdjust)
+    event.adjust = (CombatMetronome.SV.Progressbar.abilityAdjusts[ability.id] or 0)
+                    + ((ability.instant and CombatMetronome.SV.Progressbar.gcdAdjust)
+                    or (ability.heavy and CombatMetronome.SV.Progressbar.globalHeavyAdjust)
+                    or CombatMetronome.SV.Progressbar.globalAbilityAdjust)
 					
-	if self.config.stopHATracking and event.ability.heavy then
+	if CombatMetronome.SV.Progressbar.stopHATracking and event.ability.heavy then
 		return
 	else
 		self.currentEvent = event
@@ -342,17 +339,17 @@ end
 	---- Check if Tracker is active ----
 	------------------------------------
 
-function CombatMetronome:TrackerIsActive()
+function StackTracker:TrackerIsActive()
 	local trackerIsActive = false
-	if self.class == "ARC" and self.config.trackCrux then
+	if self.class == "ARC" and CombatMetronome.SV.StackTracker.trackCrux then
 		trackerIsActive = true
-	elseif self.class == "DK" and self.config.trackMW then
+	elseif self.class == "DK" and CombatMetronome.SV.StackTracker.trackMW then
 		trackerIsActive = true
-	elseif self.class == "SORC" and self.config.trackBA then
+	elseif self.class == "SORC" and CombatMetronome.SV.StackTracker.trackBA then
 		trackerIsActive = true
-	elseif self.class == "NB" and self.config.trackGF then
+	elseif self.class == "NB" and CombatMetronome.SV.StackTracker.trackGF then
 		trackerIsActive = true
-	elseif self.class == "CRO" and self.config.trackFS then
+	elseif self.class == "CRO" and CombatMetronome.SV.StackTracker.trackFS then
 		trackerIsActive = true
 	else
 		trackerIsActive = false
@@ -393,7 +390,7 @@ end
         ---- Tracker check if abilities are slotted ----
         ------------------------------------------------
 		
-function CombatMetronome:CheckIfSlotted()
+function StackTracker:CheckIfSlotted()
 	local ability = ""
 	local abilitySlotted = false
 	if self.class == "SORC" then ability = bAId.ability
@@ -443,8 +440,8 @@ function CombatMetronome:IsInPvPZone()
 end
 
 function CombatMetronome:CMPVPSwitch()
-	if not self.config.hideProgressbar then
-		if self.config.hideCMInPVP and self.inPVPZone then
+	if not CombatMetronome.SV.Progressbar.hide then
+		if CombatMetronome.SV.Progressbar.hideCMInPVP and self.inPVPZone then
 			if self.cmRegistered then
 				self:UnregisterCM()
 				self:HideBar(true)
@@ -457,11 +454,11 @@ function CombatMetronome:CMPVPSwitch()
 			if not self.cmRegistered then
 				self:RegisterCM()
 				self:BuildProgressBar()
-				self:HideBar(not self.config.dontHide)
+				self:HideBar(not CombatMetronome.SV.Progressbar.dontHide)
 				-- d("registered cm scenario 3")
 			else
 				self:BuildProgressBar()
-				self:HideBar(not self.config.dontHide)
+				self:HideBar(not CombatMetronome.SV.Progressbar.dontHide)
 				-- d("registered cm scenario 4")
 			end
 		end
@@ -470,7 +467,7 @@ end
 
 function CombatMetronome:ResourcesPVPSwitch()
 	-- local hideResources = false
-	if self.config.hideResourcesInPVP and self.inPVPZone then
+	if CombatMetronome.SV.Resources.hideInPVP and self.inPVPZone then
 		-- hideResources = true
 		if self.rtRegistered then
 			self:UnregisterResourceTracker()
@@ -493,20 +490,20 @@ function CombatMetronome:ResourcesPVPSwitch()
 	-- return hideResources
 end
 
-function CombatMetronome:TrackerPVPSwitch()
+function StackTracker:PVPSwitch()
 	if self:TrackerIsActive() then
-		if self.config.hideTrackerInPVP and self.inPVPZone then
-			if self.trackerRegistered then
-				self:UnregisterTracker()
-				self.stackTracker.FadeScenes("NoUI")
+		if CombatMetronome.SV.StackTracker.hideInPVP and CombatMetronome.inPVPZone then
+			if self.registered then
+				self:Unregister()
+				self.UI.FadeScenes("NoUI")
 				-- d("registered tracker scenario 1")
-			elseif not self.trackerRegistered then
-				self.stackTracker.FadeScenes("NoUi")
+			elseif not self.registered then
+				self.UI.FadeScenes("NoUi")
 				-- d("registered tracker scenario 2")
 			end
 		else
-			if not self.trackerRegistered then
-				self:RegisterTracker()
+			if not self.registered then
+				self:Register()
 				-- d("registered tracker scenario 3")
 			end
 		end

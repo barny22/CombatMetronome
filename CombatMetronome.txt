@@ -20,6 +20,7 @@ CMFunctions.lua
 CMLATracker.lua
 CMMiscellaneous.lua
 CMResources.lua
+CMSavedVariables.lua
 CMSettings.lua
 CMStacktracker.lua
 CMUserInterface.lua

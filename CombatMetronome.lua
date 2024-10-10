@@ -15,6 +15,9 @@ local Util = DariansUtilities
 Util.Ability = Util.Ability or {}
 Util.Text = Util.Text or {}
 Util.Stacks = Util.Stacks or {}
+CombatMetronome.StackTracker = CombatMetronome.StackTracker or {}
+local StackTracker = CombatMetronome.StackTracker
+StackTracker.name = CombatMetronome.name.."StackTracker"
 CombatMetronome.LATracker = CombatMetronome.LATracker or {}
 local LATracker = CombatMetronome.LATracker
 LATracker.name = CombatMetronome.name.."LightAttackTracker"
@@ -31,16 +34,24 @@ ZO_CreateStringId("SI_BINDING_NAME_COMBATMETRONOME_FORCE", "Force display")
 	-------------------------------------
 
 function CombatMetronome:Init()
-    self.config = ZO_SavedVars:NewCharacterIdSettings("CombatMetronomeSavedVars", 1, nil, CM_DEFAULT_SAVED_VARS)
-    if self.config.global then
-        self.config = ZO_SavedVars:NewAccountWide("CombatMetronomeSavedVars", 1, nil, CM_DEFAULT_SAVED_VARS)
-        self.config.global = true
-    end
+	for charId, sv in pairs(_G["CombatMetronomeSavedVars"].Default[GetDisplayName()]) do
+		if sv.version == 1 then
+			_G["CombatMetronomeSavedVars"].Default[GetDisplayName()][charId] = {}
+			_G["CombatMetronomeSavedVars"].Default[GetDisplayName()][charId] = CombatMetronome:ConvertSavedVariables(sv)
+		elseif sv.version == 2 then break
+		end
+	end
+	self.SV = ZO_SavedVars:NewCharacterIdSettings("CombatMetronomeSavedVars", 2, nil, self.SV.DEFAULT)
+	if self.SV.global then
+		self.SV = ZO_SavedVars:NewAccountWide("CombatMetronomeSavedVars", 2, nil, self.SV.DEFAULT)
+		self.SV.global = true
+	end
 	
 	self.currentCharacterName = Util.Text.CropZOSString(GetUnitName("player"))
 		
-	self.classId = GetUnitClassId("player")
-	self.class = CM_CLASS[self.classId]
+	StackTracker.classId = GetUnitClassId("player")
+	StackTracker.class = StackTracker.CLASS[StackTracker.classId]
+	
 	self.activeMount = {}
 	self.activeMount.name = Util.Text.CropZOSString(GetCollectibleNickname(GetActiveCollectibleByType(COLLECTIBLE_CATEGORY_TYPE_MOUNT,GAMEPLAY_ACTOR_CATEGORY_PLAYER)))
 	self.activeMount.icon = GetCollectibleIcon(GetActiveCollectibleByType(COLLECTIBLE_CATEGORY_TYPE_MOUNT,GAMEPLAY_ACTOR_CATEGORY_PLAYER))
@@ -53,33 +64,19 @@ function CombatMetronome:Init()
 	CCTracker.variables = {
 	-- Effects Changed
 	
-	[32] = {["icon"] = "/esoui/art/icons/ability_debuff_disorient.dds", ["tracked"] = self.config.CC.Disoriented, ["res"] = 2340, ["active"] = false,}, --ABILITY_TYPE_DISORIENT
-	[27] = {["icon"] = "/esoui/art/icons/ability_debuff_fear.dds", ["tracked"] = self.config.CC.Fear, ["res"] = 2320, ["active"] = false,}, --ABILITY_TYPE_FEAR
-	[17] = {["icon"] = "/esoui/art/icons/ability_debuff_knockback.dds", ["tracked"] = self.config.CC.Knockback, ["res"] = 2475, ["active"] = false,}, --ABILITY_TYPE_KNOCKBACK
-	[48] = {["icon"] = "/esoui/art/icons/ability_debuff_levitate.dds", ["tracked"] = self.config.CC.Levitate, ["res"] = 2400, ["active"] = false,}, --ABILITY_TYPE_LEVITATE
-	[53] = {["icon"] = "/esoui/art/icons/ability_debuff_offbalance.dds", ["tracked"] = self.config.CC.Offbalance, ["res"] = 2440, ["active"] = false,}, --ABILITY_TYPE_OFFBALANCE
-	-- ["rootPlaceholder"] = {["icon"] = "/esoui/art/icons/ability_debuff_root.dds", ["tracked"] = self.config.CC.Root, ["res"] = 2480 ["active"] = false,}, --ACTION_RESULT_ROOTED
-	[11] = {["icon"] = "/esoui/art/icons/ability_debuff_silence.dds", ["tracked"] = self.config.CC.Silence, ["res"] = 2010, ["active"] = false,}, --ABILITY_TYPE_SILENCE
-	[10] = {["icon"] = "/esoui/art/icons/ability_debuff_snare.dds", ["tracked"] = self.config.CC.Snare, ["res"] = 2025, ["active"] = false,}, --ABILITY_TYPE_SNARE
-	[33] = {["icon"] = "/esoui/art/icons/ability_debuff_stagger.dds", ["tracked"] = self.config.CC.Stagger, ["res"] = 2470, ["active"] = false,}, --ABILITY_TYPE_STAGGER
-	[9] = {["icon"] = "/esoui/art/icons/ability_debuff_stun.dds", ["tracked"] = self.config.CC.Stun, ["res"] = 2020, ["active"] = false,}, --ABILITY_TYPE_STUN
-	
-	
-	-- Combat Events:
-	
-	-- [2340] = {"/esoui/art/icons/ability_debuff_disorient.dds", self.config.CC.Disoriented}, --ACTION_RESULT_DISORIENTED
-	-- [2320] = {"/esoui/art/icons/ability_debuff_fear.dds", self.config.CC.Fear}, --ACTION_RESULT_FEARED
-	-- [2475] = {"/esoui/art/icons/ability_debuff_knockback.dds", self.config.CC.Knockback}, --ACTION_RESULT_KNOCKBACK
-	-- [2400] = {"/esoui/art/icons/ability_debuff_levitate.dds", self.config.CC.Levitate}, --ACTION_RESULT_LEVITATED
-	-- [2440] = {"/esoui/art/icons/ability_debuff_offbalance.dds", self.config.CC.Offbalance}, --ACTION_RESULT_OFFBALANCE
-	-- [2480] = {"/esoui/art/icons/ability_debuff_root.dds", self.config.CC.Root}, --ACTION_RESULT_ROOTED
-	-- [2010] = {"/esoui/art/icons/ability_debuff_silence.dds", self.config.CC.Silence}, --ACTION_RESULT_SILENCED
-	-- [2025] = {"/esoui/art/icons/ability_debuff_snare.dds", self.config.CC.Snare}, --ACTION_RESULT_SNARED
-	-- [2470] = {"/esoui/art/icons/ability_debuff_stagger.dds", self.config.CC.Stagger}, --ACTION_RESULT_STAGGERED
-	-- [2020] = {"/esoui/art/icons/ability_debuff_stun.dds", self.config.CC.Stun}, --ACTION_RESULT_STUNNED
+	[32] = {["icon"] = "/esoui/art/icons/ability_debuff_disorient.dds", ["tracked"] = self.SV.CCTracker.CC.Disoriented, ["res"] = 2340, ["active"] = false, ["name"] = "Disoriented",}, --ABILITY_TYPE_DISORIENT
+	[27] = {["icon"] = "/esoui/art/icons/ability_debuff_fear.dds", ["tracked"] = self.SV.CCTracker.CC.Fear, ["res"] = 2320, ["active"] = false, ["name"] = "Fear",}, --ABILITY_TYPE_FEAR
+	[17] = {["icon"] = "/esoui/art/icons/ability_debuff_knockback.dds", ["tracked"] = self.SV.CCTracker.CC.Knockback, ["res"] = 2475, ["active"] = false, ["name"] = "Knockback",}, --ABILITY_TYPE_KNOCKBACK
+	[48] = {["icon"] = "/esoui/art/icons/ability_debuff_levitate.dds", ["tracked"] = self.SV.CCTracker.CC.Levitate, ["res"] = 2400, ["active"] = false, ["name"] = "Levitating",}, --ABILITY_TYPE_LEVITATE
+	[53] = {["icon"] = "/esoui/art/icons/ability_debuff_offbalance.dds", ["tracked"] = self.SV.CCTracker.CC.Offbalance, ["res"] = 2440, ["active"] = false, ["name"] = "Offbalance",}, --ABILITY_TYPE_OFFBALANCE
+	-- ["rootPlaceholder"] = {["icon"] = "/esoui/art/icons/ability_debuff_root.dds", ["tracked"] = self.SV.CCTracker.CC.Root, ["res"] = 2480 ["active"] = false, ["name"] = "Rooted",}, --ACTION_RESULT_ROOTED
+	[11] = {["icon"] = "/esoui/art/icons/ability_debuff_silence.dds", ["tracked"] = self.SV.CCTracker.CC.Silence, ["res"] = 2010, ["active"] = false, ["name"] = "Silence",}, --ABILITY_TYPE_SILENCE
+	[10] = {["icon"] = "/esoui/art/icons/ability_debuff_snare.dds", ["tracked"] = self.SV.CCTracker.CC.Snare, ["res"] = 2025, ["active"] = false, ["name"] = "Snare",}, --ABILITY_TYPE_SNARE
+	[33] = {["icon"] = "/esoui/art/icons/ability_debuff_stagger.dds", ["tracked"] = self.SV.CCTracker.CC.Stagger, ["res"] = 2470, ["active"] = false, ["name"] = "Stagger",}, --ABILITY_TYPE_STAGGER
+	[9] = {["icon"] = "/esoui/art/icons/ability_debuff_stun.dds", ["tracked"] = self.SV.CCTracker.CC.Stun, ["res"] = 2020, ["active"] = false, ["name"] = "Stun",}, --ABILITY_TYPE_STUN
 }
 
-    self.log = self.config.debug
+    -- self.log = CombatMetronome.SV.debug
 
     self.inCombat = IsUnitInCombat("player")
     self.currentEvent = nil
@@ -93,7 +90,7 @@ function CombatMetronome:Init()
 	-- CombatMetronome:UpdateAdjustChoices()
 
     self.lastInterval = 0
-	self.actionSlotCache = Util.Stacks:StoreAbilitiesOnActionBar()
+	StackTracker.actionSlotCache = Util.Stacks:StoreAbilitiesOnActionBar()
 
 	self:RegisterMetadata()
 	
@@ -104,37 +101,32 @@ function CombatMetronome:Init()
 	---- Stack Tracker ----
 	-----------------------
 	
-	if CM_TRACKER_CLASS_ATTRIBUTES[self.class] then
-		self.stackTracker = CombatMetronome:BuildStackTracker()
-		self.stackTracker.indicator.ApplyDistance(self.config.indicatorSize/5, self.config.indicatorSize)
-		self.stackTracker.indicator.ApplySize(self.config.indicatorSize)
-		self.stackTracker.indicator.ApplyIcon()
+	if StackTracker.CLASS_ATTRIBUTES[StackTracker.class] then
+		StackTracker.UI = StackTracker:BuildUI()
+		StackTracker.UI.indicator.ApplyDistance(CombatMetronome.SV.StackTracker.indicatorSize/5, CombatMetronome.SV.StackTracker.indicatorSize)
+		StackTracker.UI.indicator.ApplySize(CombatMetronome.SV.StackTracker.indicatorSize)
+		StackTracker.UI.indicator.ApplyIcon()
 	
-		self:RegisterTracker()
-		self.showSampleTracker = false
+		StackTracker:Register()
+		StackTracker.showSampleTracker = false
 	end
 	
 	------------------------------
 	---- Light Attack Tracker ----
 	------------------------------
 	
-	LATracker:BuildLATracker()
-	LATracker.frame:SetUnlocked(self.config.laTrackerIsUnlocked)
+	LATracker:BuildUI()
+	LATracker.frame:SetUnlocked(CombatMetronome.SV.LATracker.isUnlocked)
 	LATracker:DisplayText()
 	
 	--------------------
 	---- CC Tracker ----
 	--------------------
 	
-	CCTracker.UI = CCTracker:BuildCCTracker()
-	CCTracker.UI.indicator.ApplySize(self.config.CCTrackerSize)
-	CCTracker.UI.indicator.ApplyDistance(self.config.CCTrackerSize)
+	CCTracker.UI = CCTracker:BuildUI()
+	CCTracker.UI.indicator.ApplySize(CombatMetronome.SV.CCTracker.size)
 	CCTracker:ApplyIcons()
-	
-	if CombatMetronome:CheckForCCRegister() then
-		CombatMetronome:RegisterEffectsChanged()
-	end
-	
+	CCTracker:Register()	
 end
 
 -- LOAD HOOK
@@ -155,7 +147,7 @@ function CombatMetronome:RegisterMetadata()
         self.name.."CurrentActionslotsOnHotbar",
         EVENT_ACTION_SLOTS_ALL_HOTBARS_UPDATED,
         function()
-			self.actionSlotCache = Util.Stacks:StoreAbilitiesOnActionBar()
+			StackTracker.actionSlotCache = Util.Stacks:StoreAbilitiesOnActionBar()
 			-- self.menu.abilityAdjustChoices = CombatMetronome:BuildListForAbilityAdjusts()
         end
     )
@@ -166,7 +158,7 @@ function CombatMetronome:RegisterMetadata()
 		function(_,_)
 			self.inPVPZone = self:IsInPvPZone()
 			self:CMPVPSwitch()
-			self:TrackerPVPSwitch()
+			StackTracker:PVPSwitch()
 			self:ResourcesPVPSwitch()
 		end
 	)
@@ -216,11 +208,11 @@ function CombatMetronome:RegisterCM()
 	
 	self.cmRegistered = true
 	
-	if self.config.trackCollectibles or (self.config.showMountNick and self.config.trackMounting) then
+	if CombatMetronome.SV.Progressbar.trackCollectibles or (CombatMetronome.SV.Progressbar.showMountNick and CombatMetronome.SV.Progressbar.trackMounting) then
 		CombatMetronome:RegisterCollectiblesTracker()
 	end
 	
-	if self.config.trackItems then
+	if CombatMetronome.SV.Progressbar.trackItems then
 		CombatMetronome:RegisterItemsTracker()
 	end
 	
@@ -351,22 +343,6 @@ function CombatMetronome:RegisterCombatEvents()
 						break
 					end
 				end
-				-- if CCTracker.variables[res] and CCTracker.variables[res][2] then
-					-- if not CCTracker:ResInList(res) then CCTracker.ccChanged = true end
-					-- if not CCTracker:AIdInList(aId) then table.insert(CCTracker.cc, newAbility) end
-				-- end
-				-- if res == ACTION_RESULT_EFFECT_FADED then
-					-- if CCTracker:AIdInList(aId) then
-						-- local aIdInList, i = CCTracker:AIdInList(aId)
-						-- table.remove(CCTracker.cc, i)
-						-- CCTracker.ccChanged = true
-					-- elseif CCTracker:NameInList(aName) then
-						-- local nameInList, i = CCTracker:NameInList(aName)
-						-- table.remove(CCTracker.cc, i)
-						-- CCTracker.ccChanged = true
-					-- end
-				-- end
-				-- if CCTracker.ccChanged then CCTracker:ApplyIcons() end
 			else return
 			end
 		end
@@ -375,7 +351,17 @@ function CombatMetronome:RegisterCombatEvents()
 	self.combatEventsRegistered = true
 end
 
-function CombatMetronome:RegisterEffectsChanged()
+function CCTracker:Register()
+	if CCTracker:CheckForCCRegister() then
+		CCTracker:RegisterEffectsChanged()
+		if not CombatMetronome.combatEventsRegistered then
+			CombatMetronome:RegisterCombatEvents()
+			CombatMetronome.combatEventsRegistered = true
+		end
+	end
+end
+
+function CCTracker:RegisterEffectsChanged()
 	EVENT_MANAGER:RegisterForEvent(
 		self.name.."EffectsChanged",
 		EVENT_EFFECT_CHANGED,
@@ -397,13 +383,13 @@ function CombatMetronome:RegisterResourceTracker()
 	self.rtRegistered = true
 end
 
-function CombatMetronome:RegisterTracker()
+function StackTracker:Register()
 	EVENT_MANAGER:RegisterForUpdate(
-		self.name.."UpdateStacks",
+		self.name.."Update",
 		1000 / 60,
-		function(...) CombatMetronome:TrackerUpdate() end
+		function(...) self:Update() end
 	)
-	self.trackerRegistered = true
+	self.registered = true
 	-- d("tracker is registered")
 end
 
@@ -431,7 +417,7 @@ function CombatMetronome:UnregisterCM()
 		CombatMetronome:UnregisterItemsTracker()
 	end
 	
-	if self.combatEventsRegistered then
+	if self.combatEventsRegistered and not self:CheckForCombatEventsRegister() then
 		CombatMetronome:UnregisterCombatEvents()
 	end
 end
@@ -443,11 +429,11 @@ function CombatMetronome:UnregisterResourceTracker()
 	self.rtRegistered = false
 end
 
-function CombatMetronome:UnregisterTracker()
+function StackTracker:Unregister()
 	EVENT_MANAGER:UnregisterForUpdate(
-		self.name.."UpdateStacks")
+		self.name.."Update")
 	
-	self.trackerRegistered = false
+	self.registered = false
 	-- d("tracker is unregistered")
 	-- self.trackerWarning = false
 end
@@ -476,7 +462,7 @@ function CombatMetronome:UnregisterCombatEvents()
 	self.combatEventsRegistered = false
 end
 
-function CombatMetronome:UnregisterEffectsChanged()
+function CCTracker:UnregisterEffectsChanged()
 	EVENT_MANAGER:UnregisterForEvent(
 		self.name.."EffectsChanged")
 	

@@ -47,8 +47,8 @@ local function SetUnlocked(frame, state)
 	end
 
 	frame.dmui.shadow:SetHidden(not state)
-	frame.dmui.label:SetFont(Util.Text.getFontString(tostring("$MEDIUM_FONT"), math.min(frame:GetHeight(), (frame:GetWidth())/5), "outline"))
 	frame.dmui.label:SetHidden(not state)
+	frame.dmui.label:SetFont(Util.Text.getFontString(tostring("$MEDIUM_FONT"), math.min(frame:GetHeight(), (frame:GetWidth())/5), "outline"))
 end
 
 local function InitFrame(frame, label)
