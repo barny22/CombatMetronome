@@ -291,6 +291,7 @@ end
 function Ability.Tracker:NewEvent(ability, slot, start)
     -- d("creating new event -"..ability.name)
     local time = GetFrameTimeMilliseconds()
+    local gcdProgress = self:GCDCheck()
 
     local event = { }
 
@@ -309,7 +310,7 @@ function Ability.Tracker:NewEvent(ability, slot, start)
 
     self.queuedEvent = event
         
-    if self.cdTriggerTime == start and not self.currentEvent and self.rollDodgeFinished and not event.castDuringRollDodge then
+    if self.cdTriggerTime == start and gcdProgress > 0 and not self.currentEvent and self.rollDodgeFinished and not event.castDuringRollDodge then
         self.eventStart = start
         self:AbilityUsed()
         self.abilityTriggerCounters.direct = self.abilityTriggerCounters.direct + 1
