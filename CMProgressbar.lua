@@ -18,37 +18,37 @@ function CombatMetronome:Update()
 	---- Sample Section ----
 	------------------------
 
-	if self.showSampleBar then
-		self.bar.segments[2].progress = 0.7
-		self.bar.backgroundTexture:SetWidth(0.7*CombatMetronome.SV.Progressbar.width)
+	if self.Progressbar.showSample then
+		self.Progressbar.bar.segments[2].progress = 0.7
+		self.Progressbar.bar.backgroundTexture:SetWidth(0.7*CombatMetronome.SV.Progressbar.width)
 		if CombatMetronome.SV.Progressbar.dontShowPing then
-			self.bar.segments[1].progress = 0
+			self.Progressbar.bar.segments[1].progress = 0
 		else
-			self.bar.segments[1].progress = 0.071
+			self.Progressbar.bar.segments[1].progress = 0.071
 		end
 		if CombatMetronome.SV.Progressbar.showSpell then
-			self.spellLabel:SetText("Generic sample text")
-			self.spellLabel:SetHidden(false)
-			self.spellIcon:SetTexture("/esoui/art/icons/ability_dualwield_002_b.dds")
-			self.spellIcon:SetHidden(false)
-			self.spellIconBorder:SetHidden(false)
+			self.Progressbar.spellLabel:SetText("Generic sample text")
+			self.Progressbar.spellLabel:SetHidden(false)
+			self.Progressbar.spellIcon:SetTexture("/esoui/art/icons/ability_dualwield_002_b.dds")
+			self.Progressbar.spellIcon:SetHidden(false)
+			self.Progressbar.spellIconBorder:SetHidden(false)
 		else
-			self.spellLabel:SetHidden(true)
-			self.spellIcon:SetHidden(true)
-			self.spellIconBorder:SetHidden(true)
+			self.Progressbar.spellLabel:SetHidden(true)
+			self.Progressbar.spellIcon:SetHidden(true)
+			self.Progressbar.spellIconBorder:SetHidden(true)
 		end
 		if CombatMetronome.SV.Progressbar.showTimeRemaining then
-			self.timeLabel:SetText("7.8s")
-			self.timeLabel:SetHidden(false)
+			self.Progressbar.timeLabel:SetText("7.8s")
+			self.Progressbar.timeLabel:SetHidden(false)
 		else
-			self.timeLabel:SetHidden(true)
+			self.Progressbar.timeLabel:SetHidden(true)
 		end
 		if CombatMetronome.SV.Progressbar.changeOnChanneled then
-			self.bar.segments[2].color = CombatMetronome.SV.Progressbar.channelColor
+			self.Progressbar.bar.segments[2].color = CombatMetronome.SV.Progressbar.channelColor
 		else
-			self.bar.segments[2].color = CombatMetronome.SV.Progressbar.progressColor
+			self.Progressbar.bar.segments[2].color = CombatMetronome.SV.Progressbar.progressColor
 		end
-		self.bar:Update()
+		self.Progressbar.bar:Update()
 	else
 	
 	-------------------------
@@ -67,8 +67,8 @@ function CombatMetronome:Update()
 		local gcdProgress, slotRemaining, slotDuration = Util.Ability.Tracker:GCDCheck()
 
 		local interval = false
-		if time > self.lastInterval + INTERVAL then
-			self.lastInterval = time
+		if time > self.Progressbar.lastInterval + INTERVAL then
+			self.Progressbar.lastInterval = time
 			interval = true
 		end
 		
@@ -77,23 +77,23 @@ function CombatMetronome:Update()
 			---------------------
 			
 		if CombatMetronome.SV.Progressbar.trackGCD and not self.currentEvent then
-			self.bar.segments[1].progress = (CombatMetronome.SV.Progressbar.showPingOnGCD and latency/1000) or 0
-			self.bar.segments[2].progress = gcdProgress
+			self.Progressbar.bar.segments[1].progress = (CombatMetronome.SV.Progressbar.showPingOnGCD and latency/1000) or 0
+			self.Progressbar.bar.segments[2].progress = gcdProgress
 			if not Util.Ability.Tracker.rollDodgeFinished and CombatMetronome.SV.Progressbar.trackRolldodge then
 				CombatMetronome:GCDSpecifics("Dodgeroll", "/esoui/art/icons/ability_rogue_035.dds", gcdProgress)
 			end
-			if self.activeMount.action ~= "" and CombatMetronome.SV.Progressbar.trackMounting then
+			if self.Progressbar.activeMount.action ~= "" and CombatMetronome.SV.Progressbar.trackMounting then
 				if CombatMetronome.SV.Progressbar.showMountNick then
-					CombatMetronome:GCDSpecifics(tostring(self.activeMount.action.." "..self.activeMount.name), self.activeMount.icon, gcdProgress)
+					CombatMetronome:GCDSpecifics(tostring(self.Progressbar.activeMount.action.." "..self.Progressbar.activeMount.name), self.Progressbar.activeMount.icon, gcdProgress)
 				else
-					CombatMetronome:GCDSpecifics(self.activeMount.action, self.activeMount.icon, gcdProgress)
+					CombatMetronome:GCDSpecifics(self.Progressbar.activeMount.action, self.Progressbar.activeMount.icon, gcdProgress)
 				end
 			end
-			if self.collectibleInUse and CombatMetronome.SV.Progressbar.trackCollectibles then
-				CombatMetronome:GCDSpecifics(self.collectibleInUse.name, self.collectibleInUse.icon, gcdProgress)
+			if self.Progressbar.collectibleInUse and CombatMetronome.SV.Progressbar.trackCollectibles then
+				CombatMetronome:GCDSpecifics(self.Progressbar.collectibleInUse.name, self.Progressbar.collectibleInUse.icon, gcdProgress)
 			end
-			if self.itemUsed and CombatMetronome.SV.Progressbar.trackItems then
-				CombatMetronome:GCDSpecifics(self.itemUsed.name, self.itemUsed.icon, gcdProgress)
+			if self.Progressbar.itemUsed and CombatMetronome.SV.Progressbar.trackItems then
+				CombatMetronome:GCDSpecifics(self.Progressbar.itemUsed.name, self.Progressbar.itemUsed.icon, gcdProgress)
 			end
 			if self.killingAction and CombatMetronome.SV.Progressbar.trackKillingActions then
 				CombatMetronome:GCDSpecifics(self.killingAction.name, self.killingAction.icon, gcdProgress)
@@ -110,9 +110,9 @@ function CombatMetronome:Update()
 				self:OnCDStop()
 			else
 				self:HideBar(false)
-				self.bar.backgroundTexture:SetWidth(gcdProgress*CombatMetronome.SV.Progressbar.width)
+				self.Progressbar.bar.backgroundTexture:SetWidth(gcdProgress*CombatMetronome.SV.Progressbar.width)
 			end
-			self.bar:Update()
+			self.Progressbar.bar:Update()
 		elseif self.currentEvent then
 			CombatMetronome:SetIconsAndNamesNil()
 			local ability = self.currentEvent.ability
@@ -146,8 +146,8 @@ function CombatMetronome:Update()
 
 				local length = duration - latency
 
-				if not self.soundTockPlayed and CombatMetronome.SV.Progressbar.soundTockEnabled and time > start + (length / 2) - CombatMetronome.SV.Progressbar.soundTockOffset then
-					self.soundTockPlayed = true
+				if not self.Progressbar.soundTockPlayed and CombatMetronome.SV.Progressbar.soundTockEnabled and time > start + (length / 2) - CombatMetronome.SV.Progressbar.soundTockOffset then
+					self.Progressbar.soundTockPlayed = true
 					local uiVolume = GetSetting(SETTING_TYPE_AUDIO, AUDIO_SETTING_UI_VOLUME)
 					local tockQueue = ZO_QueuedSoundPlayer:New(0)
 					tockQueue:SetFinishedAllSoundsCallback(function()
@@ -157,8 +157,8 @@ function CombatMetronome:Update()
 					tockQueue:PlaySound(CombatMetronome.SV.Progressbar.soundTockEffect, 250)
 				end
 
-				if not self.soundTickPlayed and CombatMetronome.SV.Progressbar.soundTickEnabled and time > start + length - CombatMetronome.SV.Progressbar.soundTickOffset then
-					self.soundTickPlayed = true
+				if not self.Progressbar.soundTickPlayed and CombatMetronome.SV.Progressbar.soundTickEnabled and time > start + length - CombatMetronome.SV.Progressbar.soundTickOffset then
+					self.Progressbar.soundTickPlayed = true
 					local uiVolume = GetSetting(SETTING_TYPE_AUDIO, AUDIO_SETTING_UI_VOLUME)
 					local tickQueue = ZO_QueuedSoundPlayer:New(0)
 					tickQueue:SetFinishedAllSoundsCallback(function()
@@ -175,56 +175,56 @@ function CombatMetronome:Update()
 					if not ability.instant and ability.delay <= 1000 then
 						-- d("Ability with cast time < 1s detected")
 						if timeRemaining >= 0 then
-							if self.bar.segments[2].color == CombatMetronome.SV.Progressbar.progressColor then
-								self.bar.segments[2].color = CombatMetronome.SV.Progressbar.channelColor
+							if self.Progressbar.bar.segments[2].color == CombatMetronome.SV.Progressbar.progressColor then
+								self.Progressbar.bar.segments[2].color = CombatMetronome.SV.Progressbar.channelColor
 								-- d("Trying to update Channel Color")
 							end
 						elseif timeRemaining <= 0 then
-							if self.bar.segments[2].color == CombatMetronome.SV.Progressbar.channelColor then
-								self.bar.segments[2].color = CombatMetronome.SV.Progressbar.progressColor
+							if self.Progressbar.bar.segments[2].color == CombatMetronome.SV.Progressbar.channelColor then
+								self.Progressbar.bar.segments[2].color = CombatMetronome.SV.Progressbar.progressColor
 								-- d("Turning back to Progress Color")
 							end
 						end
 					else
-						if self.bar.segments[2].color == CombatMetronome.SV.Progressbar.channelColor then
-							self.bar.segments[2].color = CombatMetronome.SV.Progressbar.progressColor
+						if self.Progressbar.bar.segments[2].color == CombatMetronome.SV.Progressbar.channelColor then
+							self.Progressbar.bar.segments[2].color = CombatMetronome.SV.Progressbar.progressColor
 						end
 					end
 				end
 				
-				self.bar.segments[2].progress = 1 - (cdTimer/duration)
-				self.bar.segments[1].progress = latency / duration
+				self.Progressbar.bar.segments[2].progress = 1 - (cdTimer/duration)
+				self.Progressbar.bar.segments[1].progress = latency / duration
 				if cdTimer >= (duration+latency) then
 					self:OnCDStop()
 				else
 					self:HideBar(false)
-					self.bar.backgroundTexture:SetWidth((1 - (cdTimer/duration))*CombatMetronome.SV.Progressbar.width)
+					self.Progressbar.bar.backgroundTexture:SetWidth((1 - (cdTimer/duration))*CombatMetronome.SV.Progressbar.width)
 				end
-				self.bar:Update()
+				self.Progressbar.bar:Update()
 			end
 			------------------------------
 			---- Spell Label and Icon ----					--Spell Label on Castbar by barny
 			------------------------------
 			if CombatMetronome.SV.Progressbar.showSpell and ability.delay > 0 and timeRemaining >= 0 and not ability.heavy then
 				local spellName = Util.Text.CropZOSString(ability.name)
-				self.spellLabel:SetText(spellName)
-				self.spellLabel:SetHidden(false)
+				self.Progressbar.spellLabel:SetText(spellName)
+				self.Progressbar.spellLabel:SetHidden(false)
 			--Spell Icon next to Castbar
-				self.spellIcon:SetTexture(ability.icon)
-				self.spellIcon:SetHidden(false)
-				self.spellIconBorder:SetHidden(false)
+				self.Progressbar.spellIcon:SetTexture(ability.icon)
+				self.Progressbar.spellIcon:SetHidden(false)
+				self.Progressbar.spellIconBorder:SetHidden(false)
 			else
-				self.spellLabel:SetHidden(true)
-				self.spellIcon:SetHidden(true)
-				self.spellIconBorder:SetHidden(true)
+				self.Progressbar.spellLabel:SetHidden(true)
+				self.Progressbar.spellIcon:SetHidden(true)
+				self.Progressbar.spellIconBorder:SetHidden(true)
 			end
 				
 			--Remaining time on Castbar by barny
 			if CombatMetronome.SV.Progressbar.showTimeRemaining and ability.delay > 0 and timeRemaining >= 0 and not ability.heavy then
-				self.timeLabel:SetText(string.format("%.1fs", timeRemaining))
-				self.timeLabel:SetHidden(false)
+				self.Progressbar.timeLabel:SetText(string.format("%.1fs", timeRemaining))
+				self.Progressbar.timeLabel:SetHidden(false)
 			else
-				self.timeLabel:SetHidden(true)
+				self.Progressbar.timeLabel:SetHidden(true)
 			end
 			--------------------
 			---- Interrupts ----							-- check for interrupts by dodge, barswap or block
@@ -233,31 +233,31 @@ function CombatMetronome:Update()
 				self:OnCDStop()
 				-- d("dodge should be interrupting now")
 				if CombatMetronome.SV.Progressbar.showSpell then
-					self.spellLabel:SetHidden(false)
-					self.spellIcon:SetHidden(false)
-					self.spellIconBorder:SetHidden(false)
-					self.spellIcon:SetTexture("/esoui/art/icons/ability_rogue_035.dds")
-					self.spellLabel:SetText("Dodgeroll")
+					self.Progressbar.spellLabel:SetHidden(false)
+					self.Progressbar.spellIcon:SetHidden(false)
+					self.Progressbar.spellIconBorder:SetHidden(false)
+					self.Progressbar.spellIcon:SetTexture("/esoui/art/icons/ability_rogue_035.dds")
+					self.Progressbar.spellLabel:SetText("Dodgeroll")
 				else
-					self.spellLabel:SetHidden(true)
-					self.spellIcon:SetHidden(true)
-					self.spellIconBorder:SetHidden(true)
+					self.Progressbar.spellLabel:SetHidden(true)
+					self.Progressbar.spellIcon:SetHidden(true)
+					self.Progressbar.spellIconBorder:SetHidden(true)
 				end
 				if CombatMetronome.SV.Progressbar.showTimeRemaining then
-					self.timeLabel:SetHidden(false)
-					self.timeLabel:SetText(string.format("%.1fs", gcdProgress))
+					self.Progressbar.timeLabel:SetHidden(false)
+					self.Progressbar.timeLabel:SetText(string.format("%.1fs", gcdProgress))
 				else
-					self.timeLabel:SetHidden(true)
+					self.Progressbar.timeLabel:SetHidden(true)
 				end
-				self.bar.segments[1].progress = (CombatMetronome.SV.Progressbar.showPingOnGCD and latency/1000) or 0
-				self.bar.segments[2].progress = gcdProgress
+				self.Progressbar.bar.segments[1].progress = (CombatMetronome.SV.Progressbar.showPingOnGCD and latency/1000) or 0
+				self.Progressbar.bar.segments[2].progress = gcdProgress
 				if gcdProgress == 0 then
 					self:OnCDStop()
 				else
 					self:HideBar(false)
-					self.bar.backgroundTexture:SetWidth(gcdProgress*CombatMetronome.SV.Progressbar.width)
+					self.Progressbar.bar.backgroundTexture:SetWidth(gcdProgress*CombatMetronome.SV.Progressbar.width)
 				end
-				self.bar:Update()
+				self.Progressbar.bar:Update()
 			-- elseif playerDidBlock then
 				-- local eventAdjust = 0
 				-- if self.currentEvent then
@@ -268,12 +268,12 @@ function CombatMetronome:Update()
 				-- if duration > 1000+latency+eventAdjust then
 					-- Util.Ability.Tracker.currentEvent = nil
 					-- self:OnCDStop()
-					-- self.bar:Update()
+					-- self.Progressbar.bar:Update()
 				-- end
 			end
 		else
 			self:OnCDStop()
-			self.bar:Update()
+			self.Progressbar.bar:Update()
 		end
 		-- self.lastBlockStatus = IsBlockActive()
 	end

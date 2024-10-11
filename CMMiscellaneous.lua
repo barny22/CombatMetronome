@@ -1,7 +1,7 @@
 CombatMetronome.StackTracker = CombatMetronome.StackTracker or {}
 CombatMetronome.menu = CombatMetronome.menu or {}
 
-CombatMetronome.SV.DEFAULT = {
+CombatMetronome.DEFAULT_SAVED_VARS = {
 	["version"] = 1,
 	["global"] = true,
 	["Progressbar"] = {

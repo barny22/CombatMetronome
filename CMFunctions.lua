@@ -47,7 +47,7 @@ function CombatMetronome:OnCDStop()
 		end
 	else
 		self:HideFancy(true)
-		self.bar:SetHidden(true)
+		self.Progressbar.bar:SetHidden(true)
 	end
 	self:HideLabels(true)
 	self:SetEventNil()
@@ -59,27 +59,27 @@ function CombatMetronome:HideBar(value)
 	else
 		self:HideFancy(true)
 	end
-	self.bar:SetHidden(value)
+	self.Progressbar.bar:SetHidden(value)
 end
 
 function CombatMetronome:SetEventNil()
 	self.currentEvent = nil
-	self.bar.segments[1].progress = 0
-	self.bar.segments[2].progress = 0
-	self.bar.backgroundTexture:SetWidth(0)
+	self.Progressbar.bar.segments[1].progress = 0
+	self.Progressbar.bar.segments[2].progress = 0
+	self.Progressbar.bar.backgroundTexture:SetWidth(0)
 end
 
 function CombatMetronome:HideLabels(value)
-	self.spellLabel:SetHidden(value)
-	self.timeLabel:SetHidden(value)
-	self.spellIcon:SetHidden(value)
-	self.spellIconBorder:SetHidden(value)
+	self.Progressbar.spellLabel:SetHidden(value)
+	self.Progressbar.timeLabel:SetHidden(value)
+	self.Progressbar.spellIcon:SetHidden(value)
+	self.Progressbar.spellIconBorder:SetHidden(value)
 end
 
 function CombatMetronome:HideFancy(value)
-	self.bar.backgroundTexture:SetHidden(value)
-	self.bar.borderL:SetHidden(value)
-	self.bar.borderR:SetHidden(value)
+	self.Progressbar.bar.backgroundTexture:SetHidden(value)
+	self.Progressbar.bar.borderL:SetHidden(value)
+	self.Progressbar.bar.borderR:SetHidden(value)
 end
 
 	--------------------------------
@@ -130,36 +130,36 @@ end
 
 function CombatMetronome:GCDSpecifics(text, icon, gcdProgress)
 	if CombatMetronome.SV.Progressbar.showSpell then
-		self.spellLabel:SetHidden(false)
-		self.spellIcon:SetHidden(false)
-		self.spellIconBorder:SetHidden(false)
-		self.spellIcon:SetTexture(icon)
-		self.spellLabel:SetText(text)
+		self.Progressbar.spellLabel:SetHidden(false)
+		self.Progressbar.spellIcon:SetHidden(false)
+		self.Progressbar.spellIconBorder:SetHidden(false)
+		self.Progressbar.spellIcon:SetTexture(icon)
+		self.Progressbar.spellLabel:SetText(text)
 	else
-		self.spellLabel:SetHidden(true)
-		self.spellIcon:SetHidden(true)
-		self.spellIconBorder:SetHidden(true)
+		self.Progressbar.spellLabel:SetHidden(true)
+		self.Progressbar.spellIcon:SetHidden(true)
+		self.Progressbar.spellIconBorder:SetHidden(true)
 	end
 	if CombatMetronome.SV.Progressbar.showTimeRemaining then
-		self.timeLabel:SetHidden(false)
-		self.timeLabel:SetText(string.format("%.1fs", gcdProgress))
+		self.Progressbar.timeLabel:SetHidden(false)
+		self.Progressbar.timeLabel:SetText(string.format("%.1fs", gcdProgress))
 	else
-		self.timeLabel:SetHidden(true)
+		self.Progressbar.timeLabel:SetHidden(true)
 	end
 	if gcdProgress == 0 then CombatMetronome:SetIconsAndNamesNil() end
 end
 
 function CombatMetronome:SetIconsAndNamesNil()
-	self.activeMount.action = ""
-	self.collectibleInUse = nil
-	self.itemUsed = nil
+	self.Progressbar.activeMount.action = ""
+	self.Progressbar.collectibleInUse = nil
+	self.Progressbar.itemUsed = nil
 	self.killingAction = nil
 	self.breakingFree = nil
 	self.otherSynergies = nil
-	self.timeLabel:SetHidden(true)
-	self.spellLabel:SetHidden(true)
-	self.spellIcon:SetHidden(true)
-	self.spellIconBorder:SetHidden(true)
+	self.Progressbar.timeLabel:SetHidden(true)
+	self.Progressbar.spellLabel:SetHidden(true)
+	self.Progressbar.spellIcon:SetHidden(true)
+	self.Progressbar.spellIconBorder:SetHidden(true)
 end
 
 	-----------------------
@@ -316,8 +316,8 @@ function CombatMetronome:HandleAbilityUsed(event)
 		return
 	end
 
-    self.soundTickPlayed = false
-    self.soundTockPlayed = false
+    self.Progressbar.soundTickPlayed = false
+    self.Progressbar.soundTockPlayed = false
 
     local ability = event.ability
 
@@ -453,11 +453,9 @@ function CombatMetronome:CMPVPSwitch()
 		else 
 			if not self.cmRegistered then
 				self:RegisterCM()
-				self:BuildProgressBar()
 				self:HideBar(not CombatMetronome.SV.Progressbar.dontHide)
 				-- d("registered cm scenario 3")
 			else
-				self:BuildProgressBar()
 				self:HideBar(not CombatMetronome.SV.Progressbar.dontHide)
 				-- d("registered cm scenario 4")
 			end
@@ -471,15 +469,15 @@ function CombatMetronome:ResourcesPVPSwitch()
 		-- hideResources = true
 		if self.rtRegistered then
 			self:UnregisterResourceTracker()
-			self.stamLabel:SetHidden(true)
-            self.magLabel:SetHidden(true)
-            self.hpLabel:SetHidden(true)    
-            self.ultLabel:SetHidden(true)
+			self.Resources.stamLabel:SetHidden(true)
+            self.Resources.magLabel:SetHidden(true)
+            self.Resources.hpLabel:SetHidden(true)    
+            self.Resources.ultLabel:SetHidden(true)
 		elseif not self.rtRegistered then
-			self.stamLabel:SetHidden(true)
-            self.magLabel:SetHidden(true)
-            self.hpLabel:SetHidden(true)    
-            self.ultLabel:SetHidden(true)
+			self.Resources.stamLabel:SetHidden(true)
+            self.Resources.magLabel:SetHidden(true)
+            self.Resources.hpLabel:SetHidden(true)    
+            self.Resources.ultLabel:SetHidden(true)
 		end
 	else
 		if not self.rtRegistered then

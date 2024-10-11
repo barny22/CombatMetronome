@@ -14,11 +14,11 @@
 ; You can read the full terms at https://account.elderscrollsonline.com/add-on-terms
 
 CombatMetronome.lua
-CMCastbar.lua
 CMCCTracker.lua
 CMFunctions.lua
 CMLATracker.lua
 CMMiscellaneous.lua
+CMProgressbar.lua
 CMResources.lua
 CMSavedVariables.lua
 CMSettings.lua

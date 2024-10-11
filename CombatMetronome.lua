@@ -34,16 +34,17 @@ ZO_CreateStringId("SI_BINDING_NAME_COMBATMETRONOME_FORCE", "Force display")
 	-------------------------------------
 
 function CombatMetronome:Init()
-	for charId, sv in pairs(_G["CombatMetronomeSavedVars"].Default[GetDisplayName()]) do
-		if sv.version == 1 then
-			_G["CombatMetronomeSavedVars"].Default[GetDisplayName()][charId] = {}
-			_G["CombatMetronomeSavedVars"].Default[GetDisplayName()][charId] = CombatMetronome:ConvertSavedVariables(sv)
-		elseif sv.version == 2 then break
+	if _G["CombatMetronomeSavedVars"].Default[GetDisplayName()][GetCurrentCharacterId()].version == 1 then
+		for charId, sv in pairs(_G["CombatMetronomeSavedVars"].Default[GetDisplayName()]) do
+			if sv.version == 1 then
+				_G["CombatMetronomeSavedVars"].Default[GetDisplayName()][charId] = {}
+				_G["CombatMetronomeSavedVars"].Default[GetDisplayName()][charId] = CombatMetronome:ConvertSavedVariables(sv)
+			end
 		end
 	end
-	self.SV = ZO_SavedVars:NewCharacterIdSettings("CombatMetronomeSavedVars", 2, nil, self.SV.DEFAULT)
+	self.SV = ZO_SavedVars:NewCharacterIdSettings("CombatMetronomeSavedVars", 2, nil, self.DEFAULT_SAVED_VARS)
 	if self.SV.global then
-		self.SV = ZO_SavedVars:NewAccountWide("CombatMetronomeSavedVars", 2, nil, self.SV.DEFAULT)
+		self.SV = ZO_SavedVars:NewAccountWide("CombatMetronomeSavedVars", 2, nil, self.DEFAULT_SAVED_VARS)
 		self.SV.global = true
 	end
 	
@@ -51,13 +52,6 @@ function CombatMetronome:Init()
 		
 	StackTracker.classId = GetUnitClassId("player")
 	StackTracker.class = StackTracker.CLASS[StackTracker.classId]
-	
-	self.activeMount = {}
-	self.activeMount.name = Util.Text.CropZOSString(GetCollectibleNickname(GetActiveCollectibleByType(COLLECTIBLE_CATEGORY_TYPE_MOUNT,GAMEPLAY_ACTOR_CATEGORY_PLAYER)))
-	self.activeMount.icon = GetCollectibleIcon(GetActiveCollectibleByType(COLLECTIBLE_CATEGORY_TYPE_MOUNT,GAMEPLAY_ACTOR_CATEGORY_PLAYER))
-	self.activeMount.action = ""
-	self.itemUsed = nil
-	self.collectibleInUse = nil
 	
 	CCTracker.cc = {}
 	CCTracker.ccCache = {}
@@ -84,12 +78,18 @@ function CombatMetronome:Init()
 
     self.gcd = 1000
 
-    self.unlocked = false
-    self.progressbar = CombatMetronome:BuildProgressBar()
+	self.Progressbar = {}
+	self.Progressbar.activeMount = {}
+	self.Progressbar.activeMount.name = Util.Text.CropZOSString(GetCollectibleNickname(GetActiveCollectibleByType(COLLECTIBLE_CATEGORY_TYPE_MOUNT,GAMEPLAY_ACTOR_CATEGORY_PLAYER)))
+	self.Progressbar.activeMount.icon = GetCollectibleIcon(GetActiveCollectibleByType(COLLECTIBLE_CATEGORY_TYPE_MOUNT,GAMEPLAY_ACTOR_CATEGORY_PLAYER))
+	self.Progressbar.activeMount.action = ""
+	self.Progressbar.itemUsed = nil
+	self.Progressbar.collectibleInUse = nil
+    self.Progressbar.UI = CombatMetronome:BuildUI()
     CombatMetronome:BuildMenu()
 	-- CombatMetronome:UpdateAdjustChoices()
 
-    self.lastInterval = 0
+    self.Progressbar.lastInterval = 0
 	StackTracker.actionSlotCache = Util.Stacks:StoreAbilitiesOnActionBar()
 
 	self:RegisterMetadata()
@@ -158,8 +158,8 @@ function CombatMetronome:RegisterMetadata()
 		function(_,_)
 			self.inPVPZone = self:IsInPvPZone()
 			self:CMPVPSwitch()
-			StackTracker:PVPSwitch()
 			self:ResourcesPVPSwitch()
+			StackTracker:PVPSwitch()
 		end
 	)
 
@@ -230,15 +230,15 @@ function CombatMetronome:RegisterCollectiblesTracker()
 			local name,_,icon,_,_,_,_,type,_ = GetCollectibleInfo(id)
 			if type == COLLECTIBLE_CATEGORY_TYPE_ASSISTANT or type == COLLECTIBLE_CATEGORY_TYPE_COMPANION then
 				CombatMetronome:SetIconsAndNamesNil()
-				self.collectibleInUse = {}
-				self.collectibleInUse.name = Util.Text.CropZOSString(name)
-				self.collectibleInUse.icon = icon
-				zo_callLater(function() self.collectibleInUse = nil end, 1000)
+				self.Progressbar.collectibleInUse = {}
+				self.Progressbar.collectibleInUse.name = Util.Text.CropZOSString(name)
+				self.Progressbar.collectibleInUse.icon = icon
+				zo_callLater(function() self.Progressbar.collectibleInUse = nil end, 1000)
 			end
 			if type == COLLECTIBLE_CATEGORY_TYPE_MOUNT then
 				-- if id == GetActiveCollectibleByType(COLLECTIBLE_CATEGORY_TYPE_MOUNT,GAMEPLAY_ACTOR_CATEGORY_PLAYER) then
-					self.activeMount.name = Util.Text.CropZOSString(GetCollectibleNickname(id))
-					self.activeMount.icon = icon
+					self.Progressbar.activeMount.name = Util.Text.CropZOSString(GetCollectibleNickname(id))
+					self.Progressbar.activeMount.icon = icon
 					if CombatMetronome.menu.icons[2] then
 						CombatMetronome.menu.icons[2]:SetTexture(icon)
 					end
@@ -277,14 +277,14 @@ function CombatMetronome:RegisterItemsTracker()
 		function(_, _, slotId, _, _, _, stackCountChange, _, _, _, _)
 			if stackCountChange == -1 and self.itemCache then
 				CombatMetronome:SetIconsAndNamesNil()
-				self.itemUsed = {}
-				self.itemUsed.name = self.itemCache.name[slotId]
-				self.itemUsed.icon = self.itemCache.icon[slotId]
+				self.Progressbar.itemUsed = {}
+				self.Progressbar.itemUsed.name = self.itemCache.name[slotId]
+				self.Progressbar.itemUsed.icon = self.itemCache.icon[slotId]
 				zo_callLater(function()
-					if self.itemUsed then
-						self.itemUsed.name = nil
-						self.itemUsed.icon = nil
-						self.itemUsed = nil
+					if self.Progressbar.itemUsed then
+						self.Progressbar.itemUsed.name = nil
+						self.Progressbar.itemUsed.icon = nil
+						self.Progressbar.itemUsed = nil
 					end
 				end,
 				950)
@@ -305,12 +305,12 @@ function CombatMetronome:RegisterCombatEvents()
 		function (_,   res,  err, aName, aGraphic, aSlotType, sName, sType, tName, 
 				tType, hVal, pType, dType, _, 		sUId, 	 tUId,  aId,   _     )
 			if Util.Text.CropZOSString(sName) == self.currentCharacterName then
-				if IsMounted() and aId == 36432 and self.activeMount.action ~= "Dismounting" then
+				if IsMounted() and aId == 36432 and self.Progressbar.activeMount.action ~= "Dismounting" then
 					CombatMetronome:SetIconsAndNamesNil()
-					self.activeMount.action = "Dismounting"
-				elseif not IsMounted() and aId == 36010 and self.activeMount.action ~= "Mounting" then
+					self.Progressbar.activeMount.action = "Dismounting"
+				elseif not IsMounted() and aId == 36010 and self.Progressbar.activeMount.action ~= "Mounting" then
 					CombatMetronome:SetIconsAndNamesNil()
-					self.activeMount.action = "Mounting"
+					self.Progressbar.activeMount.action = "Mounting"
 				elseif aId == 138780 then
 					CombatMetronome:SetIconsAndNamesNil()
 					self.killingAction = {}

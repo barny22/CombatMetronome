@@ -78,7 +78,7 @@ function CombatMetronome:BuildMenu()
 				self.menu.icons[i]:SetTexture(self.menu.CONTROLS[i].Icon)
 				self.menu.icons[i]:SetDimensions(self.menu.CONTROLS[i].Dimensions, self.menu.CONTROLS[i].Dimensions)
 			end
-			self.menu.icons[2]:SetTexture(self.activeMount.icon)
+			self.menu.icons[2]:SetTexture(self.Progressbar.activeMount.icon)
 			CALLBACK_MANAGER:UnregisterCallback("LAM-PanelControlsCreated", CreateIcons)
 		end
 	end
@@ -160,7 +160,7 @@ function CombatMetronome:BuildMenu()
 
                 CombatMetronome.SV.global = value
                 self:UpdateAdjustChoices()
-                self:BuildProgressBar()
+                self:BuildUI()
             end,
         },
 		{
@@ -176,13 +176,13 @@ function CombatMetronome:BuildMenu()
 					getFunc = function() return CombatMetronome.SV.Progressbar.hide end,
 					setFunc = function(value)
 						CombatMetronome.SV.Progressbar.hide  = value
-						self.frame:SetHidden(value)
+						self.Progressbar.frame:SetHidden(value)
 						if value then
 							self:UnregisterCM()
-							self.bar:SetHidden(true)
+							self.Progressbar.bar:SetHidden(true)
 						else
 							self:RegisterCM()
-							self.progressbar.HiddenStates()
+							self.Progressbar.UI.HiddenStates()
 						end
 					end,
 				},
@@ -195,7 +195,7 @@ function CombatMetronome:BuildMenu()
 					setFunc = function(value)
 						CombatMetronome.SV.Progressbar.hideInPVP = value
 						self:CMPVPSwitch()
-						-- self:BuildProgressBar()
+						-- self:BuildUI()
 					end,
 				},
 				{
@@ -205,15 +205,15 @@ function CombatMetronome:BuildMenu()
 					warning = "This temporarily disables the Unlock function! Deactivate again to be able to unlock the bar.",
 					disabled = function() return CombatMetronome.SV.Progressbar.hide end,
 					default = false,
-					getFunc = function() return self.showSampleBar end,
+					getFunc = function() return self.Progressbar.showSample end,
 					setFunc = function(value)
-						self.showSampleBar = value
+						self.Progressbar.showSample = value
 						if value then
-							self.progressbar.Position("Sample")
-							self.frame:SetHidden(false)
+							self.Progressbar.UI.Position("Sample")
+							self.Progressbar.frame:SetHidden(false)
 						else
-							self.progressbar.Position("UI")
-							self.progressbar.HiddenStates()
+							self.Progressbar.UI.Position("UI")
+							self.Progressbar.UI.HiddenStates()
 						end
 					end,
 				},
@@ -230,16 +230,16 @@ function CombatMetronome:BuildMenu()
 							name = "Unlock progressbar",
 							tooltip = "Reposition / resize bar by dragging center / edges.",
 							-- width = "half",
-							disabled = function() return self.showSampleBar end,
-							getFunc = function() return self.frame.IsUnlocked() end,
+							disabled = function() return self.Progressbar.showSample end,
+							getFunc = function() return self.Progressbar.frame.IsUnlocked() end,
 							setFunc = function(value)
-								self.frame:SetUnlocked(value)
+								self.Progressbar.frame:SetUnlocked(value)
 								if value then
-									self.frame:SetDrawTier(DT_HIGH)
-									self.frame:SetHidden(false)
+									self.Progressbar.frame:SetDrawTier(DT_HIGH)
+									self.Progressbar.frame:SetHidden(false)
 								else
-									self.frame:SetDrawTier(DT_LOW)
-									self.frame:SetHidden(true)
+									self.Progressbar.frame:SetDrawTier(DT_LOW)
+									self.Progressbar.frame:SetHidden(true)
 								end
 							end,
 						},
@@ -250,22 +250,22 @@ function CombatMetronome:BuildMenu()
 							--max = math.floor(GuiRoot:GetWidth() - CombatMetronome.SV.Progressbar.barSize),
 							max = math.floor(GuiRoot:GetWidth() - CombatMetronome.SV.Progressbar.width),
 							step = 1,
-							disabled = function() return self.showSampleBar end,
+							disabled = function() return self.Progressbar.showSample end,
 							getFunc = function() return CombatMetronome.SV.Progressbar.xOffset end,
 							setFunc = function(value) 
 								CombatMetronome.SV.Progressbar.xOffset = value
-								self.progressbar.Position("UI")
-								-- self:BuildProgressBar()
+								self.Progressbar.UI.Position("UI")
+								-- self:BuildUI()
 							end,
 						},
 						{
 							type = "button",
 							name = "Center Horizontally",
-							disabled = function() return self.showSampleBar end,
+							disabled = function() return self.Progressbar.showSample end,
 							func = function()
 								CombatMetronome.SV.Progressbar.xOffset = math.floor((GuiRoot:GetWidth() - CombatMetronome.SV.Progressbar.width) / 2)
-								self.progressbar.Position("UI")
-								-- self:BuildProgressBar()
+								self.Progressbar.UI.Position("UI")
+								-- self:BuildUI()
 							end
 						},
 						{
@@ -275,22 +275,22 @@ function CombatMetronome:BuildMenu()
 							--max = math.floor(GuiRoot:GetHeight() - CombatMetronome.SV.Progressbar.barSize/10),
 							max = math.floor(GuiRoot:GetHeight() - CombatMetronome.SV.Progressbar.height),
 							step = 1,
-							disabled = function() return self.showSampleBar end,
+							disabled = function() return self.Progressbar.showSample end,
 							getFunc = function() return CombatMetronome.SV.Progressbar.yOffset end,
 							setFunc = function(value) 
 								CombatMetronome.SV.Progressbar.yOffset = value 
-								self.progressbar.Position("UI")
-								-- self:BuildProgressBar()
+								self.Progressbar.UI.Position("UI")
+								-- self:BuildUI()
 							end,
 						},
 						{
 							type = "button",
 							name = "Center Vertically",
-							disabled = function() return self.showSampleBar end,
+							disabled = function() return self.Progressbar.showSample end,
 							func = function()
 								CombatMetronome.SV.Progressbar.yOffset = math.floor((GuiRoot:GetHeight() - CombatMetronome.SV.Progressbar.height) / 2)
-								self.progressbar.Position("UI")
-								-- self:BuildProgressBar()
+								self.Progressbar.UI.Position("UI")
+								-- self:BuildUI()
 							end
 						},
 						{
@@ -302,8 +302,8 @@ function CombatMetronome:BuildMenu()
 							getFunc = function() return CombatMetronome.SV.Progressbar.width end,
 							setFunc = function(value) 
 								CombatMetronome.SV.Progressbar.width = value
-								self.progressbar.Size()
-								-- self:BuildProgressBar()
+								self.Progressbar.UI.Size()
+								-- self:BuildUI()
 							end,
 						},
 						{
@@ -315,8 +315,8 @@ function CombatMetronome:BuildMenu()
 							getFunc = function() return CombatMetronome.SV.Progressbar.height end,
 							setFunc = function(value) 
 								CombatMetronome.SV.Progressbar.height = value 
-								self.progressbar.Size()
-								-- self:BuildProgressBar()
+								self.Progressbar.UI.Size()
+								-- self:BuildUI()
 							end,
 						},
 					},
@@ -336,8 +336,8 @@ function CombatMetronome:BuildMenu()
 							getFunc = function() return CombatMetronome.SV.Progressbar.dontHide end,
 							setFunc = function(value)
 								CombatMetronome.SV.Progressbar.dontHide = value
-								self.progressbar.HiddenStates()
-								-- self:BuildProgressBar()
+								self.Progressbar.UI.HiddenStates()
+								-- self:BuildUI()
 							end,
 						},
 						{
@@ -353,8 +353,8 @@ function CombatMetronome:BuildMenu()
 								else
 									CombatMetronome.SV.Progressbar.backgroundColor = CombatMetronome.SV.Progressbar.lastBackgroundColor
 								end
-								self.progressbar.HiddenStates()
-								-- self:BuildProgressBar()
+								self.Progressbar.UI.HiddenStates()
+								-- self:BuildUI()
 							end,
 						},
 						{
@@ -367,8 +367,8 @@ function CombatMetronome:BuildMenu()
 							getFunc = function() return unpack(CombatMetronome.SV.Progressbar.backgroundColor) end,
 							setFunc = function(r, g, b, a)
 								CombatMetronome.SV.Progressbar.backgroundColor = {r, g, b, a}
-								self.progressbar.BarColors()
-								-- self:BuildProgressBar()
+								self.Progressbar.UI.BarColors()
+								-- self:BuildUI()
 							end,
 						},
 						{
@@ -378,8 +378,8 @@ function CombatMetronome:BuildMenu()
 							getFunc = function() return unpack(CombatMetronome.SV.Progressbar.progressColor) end,
 							setFunc = function(r, g, b, a)
 								CombatMetronome.SV.Progressbar.progressColor = {r, g, b, a}
-								self.progressbar.BarColors()
-								-- self:BuildProgressBar()
+								self.Progressbar.UI.BarColors()
+								-- self:BuildUI()
 							end,
 						},
 						{
@@ -389,8 +389,8 @@ function CombatMetronome:BuildMenu()
 							getFunc = function() return unpack(CombatMetronome.SV.Progressbar.pingColor) end,
 							setFunc = function(r, g, b, a)
 								CombatMetronome.SV.Progressbar.pingColor = {r, g, b, a}
-								self.progressbar.BarColors()
-								-- self:BuildProgressBar()
+								self.Progressbar.UI.BarColors()
+								-- self:BuildUI()
 							end,
 						},
 						{
@@ -401,8 +401,8 @@ function CombatMetronome:BuildMenu()
 							getFunc = function() return CombatMetronome.SV.Progressbar.barAlign end,
 							setFunc = function(value)
 								CombatMetronome.SV.Progressbar.barAlign = value
-								self.progressbar.Anchors()
-								-- self:BuildProgressBar()
+								self.Progressbar.UI.Anchors()
+								-- self:BuildUI()
 							end,
 						},
 						{
@@ -413,7 +413,7 @@ function CombatMetronome:BuildMenu()
 							getFunc = function() return CombatMetronome.SV.Progressbar.changeOnChanneled end,
 							setFunc = function(value)
 								CombatMetronome.SV.Progressbar.changeOnChanneled = value
-								-- self:BuildProgressBar()
+								-- self:BuildUI()
 							end,
 						},
 						{
@@ -426,8 +426,8 @@ function CombatMetronome:BuildMenu()
 							getFunc = function() return unpack(CombatMetronome.SV.Progressbar.channelColor) end,
 							setFunc = function(r, g, b, a)
 								CombatMetronome.SV.Progressbar.channelColor = {r, g, b, a}
-								self.progressbar.BarColors()
-								-- self:BuildProgressBar()
+								self.Progressbar.UI.BarColors()
+								-- self:BuildUI()
 							end,
 						},
 						{
@@ -439,9 +439,9 @@ function CombatMetronome:BuildMenu()
 							getFunc = function() return CombatMetronome.SV.Progressbar.labelFont end,
 							setFunc = function(value)
 								CombatMetronome.SV.Progressbar.labelFont = value
-								self.progressbar.Fonts()
+								self.Progressbar.UI.Fonts()
 								LATrackerSettings.LabelSettings()
-								-- self:BuildProgressBar()
+								-- self:BuildUI()
 							end,
 						},
 						{
@@ -453,9 +453,9 @@ function CombatMetronome:BuildMenu()
 							getFunc = function() return CombatMetronome.SV.Progressbar.fontStyle end,
 							setFunc = function(value)
 								CombatMetronome.SV.Progressbar.fontStyle = value
-								self.progressbar.Fonts()
+								self.Progressbar.UI.Fonts()
 								LATrackerSettings.LabelSettings()
-								-- self:BuildProgressBar()
+								-- self:BuildUI()
 							end,
 						},
 						{
@@ -469,7 +469,7 @@ function CombatMetronome:BuildMenu()
 							getFunc = function() return CombatMetronome.SV.Progressbar.spellSize end,
 							setFunc = function(value)
 								CombatMetronome.SV.Progressbar.spellSize = value
-								self.progressbar.Fonts()
+								self.Progressbar.UI.Fonts()
 							end,
 						},
 					},
@@ -502,7 +502,7 @@ function CombatMetronome:BuildMenu()
 							getFunc = function() return CombatMetronome.SV.Progressbar.gcdAdjust end,
 							setFunc = function(value) 
 								CombatMetronome.SV.Progressbar.gcdAdjust = value 
-								-- self:BuildProgressBar()
+								-- self:BuildUI()
 							end,
 						},
 						{
@@ -1043,16 +1043,16 @@ function CombatMetronome:BuildMenu()
 					type = "checkbox",
 					name = "Unlock resource bar",
 					tooltip = "Reposition / resize resourcebar by dragging center / edges.",
-					disabled = function () return CombatMetronome.SV.Resources.anchorResourcesToProgressbar or self.showSampleResources end,
-					getFunc = function() return self.labelFrame.IsUnlocked() end,
+					disabled = function () return CombatMetronome.SV.Resources.anchorResourcesToProgressbar or self.Resources.showSample end,
+					getFunc = function() return self.Resources.frame.IsUnlocked() end,
 					setFunc = function(value)
-						self.labelFrame:SetUnlocked(value)
+						self.Resources.frame:SetUnlocked(value)
 						if value then
-							self.labelFrame:SetDrawTier(DT_HIGH)
-							self.labelFrame:SetHidden(false)
+							self.Resources.frame:SetDrawTier(DT_HIGH)
+							self.Resources.frame:SetHidden(false)
 						else
-							self.labelFrame:SetDrawTier(DT_LOW)
-							self.labelFrame:SetHidden(true)
+							self.Resources.frame:SetDrawTier(DT_LOW)
+							self.Resources.frame:SetHidden(true)
 						end
 					end,
 				},
@@ -1062,14 +1062,14 @@ function CombatMetronome:BuildMenu()
 					tooltip = "If turned off, resourcebar can be dragged or resized independently",
 					warning = "Turning this off will automaticly resize resourcebar to fit your GCD bar!",
 					disabled = function()
-						return not (CombatMetronome.SV.Resources.showUltimate or CombatMetronome.SV.Resources.showStamina or CombatMetronome.SV.Resources.showMagicka or CombatMetronome.SV.Resources.showHealth) or self.labelFrame.IsUnlocked()
+						return not (CombatMetronome.SV.Resources.showUltimate or CombatMetronome.SV.Resources.showStamina or CombatMetronome.SV.Resources.showMagicka or CombatMetronome.SV.Resources.showHealth) or self.Resources.frame.IsUnlocked()
 					end,
 					getFunc = function() return CombatMetronome.SV.Resources.anchorResourcesToProgressbar end,
 					setFunc = function(value)
 						CombatMetronome.SV.Resources.anchorResourcesToProgressbar = value
-						self.progressbar.Size()
-						if self.showSampleResources then
-							self.progressbar.ResourcesPosition("Sample")
+						self.Progressbar.UI.Size()
+						if self.Resources.showSample then
+							self.Progressbar.UI.ResourcesPosition("Sample")
 						end
 					end,
 				},
@@ -1094,15 +1094,15 @@ function CombatMetronome:BuildMenu()
 					disabled = function()
 						return not (CombatMetronome.SV.Resources.showUltimate or CombatMetronome.SV.Resources.showStamina or CombatMetronome.SV.Resources.showMagicka or CombatMetronome.SV.Resources.showHealth)
 					end,
-					getFunc = function() return self.showSampleResources end,
+					getFunc = function() return self.Resources.showSample end,
 					setFunc = function(value)
-						self.showSampleResources = value
+						self.Resources.showSample = value
 						if value then
-							self.progressbar.ResourcesPosition("Sample")
-							self.labelFrame:SetHidden(false)
+							self.Progressbar.UI.ResourcesPosition("Sample")
+							self.Resources.frame:SetHidden(false)
 						else
-							self.progressbar.ResourcesPosition("UI")
-							self.progressbar.HiddenStates()
+							self.Progressbar.UI.ResourcesPosition("UI")
+							self.Progressbar.UI.HiddenStates()
 						end
 					end,
 				},
@@ -1144,8 +1144,8 @@ function CombatMetronome:BuildMenu()
 							getFunc = function() return CombatMetronome.SV.Resources.ultSize end,
 							setFunc = function(value)
 								CombatMetronome.SV.Resources.ultSize = value
-								self.progressbar.Fonts()
-								-- self:BuildProgressBar()
+								self.Progressbar.UI.Fonts()
+								-- self:BuildUI()
 							end,
 						},
 						{
@@ -1158,8 +1158,8 @@ function CombatMetronome:BuildMenu()
 							getFunc = function() return unpack(CombatMetronome.SV.Resources.ultColor) end,
 							setFunc = function(r, g, b, a)
 								CombatMetronome.SV.Resources.ultColor = {r, g, b, a}
-								self.progressbar.LabelColors()
-								-- self:BuildProgressBar()
+								self.Progressbar.UI.LabelColors()
+								-- self:BuildUI()
 							end,
 						},
 						{
@@ -1185,8 +1185,8 @@ function CombatMetronome:BuildMenu()
 							getFunc = function() return CombatMetronome.SV.Resources.stamSize end,
 							setFunc = function(value)
 								CombatMetronome.SV.Resources.stamSize = value
-								self.progressbar.Fonts()
-								-- self:BuildProgressBar()
+								self.Progressbar.UI.Fonts()
+								-- self:BuildUI()
 							end,
 						},
 						{
@@ -1199,8 +1199,8 @@ function CombatMetronome:BuildMenu()
 							getFunc = function() return unpack(CombatMetronome.SV.Resources.stamColor) end,
 							setFunc = function(r, g, b, a)
 								CombatMetronome.SV.Resources.stamColor = {r, g, b, a}
-								self.progressbar.LabelColors()
-								-- self:BuildProgressBar()
+								self.Progressbar.UI.LabelColors()
+								-- self:BuildUI()
 							end,
 						},
 						{
@@ -1227,8 +1227,8 @@ function CombatMetronome:BuildMenu()
 							getFunc = function() return CombatMetronome.SV.Resources.magSize end,
 							setFunc = function(value)
 								CombatMetronome.SV.Resources.magSize = value
-								self.progressbar.Fonts()
-								-- self:BuildProgressBar()
+								self.Progressbar.UI.Fonts()
+								-- self:BuildUI()
 							end,
 						},
 						{
@@ -1241,8 +1241,8 @@ function CombatMetronome:BuildMenu()
 							getFunc = function() return unpack(CombatMetronome.SV.Resources.magColor) end,
 							setFunc = function(r, g, b, a)
 								CombatMetronome.SV.Resources.magColor = {r, g, b, a}
-								self.progressbar.LabelColors()
-								-- self:BuildProgressBar()
+								self.Progressbar.UI.LabelColors()
+								-- self:BuildUI()
 							end,
 						},
 						{
@@ -1268,8 +1268,8 @@ function CombatMetronome:BuildMenu()
 							getFunc = function() return CombatMetronome.SV.Resources.healthSize end,
 							setFunc = function(value)
 								CombatMetronome.SV.Resources.healthSize = value
-								self.progressbar.Fonts()
-								-- self:BuildProgressBar()
+								self.Progressbar.UI.Fonts()
+								-- self:BuildUI()
 							end,
 						},
 						{
@@ -1282,8 +1282,8 @@ function CombatMetronome:BuildMenu()
 							getFunc = function() return unpack(CombatMetronome.SV.Resources.healthColor) end,
 							setFunc = function(r, g, b, a)
 								CombatMetronome.SV.Resources.healthColor = {r, g, b, a}
-								self.progressbar.LabelColors()
-								-- self:BuildProgressBar()
+								self.Progressbar.UI.LabelColors()
+								-- self:BuildUI()
 								end,
 						},
 						{
@@ -1296,8 +1296,8 @@ function CombatMetronome:BuildMenu()
 							getFunc = function() return CombatMetronome.SV.Resources.reticleHp end,
 							setFunc = function(value) 
 								CombatMetronome.SV.Resources.reticleHp = value
-								self.progressbar.Anchors()
-								-- self:BuildProgressBar()
+								self.Progressbar.UI.Anchors()
+								-- self:BuildUI()
 							end,
 						},
 						{
@@ -1322,8 +1322,8 @@ function CombatMetronome:BuildMenu()
 							getFunc = function() return unpack(CombatMetronome.SV.Resources.healthHighligtColor) end,
 							setFunc = function(r, g, b, a)
 								CombatMetronome.SV.Resources.healthHighligtColor = {r, g, b, a}
-								self.progressbar.LabelColors()
-								-- self:BuildProgressBar()
+								self.Progressbar.UI.LabelColors()
+								-- self:BuildUI()
 								end,
 						},
 						{
@@ -1712,7 +1712,7 @@ function CombatMetronome:BuildMenu()
 					name = "Unlock CCTracker",
 					tooltip = "Reposition icons by dragging center.",
 					-- width = "half",
-					-- disabled = function() return self.showSampleBar end,
+					-- disabled = function() return self.Progressbar.showSample end,
 					getFunc = function() return CCTracker:IsUnlocked() end,
 					setFunc = function(value) CCTracker.UI.indicator.SetUnlocked(value)	end,
 				},

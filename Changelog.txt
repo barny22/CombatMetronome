@@ -1,7 +1,7 @@
 2024-09-07 v1.6.8
 !  Minor fixes
 !  Fixed sound cue on stack tracker
-!  Restructuring of constants and saved variables for better readability
+!  Restructuring of constants and saved variables for better readability and consistency
 +  Added CC tracker
 +  Added function to show ping when tracking GCD
 
