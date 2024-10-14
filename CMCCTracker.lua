@@ -4,37 +4,43 @@ CombatMetronome.CCTracker = CombatMetronome.CCTracker or {}
 local CCTracker = CombatMetronome.CCTracker
 CCTracker.cc = CCTracker.cc or {}
 
-function CCTracker:HandleEffectsChanged(_,changeType,_,_,unitTag,_,endTime,_,_,_,buffType,abilityType,_,unitName,_,aId,_)
+function CCTracker:HandleEffectsChanged(_,changeType,_,eName,unitTag,beginTime,endTime,_,_,_,buffType,abilityType,_,unitName,_,aId,_)
 	-- d(unitName.." - "..GetUnitName("player"))
 	time = GetFrameTimeMilliseconds()
 	if not (unitTag == "player" or Util.Text.CropZOSString(unitName) == CombatMetronome.currentCharacterName) then
 		return
 	else
-		if self.variables[abilityType] and self.variables[abilityType].tracked and (changeType == EFFECT_RESULT_UPDATED or changeType == EFFECT_RESULT_GAINED) then
-			local newAbility = {["id"] = aId, ["type"] = abilityType, ["endTime"] = endTime*1000}
-			local inList, num = self:AIdInList(aId)
-			-- if not self:ResInList(abilityType) then
+		if (changeType == EFFECT_RESULT_UPDATED or changeType == EFFECT_RESULT_GAINED) then
+			if self.variables[abilityType] and self.variables[abilityType].tracked and not self.ccCache then
+				local ending = ((endTime-beginTime~=0) and endTime) or 0
+				local newAbility = {["id"] = aId, ["type"] = abilityType, ["endTime"] = ending*1000}
+				local inList, num = self:AIdInList(aId)
+				-- if not self:ResInList(abilityType) then
 				if not inList then
 					self.ccChanged = true
 					table.insert(self.cc, newAbility)
 				else
 					self.cc[num].endTime = endTime*1000
 				end
-			-- end
-		elseif self.ccCache and self.ccCache[1] and self.ccCache[1].recorded == time and not self.variables[abilityType] then
-			local newAbility = {["id"] = aId, ["type"] = self.ccCache[1].type, ["endTime"] = endTime*1000}
-			local inList, num = self:AIdInList(aId)
-			-- if not self:ResInList(self.ccCache[1][2]) then
+				if CombatMetronome.SV.debug.ccCache then d("New cc "..Util.Text.CropZOSString(eName)) end
+				-- end
+			elseif self.ccCache and self.ccCache[1] and self.ccCache[1].recorded == time and not self.variables[abilityType] then
+				local ending = ((endTime-beginTime~=0) and endTime) or 0
+				local newAbility = {["id"] = aId, ["type"] = self.ccCache[1].type, ["endTime"] = ending*1000}
+				local inList, num = self:AIdInList(aId)
+				-- if not self:ResInList(self.ccCache[1][2]) then
 				if not inList then
 					self.ccChanged = true
 					table.insert(self.cc, newAbility)
 				else
 					self.cc[num].endTime = endTime*1000
 				end
-			self.ccCache = {}
-			-- end
-		end
-		if changeType == EFFECT_RESULT_FADED then
+				if CombatMetronome.SV.debug.ccCache then d("New cc from cache "..Util.Text.CropZOSString(eName)) end
+				self.ccCache = {}
+				if CombatMetronome.SV.debug.ccCache then d("Clearing CC cache") end
+				-- end
+			end
+		elseif changeType == EFFECT_RESULT_FADED then
 			for i, entry in ipairs(self.cc) do
 				if entry.id == aId then
 					table.remove(self.cc, i)
@@ -44,10 +50,12 @@ function CCTracker:HandleEffectsChanged(_,changeType,_,_,unitTag,_,endTime,_,_,_
 			end
 		end
 		for i = #self.cc, 1, -1 do
-			if self.cc[i].endTime < time then
-				table.remove(self.cc, i)
-				self.ccChanged = true
-				-- d("deleting entries in cc list")
+			if self.cc[i].endTime ~= 0 then
+				if self.cc[i].endTime < time then
+					table.remove(self.cc, i)
+					self.ccChanged = true
+					-- d("deleting entries in cc list")
+				end
 			end
 		end
 	end
@@ -62,6 +70,7 @@ function CCTracker:ApplyIcons()
 		self.UI.indicator[entry.name].controls.frame:SetHidden(true)
 		self.UI.indicator[entry.name].controls.icon:SetHidden(true)
 	end
+	if CombatMetronome.SV.debug.ccCache then d("Done with hiding CC icons") end
 	
 	for _, entry in ipairs(self.cc) do
 		-- if not self:ResInList(entry.type, active) then
@@ -71,6 +80,7 @@ function CCTracker:ApplyIcons()
 			self.UI.indicator[self.variables[entry.type].name].controls.icon:SetHidden(false)
 		-- end
 	end
+	if CombatMetronome.SV.debug.ccCache then d("CC icons are shown") end
 	
 	
 	-- if active then

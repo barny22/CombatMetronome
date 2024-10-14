@@ -126,6 +126,7 @@ CombatMetronome.DEFAULT_SAVED_VARS = {
 		["triggerTimer"] = 170,
 		["currentEvent"] = false,
 		["eventCancel"] = false,
+		["ccCache"] = false,
 	},
 }
 

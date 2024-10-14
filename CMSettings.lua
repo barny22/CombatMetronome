@@ -1796,6 +1796,15 @@ function CombatMetronome:BuildMenu()
 					end,
 					width = "half",
 				},
+				{	type = "checkbox",
+					name = "Debug CCTracker ccCache",
+					getFunc = function() return CombatMetronome.SV.debug.ccCache end,
+					setFunc = function(value)
+						CombatMetronome.SV.debug.ccCache = value
+						-- self.log = value
+					end,
+					width = "half",
+				},
 			},
 		},
 		---------------------------

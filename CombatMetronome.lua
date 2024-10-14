@@ -333,13 +333,14 @@ function CombatMetronome:RegisterCombatEvents()
 					-- self.otherSynergies.name = Util.Text.CropZOSString(aName)
 				end
 			end
-			if Util.Text.CropZOSString(tName) == self.currentCharacterName and not err then
+			if CCTracker:CheckForCCRegister() and Util.Text.CropZOSString(tName) == self.currentCharacterName and not err then
 				for ccType, check in pairs(CCTracker.variables) do
 					if check.tracked and check.res == res then
 						-- d("caching cc ability")
 						CCTracker.ccCache = {}
 						local newAbility = {["type"] = ccType, ["recorded"] = GetFrameTimeMilliseconds()}
 						table.insert(CCTracker.ccCache, newAbility)
+						if CombatMetronome.SV.debug.ccCache then d("Caching ability "..Util.Text.CropZOSString(aName)) end
 						break
 					end
 				end
