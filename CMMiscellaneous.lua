@@ -127,6 +127,7 @@ CombatMetronome.DEFAULT_SAVED_VARS = {
 		["currentEvent"] = false,
 		["eventCancel"] = false,
 		["ccCache"] = false,
+		["abilityUsed"] = false,
 	},
 }
 

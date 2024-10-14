@@ -1773,9 +1773,9 @@ function CombatMetronome:BuildMenu()
 					step = 10,
 					width = "half",
 					disabled = function() return not CombatMetronome.SV.debug.triggers end,
-					getFunc = function() return CombatMetronome.SV.triggerTimer end,
+					getFunc = function() return CombatMetronome.SV.debug.triggerTimer end,
 					setFunc = function(value)
-						CombatMetronome.SV.triggerTimer = value
+						CombatMetronome.SV.debug.triggerTimer = value
 					end,
 				},
 				{	type = "checkbox",
@@ -1792,6 +1792,15 @@ function CombatMetronome:BuildMenu()
 					getFunc = function() return CombatMetronome.SV.debug.eventCancel end,
 					setFunc = function(value)
 						CombatMetronome.SV.debug.eventCancel = value
+						-- self.log = value
+					end,
+					width = "half",
+				},
+				{	type = "checkbox",
+					name = "Debug ability.lua AbilityUsed()",
+					getFunc = function() return CombatMetronome.SV.debug.abilityUsed end,
+					setFunc = function(value)
+						CombatMetronome.SV.debug.abilityUsed = value
 						-- self.log = value
 					end,
 					width = "half",

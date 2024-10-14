@@ -131,7 +131,7 @@ function CombatMetronome:ConvertSavedVariables(table)
 	self.SV.debug.enabled = false
 	self.SV.debug.triggers = false
 	self.SV.debug.currentEvent = false
-	self.SV.debug.triggerTimer = false
+	self.SV.debug.triggerTimer = 170
 	
 	return self.SV
 end

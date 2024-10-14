@@ -114,6 +114,7 @@ function CombatMetronome:Update()
 			end
 			self.Progressbar.bar:Update()
 		elseif self.currentEvent then
+			-- if CombatMetronome.SV.debug.triggers then d(slotRemaining) end
 			CombatMetronome:SetIconsAndNamesNil()
 			local ability = self.currentEvent.ability
 			local start = self.currentEvent.start
