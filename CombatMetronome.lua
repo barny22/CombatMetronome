@@ -334,11 +334,19 @@ function CombatMetronome:RegisterCombatEvents()
 				end
 			end
 			if CCTracker:CheckForCCRegister() and Util.Text.CropZOSString(tName) == self.currentCharacterName and not err then
+				if res == ACTION_RESULT_EFFECT_FADED then
+					for i, check in pairs(CCTracker.cc) do
+						if check.cacheId and check.cacheId == aId then
+							table.remove(CCTracker.cc, i)
+							CCTracker:ApplyIcons()
+						end
+					end
+				end
 				for ccType, check in pairs(CCTracker.variables) do
 					if check.tracked and check.res == res then
 						-- d("caching cc ability")
 						CCTracker.ccCache = {}
-						local newAbility = {["type"] = ccType, ["recorded"] = GetFrameTimeMilliseconds()}
+						local newAbility = {["type"] = ccType, ["recorded"] = GetFrameTimeMilliseconds(), ["id"] = aId,}
 						table.insert(CCTracker.ccCache, newAbility)
 						if CombatMetronome.SV.debug.ccCache then d("Caching ability "..Util.Text.CropZOSString(aName)) end
 						break

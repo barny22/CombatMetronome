@@ -1748,6 +1748,9 @@ function CombatMetronome:BuildMenu()
             getFunc = function() return CombatMetronome.SV.debug.enabled end,
             setFunc = function(value)
                 CombatMetronome.SV.debug.enabled = value
+				if not value then
+					CombatMetronome:SetAllDebugFalse()
+				end
                 -- self.log = value
             end
         },

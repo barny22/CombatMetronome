@@ -507,3 +507,13 @@ function StackTracker:PVPSwitch()
 		end
 	end
 end
+
+		---------------
+        ---- Debug ----
+        ---------------
+function CombatMetronome:SetAllDebugFalse()
+	for entry, bool in pairs(CombatMetronome.SV.debug) do
+		CombatMetronome.SV.debug[entry] = false
+	end
+	CombatMetronome.SV.debug.triggerTimer = 170
+end

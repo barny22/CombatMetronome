@@ -115,7 +115,7 @@ Ability.Tracker.name = "Util.Ability.Tracker"
 local EVENT_RECORD_DELAY = 10
 local EVENT_FORCE_WAIT = 100
 local DISMOUNT_PERIOD = 300
-local SHEATHING_PERIOD = 750
+local SHEATHING_PERIOD = 800
 
 function Ability.Tracker:Start()
     if self.started then return end
@@ -252,7 +252,7 @@ function Ability.Tracker:Update()
     end
     
     -- delete queued Events, if they weren't fired and also shouldn't be
-    if not self.currentEvent and self.queuedEvent and math.max(self.queuedEvent.recorded, self.weaponLastSheathed + SHEATHING_PERIOD, self.lastMounted + DISMOUNT_PERIOD) + self.queuedEvent.ability.delay < time then
+    if not self.currentEvent and self.queuedEvent and math.max(self.queuedEvent.recorded, self.weaponLastSheathed + SHEATHING_PERIOD, self.lastMounted + DISMOUNT_PERIOD) + math.max(self.queuedEvent.ability.delay, self.adjustedGCD) < time then
         -- if CombatMetronome.SV.denug.triggers then d("Canceled "..self.queuedEvent.ability.name) end
         self:CancelEvent("Queued event long over")
     end
@@ -503,7 +503,7 @@ function Ability.Tracker:HandleCooldownsUpdated()
     
     if self.queuedEvent and self.rollDodgeFinished and not self.queuedEvent.castDuringRollDodge then
         self.eventStart = self.cdTriggerTime + sR - sD
-        if self.eventStart + ((CombatMetronome.SV.debug.triggers and CombatMetronome.SV.debug.triggerTimer) or 80) >= self.cdTriggerTime then
+        if self.eventStart + (CombatMetronome.SV.debug.triggers and CombatMetronome.SV.debug.triggerTimer or 80) >= self.cdTriggerTime then
             -- d("Firing "..self.queuedEvent.ability.name)
             self:AbilityUsed()
             self.abilityTriggerCounters.normal = self.abilityTriggerCounters.normal + 1
@@ -643,7 +643,7 @@ end
 
 function Ability.Tracker:CancelCurrentEvent(reason)
     if self.currentEvent then
-        if CombatMetronome.SV.debug.enabled and CombatMetronome.SV.debug.currentEvent and (self.currentEvent.ability.id == carverId1 or self.currentEvent.ability.id == carverId2) then d(reason) end
+        if CombatMetronome.SV.debug.currentEvent and (self.currentEvent.ability.id == carverId1 or self.currentEvent.ability.id == carverId2) then d(reason) end
         self.currentEvent = nil
         if self.CombatMetronome and CombatMetronome.currentEvent then
             CombatMetronome.currentEvent = nil

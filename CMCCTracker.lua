@@ -31,7 +31,7 @@ function CCTracker:HandleEffectsChanged(_,changeType,_,eName,unitTag,beginTime,e
 				-- end
 			elseif self.ccCache and self.ccCache[1] and self.ccCache[1].recorded == time and not self.variables[abilityType] then
 				local ending = ((endTime-beginTime~=0) and endTime) or 0
-				local newAbility = {["id"] = aId, ["type"] = self.ccCache[1].type, ["endTime"] = ending*1000}
+				local newAbility = {["id"] = aId, ["type"] = self.ccCache[1].type, ["endTime"] = ending*1000, ["cacheId"] = self.ccCache[1].id }
 				local inList, num = self:AIdInList(aId)
 				-- if not self:ResInList(self.ccCache[1][2]) then
 				if not inList then
