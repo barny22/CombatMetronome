@@ -10,7 +10,12 @@ function CCTracker:HandleEffectsChanged(_,changeType,_,eName,unitTag,beginTime,e
 	if not (unitTag == "player" or Util.Text.CropZOSString(unitName) == CombatMetronome.currentCharacterName) then
 		return
 	else
-		if (changeType == EFFECT_RESULT_UPDATED or changeType == EFFECT_RESULT_GAINED) then
+		-- self.currentBuffs = {}
+		if IsUnitDead("player") then
+			self.cc = {}
+			self:ApplyIcons()
+			return
+		elseif changeType == EFFECT_RESULT_UPDATED or changeType == EFFECT_RESULT_GAINED or changeType == EFFECT_RESULT_ITERATION_BEGIN or changeType == EFFECT_RESULT_FULL_REFRESH then
 			if self.variables[abilityType] and self.variables[abilityType].tracked and not self.ccCache then
 				local ending = ((endTime-beginTime~=0) and endTime) or 0
 				local newAbility = {["id"] = aId, ["type"] = abilityType, ["endTime"] = ending*1000}
@@ -40,7 +45,7 @@ function CCTracker:HandleEffectsChanged(_,changeType,_,eName,unitTag,beginTime,e
 				if CombatMetronome.SV.debug.ccCache then d("Clearing CC cache") end
 				-- end
 			end
-		elseif changeType == EFFECT_RESULT_FADED then
+		elseif changeType == EFFECT_RESULT_FADED or changeType == EFFECT_RESULT_ITERATION_END or changeType == EFFECT_RESULT_TRANSFER then
 			for i, entry in ipairs(self.cc) do
 				if entry.id == aId then
 					table.remove(self.cc, i)
@@ -56,6 +61,16 @@ function CCTracker:HandleEffectsChanged(_,changeType,_,eName,unitTag,beginTime,e
 					self.ccChanged = true
 					-- d("deleting entries in cc list")
 				end
+			-- else
+				-- if not self.currentBuffs then
+					-- for i = 1, GetNumBuffs() do
+						-- local _, _, _, _, _, _, _, _, _, _, aId, _, _ = GetUnitBuffInfo("player", i)
+						-- self.currentBuffs[aId] = true
+					-- end
+				-- end
+				-- if not self.currentBuffs[self.cc[i].id] then
+					-- table.remove(self.cc, i)
+				-- end
 			end
 		end
 	end
