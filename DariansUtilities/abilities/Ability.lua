@@ -132,7 +132,6 @@ function Ability.Tracker:Start()
     self.lastMounted = 0
     self.weaponLastSheathed = 0
     self.eventStart = 0
-    self.lastSlotRemaining = 0
     self.lastLightAttack = 0
     self.rollDodgeFinished = true
     self.lastBlockStatus = false
@@ -253,7 +252,7 @@ function Ability.Tracker:Update()
     end
     
     -- delete queued Events, if they weren't fired and also shouldn't be
-    if not self.currentEvent and self.queuedEvent and self.queuedEvent.recorded + self.queuedEvent.ability.delay > time then
+    if not self.currentEvent and self.queuedEvent and math.max(self.queuedEvent.recorded, self.weaponLastSheathed + SHEATHING_PERIOD, self.lastMounted + DISMOUNT_PERIOD) + self.queuedEvent.ability.delay < time then
         -- if CombatMetronome.SV.denug.triggers then d("Canceled "..self.queuedEvent.ability.name) end
         self:CancelEvent("Queued event long over")
     end
@@ -327,11 +326,17 @@ function Ability.Tracker:NewEvent(ability, slot, start)
         self:AbilityUsed()
         self.abilityTriggerCounters.direct = self.abilityTriggerCounters.direct + 1
     end
+    if CombatMetronome.SV.debug.abilityUsed then d("New event "..event.ability.name) end
     -- d("  Allow force = "..tostring(self.queuedEvent.allowForce))
 end
 
 function Ability.Tracker:CancelEvent(reason)
     -- self.eventStart = nil
+    
+    if CombatMetronome.SV.debug.eventCancel then
+        if self.queuedEvent and not self.queuedEvent.ability.heavy then d(reason) end
+    end
+    
     if not (self.queuedEvent and self.queuedEvent.allowForce) then
         -- d("Canceled "..self.queuedEvent.ability.name)
         self.queuedEvent = nil
@@ -344,9 +349,6 @@ function Ability.Tracker:CancelEvent(reason)
         else
             self:CallbackAbilityCancelled(self.currentEvent)
         end
-    end
-    if CombatMetronome.SV.debug.eventCancel then
-        if self.queuedEvent and not self.queuedEvent.ability.heavy then d(reason) end
     end
     
     -- self.currentEvent = nil

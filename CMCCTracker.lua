@@ -11,7 +11,7 @@ function CCTracker:HandleEffectsChanged(_,changeType,_,eName,unitTag,beginTime,e
 		return
 	else
 		-- self.currentBuffs = {}
-		if IsUnitDead("player") then
+		if IsUnitDeadOrReincarnating("player") then
 			self.cc = {}
 			self:ApplyIcons()
 			return
