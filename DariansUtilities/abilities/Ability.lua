@@ -207,7 +207,7 @@ end
 
 function Ability.Tracker:HandleBarSwap(_, barswap, _, _)
     self.barswap = barswap == true
-    if self.barswap and self.currentEvent and self.currentEvent.ability and self.currentEvent.ability.delay > self.adjustedGCD then
+    if self.barswap and self.currentEvent and self.currentEvent.ability and self.currentEvent.ability.delay > 1000 then
         self:CancelCurrentEvent("Barswap")
         self.barswap = false
     end
@@ -262,7 +262,7 @@ function Ability.Tracker:Update()
         local event = self.currentEvent
         local ability = event.ability
         
-        if (time > event.start + math.max(ability.delay, self.adjustedGCD)) then
+        if (time > event.start + math.max(ability.delay, sD)) then
             -- d("Event over!")
             -- self.eventStart = nil
             self:CancelCurrentEvent("Event over")
