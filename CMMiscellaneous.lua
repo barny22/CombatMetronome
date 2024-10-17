@@ -94,39 +94,12 @@ CombatMetronome.DEFAULT_SAVED_VARS = {
 		["choice"] = "Nothing",
 		["timeTilHiding"] = 15,
 	},
-	["CCTracker"] = {
-		["xOffset"] = {
-			["Disoriented"] = 0,
-			["Fear"] = 30,
-			["Knockback"] = 60,
-			["Levitating"] = 90,
-			["Offbalance"] = 120,
-			["Silence"] = 150,
-			["Snare"] = 180,
-			["Stagger"] = 210,
-			["Stun"] = 240,
-		},
-		["yOffset"] = {
-			["Disoriented"] = 0,
-			["Fear"] = 0,
-			["Knockback"] = 0,
-			["Levitating"] = 0,
-			["Offbalance"] = 0,
-			["Silence"] = 0,
-			["Snare"] = 0,
-			["Stagger"] = 0,
-			["Stun"] = 0,
-		},
-		["size"] = 30,
-		["CC"] = {},
-	},
 	["debug"] = {
 		["enabled"] = false,
 		["triggers"] = false,
 		["triggerTimer"] = 170,
 		["currentEvent"] = false,
 		["eventCancel"] = false,
-		["ccCache"] = false,
 		["abilityUsed"] = false,
 	},
 }
@@ -166,76 +139,6 @@ CombatMetronome.menu.CONTROLS = {
 		["Icon"] = "/esoui/art/icons/ability_debuff_stun.dds",
 		["Dimensions"] = 35,
 		["Offset"] = -25,
-	},
-	{
-		["Name"] = "Disoriented",
-		["Icon"] = "/esoui/art/icons/ability_debuff_disorient.dds",
-		["Dimensions"] = 35,
-		["Offset"] = -25,
-		-- ["Id"] = 2340
-	},
-	{
-		["Name"] = "Fear",
-		["Icon"] = "/esoui/art/icons/ability_debuff_fear.dds",
-		["Dimensions"] = 35,
-		["Offset"] = -25,
-		-- ["Id"] = 15 --2320
-	},
-	{
-		["Name"] = "Knockback",
-		["Icon"] = "/esoui/art/icons/ability_debuff_knockback.dds",
-		["Dimensions"] = 35,
-		["Offset"] = -25,
-		-- ["Id"] = 2475
-	}, 
-	{
-		["Name"] = "Levitate",
-		["Icon"] = "/esoui/art/icons/ability_debuff_levitate.dds",
-		["Dimensions"] = 35,
-		["Offset"] = -25,
-		-- ["Id"] = 18 --2400
-	},
-	{
-		["Name"] = "Offbalance",
-		["Icon"] = "/esoui/art/icons/ability_debuff_offbalance.dds",
-		["Dimensions"] = 35,
-		["Offset"] = -25,
-		-- ["Id"] = 2440
-	},
-	-- {
-		-- ["Name"] = "Root",
-		-- ["Icon"] = "/esoui/art/icons/ability_debuff_root.dds",
-		-- ["Dimensions"] = 35,
-		-- ["Offset"] = -25,
-		-- ["Id"] = 1 --2480
-	-- },
-	{
-		["Name"] = "Silence",
-		["Icon"] = "/esoui/art/icons/ability_debuff_silence.dds",
-		["Dimensions"] = 35,
-		["Offset"] = -25,
-		-- ["Id"] = 13 --2010
-	},
-	{
-		["Name"] = "Snare",
-		["Icon"] = "/esoui/art/icons/ability_debuff_snare.dds",
-		["Dimensions"] = 35,
-		["Offset"] = -25,
-		-- ["Id"] = 2 --2025
-	},
-	{
-		["Name"] = "Stagger",
-		["Icon"] = "/esoui/art/icons/ability_debuff_stagger.dds",
-		["Dimensions"] = 35,
-		["Offset"] = -25,
-		-- ["Id"] = 2470
-	},
-	{
-		["Name"] = "Stun",
-		["Icon"] = "/esoui/art/icons/ability_debuff_stun.dds",
-		["Dimensions"] = 35,
-		["Offset"] = -25,
-		-- ["Id"] = 19 --2020
 	},
 }
 

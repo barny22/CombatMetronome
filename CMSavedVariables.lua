@@ -103,30 +103,6 @@ function CombatMetronome:ConvertSavedVariables(table)
 	self.SV.LATracker.isUnlocked = configCache.laTrackerIsUnlocked
 	self.SV.LATracker.hideInPVP	= configCache.hideLATrackerInPVP
 	
-	self.SV.CCTracker = { }
-	self.SV.CCTracker.xOffset = { }
-	self.SV.CCTracker.xOffset.Disoriented = 0
-	self.SV.CCTracker.xOffset.Fear = 30
-	self.SV.CCTracker.xOffset.Knockback = 60
-	self.SV.CCTracker.xOffset.Levitating = 90
-	self.SV.CCTracker.xOffset.Offbalance = 120
-	self.SV.CCTracker.xOffset.Silence = 150
-	self.SV.CCTracker.xOffset.Snare = 180
-	self.SV.CCTracker.xOffset.Stagger = 210
-	self.SV.CCTracker.xOffset.Stun = 240
-	self.SV.CCTracker.yOffset = { }
-	self.SV.CCTracker.yOffset.Disoriented = 0
-	self.SV.CCTracker.yOffset.Fear = 0
-	self.SV.CCTracker.yOffset.Knockback = 0
-	self.SV.CCTracker.yOffset.Levitating = 0
-	self.SV.CCTracker.yOffset.Offbalance = 0
-	self.SV.CCTracker.yOffset.Silence = 0
-	self.SV.CCTracker.yOffset.Snare = 0
-	self.SV.CCTracker.yOffset.Stagger = 0
-	self.SV.CCTracker.yOffset.Stun = 0
-	self.SV.CCTracker.size = 30
-	self.SV.CCTracker.CC = {}
-	
 	self.SV.debug = { }
 	self.SV.debug.enabled = false
 	self.SV.debug.triggers = false

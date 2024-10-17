@@ -21,9 +21,6 @@ StackTracker.name = CombatMetronome.name.."StackTracker"
 CombatMetronome.LATracker = CombatMetronome.LATracker or {}
 local LATracker = CombatMetronome.LATracker
 LATracker.name = CombatMetronome.name.."LightAttackTracker"
-CombatMetronome.CCTracker = CombatMetronome.CCTracker or {}
-local CCTracker = CombatMetronome.CCTracker
-CCTracker.name = CombatMetronome.name.."CCTracker"
 
 Util.onLoad(CombatMetronome, function(self) self:Init() end)
 
@@ -52,23 +49,6 @@ function CombatMetronome:Init()
 		
 	StackTracker.classId = GetUnitClassId("player")
 	StackTracker.class = StackTracker.CLASS[StackTracker.classId]
-	
-	CCTracker.cc = {}
-	CCTracker.ccCache = {}
-	CCTracker.variables = {
-	-- Effects Changed
-	
-	[32] = {["icon"] = "/esoui/art/icons/ability_debuff_disorient.dds", ["tracked"] = self.SV.CCTracker.CC.Disoriented, ["res"] = 2340, ["active"] = false, ["name"] = "Disoriented",}, --ABILITY_TYPE_DISORIENT
-	[27] = {["icon"] = "/esoui/art/icons/ability_debuff_fear.dds", ["tracked"] = self.SV.CCTracker.CC.Fear, ["res"] = 2320, ["active"] = false, ["name"] = "Fear",}, --ABILITY_TYPE_FEAR
-	[17] = {["icon"] = "/esoui/art/icons/ability_debuff_knockback.dds", ["tracked"] = self.SV.CCTracker.CC.Knockback, ["res"] = 2475, ["active"] = false, ["name"] = "Knockback",}, --ABILITY_TYPE_KNOCKBACK
-	[48] = {["icon"] = "/esoui/art/icons/ability_debuff_levitate.dds", ["tracked"] = self.SV.CCTracker.CC.Levitate, ["res"] = 2400, ["active"] = false, ["name"] = "Levitating",}, --ABILITY_TYPE_LEVITATE
-	[53] = {["icon"] = "/esoui/art/icons/ability_debuff_offbalance.dds", ["tracked"] = self.SV.CCTracker.CC.Offbalance, ["res"] = 2440, ["active"] = false, ["name"] = "Offbalance",}, --ABILITY_TYPE_OFFBALANCE
-	-- ["rootPlaceholder"] = {["icon"] = "/esoui/art/icons/ability_debuff_root.dds", ["tracked"] = self.SV.CCTracker.CC.Root, ["res"] = 2480 ["active"] = false, ["name"] = "Rooted",}, --ACTION_RESULT_ROOTED
-	[11] = {["icon"] = "/esoui/art/icons/ability_debuff_silence.dds", ["tracked"] = self.SV.CCTracker.CC.Silence, ["res"] = 2010, ["active"] = false, ["name"] = "Silence",}, --ABILITY_TYPE_SILENCE
-	[10] = {["icon"] = "/esoui/art/icons/ability_debuff_snare.dds", ["tracked"] = self.SV.CCTracker.CC.Snare, ["res"] = 2025, ["active"] = false, ["name"] = "Snare",}, --ABILITY_TYPE_SNARE
-	[33] = {["icon"] = "/esoui/art/icons/ability_debuff_stagger.dds", ["tracked"] = self.SV.CCTracker.CC.Stagger, ["res"] = 2470, ["active"] = false, ["name"] = "Stagger",}, --ABILITY_TYPE_STAGGER
-	[9] = {["icon"] = "/esoui/art/icons/ability_debuff_stun.dds", ["tracked"] = self.SV.CCTracker.CC.Stun, ["res"] = 2020, ["active"] = false, ["name"] = "Stun",}, --ABILITY_TYPE_STUN
-}
 
     -- self.log = CombatMetronome.SV.debug
 
@@ -118,15 +98,6 @@ function CombatMetronome:Init()
 	LATracker:BuildUI()
 	LATracker.frame:SetUnlocked(CombatMetronome.SV.LATracker.isUnlocked)
 	LATracker:DisplayText()
-	
-	--------------------
-	---- CC Tracker ----
-	--------------------
-	
-	CCTracker.UI = CCTracker:BuildUI()
-	CCTracker.UI.indicator.ApplySize(CombatMetronome.SV.CCTracker.size)
-	CCTracker:ApplyIcons()
-	CCTracker:Register()	
 end
 
 -- LOAD HOOK
@@ -333,56 +304,10 @@ function CombatMetronome:RegisterCombatEvents()
 					-- self.otherSynergies.name = Util.Text.CropZOSString(aName)
 				end
 			end
-			if CCTracker:CheckForCCRegister() and Util.Text.CropZOSString(tName) == self.currentCharacterName and not err then
-				if res == ACTION_RESULT_EFFECT_FADED then
-					for i, check in pairs(CCTracker.cc) do
-						if check.cacheId and check.cacheId == aId then
-							table.remove(CCTracker.cc, i)
-							CCTracker:ApplyIcons()
-							break
-						end
-					end
-					return
-				end
-				for ccType, check in pairs(CCTracker.variables) do
-					if check.tracked and check.res == res then
-						-- d("caching cc ability")
-						CCTracker.ccCache = {}
-						local newAbility = {["type"] = ccType, ["recorded"] = GetFrameTimeMilliseconds(), ["id"] = aId,}
-						table.insert(CCTracker.ccCache, newAbility)
-						if CombatMetronome.SV.debug.ccCache then d("Caching ability "..Util.Text.CropZOSString(aName)) end
-						break
-					end
-					return
-				end
-			else return
-			end
 		end
 	)
 	
 	self.combatEventsRegistered = true
-end
-
-function CCTracker:Register()
-	if CCTracker:CheckForCCRegister() then
-		CCTracker:RegisterEffectsChanged()
-		if not CombatMetronome.combatEventsRegistered then
-			CombatMetronome:RegisterCombatEvents()
-			CombatMetronome.combatEventsRegistered = true
-		end
-	end
-end
-
-function CCTracker:RegisterEffectsChanged()
-	EVENT_MANAGER:RegisterForEvent(
-		self.name.."EffectsChanged",
-		EVENT_EFFECT_CHANGED,
-		function(...)
-			CCTracker:HandleEffectsChanged(...)
-		end
-	)
-	
-	self.effectsChangedRegistered = true
 end
 
 function CombatMetronome:RegisterResourceTracker()
@@ -472,11 +397,4 @@ function CombatMetronome:UnregisterCombatEvents()
 		self.name.."CombatEvents")
 		
 	self.combatEventsRegistered = false
-end
-
-function CCTracker:UnregisterEffectsChanged()
-	EVENT_MANAGER:UnregisterForEvent(
-		self.name.."EffectsChanged")
-	
-	self.effectsChangedRegistered = false
 end

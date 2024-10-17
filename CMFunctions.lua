@@ -4,8 +4,6 @@ Util.Text = Util.Text or {}
 Util.Stacks = Util.Stacks or {}
 CombatMetronome.StackTracker = CombatMetronome.StackTracker or {}
 local StackTracker = CombatMetronome.StackTracker
-CombatMetronome.CCTracker = CombatMetronome.CCTracker or {}
-local CCTracker = CombatMetronome.CCTracker
 
 local bAId = { ["buff"] = 203447, ["ability"] = 24165,}
 local mWId = { ["buff"] = 122658, ["ability"] = 20805,} -- 122729
@@ -87,44 +85,12 @@ end
 	--------------------------------
 	
 function CombatMetronome:CreateMenuIconsPath(ControlName)
-	-- for i = 1,#ControlNames do
-		-- string[i] = ControlNames[i].Name
-		-- for j, controlString in ipairs(CombatMetronomeOptions.controlsToRefresh) do
-			-- if string[i] == controlString then
-				-- numbers = i
-				-- numbers.Number = j end
-		-- end
-	-- end
 	local number = 0
 	for i, entry in ipairs(CombatMetronomeOptions.controlsToRefresh) do
 		if ControlName == entry.data.name then
 			number = i
 		end
 	end
-	
-	-- for i = 1,#CombatMetronomeOptions.controlsToRefresh do
-		-- if string1 == CombatMetronomeOptions.controlsToRefresh[i].data.name then
-			-- number1 = i
-		-- end
-		-- if string2 == CombatMetronomeOptions.controlsToRefresh[i].data.name then
-			-- number2 = i
-		-- end
-		-- if string3 == CombatMetronomeOptions.controlsToRefresh[i].data.name then
-			-- number3 = i
-		-- end
-		-- if string4 == CombatMetronomeOptions.controlsToRefresh[i].data.name then
-			-- number4 = i
-		-- end
-		-- if string5 == CombatMetronomeOptions.controlsToRefresh[i].data.name then
-			-- number5 = i
-		-- end
-		-- if string6 == CombatMetronomeOptions.controlsToRefresh[i].data.name then
-			-- number6 = i
-		-- end
-		-- if string7 == CombatMetronomeOptions.controlsToRefresh[i].data.name then
-			-- number7 = i-1
-		-- end
-	-- end
 	return number
 end
 
@@ -168,7 +134,7 @@ end
 
 function CombatMetronome:CheckForCombatEventsRegister()
 	-- local ccTrackingActive = CombatMetronome:CheckForCCRegister()
-	local CombatEventsNeedToBeRegistered = CombatMetronome.SV.Progressbar.trackMounting or CombatMetronome.SV.Progressbar.trackKillingActions or CombatMetronome.SV.Progressbar.trackBreakingFree or CombatMetronome:CheckForCCRegister()
+	local CombatEventsNeedToBeRegistered = CombatMetronome.SV.Progressbar.trackMounting or CombatMetronome.SV.Progressbar.trackKillingActions or CombatMetronome.SV.Progressbar.trackBreakingFree
 	return CombatEventsNeedToBeRegistered
 end
 
@@ -187,57 +153,6 @@ end
         -- end
     -- end
 -- end
-
-	--------------------------
-	---- CC Tracker stuff ----
-	--------------------------
-
-CCTracker.cc = CCTracker.cc or {}
-	
-function CCTracker:CheckForCCRegister()
-	for _, check in pairs(CombatMetronome.SV.CCTracker.CC) do
-		if check == true then
-			return true
-		end
-	end
-	return false
-end
-
-function CCTracker:AIdInList(aId)
-	for i, entry in ipairs(CCTracker.cc) do
-        if entry.id == aId then
-            return true, i -- 'aId' wurde gefunden
-        end
-    end
-    return false -- 'aId' wurde nicht gefunden
-end
-
-function CCTracker:ResInList(res, table)
-	for _, entry in ipairs(table) do
-        if entry == res then
-            return true -- 'res' wurde gefunden
-        end
-    end
-    return false -- 'res' wurde nicht gefunden
-end
-
-function CCTracker:NameInList(aName)
-	for i, entry in ipairs(CCTracker.cc) do
-        if entry[3] == aName then
-            return true, i -- 'aName' wurde gefunden
-        end
-    end
-    return false -- 'aName' wurde nicht gefunden
-end
-
-function CCTracker:IsUnlocked()
-	for _, entry in pairs(self.variables) do
-		if self.UI.indicator[entry.name].controls.tlw.IsUnlocked() then 
-			return true
-		end
-	end
-	return false
-end
 
 	-------------------------
 	---- Ability Adjusts ----
@@ -511,6 +426,7 @@ end
 		---------------
         ---- Debug ----
         ---------------
+		
 function CombatMetronome:SetAllDebugFalse()
 	for entry, bool in pairs(CombatMetronome.SV.debug) do
 		CombatMetronome.SV.debug[entry] = false

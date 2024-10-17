@@ -3,8 +3,6 @@ local Util = DariansUtilities
 Util.Text = Util.Text or {}
 CombatMetronome.LATracker = CombatMetronome.LATracker or {}
 local LATracker = CombatMetronome.LATracker
-CombatMetronome.CCTracker = CombatMetronome.CCTracker or {}
-local CCTracker = CombatMetronome.CCTracker
 CombatMetronome.StackTracker = CombatMetronome.StackTracker or {}
 local StackTracker = CombatMetronome.StackTracker
 CombatMetronome.SV = CombatMetronome.SV or {}
@@ -84,33 +82,33 @@ function CombatMetronome:BuildMenu()
 	end
 	CALLBACK_MANAGER:RegisterCallback("LAM-PanelControlsCreated", CreateIcons)
 	
-	local CCControls = {}
-	local function CreateCCControls()
-		for i = 7, #CombatMetronome.menu.CONTROLS do
-			local control = {}
-			control.type = "checkbox"
-			control.name = self.menu.CONTROLS[i].Name
-			control.width = "half"
-			control.default = false
-			control.getFunc = function() return CombatMetronome.SV.CCTracker.CC[self.menu.CONTROLS[i].Name] end
-			control.setFunc = function(value)
-				CombatMetronome.SV.CCTracker.CC[self.menu.CONTROLS[i].Name] = value
+	-- local CCControls = {}
+	-- local function CreateCCControls()
+		-- for i = 7, #CombatMetronome.menu.CONTROLS do
+			-- local control = {}
+			-- control.type = "checkbox"
+			-- control.name = self.menu.CONTROLS[i].Name
+			-- control.width = "half"
+			-- control.default = false
+			-- control.getFunc = function() return CombatMetronome.SV.CCTracker.CC[self.menu.CONTROLS[i].Name] end
+			-- control.setFunc = function(value)
+				-- CombatMetronome.SV.CCTracker.CC[self.menu.CONTROLS[i].Name] = value
 				-- CCTracker.variables[self.menu.CONTROLS[i].Id][2] = value
-				if value and not CombatMetronome.combatEventsRegistered then
-					CombatMetronome:RegisterCombatEvents()
-				elseif not value and self.combatEventsRegistered and not CombatMetronome:CheckForCombatEventsRegister() then
-					CombatMetronome:UnregisterCombatEvents()
-				end
-				if value and not CCTracker.effectsChangedRegistered then
-					CCTracker:RegisterEffectsChanged()
-				elseif not value and self.effectsChangedRegistered and not CCTracker:CheckForCCRegister() then
-					CCTracker:UnregisterEffectsChanged()
-				end
-			end
-			table.insert(CCControls, control)
-		end
-	end
-	CreateCCControls()
+				-- if value and not CombatMetronome.combatEventsRegistered then
+					-- CombatMetronome:RegisterCombatEvents()
+				-- elseif not value and self.combatEventsRegistered and not CombatMetronome:CheckForCombatEventsRegister() then
+					-- CombatMetronome:UnregisterCombatEvents()
+				-- end
+				-- if value and not CCTracker.effectsChangedRegistered then
+					-- CCTracker:RegisterEffectsChanged()
+				-- elseif not value and self.effectsChangedRegistered and not CCTracker:CheckForCCRegister() then
+					-- CCTracker:UnregisterEffectsChanged()
+				-- end
+			-- end
+			-- table.insert(CCControls, control)
+		-- end
+	-- end
+	-- CreateCCControls()
 
     self.menu.abilityAdjustChoices = self:CreateAdjustList()
     self.menu.curSkillName = ABILITY_ADJUST_PLACEHOLDER
@@ -1701,40 +1699,6 @@ function CombatMetronome:BuildMenu()
 			},
 		},
 		{	type = "divider",},
-		--------------------
-		---- CC Tracker ----
-		--------------------
-		{	type = "submenu",
-			name = "CC Tracker",
-			tooltip = "Shows an icon on screen, if you are hit with CC of a certain kind",
-			controls = {
-				{	type = "checkbox",
-					name = "Unlock CCTracker",
-					tooltip = "Reposition icons by dragging center.",
-					-- width = "half",
-					-- disabled = function() return self.Progressbar.showSample end,
-					getFunc = function() return CCTracker:IsUnlocked() end,
-					setFunc = function(value) CCTracker.UI.indicator.SetUnlocked(value)	end,
-				},
-				{	type = "slider",
-					name = "Icon size",
-					default = 30,
-					min = 20,
-					max = 200,
-					step = 1,
-					getFunc = function() return CombatMetronome.SV.CCTracker.size end,
-					setFunc = function(value)
-						CombatMetronome.SV.CCTracker.size = value
-						CCTracker.UI.indicator.ApplySize(value)
-						-- CCTracker.UI.indicator.ApplyDistance(value)
-					end,
-				},
-				{	type = "header",
-					name = "CC to track",
-				},
-				unpack(CCControls),
-			},
-		},
 		-- end
 		---------------
 		---- DEBUG ----
@@ -1804,15 +1768,6 @@ function CombatMetronome:BuildMenu()
 					getFunc = function() return CombatMetronome.SV.debug.abilityUsed end,
 					setFunc = function(value)
 						CombatMetronome.SV.debug.abilityUsed = value
-						-- self.log = value
-					end,
-					width = "half",
-				},
-				{	type = "checkbox",
-					name = "Debug CCTracker ccCache",
-					getFunc = function() return CombatMetronome.SV.debug.ccCache end,
-					setFunc = function(value)
-						CombatMetronome.SV.debug.ccCache = value
 						-- self.log = value
 					end,
 					width = "half",
