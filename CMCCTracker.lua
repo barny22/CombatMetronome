@@ -16,9 +16,10 @@ function CCTracker:HandleEffectsChanged(_,changeType,_,eName,unitTag,beginTime,e
 			self:ApplyIcons()
 			return
 		elseif changeType == EFFECT_RESULT_UPDATED or changeType == EFFECT_RESULT_GAINED or changeType == EFFECT_RESULT_ITERATION_BEGIN or changeType == EFFECT_RESULT_FULL_REFRESH then
-			if self.variables[abilityType] and self.variables[abilityType].tracked and not self.ccCache then
+			if self.variables[abilityType] and self.variables[abilityType].tracked then
 				local ending = ((endTime-beginTime~=0) and endTime) or 0
 				local newAbility = {["id"] = aId, ["type"] = abilityType, ["endTime"] = ending*1000}
+				if self.ccCache and self.ccCache[1].type == abilityType then newAbility.cacheId = self.ccCache[1].id end
 				local inList, num = self:AIdInList(aId)
 				-- if not self:ResInList(abilityType) then
 				if not inList then

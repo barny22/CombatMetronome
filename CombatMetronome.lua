@@ -339,8 +339,10 @@ function CombatMetronome:RegisterCombatEvents()
 						if check.cacheId and check.cacheId == aId then
 							table.remove(CCTracker.cc, i)
 							CCTracker:ApplyIcons()
+							break
 						end
 					end
+					return
 				end
 				for ccType, check in pairs(CCTracker.variables) do
 					if check.tracked and check.res == res then
@@ -351,6 +353,7 @@ function CombatMetronome:RegisterCombatEvents()
 						if CombatMetronome.SV.debug.ccCache then d("Caching ability "..Util.Text.CropZOSString(aName)) end
 						break
 					end
+					return
 				end
 			else return
 			end
