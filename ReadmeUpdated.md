@@ -26,6 +26,7 @@ Dependencies:
 [LIST]
 [*]LibAddonMenu-2.0
 [*]libAddonKeybinds
+[*][b]LibChatMessage[/b] [b](!!new!!)[/b]
 [/LIST]
 
 Features
