@@ -5,9 +5,11 @@
 
 CombatMetronome = {
     name = "CombatMetronome",
-    major = 6,
-    minor = 7,
-    version = "1.6.7"
+    version = {
+		["patch"] = 1,
+		["major"] = 6,
+		["minor"] = 7,
+	},
 }
 
 -- local LAM = LibAddonMenu2

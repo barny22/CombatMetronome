@@ -157,6 +157,7 @@ end
 	-------------------------
 	---- Ability Adjusts ----
 	-------------------------
+local ABILITY_ADJUST_PLACEHOLDER = "Add ability adjust"
 
 function CombatMetronome:UpdateAdjustChoices()
 	local names = self.menu.abilityAdjustChoices
@@ -164,7 +165,7 @@ function CombatMetronome:UpdateAdjustChoices()
 	for k in pairs(names) do names[k] = nil end
 
 	for id, adj in pairs(CombatMetronome.SV.Progressbar.abilityAdjusts) do
-		local name = Util.Text.CropZOSString(GetAbilityName(id))
+		local name = "|t20:20:"..GetAbilityIcon(id).."|t "..Util.Text.CropZOSString(GetAbilityName(id))
 		names[#names + 1] = name
 	end
 
@@ -196,10 +197,27 @@ end
 function CombatMetronome:CreateAdjustList()
 	local names = {}
 	for id, adj in pairs(CombatMetronome.SV.Progressbar.abilityAdjusts) do
-		local name = Util.Text.CropZOSString(GetAbilityName(id))
+		local name = "|t20:20:"..GetAbilityIcon(id).."|t "..Util.Text.CropZOSString(GetAbilityName(id))
 		names[#names + 1] = name
 	end
+	if #names == 0 then table.insert(names, ABILITY_ADJUST_PLACEHOLDER) end
 	return names
+end
+
+function CombatMetronome:CropIconFromSkill(ability)
+    local _, iconDivider = string.find(ability, "%|t ")
+    
+    if iconDivider then
+        return string.sub(ability, iconDivider + 1, -1)
+    else
+        return ability
+    end
+end
+
+function CombatMetronome:FindSkillInAdjustList(name)
+	for i, entry in ipairs(self.menu.abilityAdjustChoices) do
+		if self:CropIconFromSkill(entry) == name then return i end
+	end
 end
 
 -- function CombatMetronome:BuildListOfCurrentSkills()
