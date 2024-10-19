@@ -93,9 +93,9 @@ function Ability:ForId(id)
         o.baseId = GetAbilityProgressionAbilityId(o.progressionIndex, 0, 1)
     end
 
-    if (name) then
+    if (o.name) then
         -- d(" Caching from id! slot = "..tostring(o.slot))
-        self.nameCache[name] = o
+        self.nameCache[o.name] = o
     end
     
     self.cache[id] = o
