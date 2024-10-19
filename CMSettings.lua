@@ -119,7 +119,7 @@ function CombatMetronome:BuildMenu()
         type = "panel",
         name = "Combat Metronome",
         displayName = "|ce11212C|rombat |ce11212M|retronome",			-- "Combat Metronome"
-        author = "Darianopolis, |ce11212b|c3645d6arny|r",
+        author = "Darianopolis, |c2a52beb|rarny",
         version = ""..self.version,
 		website = "https://www.esoui.com/downloads/info2373-CombatMetronomeGCDTracker.html",
 		feedback = "https://www.esoui.com/portal.php?&id=386",
@@ -975,7 +975,7 @@ function CombatMetronome:BuildMenu()
 											CombatMetronome.SV.Progressbar.abilityAdjusts[id] = 0
 											self:UpdateAdjustChoices()
 											break
-										elseif id == 300000 then
+										elseif id == 300000 and not Util.Text.CropZOSString(GetAbilityName(id)) == name then
 											d("CM - Could not find valid ability named "..name.."!")
 										end
 									end
@@ -986,6 +986,7 @@ function CombatMetronome:BuildMenu()
 							type = "dropdown",
 							name = "Select skill adjust",
 							choices = self.menu.abilityAdjustChoices,
+							scrollable = true,
 							getFunc = function() return self.menu.curSkillName end,
 							setFunc = function(value) 
 								self.menu.curSkillName = value

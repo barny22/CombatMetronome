@@ -1,6 +1,6 @@
 ## Title: |ce11212C|rombat |ce11212M|retronome
 ## Description: Combat Metronome
-## Author: Darianopolis, |ce11212b|rarny
+## Author: Darianopolis, |c2a52beb|rarny
 ## Version: 1.6.8
 ## AddOnVersion: 010608
 ## APIVersion: 101043
