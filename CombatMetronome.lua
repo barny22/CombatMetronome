@@ -8,7 +8,7 @@ CombatMetronome = {
     version = {
 		["patch"] = 1,
 		["major"] = 6,
-		["minor"] = 7,
+		["minor"] = 8,
 	},
 }
 
@@ -46,6 +46,9 @@ function CombatMetronome:Init()
 		self.SV = ZO_SavedVars:NewAccountWide("CombatMetronomeSavedVars", 2, nil, self.DEFAULT_SAVED_VARS)
 		self.SV.global = true
 	end
+	
+	CombatMetronome.debug = LibChatMessage("CombatMetronome", "CM")
+	CombatMetronome.debug:SetEnabled(true)
 	
 	self.currentCharacterName = Util.Text.CropZOSString(GetUnitName("player"))
 		
@@ -158,19 +161,19 @@ function CombatMetronome:RegisterCM()
         -- self.name.."SlotUsed",
         -- EVENT_ACTION_SLOT_ABILITY_USED,
         -- function(e, slot)
-			-- d(slot)
+			-- if self.SV.debug.enabled then CombatMetronome.debug:Print(slot) end
 			-- local ability = {}
             -- local actionType = GetSlotType(slot)
-			-- d(actionType)
+			-- if self.SV.debug.enabled then CombatMetronome.debug:Print(actionType) end
 			-- if actionType == ACTION_TYPE_CRAFTED_ABILITY then --3 then
-				-- d("Crafted ability executed")
+				-- if self.SV.debug.enabled then CombatMetronome.debug:Print("Crafted ability executed") end
 				-- ability = Util.Ability:ForId(GetAbilityIdForCraftedAbilityId(GetSlotBoundId(slot)))
-				-- d("Ability used - "..ability.name..", ID: "..ability.id)
+				-- if self.SV.debug.enabled then CombatMetronome.debug:Print("Ability used - "..ability.name..", ID: "..ability.id) end
 			-- else
 				-- ability = Util.Ability:ForId(GetSlotBoundId(slot))
 			-- end
 						
-			-- d("Slot used - Target: "..GetAbilityTargetDescription(GetSlotBoundId(slot)).." - "..ability.name)
+			-- if self.SV.debug.enabled then CombatMetronome.debug:Print("Slot used - Target: "..GetAbilityTargetDescription(GetSlotBoundId(slot)).." - "..ability.name) end
             -- log("Abilty used - ", ability.name)
             -- if slot == 2 then
                 -- log("Cancelling heavy")
@@ -192,7 +195,7 @@ function CombatMetronome:RegisterCM()
 	if CombatMetronome:CheckForCombatEventsRegister() then
 		CombatMetronome:RegisterCombatEvents()
 	end
-	-- d("cm is registered")
+	-- if self.SV.debug.enabled then CombatMetronome.debug:Print("cm is registered") end
 end
 
 function CombatMetronome:RegisterCollectiblesTracker()
@@ -329,7 +332,7 @@ function StackTracker:Register()
 		function(...) self:Update() end
 	)
 	self.registered = true
-	-- d("tracker is registered")
+	-- if self.SV.debug.enabled then CombatMetronome.debug:Print("tracker is registered") end
 end
 
 function CombatMetronome:UnregisterCM()
@@ -340,7 +343,7 @@ function CombatMetronome:UnregisterCM()
         -- self.name.."SlotUsed")
 	
 	self.cmRegistered = false
-	-- d("cm is unregistered")
+	-- if self.SV.debug.enabled then CombatMetronome.debug:Print("cm is unregistered") end
 	
 	-- EVENT_MANAGER:UnregisterForEvent(
 		-- self.name.."BarSwap")
@@ -373,7 +376,7 @@ function StackTracker:Unregister()
 		self.name.."Update")
 	
 	self.registered = false
-	-- d("tracker is unregistered")
+	-- if self.SV.debug.enabled then CombatMetronome.debug:Print("tracker is unregistered") end
 	-- self.trackerWarning = false
 end
 

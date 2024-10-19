@@ -114,7 +114,7 @@ function CombatMetronome:Update()
 			end
 			self.Progressbar.bar:Update()
 		elseif self.currentEvent then
-			-- if CombatMetronome.SV.debug.triggers then d(slotRemaining) end
+			-- if CombatMetronome.SV.debug.triggers then CombatMetronome.debug:Print(slotRemaining) end
 			CombatMetronome:SetIconsAndNamesNil()
 			local ability = self.currentEvent.ability
 			local start = self.currentEvent.start
@@ -128,7 +128,7 @@ function CombatMetronome:Update()
 			local channelTime = ability.delay + self.currentEvent.adjust
 			local timeRemaining = ((start + channelTime + GetLatency()) - time) / 1000
 			-- local playerDidBlock = (self.lastBlockStatus == false) and IsBlockActive()
-			-- if playerDidBlock then d("Player blocked") end
+			-- if playerDidBlock and self.SV.debug.enabled then CombatMetronome.debug:Print("Player blocked") end
 			
 			if ability.heavy then
 				if CombatMetronome.SV.Progressbar.displayPingOnHeavy then
@@ -164,7 +164,7 @@ function CombatMetronome:Update()
 					local tickQueue = ZO_QueuedSoundPlayer:New(0)
 					tickQueue:SetFinishedAllSoundsCallback(function()
 						SetSetting(SETTING_TYPE_AUDIO, AUDIO_SETTING_UI_VOLUME, uiVolume)
-						-- d("Sound is finished playing. Volume adjusted. Volume is now "..GetSetting(SETTING_TYPE_AUDIO, AUDIO_SETTING_UI_VOLUME))
+						-- if self.SV.debug.enabled then CombatMetronome.debug:Print("Sound is finished playing. Volume adjusted. Volume is now "..GetSetting(SETTING_TYPE_AUDIO, AUDIO_SETTING_UI_VOLUME)) end
 					end)
 					SetSetting(SETTING_TYPE_AUDIO, AUDIO_SETTING_UI_VOLUME, CombatMetronome.SV.Progressbar.tickVolume)
 					tickQueue:PlaySound(CombatMetronome.SV.Progressbar.soundTickEffect, 250)
@@ -174,16 +174,16 @@ function CombatMetronome:Update()
 			------------------------------------------------
 				if CombatMetronome.SV.Progressbar.changeOnChanneled then
 					if not ability.instant and ability.delay <= 1000 then
-						-- d("Ability with cast time < 1s detected")
+						-- self.SV.debug.enabled then CombatMetronome.debug:Print("Ability with cast time < 1s detected") end
 						if timeRemaining >= 0 then
 							if self.Progressbar.bar.segments[2].color == CombatMetronome.SV.Progressbar.progressColor then
 								self.Progressbar.bar.segments[2].color = CombatMetronome.SV.Progressbar.channelColor
-								-- d("Trying to update Channel Color")
+								--if self.SV.debug.enabled then CombatMetronome.debug:Print("Trying to update Channel Color") end
 							end
 						elseif timeRemaining <= 0 then
 							if self.Progressbar.bar.segments[2].color == CombatMetronome.SV.Progressbar.channelColor then
 								self.Progressbar.bar.segments[2].color = CombatMetronome.SV.Progressbar.progressColor
-								-- d("Turning back to Progress Color")
+								--if self.SV.debug.enabled then CombatMetronome.debug:Print("Turning back to Progress Color") end
 							end
 						end
 					else
@@ -232,7 +232,7 @@ function CombatMetronome:Update()
 			--------------------
 			if not Util.Ability.Tracker.rollDodgeFinished and CombatMetronome.SV.Progressbar.trackGCD then
 				self:OnCDStop()
-				-- d("dodge should be interrupting now")
+				--if self.SV.debug.enabled then CombatMetronome.debug:Print("dodge should be interrupting now") end
 				if CombatMetronome.SV.Progressbar.showSpell then
 					self.Progressbar.spellLabel:SetHidden(false)
 					self.Progressbar.spellIcon:SetHidden(false)

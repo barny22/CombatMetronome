@@ -147,13 +147,19 @@ function CombatMetronome:BuildMenu()
                     CombatMetronome.SV = ZO_SavedVars:NewAccountWide(
                         "CombatMetronomeSavedVars", 1, nil, DEFAULT_SAVED_VARS
                     )
-					if not CombatMetronome.SV.migrated then self:ConvertSavedVariables() d("Migrating saved variables") end
+					if not CombatMetronome.SV.migrated then
+						self:ConvertSavedVariables()
+						if self.SV.debug.enabled then CombatMetronome.debug:Print("Migrating saved variables") end
+					end
                     CombatMetronome.SV.global = true
                 else
                     CombatMetronome.SV = ZO_SavedVars:NewCharacterIdSettings(
                         "CombatMetronomeSavedVars", 1, nil, DEFAULT_SAVED_VARS
                     )
-					if not CombatMetronome.SV.migrated then self:ConvertSavedVariables() d("Migrating saved variables") end
+					if not CombatMetronome.SV.migrated then
+						self:ConvertSavedVariables()
+						if self.SV.debug.enabled then CombatMetronome.debug:Print("Migrating saved variables") end
+					end
                     CombatMetronome.SV.global = false
                 end
 
@@ -1718,9 +1724,11 @@ function CombatMetronome:BuildMenu()
         },
         {	type = "checkbox",
             name = "Enable debugging",
+			disabled = function() if CombatMetronome.debug then return false else return true end end,
             getFunc = function() return CombatMetronome.SV.debug.enabled end,
             setFunc = function(value)
                 CombatMetronome.SV.debug.enabled = value
+				-- CombatMetronome.debug:SetEnabled(value)
 				if not value then
 					CombatMetronome:SetAllDebugFalse()
 				end
@@ -1852,11 +1860,11 @@ function CombatMetronome:BuildMenu()
 				-- local skillType2,skillLineIndex2,skillIndex2,morphChoice2,rank2 = GetSpecificSkillAbilityKeysByAbilityId(61919)
 				-- local skillType3,skillLineIndex3,skillIndex3,morphChoice3,rank3 = GetSpecificSkillAbilityKeysByAbilityId(61927)
 				-- local ProgressionRank = GetAbilityProgressionRankFromAbilityId(self.actionSlotCache[slotInQuestion].id)
-				-- d(ProgressionSkill)
-				-- d(skillType..","..skillLineIndex..","..skillIndex..","..morphChoice..","..rank)
-				-- d(skillType2..","..skillLineIndex2..","..skillIndex2..","..morphChoice2..","..rank2)
-				-- d(skillType3..","..skillLineIndex3..","..skillIndex3..","..morphChoice3..","..rank3)
-				-- d(ProgressionRank)
+				-- if self.SV.debug.enabled then CombatMetronome.debug:Print(ProgressionSkill) end
+				-- if self.SV.debug.enabled then CombatMetronome.debug:Print(skillType..","..skillLineIndex..","..skillIndex..","..morphChoice..","..rank) end
+				-- if self.SV.debug.enabled then CombatMetronome.debug:Print(skillType2..","..skillLineIndex2..","..skillIndex2..","..morphChoice2..","..rank2) end
+				-- if self.SV.debug.enabled then CombatMetronome.debug:Print(skillType3..","..skillLineIndex3..","..skillIndex3..","..morphChoice3..","..rank3) end
+				-- if self.SV.debug.enabled then CombatMetronome.debug:Print(ProgressionRank) end
 			-- end,
 		-- },
 		-- {

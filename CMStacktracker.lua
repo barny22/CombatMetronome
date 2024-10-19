@@ -100,17 +100,17 @@ function StackTracker:Update()
 				if CombatMetronome.SV.StackTracker.playSound then
 					local uiVolume = GetSetting(SETTING_TYPE_AUDIO, AUDIO_SETTING_UI_VOLUME)											--Sound cue when stacks are full
 					if previousStack == oneOff then
-						-- d("One off full stacks")
+						--if self.SV.debug.enabled then CombatMetronome.debug:Print("One off full stacks") end
 						if stacks == attributes.iMax then
 							local trackerCue = ZO_QueuedSoundPlayer:New(0)
 							trackerCue:SetFinishedAllSoundsCallback(function()
 								SetSetting(SETTING_TYPE_AUDIO, AUDIO_SETTING_UI_VOLUME, uiVolume)
-								-- d("Sound is finished playing. Volume adjusted. Volume is now "..GetSetting(SETTING_TYPE_AUDIO, AUDIO_SETTING_UI_VOLUME))
+								--if self.SV.debug.enabled then CombatMetronome.debug:Print("Sound is finished playing. Volume adjusted. Volume is now "..GetSetting(SETTING_TYPE_AUDIO, AUDIO_SETTING_UI_VOLUME)) end
 							end)
 							SetSetting(SETTING_TYPE_AUDIO, AUDIO_SETTING_UI_VOLUME, CombatMetronome.SV.StackTracker.volume)
-							-- d("Volume adjusted. Volume is now "..GetSetting(SETTING_TYPE_AUDIO, AUDIO_SETTING_UI_VOLUME))
+							--if self.SV.debug.enabled then CombatMetronome.debug:Print("Volume adjusted. Volume is now "..GetSetting(SETTING_TYPE_AUDIO, AUDIO_SETTING_UI_VOLUME)) end
 							trackerCue:PlaySound(SOUNDS[CombatMetronome.SV.StackTracker.sound],250)
-							-- d("Stacks are full")
+							--if self.SV.debug.enabled then CombatMetronome.debug:Print("Stacks are full") end
 						end
 					end
 				end

@@ -1,8 +1,10 @@
-2024-09-07 v1.6.8
-!  Minor fixes
+2024-10-19 v1.6.8
+!  Minor fixes in code
 !  Fixed sound cue on stack tracker
 !  Restructuring of constants and saved variables for better readability and consistency
+!  Overhauled the debugging system
 +  Added function to show ping when tracking GCD
++  Added ability icons to ability adjust section
 
 2024-09-05 v1.6.7
 !  Moved updater for castbar to CMCastbar.lua

@@ -230,7 +230,7 @@ function CombatMetronome:BuildUI()
 		
 	SCENE_MANAGER:RegisterCallback("SceneStateChanged", function(scene, newState)
 		if scene:GetName() == "gameMenuInGame" and newState == "hiding" and self.Progressbar.showSample then
-			-- d("should've changed visibility on sampleBar")
+			--if self.SV.debug.enabled then CombatMetronome.debug:Print("should've changed visibility on sampleBar") end
 			self.Progressbar.showSample = false
 			Position("UI")
 			HiddenStates()
@@ -382,16 +382,16 @@ function StackTracker:BuildUI()
 		end
 		
 		local function Animate()
-			-- d(tostring(highlightAnimationTimeline:GetDuration()))
+			--if self.SV.debug.enabled then CombatMetronome.debug:Print(tostring(highlightAnimationTimeline:GetDuration())) end
 			highlightAnimation:SetHidden(false)
 			highlightAnimationTimeline:PlayFromStart()
-			-- d("Animation should've started")
+			--if self.SV.debug.enabled then CombatMetronome.debug:Print("Animation should've started") end
 		end
 		
 		local function StopAnimation()
 			highlightAnimationTimeline:Stop()
 			highlightAnimation:SetHidden(true)
-			-- d("Animation should've stopped")
+			--if self.SV.debug.enabled then CombatMetronome.debug:Print("Animation should've stopped") end
 		end
 
 		local controls = {

@@ -66,11 +66,11 @@ function Stacks:GetCurrentNumCruxOnPlayer()					-- Crux Tracking by barny (speci
 		local name,_,_,_,stack,_,_,_,_,statusEffectType,abilityId = GetUnitBuffInfo("player", i)
 		if	abilityId == cruxId then
 			crux = stack
-			-- d("You currently have "..tostring(crux).." Crux")
+			-- if self.SV.debug.enabled then CombatMetronome.debug:Print("You currently have "..tostring(crux).." Crux")
 		break 
 		end
 	end
-	-- d(string.format("found %d crux(es); search time %d ms", crux, GetGameTimeMilliseconds() - start))
+	-- if self.SV.debug.enabled then CombatMetronome.debug:Print(string.format("found %d crux(es); search time %d ms", crux, GetGameTimeMilliseconds() - start))
 	return crux
 end
 
@@ -85,7 +85,7 @@ function Stacks:GetCurrentNumBAOnPlayer()
 		local _,_,_,_,stack,_,_,_,_,_,abilityId = GetUnitBuffInfo("player", i)
 		if	abilityId == bAId.buff then
 			bAStacks = stack
-			-- d("You currently have "..tostring(bAStacks).." Stacks of Bound Armaments")
+			-- if self.SV.debug.enabled then CombatMetronome.debug:Print("You currently have "..tostring(bAStacks).." Stacks of Bound Armaments")
 		break 
 		end
 	end
@@ -103,7 +103,7 @@ function Stacks:GetCurrentNumMWOnPlayer()
 		local _,_,_,_,stack,_,_,_,_,_,abilityId = GetUnitBuffInfo("player", i)
 		if	abilityId == mWId.buff then
 			mWStacks = stack
-			-- d("You currently have "..tostring(mWStacks).." Stacks of Molten Whip")
+			-- if self.SV.debug.enabled then CombatMetronome.debug:Print("You currently have "..tostring(mWStacks).." Stacks of Molten Whip")
 		break 
 		end
 	end
@@ -122,7 +122,7 @@ function Stacks:CheckForGFMorph()
 		elseif morphId == 2 then morph = "mR"
 		end
 	if morph ~= self.oldMorph and morph ~= "" then self.morphChanged = true end --self.stackTracker.indicator.ApplyIcon() end
-	-- if morphChanged then d("How dare you change morphs midgame??") end
+	-- if morphChanged then if self.SV.debug.enabled then CombatMetronome.debug:Print("How dare you change morphs midgame??") end
 	self.oldMorph = morph
 	return morph
 end
@@ -134,7 +134,7 @@ function Stacks:GetCurrentNumGFOnPlayer()
 		local _,_,_,_,stack,_,_,_,_,_,abilityId = GetUnitBuffInfo("player", i)
 		if	abilityId == gFId[morph].buff then
 			gFStacks = stack
-			-- d("You currently have "..tostring(gFStacks).." Stacks of Grimm Focus")
+			-- if self.SV.debug.enabled then CombatMetronome.debug:Print("You currently have "..tostring(gFStacks).." Stacks of Grimm Focus")
 		break 
 		end
 	end

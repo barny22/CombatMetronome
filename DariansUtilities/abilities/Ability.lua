@@ -36,7 +36,7 @@ local log = Util.log
 function Ability:ForId(id)
 	local o = self.cache[id]
 	if (o) then 
-        -- d(" Ability "..o.name.." is cached for id, "..id)
+        -- CombatMetronome.debug:Print(" Ability "..o.name.." is cached for id, "..id)
         -- o.slot = slot or o.slot
         -- o.hotbar = GetActiveHotbarCategory()
         return o 
@@ -94,7 +94,7 @@ function Ability:ForId(id)
     end
 
     if (o.name) then
-        -- d(" Caching from id! slot = "..tostring(o.slot))
+        -- CombatMetronome.debug:Print(" Caching from id! slot = "..tostring(o.slot))
         self.nameCache[o.name] = o
     end
     
@@ -120,7 +120,7 @@ local SHEATHING_PERIOD = 800
 function Ability.Tracker:Start()
     if self.started then return end
 
-    -- d("Ability Tracker Started!")
+    --CombatMetronome.debug:Print("Ability Tracker Started!")
 
     self.started = true
     self.lastAbilityFinished = 0
@@ -237,7 +237,7 @@ function Ability.Tracker:Update()
         end
     elseif (not self.eventStart and self.queuedEvent and self.queuedEvent.allowForce and not self.queuedEvent.castDuringRollDodge and not self.currentEvent) and CanAbilityFire() then
         if (time > self.queuedEvent.recorded) then
-            -- _=self.log and d("Event force "..tostring(time - self.queuedEvent.recorded).."ms ago")
+            -- _=self.log and CombatMetronome.debug:Print("Event force "..tostring(time - self.queuedEvent.recorded).."ms ago")
             self.eventStart = time + sR - sD
             self:AbilityUsed()
             self.abilityTriggerCounters.late = self.abilityTriggerCounters.late + 1
@@ -253,7 +253,7 @@ function Ability.Tracker:Update()
     
     -- delete queued Events, if they weren't fired and also shouldn't be
     if not self.currentEvent and self.queuedEvent and math.max(self.queuedEvent.recorded, self.weaponLastSheathed + SHEATHING_PERIOD, self.lastMounted + DISMOUNT_PERIOD) + math.max(self.queuedEvent.ability.delay, self.adjustedGCD) < time then
-        -- if CombatMetronome.SV.denug.triggers then d("Canceled "..self.queuedEvent.ability.name) end
+        -- if CombatMetronome.SV.denug.triggers then CombatMetronome.debug:Print("Canceled "..self.queuedEvent.ability.name) end
         self:CancelEvent("Queued event long over")
     end
 
@@ -262,7 +262,7 @@ function Ability.Tracker:Update()
         local ability = event.ability
         
         if (time > event.start + math.max(ability.delay, sD)) then
-            -- d("Event over!")
+            -- CombatMetronome.debug:Print("Event over!")
             -- self.eventStart = nil
             self:CancelCurrentEvent("Event over")
 
@@ -300,7 +300,7 @@ function Ability.Tracker:Update()
 end
 
 function Ability.Tracker:NewEvent(ability, slot, start)
-    -- d("creating new event -"..ability.name)
+    -- CombatMetronome.debug:Print("creating new event -"..ability.name)
     local time = GetFrameTimeMilliseconds()
     local gcdProgress, sR, sD = self:GCDCheck()
 
@@ -326,19 +326,19 @@ function Ability.Tracker:NewEvent(ability, slot, start)
         self:AbilityUsed()
         self.abilityTriggerCounters.direct = self.abilityTriggerCounters.direct + 1
     end
-    if CombatMetronome.SV.debug.abilityUsed then d("New event "..event.ability.name) end
-    -- d("  Allow force = "..tostring(self.queuedEvent.allowForce))
+    if CombatMetronome.SV.debug.abilityUsed then CombatMetronome.debug:Print("New event "..event.ability.name) end
+    -- CombatMetronome.debug:Print("  Allow force = "..tostring(self.queuedEvent.allowForce))
 end
 
 function Ability.Tracker:CancelEvent(reason)
     -- self.eventStart = nil
     
     if CombatMetronome.SV.debug.eventCancel then
-        if self.queuedEvent and not self.queuedEvent.ability.heavy then d(reason) end
+        if self.queuedEvent and not self.queuedEvent.ability.heavy then CombatMetronome.debug:Print(reason) end
     end
     
     if not (self.queuedEvent and self.queuedEvent.allowForce) then
-        -- d("Canceled "..self.queuedEvent.ability.name)
+        -- CombatMetronome.debug:Print("Canceled "..self.queuedEvent.ability.name)
         self.queuedEvent = nil
     end
 
@@ -357,7 +357,7 @@ end
 function Ability.Tracker:AbilityUsed()
 
     if not CanAbilityFire() then 
-        if CombatMetronome.SV.debug.abilityUsed then d("Couldn't fire ability") end
+        if CombatMetronome.SV.debug.abilityUsed then CombatMetronome.debug:Print("Couldn't fire ability") end
         return
     end
     
@@ -366,14 +366,14 @@ function Ability.Tracker:AbilityUsed()
         local event = self.queuedEvent
         event.start = self.eventStart
         
-        -- d("Ability used "..event.ability.name)
+        -- CombatMetronome.debug:Print("Ability used "..event.ability.name)
         
         self.queuedEvent = nil
         
         if	event.ability.id == (carverId1 or carverId2) then
             local cruxes = Util.Stacks:GetCurrentNumCruxOnPlayer()
             event.ability.delay = event.ability.delay + (338 * cruxes)
-            -- d(string.format("Fatecarver duration succesfully adjusted with %d crux(es)", cruxes))
+            -- CombatMetronome.debug:Print(string.format("Fatecarver duration succesfully adjusted with %d crux(es)", cruxes))
         end
         
         self.gcd = sD
@@ -384,7 +384,7 @@ function Ability.Tracker:AbilityUsed()
         end
 
         if (not event.ability.instant) then
-            -- d("Putting "..event.ability.name.." on current")
+            -- CombatMetronome.debug:Print("Putting "..event.ability.name.." on current")
             self.currentEvent = event
         end
         
@@ -415,9 +415,9 @@ end
 function Ability.Tracker:CallbackCancelHeavy()
     if not (self.cdTriggerTime == self.heavyUsedDuringHeavy) then
         self.currentEvent = nil
-        if CombatMetronome.SV.debug.currentEvent then d("Canceled heavy") end
+        if CombatMetronome.SV.debug.currentEvent then CombatMetronome.debug:Print("Canceled heavy") end
         self.gcd = 0
-        -- d("cancelling heavy")
+        -- CombatMetronome.debug:Print("cancelling heavy")
         Ability.Tracker:CallbackAbilityUsed("cancel heavy")
     end
 end
@@ -480,11 +480,11 @@ end
         -- self.eventStart = time + remaining - duration 
 
         -- if (oldStart ~= self.eventStart) then
-            -- _=self.log and d(""..time.." : Event start "..tostring(duration - remaining).."ms ago")
+            -- _=self.log and CombatMetronome.debug:Print(""..time.." : Event start "..tostring(duration - remaining).."ms ago")
         -- end
         
         -- if (self.queuedEvent and self.eventStart > oldStart + 100) then
-            -- _=self.log and d(""..time.." : Moved queued "..self.queuedEvent.ability.name.." to current") 
+            -- _=self.log and CombatMetronome.debug:Print(""..time.." : Moved queued "..self.queuedEvent.ability.name.." to current") 
             -- log("  Dispatching ", self.queuedEvent.ability.name)
             -- log("    oldStart = ", oldStart)
             -- log("    newStart = ", self.eventStart)
@@ -504,7 +504,7 @@ function Ability.Tracker:HandleCooldownsUpdated()
     if self.queuedEvent and self.rollDodgeFinished and not self.queuedEvent.castDuringRollDodge then
         self.eventStart = self.cdTriggerTime + sR - sD
         if self.eventStart + (CombatMetronome.SV.debug.triggers and CombatMetronome.SV.debug.triggerTimer or 80) >= self.cdTriggerTime then
-            -- d("Firing "..self.queuedEvent.ability.name)
+            -- CombatMetronome.debug:Print("Firing "..self.queuedEvent.ability.name)
             self:AbilityUsed()
             self.abilityTriggerCounters.normal = self.abilityTriggerCounters.normal + 1
         end
@@ -535,9 +535,9 @@ function Ability.Tracker:HandleSlotUsed(_, slot)
     
     -- if slot == 2 then return end
 
-    -- _=self.log and d(""..GetFrameTimeMilliseconds().." : New ability - "..ability.name)
+    -- _=self.log and CombatMetronome.debug:Print(""..GetFrameTimeMilliseconds().." : New ability - "..ability.name)
     self:NewEvent(ability, slot, time)
-    -- d("New Event "..ability.name)
+    -- CombatMetronome.debug:Print("New Event "..ability.name)
 end
 
 --                                      (a)bility | (d)amage | (p)ower | (t)arget | (s)ource | (h)it
@@ -573,7 +573,7 @@ function Ability.Tracker:HandleCombatEvent(_,     res,  err,   aName, _, aSlotTy
         -- log("Source is player")
 
         -- if res == ACTION_RESULT_CANNOT_USE then
-            -- d("Cannot use")
+            -- CombatMetronome.debug:Print("Cannot use")
             -- self:CancelEvent()
             -- return
         -- end
@@ -583,7 +583,7 @@ function Ability.Tracker:HandleCombatEvent(_,     res,  err,   aName, _, aSlotTy
         -- log("Not error!")
 
 		if (aSlotType == ACTION_SLOT_TYPE_HEAVY_ATTACK and res == (ACTION_RESULT_BEGIN or ACTION_RESULT_BEGIN_CHANNEL)) then
-            -- d("Heavy ability is current combat event")
+            -- CombatMetronome.debug:Print("Heavy ability is current combat event")
             if (self.currentEvent and self.currentEvent.ability.id == aId) then
                 return
             elseif aId ~= GetSlotBoundId(2) then
@@ -591,7 +591,7 @@ function Ability.Tracker:HandleCombatEvent(_,     res,  err,   aName, _, aSlotTy
             end
 
             local heavy = Util.Ability:ForId(aId)
-            -- _=self.log and d("New heavy ability - "..heavy.name)
+            -- _=self.log and CombatMetronome.debug:Print("New heavy ability - "..heavy.name)
             self:NewEvent(heavy, 2, time)
             
         end
@@ -600,7 +600,7 @@ function Ability.Tracker:HandleCombatEvent(_,     res,  err,   aName, _, aSlotTy
             if res == ACTION_RESULT_EFFECT_GAINED and time ~= self.lastLightAttack then
                 Ability.Tracker:CallbackLightAttackUsed(time)
             end
-            -- d(res.." - "..hVal.." - "..overflow)
+            --CombatMetronome.debug:Print(res.." - "..hVal.." - "..overflow)
         end
         self.lastLightAttack = time
     else
@@ -621,11 +621,11 @@ end
 function Ability.Tracker:ResetDebugCount(inCombat)
     if not inCombat and not self.debugCountReset then
         if CombatMetronome.SV.debug.triggers and self.abilityTriggerCounters.extra > 0 then
-            d("Normal triggers: "..self.abilityTriggerCounters.normal)
-            d("Direct triggers: "..self.abilityTriggerCounters.direct)
-            d("Late triggers: "..self.abilityTriggerCounters.late)
-            d("Extra triggers: "..self.abilityTriggerCounters.extra)
-            d("Combat ended")
+           CombatMetronome.debug:Print("Normal triggers: "..self.abilityTriggerCounters.normal)
+           CombatMetronome.debug:Print("Direct triggers: "..self.abilityTriggerCounters.direct)
+           CombatMetronome.debug:Print("Late triggers: "..self.abilityTriggerCounters.late)
+           CombatMetronome.debug:Print("Extra triggers: "..self.abilityTriggerCounters.extra)
+           CombatMetronome.debug:Print("Combat ended")
         end
         self.abilityTriggerCounters.late = 0
         self.abilityTriggerCounters.normal = 0
@@ -643,7 +643,7 @@ end
 
 function Ability.Tracker:CancelCurrentEvent(reason)
     if self.currentEvent then
-        if CombatMetronome.SV.debug.currentEvent and (self.currentEvent.ability.id == carverId1 or self.currentEvent.ability.id == carverId2) then d(reason) end
+        if CombatMetronome.SV.debug.currentEvent and (self.currentEvent.ability.id == carverId1 or self.currentEvent.ability.id == carverId2) then CombatMetronome.debug:Print(reason) end
         self.currentEvent = nil
         if self.CombatMetronome and CombatMetronome.currentEvent then
             CombatMetronome.currentEvent = nil

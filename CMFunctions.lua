@@ -30,7 +30,7 @@ local fSId = {
 	---- Script to get (SkillType skillType, luaindex skillLineIndex, luaindex skillIndex) to determine skill morph ----
 	--------------------------------------------------------------------------------------------------------------------
 	
--- /script _,index,_,_,_,_ = GetAbilityProgressionXPInfoFromAbilityId(ID) d(GetSkillAbilityIndicesFromProgressionIndex(index))
+-- /script _,index,_,_,_,_ = GetAbilityProgressionXPInfoFromAbilityId(ID) CombatMetronome.debug:Print(GetSkillAbilityIndicesFromProgressionIndex(index))
 
 	--------------------------
 	---- Helper Functions ----
@@ -263,7 +263,7 @@ function CombatMetronome:HandleAbilityUsed(event)
 		return
 	else
 		self.currentEvent = event
-		-- d("Got new Event "..event.ability.name)
+		-- if self.SV.debug.enabled then CombatMetronome.debug:Print("Got new Event "..event.ability.name) end
 	end
     self.gcd = Util.Ability.Tracker.gcd
 end
@@ -368,7 +368,7 @@ function CombatMetronome:IsInPvPZone()
 	else
 		self.inPVPZone = false
 	end
-	-- d(self.inPVPZone)
+	-- if self.SV.debug.enabled then CombatMetronome.debug:Print(self.inPVPZone) end
 	return self.inPVPZone
 end
 
@@ -378,19 +378,19 @@ function CombatMetronome:CMPVPSwitch()
 			if self.cmRegistered then
 				self:UnregisterCM()
 				self:HideBar(true)
-				-- d("registered cm scenario 1")
+				-- if self.SV.debug.enabled then CombatMetronome.debug:Print("registered cm scenario 1") end
 			elseif not self.cmRegistered then
 				self:HideBar(true)
-				-- d("registered cm scenario 2")
+				-- if self.SV.debug.enabled then CombatMetronome.debug:Print("registered cm scenario 2") end
 			end
 		else 
 			if not self.cmRegistered then
 				self:RegisterCM()
 				self:HideBar(not CombatMetronome.SV.Progressbar.dontHide)
-				-- d("registered cm scenario 3")
+				-- if self.SV.debug.enabled then CombatMetronome.debug:Print("registered cm scenario 3") end
 			else
 				self:HideBar(not CombatMetronome.SV.Progressbar.dontHide)
-				-- d("registered cm scenario 4")
+				-- if self.SV.debug.enabled then CombatMetronome.debug:Print("registered cm scenario 4") end
 			end
 		end
 	end
@@ -427,15 +427,15 @@ function StackTracker:PVPSwitch()
 			if self.registered then
 				self:Unregister()
 				self.UI.FadeScenes("NoUI")
-				-- d("registered tracker scenario 1")
+				-- if self.SV.debug.enabled then CombatMetronome.debug:Print("registered tracker scenario 1") end
 			elseif not self.registered then
 				self.UI.FadeScenes("NoUi")
-				-- d("registered tracker scenario 2")
+				-- if self.SV.debug.enabled then CombatMetronome.debug:Print("registered tracker scenario 2") end
 			end
 		else
 			if not self.registered then
 				self:Register()
-				-- d("registered tracker scenario 3")
+				-- if self.SV.debug.enabled then CombatMetronome.debug:Print("registered tracker scenario 3") end
 			end
 		end
 	end

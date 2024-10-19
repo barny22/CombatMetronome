@@ -5,7 +5,7 @@ local CCTracker = CombatMetronome.CCTracker
 CCTracker.cc = CCTracker.cc or {}
 
 function CCTracker:HandleEffectsChanged(_,changeType,_,eName,unitTag,beginTime,endTime,_,_,_,buffType,abilityType,_,unitName,_,aId,_)
-	-- d(unitName.." - "..GetUnitName("player"))
+	-- if CombatMetronome.SV.debug.enabled then CombatMetronome.debug:Print(unitName.." - "..GetUnitName("player")) end
 	time = GetFrameTimeMilliseconds()
 	if not (unitTag == "player" or Util.Text.CropZOSString(unitName) == CombatMetronome.currentCharacterName) then
 		return
@@ -28,7 +28,7 @@ function CCTracker:HandleEffectsChanged(_,changeType,_,eName,unitTag,beginTime,e
 				else
 					self.cc[num].endTime = endTime*1000
 				end
-				if CombatMetronome.SV.debug.ccCache then d("New cc "..Util.Text.CropZOSString(eName)) end
+				if CombatMetronome.SV.debug.ccCache then CombatMetronome.debug:Print("New cc "..Util.Text.CropZOSString(eName)) end
 				-- end
 			elseif self.ccCache and self.ccCache[1] and self.ccCache[1].recorded == time and not self.variables[abilityType] then
 				local ending = ((endTime-beginTime~=0) and endTime) or 0
@@ -41,9 +41,9 @@ function CCTracker:HandleEffectsChanged(_,changeType,_,eName,unitTag,beginTime,e
 				else
 					self.cc[num].endTime = endTime*1000
 				end
-				if CombatMetronome.SV.debug.ccCache then d("New cc from cache "..Util.Text.CropZOSString(eName)) end
+				if CombatMetronome.SV.debug.ccCache then CombatMetronome.debug:Print("New cc from cache "..Util.Text.CropZOSString(eName)) end
 				self.ccCache = {}
-				if CombatMetronome.SV.debug.ccCache then d("Clearing CC cache") end
+				if CombatMetronome.SV.debug.ccCache then CombatMetronome.debug:Print("Clearing CC cache") end
 				-- end
 			end
 		elseif changeType == EFFECT_RESULT_FADED or changeType == EFFECT_RESULT_ITERATION_END or changeType == EFFECT_RESULT_TRANSFER then
@@ -60,7 +60,7 @@ function CCTracker:HandleEffectsChanged(_,changeType,_,eName,unitTag,beginTime,e
 				if self.cc[i].endTime < time then
 					table.remove(self.cc, i)
 					self.ccChanged = true
-					-- d("deleting entries in cc list")
+					-- if CombatMetronome.SV.debug.enabled then CombatMetronome.debug:Print("deleting entries in cc list") end
 				end
 			-- else
 				-- if not self.currentBuffs then
@@ -80,13 +80,13 @@ end
 
 function CCTracker:ApplyIcons()
 	local active = {}
-	-- d("got "..#self.cc.."debuffs in list")
+	-- if CombatMetronome.SV.debug.enabled then CombatMetronome.debug:Print("got "..#self.cc.."debuffs in list") end
 	for _, entry in pairs(self.variables) do
 		entry.active = false
 		self.UI.indicator[entry.name].controls.frame:SetHidden(true)
 		self.UI.indicator[entry.name].controls.icon:SetHidden(true)
 	end
-	if CombatMetronome.SV.debug.ccCache then d("Done with hiding CC icons") end
+	if CombatMetronome.SV.debug.ccCache then CombatMetronome.debug:Print("Done with hiding CC icons") end
 	
 	for _, entry in ipairs(self.cc) do
 		-- if not self:ResInList(entry.type, active) then
@@ -96,7 +96,7 @@ function CCTracker:ApplyIcons()
 			self.UI.indicator[self.variables[entry.type].name].controls.icon:SetHidden(false)
 		-- end
 	end
-	if CombatMetronome.SV.debug.ccCache then d("CC icons are shown") end
+	if CombatMetronome.SV.debug.ccCache then CombatMetronome.debug:Print("CC icons are shown") end
 	
 	
 	-- if active then
