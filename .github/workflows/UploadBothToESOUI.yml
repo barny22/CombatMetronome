@@ -1,60 +1,71 @@
 name: ESO Addon Dual Release
 
-# Auslöser: Bei einem Pull Request auf die stable-Branch von development
+# Auslöser: Bei einem Pull Request auf die master-Branch von development
 on:
   pull_request:
     branches:
-      - stable
+      - master
     types:
       - closed
 
 jobs:
   build:
-    if: github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'stable' && github.event.pull_request.head.ref == 'development'
+    if: github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'master' && github.event.pull_request.head.ref == 'development'
     runs-on: ubuntu-latest
 
     steps:
     - name: Checkout repository
       uses: actions/checkout@v2
 
-    - name: Extract Version and API Patch from CombatMetronome.txt
+    - name: Extract API Version and Addon Version
       id: version_info
       run: |
         APIVersion=$(grep -Po '(?<=## APIVersion: )\d+' CombatMetronome.txt)
         AddonVersion=$(grep -Po '(?<=## Version: )[\d.]+' CombatMetronome.txt)
+        # Ersetze Punkte durch Unterstriche
+        AddonVersionWithUnderscores=$(echo $AddonVersion | sed 's/\./_/g')
         echo "API_VERSION=$APIVersion" >> $GITHUB_ENV
         echo "ADDON_VERSION=$AddonVersion" >> $GITHUB_ENV
+        echo "ADDON_VERSION_UNDERSCORES=$AddonVersionWithUnderscores" >> $GITHUB_ENV
 
-    # Erstes AddOn (ID: 2373) - ReadmeOriginal.md
+    - name: Extract Changelog
+      id: changelog
+      run: |
+        Changelog=$(cat changelog.txt)
+        echo "CHANGELOG<<EOF" >> $GITHUB_ENV
+        echo "$Changelog" >> $GITHUB_ENV
+        echo "EOF" >> $GITHUB_ENV
+
+    # Zip-Datei für Addon ID 2373 (ohne ReadmeUpdated.md)
     - name: Zip Addon Files for Addon ID 2373 (excluding ReadmeUpdated.md)
       run: |
-        zip -r my-addon-2373.zip path/to/addon --exclude ReadmeUpdated.md
+        zip -r CombatMetronome_v${{ env.ADDON_VERSION_UNDERSCORES }}.zip ./CombatMetronome/ --exclude ReadmeUpdated.md
 
-    - name: Upload Addon 2373 to ESOUI
+    - name: Upload Addon ID 2373 to ESOUI
       env:
         API_TOKEN: ${{ secrets.ESOUI_API_TOKEN }}
       run: |
-        curl -X POST "https://api.esoui.com/addons/upload" \
+        curl -X POST "https://api.esoui.com/addons/update" \
           -H "Authorization: Bearer $API_TOKEN" \
           -F "id=2373" \
-          -F "file=@./my-addon-2373.zip" \
-          -F "changelog=@./ReadmeOriginal.md" \
-          -F "compatiblepatch=$API_VERSION" \
-          -F "version=$ADDON_VERSION"
-
-    # Zweites AddOn (ID: 3790) - ReadmeUpdated.md
+          -F "updatefile=@./CombatMetronome_v${{ env.ADDON_VERSION_UNDERSCORES }}.zip" \
+          -F "changelog=${{ env.CHANGELOG }}" \
+          -F "compatible=$API_VERSION" \
+          -F "description=${{ env.DESCRIPTION }}"
+    
+    # Zip-Datei für Addon ID 3790 (ohne ReadmeOriginal.md)
     - name: Zip Addon Files for Addon ID 3790 (excluding ReadmeOriginal.md)
       run: |
-        zip -r my-addon-3790.zip path/to/addon --exclude ReadmeOriginal.md
+        zip -r CombatMetronome_v${{ env.ADDON_VERSION_UNDERSCORES }}.zip ./CombatMetronome/ --exclude ReadmeOriginal.md
 
-    - name: Upload Addon 3790 to ESOUI
+    - name: Upload Addon ID 3790 to ESOUI
       env:
         API_TOKEN: ${{ secrets.ESOUI_API_TOKEN }}
       run: |
-        curl -X POST "https://api.esoui.com/addons/upload" \
+        curl -X POST "https://api.esoui.com/addons/update" \
           -H "Authorization: Bearer $API_TOKEN" \
           -F "id=3790" \
-          -F "file=@./my-addon-3790.zip" \
-          -F "changelog=@./ReadmeUpdated.md" \
-          -F "compatiblepatch=$API_VERSION" \
-          -F "version=$ADDON_VERSION"
+          -F "updatefile=@./CombatMetronome_v${{ env.ADDON_VERSION_UNDERSCORES }}.zip" \
+          -F "changelog=${{ env.CHANGELOG }}" \
+          -F "compatible=$API_VERSION" \
+          -F "description=${{ env.DESCRIPTION }}"
