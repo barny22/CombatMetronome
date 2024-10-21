@@ -229,19 +229,18 @@ function CombatMetronome:BuildUI()
 	end
 		
 	SCENE_MANAGER:RegisterCallback("SceneStateChanged", function(scene, newState)
-		if scene:GetName() == "gameMenuInGame" and newState == "hiding" and self.Progressbar.showSample then
-			--if self.SV.debug.enabled then CombatMetronome.debug:Print("should've changed visibility on sampleBar") end
-			self.Progressbar.showSample = false
-			Position("UI")
-			HiddenStates()
-		end
-	end)
-	
-	SCENE_MANAGER:RegisterCallback("SceneStateChanged", function(scene, newState)
-		if scene:GetName() == "gameMenuInGame" and newState == "hiding" and self.Resources.showSample then
-			self.Resources.showSample = false
-			ResourcesPosition("UI")
-			HiddenStates()
+		if scene:GetName() == "gameMenuInGame" and newState == "hiding" then
+			if self.Progressbar.showSample then
+				--if self.SV.debug.enabled then CombatMetronome.debug:Print("should've changed visibility on sampleBar") end
+				self.Progressbar.showSample = false
+				Position("UI")
+				HiddenStates()
+			end
+			if self.Resources.showSample then
+				self.Resources.showSample = false
+				ResourcesPosition("UI")
+				HiddenStates()
+			end
 		end
 	end)
 	
