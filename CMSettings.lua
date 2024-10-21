@@ -712,21 +712,21 @@ function CombatMetronome:BuildMenu()
 										end
 									end,
 								},
-								-- {
-									-- type = "checkbox",
-									-- name = "Other synergies that cause GCD",
-									-- disabled = function() return not CombatMetronome.SV.Progressbar.trackGCD end,
-									-- default = false,
-									-- getFunc = function() return CombatMetronome.SV.Progressbar.trackOthers end,
-									-- setFunc = function(value)
-										-- CombatMetronome.SV.Progressbar.trackOthers = value
-										-- if value and not self.collectiblesTrackerRegistered then
-												-- CombatMetronome:RegisterCollectiblesTracker()
-										-- elseif not value and self.combatEventsRegistered and not (CombatMetronome.SV.Progressbar.trackMounting or CombatMetronome.SV.Progressbar.trackKillingActions or CombatMetronome.SV.Progressbar.trackBreakingFree) then
-												-- CombatMetronome:UnregisterCollectiblesTracker()
-										-- end
-									-- end,
-								-- },
+								{
+									type = "checkbox",
+									name = "Other synergies that cause GCD",
+									disabled = function() return not CombatMetronome.SV.Progressbar.trackGCD end,
+									default = false,
+									getFunc = function() return CombatMetronome.SV.Progressbar.trackSynergies end,
+									setFunc = function(value)
+										CombatMetronome.SV.Progressbar.trackSynergies = value
+										if value and not self.synergyChangedRegistered then
+												CombatMetronome:RegisterSynergyChanged()
+										elseif not value and self.synergyChangedRegistered then
+												CombatMetronome:UnregisterSynergyChanged()
+										end
+									end,
+								},
 								-- {
 									-- type = "submenu",
 									-- name = "Collectible types",

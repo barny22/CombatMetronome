@@ -119,9 +119,10 @@ function CombatMetronome:SetIconsAndNamesNil()
 	self.Progressbar.activeMount.action = ""
 	self.Progressbar.collectibleInUse = nil
 	self.Progressbar.itemUsed = nil
-	self.killingAction = nil
-	self.breakingFree = nil
-	self.otherSynergies = nil
+	self.Progressbar.killingAction = nil
+	self.Progressbar.breakingFree = nil
+	self.Progressbar.synergy = nil
+	self.Progressbar.nonAbilityGCDRunning = false
 	self.Progressbar.timeLabel:SetHidden(true)
 	self.Progressbar.spellLabel:SetHidden(true)
 	self.Progressbar.spellIcon:SetHidden(true)

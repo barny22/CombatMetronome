@@ -89,21 +89,26 @@ function CombatMetronome:Update()
 					CombatMetronome:GCDSpecifics(self.Progressbar.activeMount.action, self.Progressbar.activeMount.icon, gcdProgress)
 				end
 			end
-			if self.Progressbar.collectibleInUse and CombatMetronome.SV.Progressbar.trackCollectibles then
+			if self.Progressbar.collectibleInUse and CombatMetronome.SV.Progressbar.trackCollectibles and not self.Progressbar.nonAbilityGCDRunning then
 				CombatMetronome:GCDSpecifics(self.Progressbar.collectibleInUse.name, self.Progressbar.collectibleInUse.icon, gcdProgress)
+				self.Progressbar.nonAbilityGCDRunning = true
 			end
-			if self.Progressbar.itemUsed and CombatMetronome.SV.Progressbar.trackItems then
+			if self.Progressbar.itemUsed and CombatMetronome.SV.Progressbar.trackItems and not self.Progressbar.nonAbilityGCDRunning then
 				CombatMetronome:GCDSpecifics(self.Progressbar.itemUsed.name, self.Progressbar.itemUsed.icon, gcdProgress)
+				self.Progressbar.nonAbilityGCDRunning = true
 			end
-			if self.killingAction and CombatMetronome.SV.Progressbar.trackKillingActions then
-				CombatMetronome:GCDSpecifics(self.killingAction.name, self.killingAction.icon, gcdProgress)
+			if self.Progressbar.killingAction and CombatMetronome.SV.Progressbar.trackKillingActions and not self.Progressbar.nonAbilityGCDRunning then
+				CombatMetronome:GCDSpecifics(self.Progressbar.killingAction.name, self.Progressbar.killingAction.icon, gcdProgress)
+				self.Progressbar.nonAbilityGCDRunning = true
 			end
-			if self.breakingFree and CombatMetronome.SV.Progressbar.trackBreakingFree then
-				CombatMetronome:GCDSpecifics(self.breakingFree.name, self.breakingFree.icon, gcdProgress)
+			if self.Progressbar.breakingFree and CombatMetronome.SV.Progressbar.trackBreakingFree and not self.Progressbar.nonAbilityGCDRunning then
+				CombatMetronome:GCDSpecifics(self.Progressbar.breakingFree.name, self.Progressbar.breakingFree.icon, gcdProgress)
+				self.Progressbar.nonAbilityGCDRunning = true
 			end
-			-- if self.otherSynergies and CombatMetronome.SV.Progressbar.trackOthers then
-				-- CombatMetronome:GCDSpecifics(self.otherSynergies.name, self.otherSynergies.icon, gcdProgress)
-			-- end
+			if self.Progressbar.synergy and CombatMetronome.SV.Progressbar.trackSynergies and not self.Progressbar.nonAbilityGCDRunning then
+				CombatMetronome:GCDSpecifics(self.Progressbar.synergy.name, self.Progressbar.synergy.icon, gcdProgress)
+				self.Progressbar.nonAbilityGCDRunning = true
+			end
 			
 			if gcdProgress <= 0 then
 				CombatMetronome:SetIconsAndNamesNil()

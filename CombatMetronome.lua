@@ -195,6 +195,10 @@ function CombatMetronome:RegisterCM()
 	if CombatMetronome:CheckForCombatEventsRegister() then
 		CombatMetronome:RegisterCombatEvents()
 	end
+	
+	if CombatMetronome.SV.Progressbar.trackSynergies then
+		CombatMetronome:RegisterSynergyChanged()
+	end
 	-- if self.SV.debug.enabled then CombatMetronome.debug:Print("cm is registered") end
 end
 
@@ -289,19 +293,19 @@ function CombatMetronome:RegisterCombatEvents()
 					self.Progressbar.activeMount.action = "Mounting"
 				elseif aId == 138780 then
 					CombatMetronome:SetIconsAndNamesNil()
-					self.killingAction = {}
-					self.killingAction.name = Util.Text.CropZOSString(aName)
-					self.killingAction.icon = "/esoui/art/icons/ability_u26_vampire_synergy_feed.dds"
+					self.Progressbar.killingAction = {}
+					self.Progressbar.killingAction.name = Util.Text.CropZOSString(aName)
+					self.Progressbar.killingAction.icon = "/esoui/art/icons/ability_u26_vampire_synergy_feed.dds"
 				elseif aId == 146301 then
 					CombatMetronome:SetIconsAndNamesNil()
-					self.killingAction = {}
-					self.killingAction.name = Util.Text.CropZOSString(aName)
-					self.killingAction.icon = "/esoui/art/icons/achievement_u23_skillmaster_darkbrotherhood.dds"
+					self.Progressbar.killingAction = {}
+					self.kProgressbar.illingAction.name = Util.Text.CropZOSString(aName)
+					self.Progressbar.killingAction.icon = "/esoui/art/icons/achievement_u23_skillmaster_darkbrotherhood.dds"
 				elseif aId == 16565 then
 					CombatMetronome:SetIconsAndNamesNil()
-					self.breakingFree = {}
-					self.breakingFree.name = Util.Text.CropZOSString(aName)
-					self.breakingFree.icon = "/esoui/art/icons/ability_rogue_050.dds"
+					self.Progressbar.breakingFree = {}
+					self.Progressbar.breakingFree.name = Util.Text.CropZOSString(aName)
+					self.Progressbar.breakingFree.icon = "/esoui/art/icons/ability_rogue_050.dds"
 				-- elseif aGraphic ~= nil and aName ~= nil and res == 2240 and aId ~= (36432 or 36010 or 138780 or 146301 or 16565) and aSlotType == ACTION_SLOT_TYPE_OTHER then
 					-- CombatMetronome:SetIconsAndNamesNil()
 					-- self.otherSynergies = {}
@@ -313,6 +317,25 @@ function CombatMetronome:RegisterCombatEvents()
 	)
 	
 	self.combatEventsRegistered = true
+end
+
+function CombatMetronome:RegisterSynergyChanged()
+	EVENT_MANAGER:RegisterForEvent(
+		self.name.."SynergyChanged",
+		EVENT_SYNERGY_ABILITY_CHANGED,
+		function()
+			local hasSynergy, name, icon, _, _ = GetCurrentSynergyInfo()
+			if hasSynergy then
+				if self.SV.debug.enabled then self.debug:Print("Found synergy: "..Util.Text.CropZOSString(name)) end
+				self.Progressbar.synergy = {}
+				self.Progressbar.synergy.name = Util.Text.CropZOSString(name)
+				self.Progressbar.synergy.icon = icon
+			-- else
+				-- self.Progressbar.synergy = nil
+				-- if self.SV.debug.enabled then self.debug:Print("Synergy deleted") end
+			end
+		end
+	)
 end
 
 function CombatMetronome:RegisterResourceTracker()
@@ -362,6 +385,10 @@ function CombatMetronome:UnregisterCM()
 	if self.combatEventsRegistered and not self:CheckForCombatEventsRegister() then
 		CombatMetronome:UnregisterCombatEvents()
 	end
+	
+	if self.synergyChangedRegistered then
+		CombatMetronome:UnregisterSynergyChanged()
+	end
 end
 
 function CombatMetronome:UnregisterResourceTracker()
@@ -402,4 +429,11 @@ function CombatMetronome:UnregisterCombatEvents()
 		self.name.."CombatEvents")
 		
 	self.combatEventsRegistered = false
+end
+
+function CombatMetronome:UnregisterCombatEvents()
+	EVENT_MANAGER:UnregisterForEvent(
+		self.name.."SynergyChanged")
+		
+	self.synergyChangedRegistered = false
 end

@@ -140,6 +140,12 @@ CombatMetronome.menu.CONTROLS = {
 		["Dimensions"] = 35,
 		["Offset"] = -25,
 	},
+	{
+		["Name"] = "Other synergies that cause GCD",
+		["Icon"] = "/esoui/art/icons/ability_healer_017.dds",
+		["Dimensions"] = 35,
+		["Offset"] = -25,
+	},
 }
 
 CombatMetronome.StackTracker.CLASS_ATTRIBUTES = {
