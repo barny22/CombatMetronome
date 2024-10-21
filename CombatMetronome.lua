@@ -299,7 +299,7 @@ function CombatMetronome:RegisterCombatEvents()
 				elseif aId == 146301 then
 					CombatMetronome:SetIconsAndNamesNil()
 					self.Progressbar.killingAction = {}
-					self.kProgressbar.illingAction.name = Util.Text.CropZOSString(aName)
+					self.Progressbar.killingAction.name = Util.Text.CropZOSString(aName)
 					self.Progressbar.killingAction.icon = "/esoui/art/icons/achievement_u23_skillmaster_darkbrotherhood.dds"
 				elseif aId == 16565 then
 					CombatMetronome:SetIconsAndNamesNil()

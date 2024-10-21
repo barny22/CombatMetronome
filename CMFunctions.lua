@@ -135,8 +135,10 @@ end
 
 function CombatMetronome:CheckForCombatEventsRegister()
 	-- local ccTrackingActive = CombatMetronome:CheckForCCRegister()
-	local CombatEventsNeedToBeRegistered = CombatMetronome.SV.Progressbar.trackMounting or CombatMetronome.SV.Progressbar.trackKillingActions or CombatMetronome.SV.Progressbar.trackBreakingFree
-	return CombatEventsNeedToBeRegistered
+	if CombatMetronome.SV.Progressbar.trackMounting or CombatMetronome.SV.Progressbar.trackKillingActions or CombatMetronome.SV.Progressbar.trackBreakingFree then
+		return true
+	end
+	return false
 end
 
 -- function CombatMetronome:HandleCombatEvents(...)
