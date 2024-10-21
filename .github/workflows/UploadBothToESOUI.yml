@@ -1,0 +1,60 @@
+name: ESO Addon Dual Release
+
+# Auslöser: Bei einem Pull Request auf die stable-Branch von development
+on:
+  pull_request:
+    branches:
+      - stable
+    types:
+      - closed
+
+jobs:
+  build:
+    if: github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'stable' && github.event.pull_request.head.ref == 'development'
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Extract Version and API Patch from CombatMetronome.txt
+      id: version_info
+      run: |
+        APIVersion=$(grep -Po '(?<=## APIVersion: )\d+' CombatMetronome.txt)
+        AddonVersion=$(grep -Po '(?<=## Version: )[\d.]+' CombatMetronome.txt)
+        echo "API_VERSION=$APIVersion" >> $GITHUB_ENV
+        echo "ADDON_VERSION=$AddonVersion" >> $GITHUB_ENV
+
+    # Erstes AddOn (ID: 2373) - ReadmeOriginal.md
+    - name: Zip Addon Files for Addon ID 2373 (excluding ReadmeUpdated.md)
+      run: |
+        zip -r my-addon-2373.zip path/to/addon --exclude ReadmeUpdated.md
+
+    - name: Upload Addon 2373 to ESOUI
+      env:
+        API_TOKEN: ${{ secrets.ESOUI_API_TOKEN }}
+      run: |
+        curl -X POST "https://api.esoui.com/addons/upload" \
+          -H "Authorization: Bearer $API_TOKEN" \
+          -F "id=2373" \
+          -F "file=@./my-addon-2373.zip" \
+          -F "changelog=@./ReadmeOriginal.md" \
+          -F "compatiblepatch=$API_VERSION" \
+          -F "version=$ADDON_VERSION"
+
+    # Zweites AddOn (ID: 3790) - ReadmeUpdated.md
+    - name: Zip Addon Files for Addon ID 3790 (excluding ReadmeOriginal.md)
+      run: |
+        zip -r my-addon-3790.zip path/to/addon --exclude ReadmeOriginal.md
+
+    - name: Upload Addon 3790 to ESOUI
+      env:
+        API_TOKEN: ${{ secrets.ESOUI_API_TOKEN }}
+      run: |
+        curl -X POST "https://api.esoui.com/addons/upload" \
+          -H "Authorization: Bearer $API_TOKEN" \
+          -F "id=3790" \
+          -F "file=@./my-addon-3790.zip" \
+          -F "changelog=@./ReadmeUpdated.md" \
+          -F "compatiblepatch=$API_VERSION" \
+          -F "version=$ADDON_VERSION"
