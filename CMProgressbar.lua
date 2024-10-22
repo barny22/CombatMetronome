@@ -105,7 +105,7 @@ function CombatMetronome:Update()
 				CombatMetronome:GCDSpecifics(self.Progressbar.breakingFree.name, self.Progressbar.breakingFree.icon, gcdProgress)
 				self.Progressbar.nonAbilityGCDRunning = true
 			end
-			if self.Progressbar.synergy and CombatMetronome.SV.Progressbar.trackSynergies and not self.Progressbar.nonAbilityGCDRunning then
+			if self.Progressbar.synergy and CombatMetronome.SV.Progressbar.trackSynergies and self.Progressbar.synergy.wasUsed and not self.Progressbar.nonAbilityGCDRunning then
 				CombatMetronome:GCDSpecifics(self.Progressbar.synergy.name, self.Progressbar.synergy.icon, gcdProgress)
 				self.Progressbar.nonAbilityGCDRunning = true
 			end

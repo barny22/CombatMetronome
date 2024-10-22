@@ -81,34 +81,6 @@ function CombatMetronome:BuildMenu()
 		end
 	end
 	CALLBACK_MANAGER:RegisterCallback("LAM-PanelControlsCreated", CreateIcons)
-	
-	-- local CCControls = {}
-	-- local function CreateCCControls()
-		-- for i = 7, #CombatMetronome.menu.CONTROLS do
-			-- local control = {}
-			-- control.type = "checkbox"
-			-- control.name = self.menu.CONTROLS[i].Name
-			-- control.width = "half"
-			-- control.default = false
-			-- control.getFunc = function() return CombatMetronome.SV.CCTracker.CC[self.menu.CONTROLS[i].Name] end
-			-- control.setFunc = function(value)
-				-- CombatMetronome.SV.CCTracker.CC[self.menu.CONTROLS[i].Name] = value
-				-- CCTracker.variables[self.menu.CONTROLS[i].Id][2] = value
-				-- if value and not CombatMetronome.combatEventsRegistered then
-					-- CombatMetronome:RegisterCombatEvents()
-				-- elseif not value and self.combatEventsRegistered and not CombatMetronome:CheckForCombatEventsRegister() then
-					-- CombatMetronome:UnregisterCombatEvents()
-				-- end
-				-- if value and not CCTracker.effectsChangedRegistered then
-					-- CCTracker:RegisterEffectsChanged()
-				-- elseif not value and self.effectsChangedRegistered and not CCTracker:CheckForCCRegister() then
-					-- CCTracker:UnregisterEffectsChanged()
-				-- end
-			-- end
-			-- table.insert(CCControls, control)
-		-- end
-	-- end
-	-- CreateCCControls()
 
     self.menu.abilityAdjustChoices = self:CreateAdjustList()
 	-- local adjustListWithIcons = self:CreateAdjustList()
@@ -677,18 +649,26 @@ function CombatMetronome:BuildMenu()
 									tooltip = "Toggle displaying killing actions like vampire feed and blade of woe",
 									disabled = function() return not CombatMetronome.SV.Progressbar.trackGCD end,
 									default = false,
-									getFunc = function() return CombatMetronome.SV.Progressbar.trackKillingActions end,
+									getFunc = function() return CombatMetronome.SV.Progressbar.trackSynergies end,
 									setFunc = function(value)
-										CombatMetronome.SV.Progressbar.trackKillingActions = value
+										CombatMetronome.SV.Progressbar.trackSynergies = value
 										-- if value then
 											-- itemsIcon:SetDesaturation(0)
 										-- else
 											-- itemsIcon:SetDesaturation(-100)
 										-- end
-										if value and not self.combatEventsRegistered then
-											CombatMetronome:RegisterCombatEvents()
-										elseif not value and self.combatEventsRegistered and not CombatMetronome:CheckForCombatEventsRegister() then
-											CombatMetronome:UnregisterCombatEvents()
+										if value then
+											if not self.combatEventsRegistered then
+												CombatMetronome:RegisterCombatEvents()
+											elseif not self.synergyChangedRegistered then
+												CombatMetronome:RegisterSynergyChanged()
+											end
+										elseif not value then
+											if self.combatEventsRegistered and not CombatMetronome:CheckForCombatEventsRegister() then
+												CombatMetronome:UnregisterCombatEvents()
+											elseif self.synergyChangedRegistered then
+												CombatMetronome:UnregisterSynergyChanged()
+											end
 										end
 									end,
 								},
@@ -712,21 +692,21 @@ function CombatMetronome:BuildMenu()
 										end
 									end,
 								},
-								{
-									type = "checkbox",
-									name = "Other synergies that cause GCD",
-									disabled = function() return not CombatMetronome.SV.Progressbar.trackGCD end,
-									default = false,
-									getFunc = function() return CombatMetronome.SV.Progressbar.trackSynergies end,
-									setFunc = function(value)
-										CombatMetronome.SV.Progressbar.trackSynergies = value
-										if value and not self.synergyChangedRegistered then
-												CombatMetronome:RegisterSynergyChanged()
-										elseif not value and self.synergyChangedRegistered then
-												CombatMetronome:UnregisterSynergyChanged()
-										end
-									end,
-								},
+								-- {
+									-- type = "checkbox",
+									-- name = "Other synergies that cause GCD",
+									-- disabled = function() return not CombatMetronome.SV.Progressbar.trackGCD end,
+									-- default = false,
+									-- getFunc = function() return CombatMetronome.SV.Progressbar.trackSynergies end,
+									-- setFunc = function(value)
+										-- CombatMetronome.SV.Progressbar.trackSynergies = value
+										-- if value and not self.synergyChangedRegistered then
+												-- CombatMetronome:RegisterSynergyChanged()
+										-- elseif not value and self.synergyChangedRegistered then
+												-- CombatMetronome:UnregisterSynergyChanged()
+										-- end
+									-- end,
+								-- },
 								-- {
 									-- type = "submenu",
 									-- name = "Collectible types",

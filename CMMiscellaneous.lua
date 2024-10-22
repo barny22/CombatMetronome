@@ -129,7 +129,7 @@ CombatMetronome.menu.CONTROLS = {
 		["Offset"] = -25,
 	},
 	{
-		["Name"] = "Killing actions",
+		["Name"] = "Synergies",
 		["Icon"] = "/esoui/art/icons/achievement_u23_skillmaster_darkbrotherhood.dds",
 		["Dimensions"] = 35,
 		["Offset"] = -25,
@@ -137,12 +137,6 @@ CombatMetronome.menu.CONTROLS = {
 	{
 		["Name"] = "Breaking free",
 		["Icon"] = "/esoui/art/icons/ability_debuff_stun.dds",
-		["Dimensions"] = 35,
-		["Offset"] = -25,
-	},
-	{
-		["Name"] = "Other synergies that cause GCD",
-		["Icon"] = "/esoui/art/icons/ability_healer_017.dds",
 		["Dimensions"] = 35,
 		["Offset"] = -25,
 	},

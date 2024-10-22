@@ -121,7 +121,7 @@ function CombatMetronome:SetIconsAndNamesNil()
 	self.Progressbar.itemUsed = nil
 	self.Progressbar.killingAction = nil
 	self.Progressbar.breakingFree = nil
-	self.Progressbar.synergy = nil
+	self.Progressbar.synergy.wasUsed = false
 	self.Progressbar.nonAbilityGCDRunning = false
 	self.Progressbar.timeLabel:SetHidden(true)
 	self.Progressbar.spellLabel:SetHidden(true)
@@ -135,7 +135,7 @@ end
 
 function CombatMetronome:CheckForCombatEventsRegister()
 	-- local ccTrackingActive = CombatMetronome:CheckForCCRegister()
-	if CombatMetronome.SV.Progressbar.trackMounting or CombatMetronome.SV.Progressbar.trackKillingActions or CombatMetronome.SV.Progressbar.trackBreakingFree then
+	if CombatMetronome.SV.Progressbar.trackMounting or CombatMetronome.SV.Progressbar.trackSynergies or CombatMetronome.SV.Progressbar.trackBreakingFree then
 		return true
 	end
 	return false

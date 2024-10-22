@@ -70,6 +70,7 @@ function CombatMetronome:Init()
 	self.Progressbar.activeMount.action = ""
 	self.Progressbar.itemUsed = nil
 	self.Progressbar.collectibleInUse = nil
+	self.Progressbar.synergy = {}
     self.Progressbar.UI = CombatMetronome:BuildUI()
     CombatMetronome:BuildMenu()
 	-- CombatMetronome:UpdateAdjustChoices()
@@ -291,16 +292,16 @@ function CombatMetronome:RegisterCombatEvents()
 				elseif not IsMounted() and aId == 36010 and self.Progressbar.activeMount.action ~= "Mounting" then
 					CombatMetronome:SetIconsAndNamesNil()
 					self.Progressbar.activeMount.action = "Mounting"
-				elseif aId == 138780 then
-					CombatMetronome:SetIconsAndNamesNil()
-					self.Progressbar.killingAction = {}
-					self.Progressbar.killingAction.name = Util.Text.CropZOSString(aName)
-					self.Progressbar.killingAction.icon = "/esoui/art/icons/ability_u26_vampire_synergy_feed.dds"
-				elseif aId == 146301 then
-					CombatMetronome:SetIconsAndNamesNil()
-					self.Progressbar.killingAction = {}
-					self.Progressbar.killingAction.name = Util.Text.CropZOSString(aName)
-					self.Progressbar.killingAction.icon = "/esoui/art/icons/achievement_u23_skillmaster_darkbrotherhood.dds"
+				-- elseif aId == 138780 then
+					-- CombatMetronome:SetIconsAndNamesNil()
+					-- self.Progressbar.killingAction = {}
+					-- self.Progressbar.killingAction.name = Util.Text.CropZOSString(aName)
+					-- self.Progressbar.killingAction.icon = "/esoui/art/icons/ability_u26_vampire_synergy_feed.dds"
+				-- elseif aId == 146301 then
+					-- CombatMetronome:SetIconsAndNamesNil()
+					-- self.Progressbar.killingAction = {}
+					-- self.Progressbar.killingAction.name = Util.Text.CropZOSString(aName)
+					-- self.Progressbar.killingAction.icon = "/esoui/art/icons/achievement_u23_skillmaster_darkbrotherhood.dds"
 				elseif aId == 16565 then
 					CombatMetronome:SetIconsAndNamesNil()
 					self.Progressbar.breakingFree = {}
@@ -311,6 +312,9 @@ function CombatMetronome:RegisterCombatEvents()
 					-- self.otherSynergies = {}
 					-- self.otherSynergies.icon = aGraphic
 					-- self.otherSynergies.name = Util.Text.CropZOSString(aName)
+				elseif self.Progressbar.synergy and self.Progressbar.synergy.name == Util.Text.CropZOSString(aName) then
+					-- self.debug:Print("Synergy "..Util.Text.CropZOSString(aName).." was used")
+					self.Progressbar.synergy.wasUsed = true
 				end
 			end
 		end
@@ -326,8 +330,7 @@ function CombatMetronome:RegisterSynergyChanged()
 		function()
 			local hasSynergy, name, icon, _, _ = GetCurrentSynergyInfo()
 			if hasSynergy then
-				if self.SV.debug.enabled then self.debug:Print("Found synergy: "..Util.Text.CropZOSString(name)) end
-				self.Progressbar.synergy = {}
+				-- if self.SV.debug.enabled then self.debug:Print("Found synergy: "..Util.Text.CropZOSString(name)) end
 				self.Progressbar.synergy.name = Util.Text.CropZOSString(name)
 				self.Progressbar.synergy.icon = icon
 			-- else
