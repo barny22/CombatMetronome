@@ -69,7 +69,7 @@ jobs:
     # Zip-Datei für Addon ID 2373 (ohne ReadmeUpdated.md)
     - name: Zip Addon Files for Addon ID 2373 (excluding ReadmeUpdated.md)
       run: |
-        7z a CombatMetronome.zip ./CombatMetronome/ -xr!ReadmeUpdated.md
+        7z a CombatMetronome.zip ./CombatMetronome/ -xr!ReadmeUpdated.md -xr!*.git*
 
         
     - name: Upload Addon ID 2373 to ESOUI
@@ -87,7 +87,7 @@ jobs:
     # Zip-Datei für Addon ID 3790 (ohne ReadmeOriginal.md)
     - name: Zip Addon Files for Addon ID 3790 (excluding ReadmeOriginal.md)
       run: |
-        7z a CombatMetronome.zip ./CombatMetronome/ -xr!ReadmeOriginal.md
+        7z a CombatMetronome.zip ./CombatMetronome/ -xr!ReadmeOriginal.md -xr!*.git*
 
     - name: Upload Addon ID 3790 to ESOUI
       run: |
