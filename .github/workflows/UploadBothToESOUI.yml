@@ -6,11 +6,12 @@ on:
     branches:
       - master
     types:
-      - closed
+       - closed
+  workflow_dispatch:
 
 jobs:
   build:
-    if: github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'master' && github.event.pull_request.head.ref == 'development'
+    if: (github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'master' && github.event.pull_request.head.ref == 'development') || (github.event_name == 'workflow_dispatch')
     runs-on: ubuntu-latest
 
     steps:
@@ -22,12 +23,18 @@ jobs:
       run: |
         APIVersion=$(grep -Po '(?<=## APIVersion: )\d+' CombatMetronome.txt)
         AddonVersion=$(grep -Po '(?<=## Version: )[\d.]+' CombatMetronome.txt)
-        # Ersetze Punkte durch Unterstriche
-        AddonVersionWithUnderscores=$(echo $AddonVersion | sed 's/\./_/g')
         echo "API_VERSION=$APIVersion" >> $GITHUB_ENV
         echo "ADDON_VERSION=$AddonVersion" >> $GITHUB_ENV
-        echo "ADDON_VERSION_UNDERSCORES=$AddonVersionWithUnderscores" >> $GITHUB_ENV
-
+        
+    - name: Get Compatible Patch ID
+      id: get_patch_id
+      run: |
+        # Hole die aktuelle Patchnummer
+        PatchVersion=$(grep -Po '(?<=## APIVersion: )\d+' CombatMetronome.txt)
+        # Anfrage an die ESOUI API, um die ID für die Patch-Version zu erhalten
+        PatchID=$(curl -s -H "x-api-token: ${{ secrets.ESOUI_API_TOKEN }}" "https://api.esoui.com/addons/compatible.json" | jq -r ".[] | select(.interface == \"$PatchVersion\") | .id")
+        echo "PATCH_ID=$PatchID" >> $GITHUB_ENV
+        
     - name: Extract Changelog
       id: changelog
       run: |
@@ -36,8 +43,20 @@ jobs:
         echo "$Changelog" >> $GITHUB_ENV
         echo "EOF" >> $GITHUB_ENV
 
+    - name: Extract Addon Description
+      id: description
+      run: |
+        DescriptionOriginal=$(cat ReadmeOriginal.md)
+        echo "DESCRIPTIONORIGINAL<<EOF" >> $GITHUB_ENV
+        echo "$DescriptionOriginal" >> $GITHUB_ENV
+        echo "EOF" >> $GITHUB_ENV
+        DescriptionUpdated=$(cat ReadmeUpdated.md)
+        echo "DESCRIPTIONUPDATED<<EOF" >> $GITHUB_ENV
+        echo "$DescriptionUpdated" >> $GITHUB_ENV
+        echo "EOF" >> $GITHUB_ENV
+
     - name: Create GitHub Release
-      uses: softprops/action-gh-release@v1
+      uses: softprops/action-gh-release@v2
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
@@ -50,33 +69,34 @@ jobs:
     # Zip-Datei für Addon ID 2373 (ohne ReadmeUpdated.md)
     - name: Zip Addon Files for Addon ID 2373 (excluding ReadmeUpdated.md)
       run: |
-        zip -r CombatMetronome_v${{ env.ADDON_VERSION_UNDERSCORES }}.zip ./CombatMetronome/ --exclude ReadmeUpdated.md
+        7z a CombatMetronome.zip ./CombatMetronome/ -xr!ReadmeUpdated.md
 
+        
     - name: Upload Addon ID 2373 to ESOUI
-      env:
-        API_TOKEN: ${{ secrets.ESOUI_API_TOKEN }}
       run: |
-        curl -X POST "https://api.esoui.com/addons/update" \
-          -H "Authorization: Bearer $API_TOKEN" \
+        curl \
+          -H "x-api-token: ${{ secrets.ESOUI_API_TOKEN }}" \
           -F "id=2373" \
-          -F "updatefile=@./CombatMetronome_v${{ env.ADDON_VERSION_UNDERSCORES }}.zip" \
+          -F "version=${{ env.ADDON_VERSION }}" \
+          -F "updatefile=@./CombatMetronome.zip" \
           -F "changelog=${{ env.CHANGELOG }}" \
-          -F "compatible=$API_VERSION" \
+          -F "compatible=$PATCH_ID" \
           -F "description=${{ env.DESCRIPTION }}"
+          https://api.esoui.com/addons/update
     
     # Zip-Datei für Addon ID 3790 (ohne ReadmeOriginal.md)
     - name: Zip Addon Files for Addon ID 3790 (excluding ReadmeOriginal.md)
       run: |
-        zip -r CombatMetronome_v${{ env.ADDON_VERSION_UNDERSCORES }}.zip ./CombatMetronome/ --exclude ReadmeOriginal.md
+        7z a CombatMetronome.zip ./CombatMetronome/ -xr!ReadmeOriginal.md
 
     - name: Upload Addon ID 3790 to ESOUI
-      env:
-        API_TOKEN: ${{ secrets.ESOUI_API_TOKEN }}
       run: |
-        curl -X POST "https://api.esoui.com/addons/update" \
-          -H "Authorization: Bearer $API_TOKEN" \
+        curl \
+          -H "x-api-token: ${{ secrets.ESOUI_API_TOKEN }}" \
           -F "id=3790" \
+          -F "version=${{ env.ADDON_VERSION }}" \
           -F "updatefile=@./CombatMetronome_v${{ env.ADDON_VERSION_UNDERSCORES }}.zip" \
           -F "changelog=${{ env.CHANGELOG }}" \
-          -F "compatible=$API_VERSION" \
+          -F "compatible=$PATCH_ID" \
           -F "description=${{ env.DESCRIPTION }}"
+          https://api.esoui.com/addons/update
