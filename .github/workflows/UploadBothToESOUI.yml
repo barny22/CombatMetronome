@@ -1,6 +1,6 @@
 name: ESO Addon Dual Release
 
-# Auslöser: Bei einem Pull Request auf die master-Branch von development
+# Auslöser: Bei einem Pull Request auf die master-Branch von development oder workflow dispatch
 on:
   pull_request:
     branches:
