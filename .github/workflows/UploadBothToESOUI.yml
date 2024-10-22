@@ -15,7 +15,7 @@ jobs:
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
 
     - name: Extract API Version and Addon Version
       id: version_info
@@ -31,10 +31,21 @@ jobs:
     - name: Extract Changelog
       id: changelog
       run: |
-        Changelog=$(cat changelog.txt)
+        Changelog=$(cat Changelog.txt)
         echo "CHANGELOG<<EOF" >> $GITHUB_ENV
         echo "$Changelog" >> $GITHUB_ENV
         echo "EOF" >> $GITHUB_ENV
+
+    - name: Create GitHub Release
+      uses: softprops/action-gh-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ env.ADDON_VERSION }}
+        release_name: Release ${{ env.ADDON_VERSION }}
+        body: ${{ env.CHANGELOG }}
+        draft: false
+        prerelease: false
 
     # Zip-Datei für Addon ID 2373 (ohne ReadmeUpdated.md)
     - name: Zip Addon Files for Addon ID 2373 (excluding ReadmeUpdated.md)
