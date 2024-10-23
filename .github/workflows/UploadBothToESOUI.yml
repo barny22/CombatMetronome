@@ -57,16 +57,16 @@ jobs:
     #    echo "$DescriptionUpdated" >> $GITHUB_ENV
     #    echo "EOF" >> $GITHUB_ENV
 
-    #- name: Create GitHub Release
-    #  uses: softprops/action-gh-release@v2
-    #  env:
-    #    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    #  with:
-    #    tag_name: ${{ env.ADDON_VERSION }}
-    #    release_name: Release ${{ env.ADDON_VERSION }}
-    #    body: ${{ env.CHANGELOG }}
-    #    draft: false
-    #    prerelease: false
+    - name: Create GitHub Release
+      uses: softprops/action-gh-release@v2
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ env.ADDON_VERSION }}
+        release_name: Release ${{ env.ADDON_VERSION }}
+        body: ${{ env.CHANGELOG }}
+        draft: false
+        prerelease: false
 
     # Zip-Datei für Addon ID 2373 (ohne ReadmeUpdated.md)
     - name: Zip Addon Files for Addon ID 2373 (excluding ReadmeUpdated.md)
@@ -84,7 +84,7 @@ jobs:
           -F "changelog=./CombatMetronome/Changelog.txt" \
           -F "compatible=$PATCH_ID" \
           -F "description=./CombatMetronome/ReadmeOriginal.md" \
-          https://api.esoui.com/addons/updatetest
+          https://api.esoui.com/addons/update
     
     # Zip-Datei für Addon ID 3790 (ohne ReadmeOriginal.md)
     - name: Zip Addon Files for Addon ID 3790 (excluding ReadmeOriginal.md)
@@ -101,4 +101,4 @@ jobs:
           -F "changelog=./CombatMetronome/Changelog.txt" \
           -F "compatible=$PATCH_ID" \
           -F "description=./CombatMetronome/ReadmeUpdated.md" \
-          https://api.esoui.com/addons/updatetest
+          https://api.esoui.com/addons/update
