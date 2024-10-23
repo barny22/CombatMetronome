@@ -2,9 +2,9 @@ The All-in-one Combat Timing bar with the update all of you guys have been waiti
 
 Since Darianopolis can no longer maintain the Addon, I will probably do further updates only on the "optional Update", as it is easier for me to maintain. - barny
 
-Should there be any bugs, feel free to report them on my [URL="https://www.esoui.com/portal.php?id=386&a=listbugs"]ESOUI Portal[/URL].
+Should there be any bugs, feel free to report them on my [url="https://www.esoui.com/portal.php?id=386&a=listbugs"]ESOUI Portal[/url].
 
-Beta versions are available on [URL="https://github.com/barny22/CombatMetronome/tree/Development"]Github[/URL]. Install at your own risk.
+Beta versions are available on [url="https://github.com/barny22/CombatMetronome/tree/Development"]Github[/url]. Install at your own risk.
 
 ! Fixed time adjustment on exhausting fatecarver depending on crux
 ! Fixed: Channeled abilities or abilities with cast time are now interrupted by block, dodgeroll or barswap
@@ -15,10 +15,10 @@ Beta versions are available on [URL="https://github.com/barny22/CombatMetronome/
 + Added option to show the cast bar permanently
 + Added fancy mode.
 
-[QUOTE]IMPORTANT: [COLOR="Red"]I no longer play ESO and can't actively maintain this addon.[/COLOR]
+[quote]IMPORTANT: [color="Red"]I no longer play ESO and can't actively maintain this addon.[/color]
 I have enabled "Allow Updates & AddOns" if someone wants to keep this release working with new ESO API and library changes.
-Anyone is absolutely [U][COLOR="Green"]free[/COLOR][/U] to use this addon and adapt, modify or build it into any project you're working on.
-I would love to see some version of this addon continue, but I don't have the time or available classes to re-install ESO and properly maintain and bug-fix for all of the different classes and abilities on new builds and changes. [/QUOTE]
+Anyone is absolutely [u][color="Green"]free[/color][/u] to use this addon and adapt, modify or build it into any project you're working on.
+I would love to see some version of this addon continue, but I don't have the time or available classes to re-install ESO and properly maintain and bug-fix for all of the different classes and abilities on new builds and changes.[/quote]
 
 Track your heavy swings, ability cooldowns and cast/channels all in one bar to help you perfect your rotation timing and take advantage of abilty queuing with live latency information.
 Now includes optional Ultimate tracking.
@@ -30,18 +30,18 @@ https://www.esoui.com/downloads/info2408-CombatAurasAbilityTimers.html
 
 IMPORTANT - This addon and "Combat Auras" SHOULD always be updated at the same time. They share a common library to improve perforamnce, and there is a good chance on any update that I've made changes to this central library.
 
-[QUOTE]IMPORTANT: There have been changes to the central library. Combat Auras probably won't work after you updated Combat Metronome![/QUOTE]
+[quote]IMPORTANT: There have been changes to the central library. Combat Auras probably won't work after you updated Combat Metronome![/quote]
 
 Thanks for Seltiix for prototyping the initial sound cue system.
 
 Dependencies:
-[LIST]
+[list]
 [*]LibAddonMenu-2.0
 [*]libAddonKeybinds
-[/LIST]
+[/list]
 
 Features
-[LIST]
+[list]
 [*]Heavy attack + Cast / Channel + GCD tracking = Consolidate all of your combat timing into one bar
 [*]Displays your ping live on the bar to allow spell queueing with live latency information.
 [*]Timing adjustments. Firing abilities too early or too late? - Fine tune the displayed GCD / heavy timer / cast / channel individually (or globally) for ANY ability to best suit your play.
@@ -49,13 +49,13 @@ Features
 [*]Flashing animation on health percentage during execute
 [*]Keybind to force display + show absolute health
 [*]'Tick Tock' sound cues for audio feedback
-[/LIST]
+[/list]
 Future Features (No guarantee or time frame):
-[LIST]
+[list]
 [*]Light attack miss alert ? (Audio/Visual alert to provide feedback and improve timing reflexes)
-[/LIST]
+[/list]
 Known issues:
-[LIST]
+[list]
 [*]Some types of cast cancels are not tracked
 [*]Rarely, ground targeted abilities (E.g. Endless Hail) won't trigger a timer
-[/LIST]
+[/list]
