@@ -17,12 +17,14 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
+      with:
+        path: 'CombatMetronome'
 
     - name: Extract API Version and Addon Version
       id: version_info
       run: |
-        APIVersion=$(grep -Po '(?<=## APIVersion: )\d+' CombatMetronome.txt)
-        AddonVersion=$(grep -Po '(?<=## Version: )[\d.]+' CombatMetronome.txt)
+        APIVersion=$(grep -Po '(?<=## APIVersion: )\d+' CombatMetronome/CombatMetronome.txt)
+        AddonVersion=$(grep -Po '(?<=## Version: )[\d.]+' CombatMetronome/CombatMetronome.txt)
         echo "API_VERSION=$APIVersion" >> $GITHUB_ENV
         echo "ADDON_VERSION=$AddonVersion" >> $GITHUB_ENV
         
@@ -30,18 +32,18 @@ jobs:
       id: get_patch_id
       run: |
         # Hole die aktuelle Patchnummer
-        PatchVersion=$(grep -Po '(?<=## APIVersion: )\d+' CombatMetronome.txt)
+        PatchVersion=$(grep -Po '(?<=## APIVersion: )\d+' CombatMetronome/CombatMetronome.txt)
         # Anfrage an die ESOUI API, um die ID für die Patch-Version zu erhalten
         PatchID=$(curl -s -H "x-api-token: ${{ secrets.ESOUI_API_TOKEN }}" "https://api.esoui.com/addons/compatible.json" | jq -r ".[] | select(.interface == \"$PatchVersion\") | .id")
         echo "PATCH_ID=$PatchID" >> $GITHUB_ENV
         
-    - name: Extract Changelog
-      id: changelog
-      run: |
-        Changelog=$(cat Changelog.txt)
-        echo "CHANGELOG<<EOF" >> $GITHUB_ENV
-        echo "$Changelog" >> $GITHUB_ENV
-        echo "EOF" >> $GITHUB_ENV
+    #- name: Extract Changelog
+    #  id: changelog
+    #  run: |
+    #    Changelog=$(cat CombatMetronome/Changelog.txt)
+    #    echo "CHANGELOG<<EOF" >> $GITHUB_ENV
+    #    echo "$Changelog" >> $GITHUB_ENV
+    #    echo "EOF" >> $GITHUB_ENV
 
     #- name: Extract Addon Description
     #  id: description
@@ -79,9 +81,9 @@ jobs:
           -F "id=2373" \
           -F "version=${{ env.ADDON_VERSION }}" \
           -F "updatefile=@./CombatMetronome.zip" \
-          -F "changelog=./Changelog.txt" \
+          -F "changelog=./CombatMetronome/Changelog.txt" \
           -F "compatible=$PATCH_ID" \
-          -F "description=./ReadmeOriginal.md"
+          -F "description=./CombatMetronome/ReadmeOriginal.md"
           https://api.esoui.com/addons/updatetest
     
     # Zip-Datei für Addon ID 3790 (ohne ReadmeOriginal.md)
@@ -95,8 +97,8 @@ jobs:
           -H "x-api-token: ${{ secrets.ESOUI_API_TOKEN }}" \
           -F "id=3790" \
           -F "version=${{ env.ADDON_VERSION }}" \
-          -F "updatefile=@./CombatMetronome_v${{ env.ADDON_VERSION_UNDERSCORES }}.zip" \
-          -F "changelog=./Changelog.txt" \
+          -F "updatefile=@./CombatMetronome.zip" \
+          -F "changelog=./CombatMetronome/Changelog.txt" \
           -F "compatible=$PATCH_ID" \
-          -F "description=./ReadmeUpdated.md"
+          -F "description=./CombatMetronome/ReadmeUpdated.md"
           https://api.esoui.com/addons/updatetest
