@@ -48,11 +48,11 @@ jobs:
     - name: Extract Addon Description
       id: description
       run: |
-        DescriptionOriginal=$(cat ReadmeOriginal.md)
+        DescriptionOriginal=$(cat CombatMetronome/ReadmeOriginal.md)
         echo "DESCRIPTIONORIGINAL<<EOF" >> $GITHUB_ENV
         echo "$DescriptionOriginal" >> $GITHUB_ENV
         echo "EOF" >> $GITHUB_ENV
-        DescriptionUpdated=$(cat ReadmeUpdated.md)
+        DescriptionUpdated=$(cat CombatMetronome/ReadmeUpdated.md)
         echo "DESCRIPTIONUPDATED<<EOF" >> $GITHUB_ENV
         echo "$DescriptionUpdated" >> $GITHUB_ENV
         echo "EOF" >> $GITHUB_ENV
