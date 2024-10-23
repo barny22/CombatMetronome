@@ -81,9 +81,9 @@ jobs:
           -F "id=2373" \
           -F "version=${{ env.ADDON_VERSION }}" \
           -F "updatefile=@./CombatMetronome.zip" \
-          -F "changelog=./CombatMetronome/Changelog.txt" \
+          -F "changelog=@./CombatMetronome/Changelog.txt" \
           -F "compatible=$PATCH_ID" \
-          -F "description=./CombatMetronome/ReadmeOriginal.md" \
+          -F "description=@./CombatMetronome/ReadmeOriginal.md" \
           https://api.esoui.com/addons/update
     
     # Zip-Datei für Addon ID 3790 (ohne ReadmeOriginal.md)
@@ -98,7 +98,7 @@ jobs:
           -F "id=3790" \
           -F "version=${{ env.ADDON_VERSION }}" \
           -F "updatefile=@./CombatMetronome.zip" \
-          -F "changelog=./CombatMetronome/Changelog.txt" \
+          -F "changelog=@./CombatMetronome/Changelog.txt" \
           -F "compatible=$PATCH_ID" \
-          -F "description=./CombatMetronome/ReadmeUpdated.md" \
+          -F "description=@./CombatMetronome/ReadmeUpdated.md" \
           https://api.esoui.com/addons/update
