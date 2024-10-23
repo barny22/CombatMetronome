@@ -83,7 +83,7 @@ jobs:
           -F "updatefile=@./CombatMetronome.zip" \
           -F "changelog=\"${{ env.CHANGELOG }}\"" \
           -F "compatible=$PATCH_ID" \
-          -F 'description="${{ env.DESCRIPTIONORIGINAL }}"' \
+          -F "description=\"${{ env.DESCRIPTIONORIGINAL }}\"" \
           https://api.esoui.com/addons/updatetest
     
     # Zip-Datei für Addon ID 3790 (ohne ReadmeOriginal.md)
@@ -100,5 +100,5 @@ jobs:
           -F "updatefile=@./CombatMetronome.zip" \
           -F "changelog=\"${{ env.CHANGELOG }}\"" \
           -F "compatible=$PATCH_ID" \
-          -F 'description="${{ env.DESCRIPTIONUPDATED }}"' \
+          -F "description=\"${{ env.DESCRIPTIONUPDATED }}\"" \
           https://api.esoui.com/addons/updatetest
