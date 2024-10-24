@@ -41,7 +41,7 @@ def upload_addon(api_token, addon_id, version, file_path, changelog, compatible,
 
 def read_file(file_path):
     with open(file_path, 'r') as file:
-        return file.read()
+        return file.read().strip()  # Trim whitespace und neue Zeilen am Anfang und Ende
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Upload an ESO Addon to ESOUI")
