@@ -3,10 +3,9 @@ param(
     [int]$addon_id,
     [string]$version,
     [string]$file_path,
-    [string]$changelog,
-    [string]$compatible,
-    [string]$description,
-    [bool]$test_only = $false
+    [string]$changelog_file_path,
+    [string]$readme_file_path,
+    [bool]$test_only = $true
 )
 
 function Upload-Addon {
@@ -54,6 +53,10 @@ function Upload-Addon {
         Write-Host "An error occurred: $_"
     }
 }
+
+# Changelog und Beschreibung aus den Dateien einlesen
+$changelog = Get-Content $changelog_file_path -Raw
+$description = Get-Content $readme_file_path -Raw
 
 # Call the function with parameters
 Upload-Addon -api_token $api_token -addon_id $addon_id -version $version -file_path $file_path -changelog $changelog -compatible $compatible -description $description -test_only $test_only
