@@ -72,4 +72,4 @@ $changelog = Get-Content $ChangelogFilePath
 $description = Get-Content $ReadmeFilePath
 
 # Call the function with parameters
-Upload-Addon -api_token $ApiToken -addon_id $AddonId -version $Version -file_path $FilePath -changelog $changelog -compatible $Compatible -description $description -test_only $TestOnly
+Upload-Addon -ApiToken $ApiToken -AddonId $AddonId -Version $Version -FilePath $FilePath -changelog $changelog -Compatible $Compatible -description $description -TestOnly $TestOnly
