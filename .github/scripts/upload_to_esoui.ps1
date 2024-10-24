@@ -1,56 +1,56 @@
 param(
-    [string]$api_token,
-    [int]$addon_id,
-    [string]$version,
-    [string]$file_path,
-    [string]$changelog_file_path,
-    [string]$compatible,
-    [string]$readme_file_path,
-    [bool]$test_only = $true
+    [string]$ApiToken,
+    [int]$AddonId,
+    [string]$Version,
+    [string]$FilePath,
+    [string]$ChangelogFilePath,
+    [string]$Compatible,
+    [string]$ReadmeFilePath,
+    [bool]$TestOnly = $true
 )
 
     # Debugging-Ausgaben
-    Write-Host "API Token: $api_token"
-    Write-Host "AddOn Id: $addon_id"
-    Write-Host "Version: $version"
-    Write-Host "ZIP File Path: $file_path"
-    Write-Host "Changelog File Path: $changelog_file_path"
-    Write-Host "Compatible: $compatible"
-    Write-Host "Readme File Path: $readme_file_path"
-    Write-Host "Test: $test_only"
+    Write-Host "API Token: $ApiToken"
+    Write-Host "AddOn Id: $AddonId"
+    Write-Host "Version: $Version"
+    Write-Host "ZIP File Path: $FilePath"
+    Write-Host "Changelog File Path: $ChangelogFilePath"
+    Write-Host "Compatible: $Compatible"
+    Write-Host "Readme File Path: $ReadmeFilePath"
+    Write-Host "Test: $TestOnly"
 
 function Upload-Addon {
     param (
-        [string]$api_token,
-        [int]$addon_id,
-        [string]$version,
-        [string]$file_path,
-        [string]$changelog_file_path,
-        [string]$compatible,
-        [string]$readme_file_path,
-        [bool]$test_only
+        [string]$ApiToken,
+        [int]$AddonId,
+        [string]$Version,
+        [string]$FilePath,
+        [string]$ChangelogFilePath,
+        [string]$Compatible,
+        [string]$ReadmeFilePath,
+        [bool]$TestOnly = $true
     )
 
-    $url = if ($test_only) {
+    $url = if ($TestOnly) {
         "https://api.esoui.com/addons/updatetest"
     } else {
         "https://api.esoui.com/addons/update"
     }
 
     $headers = @{
-        "x-api-token" = $api_token
+        "x-api-token" = $ApiToken
     }
 
     # Prepare the multipart form data
     $formData = @{
         "archive" = "Yes"  # Set to "Yes" or "No" as required
-        "updatefile" = Get-Item $file_path
-        "id" = $addon_id
+        "updatefile" = Get-Item $FilePath
+        "id" = $AddonId
         "title" = ""  # Optional
-        "version" = $version
-        "changelog" = $changelog_file_path
-        "compatible" = $compatible
-        "description" = $readme_file_path
+        "version" = $Version
+        "changelog" = $ChangelogFilePath
+        "compatible" = $Compatible
+        "description" = $ReadmeFilePath
     }
 
     # Debugging-Ausgaben
@@ -66,8 +66,8 @@ function Upload-Addon {
 }
 
 # Changelog und Beschreibung aus den Dateien einlesen
-$changelog = Get-Content $changelog_file_path
-$description = Get-Content $readme_file_path
+$changelog = Get-Content $ChangelogFilePath
+$description = Get-Content $ReadmeFilePath
 
 # Call the function with parameters
-Upload-Addon -api_token $api_token -addon_id $addon_id -version $version -file_path $file_path -changelog $changelog -compatible $compatible -description $description -test_only $test_only
+Upload-Addon -api_token $ApiToken -addon_id $AddonId -version $Version -file_path $FilePath -changelog $changelog -compatible $Compatible -description $description -test_only $TestOnly
