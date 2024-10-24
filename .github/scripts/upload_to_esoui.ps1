@@ -4,6 +4,7 @@ param(
     [string]$version,
     [string]$file_path,
     [string]$changelog_file_path,
+    [string]$compatible,
     [string]$readme_file_path,
     [bool]$test_only = $true
 )
@@ -18,9 +19,9 @@ function Upload-Addon {
         [int]$addon_id,
         [string]$version,
         [string]$file_path,
-        [string]$changelog,
+        [string]$changelog_file_path,
         [string]$compatible,
-        [string]$description,
+        [string]$readme_file_path,
         [bool]$test_only
     )
 
@@ -41,9 +42,9 @@ function Upload-Addon {
         "id" = $addon_id
         "title" = ""  # Optional
         "version" = $version
-        "changelog" = $changelog
+        "changelog" = $changelog_file_path
         "compatible" = $compatible
-        "description" = $description
+        "description" = $readme_file_path
     }
 
     # Debugging-Ausgaben
