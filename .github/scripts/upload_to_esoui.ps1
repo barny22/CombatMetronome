@@ -10,6 +10,7 @@ param(
 )
 
     # Debugging-Ausgaben
+    Write-Host "ZIP File Path: $file_path"
     Write-Host "Changelog File Path: $changelog_file_path"
     Write-Host "Readme File Path: $readme_file_path"
 
