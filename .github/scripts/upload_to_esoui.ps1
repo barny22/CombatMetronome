@@ -8,6 +8,10 @@ param(
     [bool]$test_only = $true
 )
 
+    # Debugging-Ausgaben
+    Write-Host "Changelog File Path: $changelog_file_path"
+    Write-Host "Readme File Path: $readme_file_path"
+
 function Upload-Addon {
     param (
         [string]$api_token,
