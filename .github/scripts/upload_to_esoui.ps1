@@ -6,7 +6,7 @@ param(
     [string]$ChangelogFilePath,
     [string]$Compatible,
     [string]$ReadmeFilePath,
-    [bool]$TestOnly = $true
+    [bool]$TestOnly
 )
 
     # Debugging-Ausgaben
