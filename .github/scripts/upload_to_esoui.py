@@ -19,6 +19,7 @@ def upload_addon(api_token, addon_id, version, file_path, changelog, compatible,
     print(f"URL: {url}")
     print(f"Headers: {headers}")
     print(f"Files: {files}")
+    print(f"Parameters - Addon ID: {addon_id}, Compatible: {compatible}")
 
     try:
         response = requests.post(url, headers={k: v for k, v in headers.items() if v is not None}, files=files)
@@ -39,7 +40,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Upload an ESO Addon to ESOUI")
     
     parser.add_argument("--api_token", required=False, help="API token for ESOUI")
-    parser.add_argument("--addon_id", required=True, help="ID of the addon")
+    parser.add_argument("--addon_id", required=True, help="ID of the addon (should be an integer)")
     parser.add_argument("--version", required=True, help="Version of the addon")
     parser.add_argument("--file_path", required=True, help="Path to the addon ZIP file")
     parser.add_argument("--changelog_path", required=False, help="Path to the changelog file")
@@ -49,8 +50,11 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
+    # Konvertiere addon_id in Integer
+    addon_id = int(args.addon_id)
+
     changelog = read_file(args.changelog_path)
     description = read_file(args.description_path)
 
     # Den Aufruf der Funktion mit den Argumenten
-    upload_addon(args.api_token, args.addon_id, args.version, args.file_path, changelog, args.compatible, description, args.test_only.lower() == 'true')
+    upload_addon(args.api_token, addon_id, args.version, args.file_path, changelog, args.compatible, description, args.test_only.lower() == 'true')
