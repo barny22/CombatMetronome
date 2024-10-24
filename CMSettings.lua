@@ -1753,7 +1753,7 @@ function CombatMetronome:BuildMenu()
 					width = "half",
 				},
 				{	type = "checkbox",
-					name = "Debug ability.lua CancelEvent()",
+					name = "Debug ability.lua queuedEvent",
 					getFunc = function() return CombatMetronome.SV.debug.eventCancel end,
 					setFunc = function(value)
 						CombatMetronome.SV.debug.eventCancel = value
