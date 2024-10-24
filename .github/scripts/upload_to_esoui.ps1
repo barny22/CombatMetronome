@@ -41,6 +41,8 @@ function Upload-Addon {
         "x-api-token" = $ApiToken
     }
 
+    Write-Host "ZIP File Path: $FilePath"
+    
     # Prepare the multipart form data
     $formData = @{
         "archive" = "Yes"  # Set to "Yes" or "No" as required
