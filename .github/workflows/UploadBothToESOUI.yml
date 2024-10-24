@@ -62,16 +62,17 @@ jobs:
     #    echo "$DescriptionUpdated" >> $GITHUB_ENV
     #    echo "EOF" >> $GITHUB_ENV
 
-    #- name: Create GitHub Release
-    #  uses: softprops/action-gh-release@v2
-    #  env:
-    #    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    #  with:
-    #    tag_name: ${{ env.ADDON_VERSION }}
-    #    release_name: Release ${{ env.ADDON_VERSION }}
-    #    body: ${{ env.CHANGELOG }}
-    #    draft: false
-    #    prerelease: false
+    - name: Create GitHub Release
+      if: env.TEST_ONLY == 'false'  # Nur wenn TEST_ONLY false ist
+      uses: softprops/action-gh-release@v2
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ env.ADDON_VERSION }}
+        release_name: Release ${{ env.ADDON_VERSION }}
+        body: ${{ env.CHANGELOG }}
+        draft: false
+        prerelease: false
 
     # Zip-Datei für Addon ID 2373 (ohne ReadmeUpdated.md)
     - name: Zip Addon Files for Addon ID 2373 (excluding ReadmeUpdated.md)
@@ -115,9 +116,9 @@ jobs:
           -AddonId "2373" `
           -Version "${{ env.ADDON_VERSION }}" `
           -FilePath "./CombatMetronome_2373.zip" `
-          -ChangelogFilePath "./Changelog.txt" `
+          -ChangelogFilePath "$baseDir/CombatMetronome/Changelog.txt" `
           -Compatible $PATCH_ID `
-          -ReadmeFilePath "./ReadmeOriginal.md" `
+          -ReadmeFilePath "$baseDir/CombatMetronome/ReadmeOriginal.md" `
           -TestOnly "${{ env.TEST_ONLY }}"
 
     - name: Upload Addon 3790 to ESOUI with PowerShell
@@ -128,7 +129,7 @@ jobs:
           -AddonId "3790" `
           -Version "${{ env.ADDON_VERSION }}" `
           -FilePath "./CombatMetronome_3790.zip" `
-          -ChangelogFilePath "./Changelog.txt" `
+          -ChangelogFilePath "$baseDir/CombatMetronome/Changelog.txt" `
           -Compatible $PATCH_ID `
-          -ReadmeFilePath "./ReadmeUpdated.md" `
+          -ReadmeFilePath "$baseDir/CombatMetronome/ReadmeUpdated.md" `
           -TestOnly "${{ env.TEST_ONLY }}"
