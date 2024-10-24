@@ -337,13 +337,9 @@ end
 function Ability.Tracker:CancelEvent(reason)
     -- self.eventStart = nil
     local time = GetFrameTimeMilliseconds()
-    
-    if CombatMetronome.SV.debug.eventCancel then
-        if self.queuedEvent and not self.queuedEvent.ability.heavy then CombatMetronome.debug:Print(reason) end
-    end
-    
+        
     if not (self.queuedEvent and self.queuedEvent.allowForce and self.lastAbilityFinished < time) then
-        if CombatMetronome.SV.debug.eventCancel then CombatMetronome.debug:Print("Canceled "..self.queuedEvent.ability.name) end
+        if CombatMetronome.SV.debug.eventCancel and self.queuedEvent and self.queuedEvent.ability and not self.queuedEvent.ability.heavy then CombatMetronome.debug:Print("Canceled "..self.queuedEvent.ability.name.." because of "..reason) end
         self.queuedEvent = nil
     end
 
