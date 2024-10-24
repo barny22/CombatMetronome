@@ -20,6 +20,11 @@ jobs:
       with:
         path: 'CombatMetronome'
 
+    - name: Set Test only
+      id: test_only
+      run: |
+        echo "TEST_ONLY=true" >> $GITHUB_ENV
+
     - name: Extract API Version and Addon Version
       id: version_info
       run: |
@@ -110,10 +115,10 @@ jobs:
           -AddonId "2373" `
           -Version "${{ env.ADDON_VERSION }}" `
           -FilePath "./CombatMetronome_2373.zip" `
-          -ChangelogFilePath "./CombatMetronome/Changelog.txt" `
+          -ChangelogFilePath "./Changelog.txt" `
           -Compatible $PATCH_ID `
-          -ReadmeFilePath "./CombatMetronome/ReadmeOriginal.md" `
-          -TestOnly $true
+          -ReadmeFilePath "./ReadmeOriginal.md" `
+          -TestOnly "${{ env.TEST_ONLY }}"
 
     - name: Upload Addon 3790 to ESOUI with PowerShell
       shell: pwsh
@@ -123,7 +128,7 @@ jobs:
           -AddonId "3790" `
           -Version "${{ env.ADDON_VERSION }}" `
           -FilePath "./CombatMetronome_3790.zip" `
-          -ChangelogFilePath "./CombatMetronome/Changelog.txt" `
+          -ChangelogFilePath "./Changelog.txt" `
           -Compatible $PATCH_ID `
-          -ReadmeFilePath "./CombatMetronome/ReadmeUpdated.md" `
-          -TestOnly $true
+          -ReadmeFilePath "./ReadmeUpdated.md" `
+          -TestOnly "${{ env.TEST_ONLY }}"
