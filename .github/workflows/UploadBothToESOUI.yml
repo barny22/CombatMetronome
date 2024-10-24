@@ -17,6 +17,8 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
+      with:
+        path: 'CombatMetronome'
 
     - name: Set Test only
       id: test_only
@@ -26,8 +28,8 @@ jobs:
     - name: Extract API Version and Addon Version
       id: version_info
       run: |
-        APIVersion=$(grep -Po '(?<=## APIVersion: )\d+' CombatMetronome.txt)
-        AddonVersion=$(grep -Po '(?<=## Version: )[\d.]+' CombatMetronome.txt)
+        APIVersion=$(grep -Po '(?<=## APIVersion: )\d+' CombatMetronome/CombatMetronome.txt)
+        AddonVersion=$(grep -Po '(?<=## Version: )[\d.]+' CombatMetronome/CombatMetronome.txt)
         echo "API_VERSION=$APIVersion" >> $GITHUB_ENV
         echo "ADDON_VERSION=$AddonVersion" >> $GITHUB_ENV
         
@@ -35,18 +37,18 @@ jobs:
       id: get_patch_id
       run: |
         # Hole die aktuelle Patchnummer
-        PatchVersion=$(grep -Po '(?<=## APIVersion: )\d+' CombatMetronome.txt)
+        PatchVersion=$(grep -Po '(?<=## APIVersion: )\d+' CombatMetronome/CombatMetronome.txt)
         # Anfrage an die ESOUI API, um die ID für die Patch-Version zu erhalten
         PatchID=$(curl -s -H "x-api-token: ${{ secrets.ESOUI_API_TOKEN }}" "https://api.esoui.com/addons/compatible.json" | jq -r ".[] | select(.interface == \"$PatchVersion\") | .id")
         echo "PATCH_ID=$PatchID" >> $GITHUB_ENV
         
-    #- name: Extract Changelog
-    #  id: changelog
-    #  run: |
-    #    Changelog=$(cat CombatMetronome/Changelog.txt)
-    #    echo "CHANGELOG<<EOF" >> $GITHUB_ENV
-    #    echo "$Changelog" >> $GITHUB_ENV
-    #    echo "EOF" >> $GITHUB_ENV
+    - name: Extract Changelog
+      id: changelog
+      run: |
+        Changelog=$(cat CombatMetronome/Changelog.txt)
+        echo "CHANGELOG<<EOF" >> $GITHUB_ENV
+        echo "$Changelog" >> $GITHUB_ENV
+        echo "EOF" >> $GITHUB_ENV
 
     #- name: Extract Addon Description
     #  id: description
@@ -75,12 +77,12 @@ jobs:
     # Zip-Datei für Addon ID 2373 (ohne ReadmeUpdated.md)
     - name: Zip Addon Files for Addon ID 2373 (excluding ReadmeUpdated.md)
       run: |
-        7z a CombatMetronome_2373.zip ./ -xr!ReadmeUpdated.md -xr!*.git*
+        7z a CombatMetronome_2373.zip ./CombatMetronome/ -xr!ReadmeUpdated.md -xr!*.git*
 
     # Zip-Datei für Addon ID 3790 (ohne ReadmeOriginal.md)
     - name: Zip Addon Files for Addon ID 3790 (excluding ReadmeOriginal.md)
       run: |
-        7z a CombatMetronome_3790.zip ./ -xr!ReadmeOriginal.md -xr!*.git*
+        7z a CombatMetronome_3790.zip ./CombatMetronome/ -xr!ReadmeOriginal.md -xr!*.git*
         
     #- name: Upload Addon to ESOUI with Python (ID 2373)
     #  run: |
@@ -114,7 +116,7 @@ jobs:
         $readmePath = "$baseDir/CombatMetronome/ReadmeOriginal.md"
         Write-Host "Changelog Path: $changelogPath" # Debugging-Ausgabe
         Write-Host "Readme Path: $readmePath" # Debugging-Ausgabe
-        ./.github/scripts/upload_to_esoui.ps1 `
+        ./CombatMetronome/.github/scripts/upload_to_esoui.ps1 `
           -ApiToken "${{ secrets.ESOUI_API_TOKEN }}" `
           -AddonId "2373" `
           -Version "${{ env.ADDON_VERSION }}" `
@@ -132,7 +134,7 @@ jobs:
         $readmePath = "$baseDir/CombatMetronome/ReadmeUpdated.md"
         Write-Host "Changelog Path: $changelogPath" # Debugging-Ausgabe
         Write-Host "Readme Path: $readmePath" # Debugging-Ausgabe
-        ./.github/scripts/upload_to_esoui.ps1 `
+        ./CombatMetronome/.github/scripts/upload_to_esoui.ps1 `
           -ApiToken "${{ secrets.ESOUI_API_TOKEN }}" `
           -AddonId "3790" `
           -Version "${{ env.ADDON_VERSION }}" `
