@@ -105,25 +105,25 @@ jobs:
     - name: Upload Addon 2373 to ESOUI with PowerShell
       shell: pwsh
       run: |
-        ./CombatMetronome/.github/scripts/upload_to_esoui.ps1 `
+        ./.github/scripts/upload_to_esoui.ps1 `
           -ApiToken "${{ secrets.ESOUI_API_TOKEN }}" `
           -AddonId "2373" `
           -Version "${{ env.ADDON_VERSION }}" `
           -FilePath "./CombatMetronome_2373.zip" `
-          -Changelog "./CombatMetronome/Changelog.txt" `
+          -Changelog "./Changelog.txt" `
           -Compatible $PATCH_ID `
-          -Description "./CombatMetronome/ReadmeOriginal.md" `
+          -Description "./ReadmeOriginal.md" `
           -TestOnly $true
 
     - name: Upload Addon 3790 to ESOUI with PowerShell
       shell: pwsh
       run: |
-        ./CombatMetronome/.github/scripts/upload_to_esoui.ps1 `
+        ./.github/scripts/upload_to_esoui.ps1 `
           -ApiToken "${{ secrets.ESOUI_API_TOKEN }}" `
           -AddonId "3790" `
           -Version "${{ env.ADDON_VERSION }}" `
           -FilePath "./CombatMetronome_3790.zip" `
-          -Changelog "./CombatMetronome/Changelog.txt" `
+          -Changelog "./Changelog.txt" `
           -Compatible $PATCH_ID `
-          -Description "./CombatMetronome/ReadmeUpdated.md" `
+          -Description "./ReadmeUpdated.md" `
           -TestOnly $true
