@@ -6,7 +6,7 @@ param(
     [string]$ChangelogFilePath,
     [string]$Compatible,
     [string]$ReadmeFilePath,
-    [bool]$TestOnly
+    [string]$TestOnly
 )
 
     # Debugging-Ausgaben
@@ -28,10 +28,10 @@ function Upload-Addon {
         [string]$ChangelogFilePath,
         [string]$Compatible,
         [string]$ReadmeFilePath,
-        [bool]$TestOnly
+        [string]$TestOnly
     )
 
-    $url = if ($TestOnly) {
+    $url = if ($TestOnly -eq "true") {
         "https://api.esoui.com/addons/updatetest"
     } else {
         "https://api.esoui.com/addons/update"
