@@ -80,7 +80,7 @@ jobs:
         
     - name: Upload Addon to ESOUI with Python (ID 2373)
       run: |
-        python3 ./.github/scripts/upload_to_esoui.py \
+        python3 ./CombatMetronome/.github/scripts/upload_to_esoui.py \
           --api_token="${{ secrets.ESOUI_API_TOKEN }}" \
           --addon_id="2373" \
           --version="${{ env.ADDON_VERSION }}" \
@@ -92,7 +92,7 @@ jobs:
     
     - name: Upload Addon to ESOUI with Python (ID 3790)
       run: |
-        python3 ./.github/scripts/upload_to_esoui.py \
+        python3 ./CombatMetronome/.github/scripts/upload_to_esoui.py \
           --api_token="${{ secrets.ESOUI_API_TOKEN }}" \
           --addon_id="3790" \
           --version="${{ env.ADDON_VERSION }}" \
