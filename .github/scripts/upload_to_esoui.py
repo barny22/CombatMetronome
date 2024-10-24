@@ -63,5 +63,11 @@ if __name__ == "__main__":
     changelog = read_file(args.changelog_path)
     description = read_file(args.description_path)
 
+    def escape_special_chars(text):
+    return text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("\"", "&quot;").replace("'", "&apos;")
+
+    changelog = escape_special_chars(changelog)
+    description = escape_special_chars(description)
+
     # Den Aufruf der Funktion mit den Argumenten
     upload_addon(args.api_token, addon_id, args.version, args.file_path, changelog, args.compatible, description, args.test_only.lower() == 'true')
