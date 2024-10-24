@@ -17,8 +17,6 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
-      with:
-        path: 'CombatMetronome'
 
     - name: Set Test only
       id: test_only
@@ -28,8 +26,8 @@ jobs:
     - name: Extract API Version and Addon Version
       id: version_info
       run: |
-        APIVersion=$(grep -Po '(?<=## APIVersion: )\d+' CombatMetronome/CombatMetronome.txt)
-        AddonVersion=$(grep -Po '(?<=## Version: )[\d.]+' CombatMetronome/CombatMetronome.txt)
+        APIVersion=$(grep -Po '(?<=## APIVersion: )\d+' CombatMetronome.txt)
+        AddonVersion=$(grep -Po '(?<=## Version: )[\d.]+' CombatMetronome.txt)
         echo "API_VERSION=$APIVersion" >> $GITHUB_ENV
         echo "ADDON_VERSION=$AddonVersion" >> $GITHUB_ENV
         
@@ -37,7 +35,7 @@ jobs:
       id: get_patch_id
       run: |
         # Hole die aktuelle Patchnummer
-        PatchVersion=$(grep -Po '(?<=## APIVersion: )\d+' CombatMetronome/CombatMetronome.txt)
+        PatchVersion=$(grep -Po '(?<=## APIVersion: )\d+' CombatMetronome.txt)
         # Anfrage an die ESOUI API, um die ID für die Patch-Version zu erhalten
         PatchID=$(curl -s -H "x-api-token: ${{ secrets.ESOUI_API_TOKEN }}" "https://api.esoui.com/addons/compatible.json" | jq -r ".[] | select(.interface == \"$PatchVersion\") | .id")
         echo "PATCH_ID=$PatchID" >> $GITHUB_ENV
@@ -116,7 +114,7 @@ jobs:
         $readmePath = "$baseDir/CombatMetronome/ReadmeOriginal.md"
         Write-Host "Changelog Path: $changelogPath" # Debugging-Ausgabe
         Write-Host "Readme Path: $readmePath" # Debugging-Ausgabe
-        ./CombatMetronome/.github/scripts/upload_to_esoui.ps1 `
+        ./.github/scripts/upload_to_esoui.ps1 `
           -ApiToken "${{ secrets.ESOUI_API_TOKEN }}" `
           -AddonId "2373" `
           -Version "${{ env.ADDON_VERSION }}" `
@@ -134,7 +132,7 @@ jobs:
         $readmePath = "$baseDir/CombatMetronome/ReadmeUpdated.md"
         Write-Host "Changelog Path: $changelogPath" # Debugging-Ausgabe
         Write-Host "Readme Path: $readmePath" # Debugging-Ausgabe
-        ./CombatMetronome/.github/scripts/upload_to_esoui.ps1 `
+        ./.github/scripts/upload_to_esoui.ps1 `
           -ApiToken "${{ secrets.ESOUI_API_TOKEN }}" `
           -AddonId "3790" `
           -Version "${{ env.ADDON_VERSION }}" `
