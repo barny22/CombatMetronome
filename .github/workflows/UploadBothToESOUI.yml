@@ -37,25 +37,25 @@ jobs:
         PatchID=$(curl -s -H "x-api-token: ${{ secrets.ESOUI_API_TOKEN }}" "https://api.esoui.com/addons/compatible.json" | jq -r ".[] | select(.interface == \"$PatchVersion\") | .id")
         echo "PATCH_ID=$PatchID" >> $GITHUB_ENV
         
-    - name: Extract Changelog
-      id: changelog
-      run: |
-        Changelog=$(cat CombatMetronome/Changelog.txt)
-        echo "CHANGELOG<<EOF" >> $GITHUB_ENV
-        echo "$Changelog" >> $GITHUB_ENV
-        echo "EOF" >> $GITHUB_ENV
+    #- name: Extract Changelog
+    #  id: changelog
+    #  run: |
+    #    Changelog=$(cat CombatMetronome/Changelog.txt)
+    #    echo "CHANGELOG<<EOF" >> $GITHUB_ENV
+    #    echo "$Changelog" >> $GITHUB_ENV
+    #    echo "EOF" >> $GITHUB_ENV
 
-    - name: Extract Addon Description
-      id: description
-      run: |
-        DescriptionOriginal=$(cat CombatMetronome/ReadmeOriginal.md)
-        echo "DESCRIPTIONORIGINAL<<EOF" >> $GITHUB_ENV
-        echo "$DescriptionOriginal" >> $GITHUB_ENV
-        echo "EOF" >> $GITHUB_ENV
-        DescriptionUpdated=$(cat CombatMetronome/ReadmeUpdated.md)
-        echo "DESCRIPTIONUPDATED<<EOF" >> $GITHUB_ENV
-        echo "$DescriptionUpdated" >> $GITHUB_ENV
-        echo "EOF" >> $GITHUB_ENV
+    #- name: Extract Addon Description
+    #  id: description
+    #  run: |
+    #    DescriptionOriginal=$(cat CombatMetronome/ReadmeOriginal.md)
+    #    echo "DESCRIPTIONORIGINAL<<EOF" >> $GITHUB_ENV
+    #    echo "$DescriptionOriginal" >> $GITHUB_ENV
+    #    echo "EOF" >> $GITHUB_ENV
+    #    DescriptionUpdated=$(cat CombatMetronome/ReadmeUpdated.md)
+    #    echo "DESCRIPTIONUPDATED<<EOF" >> $GITHUB_ENV
+    #    echo "$DescriptionUpdated" >> $GITHUB_ENV
+    #    echo "EOF" >> $GITHUB_ENV
 
     #- name: Create GitHub Release
     #  uses: softprops/action-gh-release@v2
@@ -85,11 +85,11 @@ jobs:
           --addon_id="2373" \
           --version="${{ env.ADDON_VERSION }}" \
           --file_path="./CombatMetronome_2373.zip" \
-          --changelog="${{ env.CHANGELOG }}" \
+          --changelog_path="./CombatMetronome/Changelog.txt" \
           --compatible="$PATCH_ID" \
-          --description="${{ env.DESCRIPTIONORIGINAL }}" \
+          --description_path="./CombatMetronome/ReadmeOriginal.md" \
           --test_only="true"
-
+    
     - name: Upload Addon to ESOUI with Python (ID 3790)
       run: |
         python3 ./.github/scripts/upload_to_esoui.py \
@@ -97,7 +97,7 @@ jobs:
           --addon_id="3790" \
           --version="${{ env.ADDON_VERSION }}" \
           --file_path="./CombatMetronome_3790.zip" \
-          --changelog="${{ env.CHANGELOG }}" \
+          --changelog_path="./CombatMetronome/Changelog.txt" \
           --compatible="$PATCH_ID" \
-          --description="${{ env.DESCRIPTIONUPDATED }}" \
+          --description_path="./CombatMetronome/ReadmeUpdated.md" \
           --test_only="true"
