@@ -138,7 +138,7 @@ jobs:
           -ApiToken "${{ secrets.ESOUI_API_TOKEN }}" `
           -AddonId 3790 `
           -Version "${{ env.ADDON_VERSION }}" `
-          -FilePath ".CombatMetronome/CombatMetronome_3790.zip" `
+          -FilePath "./CombatMetronome/CombatMetronome_3790.zip" `
           -ChangelogFilePath "$changelogPath" `
           -Compatible "${{ env.PATCH_ID }}" `
           -ReadmeFilePath "$readmePath" `
