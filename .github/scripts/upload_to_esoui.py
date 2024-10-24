@@ -9,20 +9,27 @@ def upload_addon(api_token, addon_id, version, file_path, changelog, compatible,
     }
 
     files = {
+        "archive": "Yes",  # oder "No", je nach Anforderung
         "updatefile": open(file_path, "rb"),
         "changelog": changelog,
         "compatible": compatible,
         "description": description
     }
 
+    data = {
+        "id": addon_id,
+        "title": "",  # Optional, wenn du keinen Titel übergeben möchtest
+        "version": version
+    }
+
     # Debugging-Ausgaben
     print(f"URL: {url}")
     print(f"Headers: {headers}")
     print(f"Files: {files}")
-    print(f"Parameters - Addon ID: {addon_id}, Compatible: {compatible}")
+    print(f"Data: {data}")
 
     try:
-        response = requests.post(url, headers={k: v for k, v in headers.items() if v is not None}, files=files)
+        response = requests.post(url, headers={k: v for k, v in headers.items() if v is not None}, files=files, data=data)
         print(f"Response code: {response.status_code}")
         print(f"Response text: {response.text}")
         response.raise_for_status()  # Auslösen eines Fehlers für 4xx/5xx Antworten
