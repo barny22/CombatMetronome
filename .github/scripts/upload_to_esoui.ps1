@@ -1,33 +1,59 @@
-param (
-    [string]$ApiToken,
-    [string]$AddonId,
-    [string]$Version,
-    [string]$FilePath,
-    [string]$Changelog,
-    [string]$Compatible,
-    [string]$Description,
-    [bool]$TestOnly = $false # Default-Wert ist false
+param(
+    [string]$api_token,
+    [int]$addon_id,
+    [string]$version,
+    [string]$file_path,
+    [string]$changelog,
+    [string]$compatible,
+    [string]$description,
+    [bool]$test_only = $false
 )
 
-# Wähle die richtige URL basierend auf dem Wert von TestOnly
-if ($TestOnly -eq $true) {
-    $url = "https://api.esoui.com/addons/updatetest"
-} else {
-    $url = "https://api.esoui.com/addons/update"
+function Upload-Addon {
+    param (
+        [string]$api_token,
+        [int]$addon_id,
+        [string]$version,
+        [string]$file_path,
+        [string]$changelog,
+        [string]$compatible,
+        [string]$description,
+        [bool]$test_only
+    )
+
+    $url = if ($test_only) {
+        "https://api.esoui.com/addons/updatetest"
+    } else {
+        "https://api.esoui.com/addons/update"
+    }
+
+    $headers = @{
+        "x-api-token" = $api_token
+    }
+
+    # Prepare the multipart form data
+    $formData = @{
+        "archive" = "Yes"  # Set to "Yes" or "No" as required
+        "updatefile" = Get-Item $file_path
+        "id" = $addon_id
+        "title" = ""  # Optional
+        "version" = $version
+        "changelog" = $changelog
+        "compatible" = $compatible
+        "description" = $description
+    }
+
+    # Debugging-Ausgaben
+    Write-Host "Request Data: $($formData | Out-String)"
+
+    try {
+        $response = Invoke-RestMethod -Uri $url -Method Post -Headers $headers -Form $formData
+        Write-Host "Response code: $($response.StatusCode)"
+        Write-Host "Response text: $($response.Content)"
+    } catch {
+        Write-Host "An error occurred: $_"
+    }
 }
 
-$headers = @{
-    "x-api-token" = $ApiToken
-}
-
-$form = @{
-    "id"         = $AddonId
-    "version"    = $Version
-    "updatefile" = Get-Item $FilePath
-    "changelog"  = $Changelog
-    "compatible" = $Compatible
-    "description" = $Description
-}
-
-$response = Invoke-RestMethod -Uri $url -Method Post -Headers $headers -Form $form
-$response | ConvertTo-Json
+# Call the function with parameters
+Upload-Addon -api_token $api_token -addon_id $addon_id -version $version -file_path $file_path -changelog $changelog -compatible $compatible -description $description -test_only $test_only
