@@ -81,7 +81,12 @@ jobs:
     # Zip-Datei für Addon ID 2373 (ohne ReadmeUpdated.md)
     - name: Zip Addon Files for Addon ID 2373 (excluding ReadmeUpdated.md)
       run: |
-        7z a CombatMetronome.zip ./CombatMetronome/ -xr!ReadmeUpdated.md -xr!*.git*
+        7z a CombatMetronome_2373.zip ./CombatMetronome/ -xr!ReadmeUpdated.md -xr!*.git*
+
+    # Zip-Datei für Addon ID 3790 (ohne ReadmeOriginal.md)
+    - name: Zip Addon Files for Addon ID 3790 (excluding ReadmeOriginal.md)
+      run: |
+        7z a CombatMetronome_3790.zip ./CombatMetronome/ -xr!ReadmeOriginal.md -xr!*.git*
 
         
     - name: Upload Addon ID 2373 to ESOUI
@@ -90,16 +95,11 @@ jobs:
           -H "x-api-token: ${{ secrets.ESOUI_API_TOKEN }}" \
           -F "id=2373" \
           -F "version=${{ env.ADDON_VERSION }}" \
-          -F "updatefile=@./CombatMetronome.zip" \
+          -F "updatefile=@./CombatMetronome_2373.zip" \
           -F "changelog=\"${{ env.CHANGELOG }}\"" \
           -F "compatible=$PATCH_ID" \
-          -F "description=\"${{ env.ESCAPED_DESCRIPTIONORIGINAL }}\"" \
+          -F "description=${{ env.ESCAPED_DESCRIPTIONORIGINAL }}" \
           https://api.esoui.com/addons/updatetest
-    
-    # Zip-Datei für Addon ID 3790 (ohne ReadmeOriginal.md)
-    - name: Zip Addon Files for Addon ID 3790 (excluding ReadmeOriginal.md)
-      run: |
-        7z a CombatMetronome.zip ./CombatMetronome/ -xr!ReadmeOriginal.md -xr!*.git*
 
     - name: Upload Addon ID 3790 to ESOUI
       run: |
@@ -107,8 +107,8 @@ jobs:
           -H "x-api-token: ${{ secrets.ESOUI_API_TOKEN }}" \
           -F "id=3790" \
           -F "version=${{ env.ADDON_VERSION }}" \
-          -F "updatefile=@./CombatMetronome.zip" \
+          -F "updatefile=@./CombatMetronome_3790.zip" \
           -F "changelog=\"${{ env.CHANGELOG }}\"" \
           -F "compatible=$PATCH_ID" \
-          -F "description=\"${{ env.ESCAPED_DESCRIPTIONUPDATED }}\"" \
+          -F "description=${{ env.ESCAPED_DESCRIPTIONUPDATED }}" \
           https://api.esoui.com/addons/updatetest
