@@ -120,11 +120,11 @@ jobs:
           -ApiToken "${{ secrets.ESOUI_API_TOKEN }}" `
           -AddonId 2373 `
           -Version "${{ env.ADDON_VERSION }}" `
-          -FilePath "./CombatMetronome_2373.zip" `
+          -FilePath "$baseDir/CombatMetronome_2373.zip" `
           -ChangelogFilePath "$changelogPath" `
-          -Compatible "$PATCH_ID" `
+          -Compatible "${{ env.PATCH_ID }}" `
           -ReadmeFilePath "$readmePath" `
-          -TestOnly ${{ env.TEST_ONLY }}
+          -TestOnly "${{ env.TEST_ONLY }}"
 
     - name: Upload Addon 3790 to ESOUI with PowerShell
       shell: pwsh
@@ -138,8 +138,8 @@ jobs:
           -ApiToken "${{ secrets.ESOUI_API_TOKEN }}" `
           -AddonId 3790 `
           -Version "${{ env.ADDON_VERSION }}" `
-          -FilePath "./CombatMetronome_3790.zip" `
+          -FilePath "$baseDir/CombatMetronome_3790.zip" `
           -ChangelogFilePath "$changelogPath" `
-          -Compatible "$PATCH_ID" `
+          -Compatible "${{ env.PATCH_ID }}" `
           -ReadmeFilePath "$readmePath" `
-          -TestOnly ${{ env.TEST_ONLY }}
+          -TestOnly "${{ env.TEST_ONLY }}"
