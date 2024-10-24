@@ -105,7 +105,7 @@ jobs:
     - name: Upload Addon 2373 to ESOUI with PowerShell
       shell: pwsh
       run: |
-        ./.github/scripts/upload_to_esoui.ps1 `
+        ./CombatMetronome/.github/scripts/upload_to_esoui.ps1 `
           -ApiToken "${{ secrets.ESOUI_API_TOKEN }}" `
           -AddonId "2373" `
           -Version "${{ env.ADDON_VERSION }}" `
@@ -118,7 +118,7 @@ jobs:
     - name: Upload Addon 3790 to ESOUI with PowerShell
       shell: pwsh
       run: |
-        ./.github/scripts/upload_to_esoui.ps1 `
+        ./CombatMetronome/.github/scripts/upload_to_esoui.ps1 `
           -ApiToken "${{ secrets.ESOUI_API_TOKEN }}" `
           -AddonId "3790" `
           -Version "${{ env.ADDON_VERSION }}" `
