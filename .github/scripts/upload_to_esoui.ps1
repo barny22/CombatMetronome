@@ -52,7 +52,7 @@ function Upload-Addon {
         "version" = $Version
         "changelog" = $ChangelogFilePath
         "compatible" = $Compatible
-        "description" = $ReadmeFilePath
+        "description" = $description
     }
 
     # Debugging-Ausgaben
