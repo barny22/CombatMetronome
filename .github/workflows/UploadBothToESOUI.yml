@@ -56,6 +56,16 @@ jobs:
         echo "DESCRIPTIONUPDATED<<EOF" >> $GITHUB_ENV
         echo "$DescriptionUpdated" >> $GITHUB_ENV
         echo "EOF" >> $GITHUB_ENV
+        
+    - name: Mask '&' for compatibility reasons
+      id: mask_characters
+      run: |
+        export ESCAPED_DESCRIPTIONORIGINAL=$(echo "${{ env.DESCRIPTIONORIGINAL }}" | sed 's/&/\\&/g')
+        echo "Escaped DescriptionOriginal: $ESCAPED_DESCRIPTIONORIGINAL"
+        export ESCAPED_DESCRIPTIONUPDATED=$(echo "${{ env.DESCRIPTIONUPDATED }}" | sed 's/&/\\&/g')
+        echo "Escaped DescriptionUpdated: $ESCAPED_DESCRIPTIONUPDATED"
+    #    export ESCAPED_CHANGELOG=$(echo "${{ env.CHANGELOG }}" | sed 's/&/\\&/g')
+    #    echo "Escaped Changelog: $ESCAPED_CHANGELOG"
 
     #- name: Create GitHub Release
     #  uses: softprops/action-gh-release@v2
@@ -83,7 +93,7 @@ jobs:
           -F "updatefile=@./CombatMetronome.zip" \
           -F "changelog=\"${{ env.CHANGELOG }}\"" \
           -F "compatible=$PATCH_ID" \
-          -F "description=\"${{ env.DESCRIPTIONORIGINAL }}\"" \
+          -F "description=\"${{ env.ESCAPED_DESCRIPTIONORIGINAL }}\"" \
           https://api.esoui.com/addons/updatetest
     
     # Zip-Datei für Addon ID 3790 (ohne ReadmeOriginal.md)
@@ -100,5 +110,5 @@ jobs:
           -F "updatefile=@./CombatMetronome.zip" \
           -F "changelog=\"${{ env.CHANGELOG }}\"" \
           -F "compatible=$PATCH_ID" \
-          -F "description=\"${{ env.DESCRIPTIONUPDATED }}\"" \
+          -F "description=\"${{ env.ESCAPED_DESCRIPTIONUPDATED }}\"" \
           https://api.esoui.com/addons/updatetest
