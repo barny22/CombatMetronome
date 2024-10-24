@@ -79,6 +79,7 @@ jobs:
         7z a CombatMetronome_3790.zip ./CombatMetronome/ -xr!ReadmeOriginal.md -xr!*.git*
         
     - name: Upload Addon to ESOUI with PowerShell
+      shell: pwsh
       run: |
         pwsh CombatMetronome/.github/scripts/upload_to_esoui.ps1 `
           -ApiToken ${{ secrets.ESOUI_API_TOKEN }} `
@@ -91,6 +92,7 @@ jobs:
           -TestOnly $true
 
     - name: Upload Addon to ESOUI with PowerShell
+      shell: pwsh
       run: |
         pwsh CombatMetronome/.github/scripts/upload_to_esoui.ps1 `
           -ApiToken ${{ secrets.ESOUI_API_TOKEN }} `
