@@ -78,28 +78,26 @@ jobs:
       run: |
         7z a CombatMetronome_3790.zip ./CombatMetronome/ -xr!ReadmeOriginal.md -xr!*.git*
         
-    - name: Upload Addon to ESOUI with PowerShell
-      shell: pwsh
+    - name: Upload Addon to ESOUI with Python (ID 2373)
       run: |
-        pwsh CombatMetronome/.github/scripts/upload_to_esoui.ps1 `
-          -ApiToken ${{ secrets.ESOUI_API_TOKEN }} `
-          -AddonId "2373" `
-          -Version ${{ env.ADDON_VERSION }} `
-          -FilePath "./CombatMetronome_2373.zip" `
-          -Changelog "${{ env.CHANGELOG }}" `
-          -Compatible $PATCH_ID `
-          -Description "${{ env.DESCRIPTIONORIGINAL }}" `
-          -TestOnly $true
+        python3 ./github/scripts/upload_to_esoui.py \
+          --api_token="${{ secrets.ESOUI_API_TOKEN }}" \
+          --addon_id="2373" \
+          --version="${{ env.ADDON_VERSION }}" \
+          --file_path="./CombatMetronome_2373.zip" \
+          --changelog="${{ env.CHANGELOG }}" \
+          --compatible="$PATCH_ID" \
+          --description="${{ env.DESCRIPTIONORIGINAL }}" \
+          --test_only="true"
 
-    - name: Upload Addon to ESOUI with PowerShell
-      shell: pwsh
+    - name: Upload Addon to ESOUI with Python (ID 3790)
       run: |
-        pwsh CombatMetronome/.github/scripts/upload_to_esoui.ps1 `
-          -ApiToken ${{ secrets.ESOUI_API_TOKEN }} `
-          -AddonId "3790" `
-          -Version ${{ env.ADDON_VERSION }} `
-          -FilePath "./CombatMetronome_3790.zip" `
-          -Changelog "${{ env.CHANGELOG }}" `
-          -Compatible $PATCH_ID `
-          -Description "${{ env.DESCRIPTIONUPDATED }}" `
-          -TestOnly $true
+        python3 ./github/scripts/upload_to_esoui.py \
+          --api_token="${{ secrets.ESOUI_API_TOKEN }}" \
+          --addon_id="3790" \
+          --version="${{ env.ADDON_VERSION }}" \
+          --file_path="./CombatMetronome_3790.zip" \
+          --changelog="${{ env.CHANGELOG }}" \
+          --compatible="$PATCH_ID" \
+          --description="${{ env.DESCRIPTIONUPDATED }}" \
+          --test_only="true"
