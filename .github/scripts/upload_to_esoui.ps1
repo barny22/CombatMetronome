@@ -10,9 +10,14 @@ param(
 )
 
     # Debugging-Ausgaben
+    Write-Host "API Token: $api_token"
+    Write-Host "AddOn Id: $addon_id"
+    Write-Host "Version: $version"
     Write-Host "ZIP File Path: $file_path"
     Write-Host "Changelog File Path: $changelog_file_path"
+    Write-Host "Compatible: $compatible"
     Write-Host "Readme File Path: $readme_file_path"
+    Write-Host "Test: $test_only"
 
 function Upload-Addon {
     param (
