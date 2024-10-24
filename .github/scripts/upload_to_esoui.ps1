@@ -55,8 +55,8 @@ function Upload-Addon {
 }
 
 # Changelog und Beschreibung aus den Dateien einlesen
-$changelog = Get-Content $changelog_file_path -Raw
-$description = Get-Content $readme_file_path -Raw
+$changelog = Get-Content $changelog_file_path
+$description = Get-Content $readme_file_path
 
 # Call the function with parameters
 Upload-Addon -api_token $api_token -addon_id $addon_id -version $version -file_path $file_path -changelog $changelog -compatible $compatible -description $description -test_only $test_only
