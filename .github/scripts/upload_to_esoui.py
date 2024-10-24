@@ -69,5 +69,8 @@ if __name__ == "__main__":
     changelog = escape_special_chars(changelog)
     description = escape_special_chars(description)
 
+    print(f"Changelog content: {changelog}")
+    print(f"Description content: {description}")
+    
     # Den Aufruf der Funktion mit den Argumenten
     upload_addon(args.api_token, addon_id, args.version, args.file_path, changelog, args.compatible, description, args.test_only.lower() == 'true')
