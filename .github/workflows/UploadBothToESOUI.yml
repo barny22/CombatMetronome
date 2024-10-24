@@ -110,9 +110,9 @@ jobs:
           -AddonId "2373" `
           -Version "${{ env.ADDON_VERSION }}" `
           -FilePath "./CombatMetronome_2373.zip" `
-          -Changelog "./Changelog.txt" `
+          -Changelog "Changelog.txt" `
           -Compatible $PATCH_ID `
-          -Description "./ReadmeOriginal.md" `
+          -Description "ReadmeOriginal.md" `
           -TestOnly $true
 
     - name: Upload Addon 3790 to ESOUI with PowerShell
@@ -123,7 +123,7 @@ jobs:
           -AddonId "3790" `
           -Version "${{ env.ADDON_VERSION }}" `
           -FilePath "./CombatMetronome_3790.zip" `
-          -Changelog "./Changelog.txt" `
+          -Changelog "Changelog.txt" `
           -Compatible $PATCH_ID `
-          -Description "./ReadmeUpdated.md" `
+          -Description "ReadmeUpdated.md" `
           -TestOnly $true
