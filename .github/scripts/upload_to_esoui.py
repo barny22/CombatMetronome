@@ -8,40 +8,43 @@ def upload_addon(api_token, addon_id, version, file_path, changelog, compatible,
         "x-api-token": api_token if api_token else None
     }
 
-    files = {
-        "archive": "Yes",  # oder "No", je nach Anforderung
-        "updatefile": open(file_path, "rb"),
-        "changelog": changelog,
-        "compatible": compatible,
-        "description": description
-    }
+    with open(file_path, "rb") as updatefile:
+        files = {
+            "archive": "Yes",  # oder "No", je nach Anforderung
+            "updatefile": updatefile,
+            "changelog": changelog,
+            "compatible": compatible,
+            "description": description
+        }
 
-    data = {
-        "id": addon_id,
-        "title": "",  # Optional, wenn du keinen Titel übergeben möchtest
-        "version": version
-    }
+        data = {
+            "id": addon_id,
+            "title": "",  # Optional, wenn du keinen Titel übergeben möchtest
+            "version": version
+        }
 
-    # Debugging-Ausgaben
-    print(f"URL: {url}")
-    print(f"Headers: {headers}")
-    print(f"Files: {files}")
-    print(f"Data: {data}")
+        # Debugging-Ausgaben
+        print(f"URL: {url}")
+        print(f"Headers: {headers}")
+        print(f"Data: {data}")
 
-    try:
-        response = requests.post(url, headers={k: v for k, v in headers.items() if v is not None}, files=files, data=data)
-        print(f"Response code: {response.status_code}")
-        print(f"Response text: {response.text}")
-        response.raise_for_status()  # Auslösen eines Fehlers für 4xx/5xx Antworten
-        print(response.json())
-    except requests.exceptions.HTTPError as err:
-        print(f"HTTP error occurred: {err}")
-    except Exception as e:
-        print(f"An error occurred: {e}")
+        try:
+            response = requests.post(url, headers={k: v for k, v in headers.items() if v is not None}, files=files, data=data)
+            print(f"Response code: {response.status_code}")
+            print(f"Response text: {response.text}")
+            response.raise_for_status()  # Auslösen eines Fehlers für 4xx/5xx Antworten
+            print(response.json())
+        except requests.exceptions.HTTPError as err:
+            print(f"HTTP error occurred: {err}")
+        except Exception as e:
+            print(f"An error occurred: {e}")
 
 def read_file(file_path):
     with open(file_path, 'r') as file:
         return file.read().strip()  # Trim whitespace und neue Zeilen am Anfang und Ende
+
+def escape_special_chars(text):
+    return text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("\"", "&quot;").replace("'", "&apos;")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Upload an ESO Addon to ESOUI")
@@ -60,11 +63,8 @@ if __name__ == "__main__":
     # Konvertiere addon_id in Integer
     addon_id = int(args.addon_id)
 
-    changelog = read_file(args.changelog_path)
-    description = read_file(args.description_path)
-
-    def escape_special_chars(text):
-    return text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("\"", "&quot;").replace("'", "&apos;")
+    changelog = read_file(args.changelog_path) if args.changelog_path else ""
+    description = read_file(args.description_path) if args.description_path else ""
 
     changelog = escape_special_chars(changelog)
     description = escape_special_chars(description)
