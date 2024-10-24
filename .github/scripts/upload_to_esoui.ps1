@@ -28,7 +28,7 @@ function Upload-Addon {
         [string]$ChangelogFilePath,
         [string]$Compatible,
         [string]$ReadmeFilePath,
-        [bool]$TestOnly = $true
+        [bool]$TestOnly
     )
 
     $url = if ($TestOnly) {
