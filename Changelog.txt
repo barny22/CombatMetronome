@@ -1,8 +1,9 @@
-2024-10-19 v1.6.8
+2024-10-25 v1.6.8
 !  Minor fixes in code
 !  Fixed sound cue on stack tracker
 !  Restructuring of constants and saved variables for better readability and consistency
 !  Overhauled the debugging system
+!  Ghost abilities are now properly canceled
 +  Added function to show ping when tracking GCD
 +  Added ability icons to ability adjust section
 
