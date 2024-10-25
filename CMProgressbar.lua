@@ -121,7 +121,7 @@ function CombatMetronome:Update()
 		elseif self.currentEvent then
 			-- if CombatMetronome.SV.debug.triggers then CombatMetronome.debug:Print(slotRemaining) end
 			CombatMetronome:SetIconsAndNamesNil()
-			if gcdProgress <= 0 and self.currentEvent.ability.delay <= 1000 then
+			if gcdProgress <= 0 and self.currentEvent.ability.delay <= 1000 and not self.currentEvent.ability.channeled then
 				self:OnCDStop()
 				return
 			end
