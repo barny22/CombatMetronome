@@ -1,3 +1,8 @@
+2024-10-25 v1.7.7
+!  Fixes to ability triggers
+!  Fixed barswap triggering many CancelEvent()s
+!  Implemented debug messages
+
 2024-09-18 v1.7.6
 !  Minor fixes to Ability.lua
 !  Moved some functions from CombatMetronome to a new file Stacks.lua

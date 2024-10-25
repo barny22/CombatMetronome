@@ -1,8 +1,8 @@
 ﻿## Title: DariansUtilities
 ## Description: Darian's Mod Library
-## Author: Darianopolis, |ce11212b|c3645d6arny|r
-## Version: 1.7.6
-## AddOnVersion: 10706
+## Author: Darianopolis, |c2a52beb|rarny
+## Version: 1.7.7
+## AddOnVersion: 10707
 ## APIVersion: 101043
 ## IsLibrary: true
 
