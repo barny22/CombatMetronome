@@ -6,6 +6,7 @@
 !  Ghost abilities are now properly canceled
 +  Added function to show ping when tracking GCD
 +  Added ability icons to ability adjust section
++  Added tracking of all synergies that cause GCD
 
 2024-09-05 v1.6.7
 !  Moved updater for castbar to CMCastbar.lua
