@@ -1,6 +1,7 @@
 param(
     [string]$ApiToken,
     [int]$AddonId,
+    [string]$Title,
     [string]$Version,
     [string]$FilePath,
     [string]$ChangelogFilePath,
@@ -12,6 +13,7 @@ param(
     # Debugging-Ausgaben
     Write-Host "API Token: $ApiToken"
     Write-Host "AddOn Id: $AddonId"
+    Write-Host "Title: $Title"
     Write-Host "Version: $Version"
     Write-Host "ZIP File Path: $FilePath"
     Write-Host "Changelog File Path: $ChangelogFilePath"
@@ -23,6 +25,7 @@ function Upload-Addon {
     param (
         [string]$ApiToken,
         [int]$AddonId,
+        [string]$Title,
         [string]$Version,
         [string]$FilePath,
         [string]$ChangelogFilePath,
@@ -48,7 +51,7 @@ function Upload-Addon {
         "archive" = "Yes"  # Set to "Yes" or "No" as required
         "updatefile" = Get-Item $FilePath
         "id" = $AddonId
-        "title" = ""  # Optional
+        "title" = $Title  # Optional
         "version" = $Version
         "changelog" = $ChangelogFilePath
         "compatible" = $Compatible
@@ -68,8 +71,8 @@ function Upload-Addon {
 }
 
 # Changelog und Beschreibung aus den Dateien einlesen
-$changelog = Get-Content $ChangelogFilePath
-$description = Get-Content $ReadmeFilePath
+$changelog = Get-Content $ChangelogFilePath -Raw
+$description = Get-Content $ReadmeFilePath -Raw
 
 # Call the function with parameters
-Upload-Addon -ApiToken $ApiToken -AddonId $AddonId -Version $Version -FilePath $FilePath -changelog $changelog -Compatible $Compatible -description $description -TestOnly $TestOnly
+Upload-Addon -ApiToken $ApiToken -AddonId $AddonId -Title $Title -Version $Version -FilePath $FilePath -changelog $changelog -Compatible $Compatible -description $description -TestOnly $TestOnly
