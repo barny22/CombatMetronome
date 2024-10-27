@@ -119,6 +119,7 @@ jobs:
         ./CombatMetronome/.github/scripts/upload_to_esoui.ps1 `
           -ApiToken "${{ secrets.ESOUI_API_TOKEN }}" `
           -AddonId 2373 `
+          -Title "Combat Metronome (GCD Tracker)" `
           -Version "${{ env.ADDON_VERSION }}" `
           -FilePath "./CombatMetronome/CombatMetronome_2373.zip" `
           -ChangelogFilePath "$changelogPath" `
@@ -137,6 +138,7 @@ jobs:
         ./CombatMetronome/.github/scripts/upload_to_esoui.ps1 `
           -ApiToken "${{ secrets.ESOUI_API_TOKEN }}" `
           -AddonId 3790 `
+          -Title "Combat Metronome (GCD Tracker) Update" `
           -Version "${{ env.ADDON_VERSION }}" `
           -FilePath "./CombatMetronome/CombatMetronome_3790.zip" `
           -ChangelogFilePath "$changelogPath" `
