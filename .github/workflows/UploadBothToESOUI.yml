@@ -77,7 +77,12 @@ jobs:
     # Zip-Datei für Addon ID 2373 (ohne ReadmeUpdated.md)
     - name: Zip Addon Files for Addon ID 2373 (excluding ReadmeUpdated.md)
       run: |
-        7z a ./CombatMetronome/CombatMetronome.zip * -xr!ReadmeUpdated.md -xr!*.git*
+        7z a ./CombatMetronome_2373/CombatMetronome.zip * -xr!ReadmeUpdated.md -xr!*.git*
+
+# Zip-Datei für Addon ID 3790 (ohne ReadmeOriginal.md)
+    - name: Zip Addon Files for Addon ID 3790 (excluding ReadmeOriginal.md)
+      run: |
+        7z a ./CombatMetronome_3790/CombatMetronome.zip * -xr!ReadmeOriginal.md -xr!*.git* 
         
     - name: Upload Addon 2373 to ESOUI with PowerShell
       shell: pwsh
@@ -92,16 +97,12 @@ jobs:
           -AddonId 2373 `
           -Title "Combat Metronome (GCD Tracker)" `
           -Version "${{ env.ADDON_VERSION }}" `
-          -FilePath "./CombatMetronome/CombatMetronome.zip" `
+          -FilePath "./CombatMetronome_2373/CombatMetronome.zip" `
           -ChangelogFilePath "$changelogPath" `
           -Compatible "${{ env.PATCH_ID }}" `
           -ReadmeFilePath "$readmePath" `
           -TestOnly "${{ env.TEST_ONLY }}"
-    
-    # Zip-Datei für Addon ID 3790 (ohne ReadmeOriginal.md)
-    - name: Zip Addon Files for Addon ID 3790 (excluding ReadmeOriginal.md)
-      run: |
-        7z a ./CombatMetronome/CombatMetronome.zip * -xr!ReadmeOriginal.md -xr!*.git*
+
 
     - name: Upload Addon 3790 to ESOUI with PowerShell
       shell: pwsh
@@ -116,7 +117,7 @@ jobs:
           -AddonId 3790 `
           -Title "Combat Metronome (GCD Tracker) Update" `
           -Version "${{ env.ADDON_VERSION }}" `
-          -FilePath "./CombatMetronome/CombatMetronome.zip" `
+          -FilePath "./CombatMetronome_3790/CombatMetronome.zip" `
           -ChangelogFilePath "$changelogPath" `
           -Compatible "${{ env.PATCH_ID }}" `
           -ReadmeFilePath "$readmePath" `
