@@ -10,28 +10,28 @@ I added some fixes and new options:
 +  Added option to show the cast bar permanently
 +  Added fancy mode
 
-Should there be any bugs, feel free to report them on my [URL="https://www.esoui.com/portal.php?id=386&a=listbugs"]ESOUI Portal[/URL].
+Should there be any bugs, feel free to report them on my [url="https://www.esoui.com/portal.php?id=386&a=listbugs"]ESOUI Portal[/url].
 
 Beta version is available for download on [URL="https://github.com/barny22/CombatMetronome/tree/Development"]Github[/URL] or click [URL="https://github.com/barny22/CombatMetronome/archive/refs/heads/Development.zip"]here[/URL] to download directly. Install at your own risk.
 
 Here is the original description by Darianopolis:
 
-[QUOTE]Track your heavy swings, ability cooldowns and cast/channels all in one bar to help you perfect your rotation timing and take advantage of abilty queuing with live latency information.
+[quote]Track your heavy swings, ability cooldowns and cast/channels all in one bar to help you perfect your rotation timing and take advantage of abilty queuing with live latency information.
 Now includes optional Ultimate tracking.
 
 Thanks for Seltiix for prototyping the initial sound cue system.
 
 Dependencies:
 
-[LIST]
+[list]
 [*]LibAddonMenu-2.0
 [*]libAddonKeybinds
 [*][b]LibChatMessage[/b] [b](!!new!!)[/b]
-[/LIST]
+[/lIST]
 
 Features
 
-[LIST]
+[list]
 [*]Heavy attack + Cast / Channel + GCD tracking = Consolidate all of your combat timing into one bar
 [*]Displays your ping live on the bar to allow spell queueing with live latency information.
 [*]Timing adjustments. Firing abilities too early or too late? - Fine tune the displayed GCD / heavy timer / cast / channel individually (or globally) for ANY ability to best suit your play.
@@ -39,6 +39,6 @@ Features
 [*]Flashing animation on health percentage during execute
 [*]Keybind to force display + show absolute health
 [*]'Tick Tock' sound cues for audio feedback
-[/LIST]
+[/list]
 
-To access the addon settings quickly, enter the command /cm[/QUOTE]
+To access the addon settings quickly, enter the command /cm[/quote]
