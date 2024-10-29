@@ -951,14 +951,14 @@ function CombatMetronome:BuildMenu()
 									local id = Util.Ability.nameCache[name].id
 									self.menu.curSkillId = id
 									if CombatMetronome.SV.Progressbar.abilityAdjusts[id] then return end
-									CombatMetronome.debug:Print("Found ability for '"..name.."'", "id: "..id)
+									CombatMetronome.debug:Print("Found ability for '"..name.."'. ID: "..id)
 									CombatMetronome.SV.Progressbar.abilityAdjusts[id] = CombatMetronome.SV.Progressbar.abilityAdjusts[self.menu.curSkillId] or 0
 									self:UpdateAdjustChoices()
 								else
 									CombatMetronome.debug:Print("Couldn't find ability in cache. Make sure you cast the ability once to ensure better results while gaming. Will try to find it somewhere else.")
 									for id = 0, 300000 do
 										if Util.Text.CropZOSString(GetAbilityName(id)) == name and GetAbilityIcon(id) ~= "/esoui/art/icons/ability_mage_065.dds" then
-											--[[_=self.log and]] CombatMetronome.debug:Print("Found ability for '"..name.."'", "id: "..id)
+											--[[_=self.log and]] CombatMetronome.debug:Print("Found ability for '"..name.."'. ID: "..id)
 											self.menu.curSkillName = name
 											self.menu.curSkillId = id
 											CombatMetronome.SV.Progressbar.abilityAdjusts[id] = 0
@@ -1010,7 +1010,7 @@ function CombatMetronome:BuildMenu()
 							type = "button",
 							name = "Remove skill adjust",
 							func = function()
-								--[[_=DLog and]] CombatMetronome.debug:Print("Removing skill '"..self.menu.curSkillName.."'", "id: "..self.menu.curSkillId)
+								--[[_=DLog and]] CombatMetronome.debug:Print("Removing skill '"..self.menu.curSkillName.."'. ID: "..self.menu.curSkillId)
 								CombatMetronome.SV.Progressbar.abilityAdjusts[self.menu.curSkillId] = nil
 								self:UpdateAdjustChoices()
 								self.menu.curSkillName = self:CropIconFromSkill(self.menu.abilityAdjustChoices[1])

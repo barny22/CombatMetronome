@@ -323,9 +323,15 @@ function Ability.Tracker:Update()
     end
     
     -- reset for fatecarver delay
-    if (self.currentEvent and self.currentEvent.ability.id ~= (carverId1 or carverId2)) or not self.currentEvent then
-        if Ability.cache[carverId1] then Ability.cache[carverId1].delay = 4500 end
-        if Ability.cache[carverId2] then Ability.cache[carverId2].delay = 4500 end
+    if (self.currentEvent and not self.currentEvent.ability.id == carverId1 and not self.currentEvent.ability.id == carverId2) or not self.currentEvent then
+        if Ability.cache[carverId1] and Ability.cache[carverId1].delay > 4500 then
+            Ability.cache[carverId1].delay = 4500
+            -- CombatMetronome.debug:Print("Magicka atecarver delay reset")
+        end
+        if Ability.cache[carverId2] and Ability.cache[carverId2].delay > 4500 then
+            Ability.cache[carverId2].delay = 4500
+            -- CombatMetronome.debug:Print("Stamina fatecarver delay reset")
+        end
     end
     
     if ArePlayerWeaponsSheathed() then
@@ -405,7 +411,7 @@ function Ability.Tracker:AbilityUsed()
         
         self.queuedEvent = nil
         
-        if	event.ability.id == (carverId1 or carverId2) then
+        if event.ability.id == carverId1 or event.ability.id == carverId2 then
             local cruxes = Util.Stacks:GetCurrentNumCruxOnPlayer()
             event.ability.delay = event.ability.delay + (338 * cruxes)
             -- CombatMetronome.debug:Print(string.format("Fatecarver duration succesfully adjusted with %d crux(es)", cruxes))

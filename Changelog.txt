@@ -1,3 +1,6 @@
+2024-10-29 v1.6.9
+!  Fixed exhausting fatecarver not being adjusted when being used with crux
+
 2024-10-25 v1.6.8
 !  Minor fixes in code
 !  Fixed sound cue on stack tracker

@@ -1,3 +1,6 @@
+2024-10-29 v1.7.8
+!  Fixed reset on stam exhausting fatecarver. Both morphs are now adjusted properly when being used with crux.
+
 2024-10-25 v1.7.7
 !  Fixes to ability triggers
 !  Fixed barswap triggering many CancelEvent()s
