@@ -2,6 +2,7 @@
 !  Fixes to ability triggers
 !  Fixed barswap triggering many CancelEvent()s
 !  Implemented debug messages
++  Added a "invalid location" spell as abilities still cause GCD if no location was found
 
 2024-09-18 v1.7.6
 !  Minor fixes to Ability.lua

@@ -8,6 +8,13 @@ Ability.cache = { }
 Ability.nameCache = { }
 Util.language = GetCVar("Language.2")
 
+Ability.cache.invalidLocation = {
+    ["name"] = "Invalid location",
+    ["icon"] = "/esoui/art/icons/icon_missing.dds",
+    ["delay"] = 1000,
+    ["casted"] = true,
+}
+
 local Class = {
 [1] = "DK",
 [2] = "SORC",
@@ -394,7 +401,7 @@ function Ability.Tracker:AbilityUsed()
         local event = self.queuedEvent
         event.start = self.eventStart
         
-        -- CombatMetronome.debug:Print("Ability used "..event.ability.name)
+        -- CombatMetronome.debug:Print("Ability used "..event.ability.name.." - Id: "..event.ability.id)
         
         self.queuedEvent = nil
         
@@ -605,8 +612,15 @@ function Ability.Tracker:HandleCombatEvent(_,     res,  err,   aName, _, aSlotTy
             -- self:CancelEvent()
             -- return
         -- end
-        if res == ACTION_RESULT_TARGET_DEAD and self.currentEvent and self.currentEvent.ability.id == aId and self.currentEvent.ability.casted then -- ACTION_RESULT_TARGET_DEAD
+        -- CombatMetronome.debug:Print("Got an event that might kill currentEvent. Name: "..aName.." - Id: "..aId)
+        if res == ACTION_RESULT_TARGET_DEAD and CombatMetronome and CombatMetronome.currentEvent and CombatMetronome.currentEvent.ability.id == aId then -- ACTION_RESULT_TARGET_DEAD
+            -- if CombatMetronome.SV.debug.currentEvent then CombatMetronome.debug:Print("Target dead. Cancelling: "..aName.." - Id: "..aId) end
             self:CancelCurrentEvent("Target died")
+            return
+        elseif res == ACTION_RESULT_NO_LOCATION_FOUND and CombatMetronome and CombatMetronome.currentEvent and CombatMetronome.currentEvent.ability.id == aId then --ACTION_RESULT_NO_LOCATION_FOUND
+            -- if CombatMetronome.SV.debug.currentEvent then CombatMetronome.debug:Print("No location for currentEvent. Name: "..aName.." - Id: "..aId) end
+            self:CancelCurrentEvent("Invalid location")
+            CombatMetronome.currentEvent.ability = Ability.cache.invalidLocation
             return
         end
 
@@ -675,13 +689,13 @@ end
 
 function Ability.Tracker:CancelCurrentEvent(reason)
     if self.currentEvent then
-        if CombatMetronome.SV.debug.currentEvent --[[and (self.currentEvent.ability.id == carverId1 or self.currentEvent.ability.id == carverId2)]] then CombatMetronome.debug:Print("Current event cancel: "..reason) end
-        self.currentEvent = nil
         if self.CombatMetronome and CombatMetronome.currentEvent then
             CombatMetronome:OnCDStop()
             -- if CombatMetronome.SV.debug.currentEvent then CombatMetronome.debug:Print("Also reset CombatMetronome currentEvent") end
         end
+        self.currentEvent = nil
         self.lastAbilityFinished = 0
         self.gcd = 1000
     end
+    if CombatMetronome.SV.debug.currentEvent --[[and (self.currentEvent.ability.id == carverId1 or self.currentEvent.ability.id == carverId2)]] then CombatMetronome.debug:Print("Current event cancel: "..reason) end
 end
