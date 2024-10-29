@@ -66,7 +66,7 @@ jobs:
       if: env.TEST_ONLY == 'false'  # Nur wenn TEST_ONLY false ist
       uses: softprops/action-gh-release@v2
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.CREATE_RELEASE_TOKEN }}
       with:
         tag_name: ${{ env.ADDON_VERSION }}
         name: Release ${{ env.ADDON_VERSION }}
