@@ -3,7 +3,7 @@
 ## Author: Darianopolis, |c2a52beb|rarny
 ## Version: 1.7.7
 ## AddOnVersion: 10707
-## APIVersion: 101043
+## APIVersion: 101044
 ## IsLibrary: true
 
 ; This Add-on is not created by, affiliated with or sponsored by ZeniMax
