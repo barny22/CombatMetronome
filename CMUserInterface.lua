@@ -1,6 +1,7 @@
 -- local LAM = LibAddonMenu2
 local Util = DariansUtilities
 local CM = CombatMetronome
+CombatMetronome.SV = CombatMetronome.SV or {}
 
 local MIN_WIDTH = 50
 local MAX_WIDTH = 500
@@ -11,238 +12,235 @@ local MAX_HEIGHT = 100
 	---- Build Progressbar ----
 	---------------------------
 
-function CombatMetronome:BuildProgressBar()
+function CombatMetronome:BuildUI()
 
 	-------------------------
 	---- Create Controls ----
 	-------------------------
 	
 	local function CreateControls()
-		if not self.frame then
-			self.frame = Util.Controls:NewFrame(self.name.."ProgressbarFrame")
-			self.frame:SetDimensionConstraints(MIN_WIDTH, MIN_HEIGHT, MAX_WIDTH, MAX_HEIGHT)
-			self.frame:SetHandler("OnMoveStop", function(...)
-				self.config.xOffset = self.frame:GetLeft()
-				self.config.yOffset = self.frame:GetTop()
-				self.progressbar.Anchors()
-				-- self:BuildProgressBar()
-			end)
-			self.frame:SetHandler("OnResizeStop", function(...)
-				self.config.width = self.frame:GetWidth()
-				self.config.height = self.frame:GetHeight()
-				self.progressbar.Size()
-				-- self:BuildProgressBar()
-			end)
-		end
-		self.bar = self.bar or Util.Bar:New(self.name.."TimerBar", self.frame)
-		
-		self.spellIcon = self.spellIcon or WINDOW_MANAGER:CreateControl(self.name.."SpellIcon", self.frame, CT_TEXTURE)
-		self.spellIconBorder = self.spellIconBorder or WINDOW_MANAGER:CreateControl(self.name.."SpellIconBorder", self.spellIcon, CT_TEXTURE)
-		self.spellIconBorder:SetTexture("/esoui/art/actionbar/abilityframe64_up.dds")
 	
-		self.bar.backgroundTexture = self.bar.backgroundTexture or WINDOW_MANAGER:CreateControl(self.name.."BackgroundTexture", self.frame, CT_STATUSBAR)
-		self.bar.backgroundTexture:SetTexture("/esoui/art/unitframes/progressbar_mechanic_fill.dds")
-		self.bar.borderL = self.bar.borderL or WINDOW_MANAGER:CreateControl(self.name.."SpellBarBorderL", self.frame, CT_TEXTURE)
-		self.bar.borderL:SetTexture("/esoui/art/unitframes/playercastbar_inset_left.dds")
-		self.bar.borderL:SetDrawLayer(2)
-		self.bar.borderL:SetDrawTier(1)
-		self.bar.borderR = self.bar.borderR or WINDOW_MANAGER:CreateControl(self.name.."SpellBarBorderR", self.frame, CT_TEXTURE)
-		self.bar.borderR:SetTexture("/esoui/art/unitframes/playercastbar_inset_right.dds")
-		self.bar.borderR:SetDrawLayer(2)
-		self.bar.borderR:SetDrawTier(1)
-
-		self.spellLabel = self.spellLabel or WINDOW_MANAGER:CreateControl(self.name.."SpellLabel", self.frame, CT_LABEL)
-		self.spellLabel:SetColor(1, 1, 1, 1)
-		self.spellLabel:SetText("")
-		self.spellLabel:SetDrawLayer(4)
-		self.spellLabel:SetDrawTier(2)
+		self.Progressbar.frame = self.Progressbar.frame or Util.Controls:NewFrame(self.name.."ProgressbarFrame", "Progressbar")
+		self.Progressbar.frame:SetDimensionConstraints(MIN_WIDTH, MIN_HEIGHT, MAX_WIDTH, MAX_HEIGHT)
+		self.Progressbar.frame:SetHandler("OnMoveStop", function(...)
+			CombatMetronome.SV.Progressbar.xOffset = self.Progressbar.frame:GetLeft()
+			CombatMetronome.SV.Progressbar.yOffset = self.Progressbar.frame:GetTop()
+			self.Progressbar.UI.Anchors()
+			-- self:BuildUI()
+		end)
+		self.Progressbar.frame:SetHandler("OnResizeStop", function(...)
+			CombatMetronome.SV.Progressbar.width = self.Progressbar.frame:GetWidth()
+			CombatMetronome.SV.Progressbar.height = self.Progressbar.frame:GetHeight()
+			self.Progressbar.UI.Size()
+			-- self:BuildUI()
+		end)
 		
-		self.timeLabel = self.timeLabel or WINDOW_MANAGER:CreateControl(self.name.."TimeLabel", self.frame, CT_LABEL)
-		self.timeLabel:SetColor(1, 1, 1, 1)
-		self.timeLabel:SetText("")
-		self.timeLabel:SetDrawLayer(4)
-		self.timeLabel:SetDrawTier(2)
+		self.Progressbar.bar = self.Progressbar.bar or Util.Bar:New(self.name.."TimerBar", self.Progressbar.frame)
+		
+		self.Progressbar.spellIcon = self.Progressbar.spellIcon or WINDOW_MANAGER:CreateControl(self.name.."SpellIcon", self.Progressbar.frame, CT_TEXTURE)
+		self.Progressbar.spellIconBorder = self.Progressbar.spellIconBorder or WINDOW_MANAGER:CreateControl(self.name.."SpellIconBorder", self.Progressbar.spellIcon, CT_TEXTURE)
+		self.Progressbar.spellIconBorder:SetTexture("/esoui/art/actionbar/abilityframe64_up.dds")
+	
+		self.Progressbar.bar.backgroundTexture = self.Progressbar.bar.backgroundTexture or WINDOW_MANAGER:CreateControl(self.name.."BackgroundTexture", self.Progressbar.frame, CT_STATUSBAR)
+		self.Progressbar.bar.backgroundTexture:SetTexture("/esoui/art/unitframes/progressbar_mechanic_fill.dds")
+		self.Progressbar.bar.borderL = self.Progressbar.bar.borderL or WINDOW_MANAGER:CreateControl(self.name.."SpellBarBorderL", self.Progressbar.frame, CT_TEXTURE)
+		self.Progressbar.bar.borderL:SetTexture("/esoui/art/unitframes/playercastbar_inset_left.dds")
+		self.Progressbar.bar.borderL:SetDrawLayer(2)
+		self.Progressbar.bar.borderL:SetDrawTier(1)
+		self.Progressbar.bar.borderR = self.Progressbar.bar.borderR or WINDOW_MANAGER:CreateControl(self.name.."SpellBarBorderR", self.Progressbar.frame, CT_TEXTURE)
+		self.Progressbar.bar.borderR:SetTexture("/esoui/art/unitframes/playercastbar_inset_right.dds")
+		self.Progressbar.bar.borderR:SetDrawLayer(2)
+		self.Progressbar.bar.borderR:SetDrawTier(1)
+
+		self.Progressbar.spellLabel = self.Progressbar.spellLabel or WINDOW_MANAGER:CreateControl(self.name.."SpellLabel", self.Progressbar.frame, CT_LABEL)
+		self.Progressbar.spellLabel:SetColor(1, 1, 1, 1)
+		self.Progressbar.spellLabel:SetText("")
+		self.Progressbar.spellLabel:SetDrawLayer(4)
+		self.Progressbar.spellLabel:SetDrawTier(2)
+		
+		self.Progressbar.timeLabel = self.Progressbar.timeLabel or WINDOW_MANAGER:CreateControl(self.name.."TimeLabel", self.Progressbar.frame, CT_LABEL)
+		self.Progressbar.timeLabel:SetColor(1, 1, 1, 1)
+		self.Progressbar.timeLabel:SetText("")
+		self.Progressbar.timeLabel:SetDrawLayer(4)
+		self.Progressbar.timeLabel:SetDrawTier(2)
 			
     -------------------------------
 	---- Create label Controls ----
 	-------------------------------
 
-		-- self.labelFrame = self.labelFrame or Util.Controls:NewFrame(self.name.."LabelFrame")
-		if not self.labelFrame then
-			self.labelFrame = Util.Controls:NewFrame(self.name.."LabelFrame")
-			self.labelFrame:SetDimensionConstraints(MIN_WIDTH, MIN_HEIGHT, MAX_WIDTH, MAX_HEIGHT)
-			self.labelFrame:SetHandler("OnMoveStop", function(...)
-				self.config.labelFrameXOffset = self.labelFrame:GetLeft()
-				self.config.labelFrameYOffset = self.labelFrame:GetTop()
-			end)
-			self.labelFrame:SetHandler("OnResizeStop", function(...)
-				self.config.labelFrameWidth = self.labelFrame:GetWidth()
-				self.config.labelFrameHeight = self.labelFrame:GetHeight()
-			end)
-		end
+		self.Resources = self.Resources or {}
+		self.Resources.frame = self.Resources.frame or Util.Controls:NewFrame(self.name.."ResourcesFrame", "Resource Labels")
+		self.Resources.frame:SetDimensionConstraints(MIN_WIDTH, MIN_HEIGHT, MAX_WIDTH, MAX_HEIGHT)
+		self.Resources.frame:SetHandler("OnMoveStop", function(...)
+			CombatMetronome.SV.Resources.xOffset = self.Resources.frame:GetLeft()
+			CombatMetronome.SV.Resources.yOffset = self.Resources.frame:GetTop()
+		end)
+		self.Resources.frame:SetHandler("OnResizeStop", function(...)
+			CombatMetronome.SV.Resources.width = self.Resources.frame:GetWidth()
+			CombatMetronome.SV.Resources.height = self.Resources.frame:GetHeight()
+		end)
 
-		self.ultLabel = self.ultLabel or WINDOW_MANAGER:CreateControl(self.name.."UltLabel", self.labelFrame, CT_LABEL)
-		self.ultLabel:SetText("")
+		self.Resources.ultLabel = self.Resources.ultLabel or WINDOW_MANAGER:CreateControl(self.name.."UltLabel", self.Resources.frame, CT_LABEL)
+		self.Resources.ultLabel:SetText("")
 
-		self.stamLabel = self.stamLabel or WINDOW_MANAGER:CreateControl(self.name.."StamLabel", self.labelFrame, CT_LABEL)
-		self.stamLabel:SetText("")
+		self.Resources.stamLabel = self.Resources.stamLabel or WINDOW_MANAGER:CreateControl(self.name.."StamLabel", self.Resources.frame, CT_LABEL)
+		self.Resources.stamLabel:SetText("")
 
-		self.magLabel = self.magLabel or WINDOW_MANAGER:CreateControl(self.name.."MagLabel", self.labelFrame, CT_LABEL)
-		self.magLabel:SetText("")
+		self.Resources.magLabel = self.Resources.magLabel or WINDOW_MANAGER:CreateControl(self.name.."MagLabel", self.Resources.frame, CT_LABEL)
+		self.Resources.magLabel:SetText("")
 
-		self.hpLabel = self.hpLabel or WINDOW_MANAGER:CreateControl(self.name.."HPLabel", self.labelFrame, CT_LABEL)
-		self.hpLabel:SetText("")
+		self.Resources.hpLabel = self.Resources.hpLabel or WINDOW_MANAGER:CreateControl(self.name.."HPLabel", self.Resources.frame, CT_LABEL)
+		self.Resources.hpLabel:SetText("")
 	end
 	
 	local function Position(value)
-		self.frame:ClearAnchors()
+		self.Progressbar.frame:ClearAnchors()
 		if value == "UI" then
-			self.frame:SetAnchor(TOPLEFT, GuiRoot, TOPLEFT, self.config.xOffset, self.config.yOffset)
+			self.Progressbar.frame:SetAnchor(TOPLEFT, GuiRoot, TOPLEFT, CombatMetronome.SV.Progressbar.xOffset, CombatMetronome.SV.Progressbar.yOffset)
 		elseif value == "Sample" then
-			self.frame:SetAnchor(RIGHT, GuiRoot, RIGHT, -GuiRoot:GetWidth()/8, -GuiRoot:GetHeight()/6)
+			self.Progressbar.frame:SetAnchor(RIGHT, GuiRoot, RIGHT, -GuiRoot:GetWidth()/8, -GuiRoot:GetHeight()/6)
 		end
 	end
 	
 	local function ResourcesPosition(value)
-		self.labelFrame:ClearAnchors()
-		if value == "UI" and self.config.anchorResourcesToProgressbar then
-			self.labelFrame:SetAnchor(BOTTOM, self.frame, TOP, 0, 0)
-		elseif value == "UI" and not self.config.anchorResourcesToProgressbar then
-			self.labelFrame:SetAnchor(TOPLEFT, GuiRoot, TOPLEFT, self.config.labelFrameXOffset, self.config.labelFrameYOffset)
-		elseif value == "Sample" and not self.config.anchorResourcesToProgressbar then
-			self.labelFrame:SetAnchor(RIGHT, GuiRoot, RIGHT, -GuiRoot:GetWidth()/8, 0)
-		elseif value == "Sample" and self.config.anchorResourcesToProgressbar then
-			self.labelFrame:SetAnchor(RIGHT, GuiRoot, RIGHT, -GuiRoot:GetWidth()/8, -GuiRoot:GetHeight()/6 - self.config.height - self.config.labelFrameHeight/2)
+		self.Resources.frame:ClearAnchors()
+		if value == "UI" and CombatMetronome.SV.Resources.anchorResourcesToProgressbar then
+			self.Resources.frame:SetAnchor(BOTTOM, self.Progressbar.frame, TOP, 0, 0)
+		elseif value == "UI" and not CombatMetronome.SV.Resources.anchorResourcesToProgressbar then
+			self.Resources.frame:SetAnchor(TOPLEFT, GuiRoot, TOPLEFT, CombatMetronome.SV.Resources.xOffset, CombatMetronome.SV.Resources.yOffset)
+		elseif value == "Sample" and not CombatMetronome.SV.Resources.anchorResourcesToProgressbar then
+			self.Resources.frame:SetAnchor(RIGHT, GuiRoot, RIGHT, -GuiRoot:GetWidth()/8, 0)
+		elseif value == "Sample" and CombatMetronome.SV.Resources.anchorResourcesToProgressbar then
+			self.Resources.frame:SetAnchor(RIGHT, GuiRoot, RIGHT, -GuiRoot:GetWidth()/8, -GuiRoot:GetHeight()/6 - CombatMetronome.SV.Progressbar.height - CombatMetronome.SV.Resources.height/2)
 		end
 	end
 	
 	local function Fonts()
-		self.hpLabel:SetFont(Util.Text.getFontString(tostring("$("..self.config.labelFont..")"), self.config.healthSize, self.config.fontStyle))
-		self.magLabel:SetFont(Util.Text.getFontString(tostring("$("..self.config.labelFont..")"), self.config.magSize, self.config.fontStyle))
-		self.stamLabel:SetFont(Util.Text.getFontString(tostring("$("..self.config.labelFont..")"), self.config.stamSize, self.config.fontStyle))
-		self.ultLabel:SetFont(Util.Text.getFontString(tostring("$("..self.config.labelFont..")"), self.config.ultSize, self.config.fontStyle))
-		self.timeLabel:SetFont(Util.Text.getFontString(tostring("$("..self.config.labelFont..")"), math.floor(self.config.width/20), self.config.fontStyle))
-		self.spellLabel:SetFont(Util.Text.getFontString(tostring("$("..self.config.labelFont..")"), math.floor(self.config.width/20), self.config.fontStyle))
+		self.Resources.hpLabel:SetFont(Util.Text.getFontString(tostring("$("..CombatMetronome.SV.Progressbar.labelFont..")"), CombatMetronome.SV.Resources.healthSize, CombatMetronome.SV.Progressbar.fontStyle))
+		self.Resources.magLabel:SetFont(Util.Text.getFontString(tostring("$("..CombatMetronome.SV.Progressbar.labelFont..")"), CombatMetronome.SV.Resources.magSize, CombatMetronome.SV.Progressbar.fontStyle))
+		self.Resources.stamLabel:SetFont(Util.Text.getFontString(tostring("$("..CombatMetronome.SV.Progressbar.labelFont..")"), CombatMetronome.SV.Resources.stamSize, CombatMetronome.SV.Progressbar.fontStyle))
+		self.Resources.ultLabel:SetFont(Util.Text.getFontString(tostring("$("..CombatMetronome.SV.Progressbar.labelFont..")"), CombatMetronome.SV.Resources.ultSize, CombatMetronome.SV.Progressbar.fontStyle))
+		self.Progressbar.timeLabel:SetFont(Util.Text.getFontString(tostring("$("..CombatMetronome.SV.Progressbar.labelFont..")"), CombatMetronome.SV.Progressbar.spellSize, CombatMetronome.SV.Progressbar.fontStyle))
+		self.Progressbar.spellLabel:SetFont(Util.Text.getFontString(tostring("$("..CombatMetronome.SV.Progressbar.labelFont..")"), CombatMetronome.SV.Progressbar.spellSize, CombatMetronome.SV.Progressbar.fontStyle))
 	end
 	
 	local function LabelColors()
-		self.hpLabel:SetColor(unpack(self.config.healthColor))
-		self.magLabel:SetColor(unpack(self.config.magColor))
-		self.stamLabel:SetColor(unpack(self.config.stamColor))
-		self.ultLabel:SetColor(unpack(self.config.ultColor))
+		self.Resources.hpLabel:SetColor(unpack(CombatMetronome.SV.Resources.healthColor))
+		self.Resources.magLabel:SetColor(unpack(CombatMetronome.SV.Resources.magColor))
+		self.Resources.stamLabel:SetColor(unpack(CombatMetronome.SV.Resources.stamColor))
+		self.Resources.ultLabel:SetColor(unpack(CombatMetronome.SV.Resources.ultColor))
 	end
 	
 	local function HiddenStates()
-		self.hpLabel:SetHidden(true)
-		self.magLabel:SetHidden(true)
-		self.stamLabel:SetHidden(true)
-		self.ultLabel:SetHidden(true)
-		self.timeLabel:SetHidden(true)
-		self.spellLabel:SetHidden(true)
-		self.bar.backgroundTexture:SetHidden(not self.config.makeItFancy)
-		self.bar.borderL:SetHidden(not self.config.makeItFancy)
-		self.bar.borderR:SetHidden(not self.config.makeItFancy)
-		self.spellIcon:SetHidden(true)
-		self.spellIconBorder:SetHidden(true)
-		self.bar:SetHidden(not self.config.dontHide)
+		self.Resources.hpLabel:SetHidden(true)
+		self.Resources.magLabel:SetHidden(true)
+		self.Resources.stamLabel:SetHidden(true)
+		self.Resources.ultLabel:SetHidden(true)
+		self.Progressbar.timeLabel:SetHidden(true)
+		self.Progressbar.spellLabel:SetHidden(true)
+		self.Progressbar.bar.backgroundTexture:SetHidden(not CombatMetronome.SV.Progressbar.makeItFancy)
+		self.Progressbar.bar.borderL:SetHidden(not CombatMetronome.SV.Progressbar.makeItFancy)
+		self.Progressbar.bar.borderR:SetHidden(not CombatMetronome.SV.Progressbar.makeItFancy)
+		self.Progressbar.spellIcon:SetHidden(true)
+		self.Progressbar.spellIconBorder:SetHidden(true)
+		self.Progressbar.bar:SetHidden(not CombatMetronome.SV.Progressbar.dontHide)
 	end
 	
 	local function Anchors()
-		self.timeLabel:ClearAnchors()
-		self.bar.backgroundTexture:ClearAnchors()
-		self.spellIcon:ClearAnchors()
-		self.spellIconBorder:ClearAnchors()
-		self.spellIconBorder:SetAnchor(CENTER, self.spellIcon, CENTER, 0, 0)
-		self.bar.borderR:ClearAnchors()
-		self.bar.borderR:SetAnchor(TOPRIGHT)
-		self.bar.borderL:ClearAnchors()
-		self.bar.borderL:SetAnchor(TOPLEFT)
-		self.spellLabel:ClearAnchors()
-		self.spellLabel:SetAnchor(CENTER, self.frame, CENTER, 0, 0)
-		self.bar.background:ClearAnchors()
-		self.bar.background:SetAnchorFill()
-		if self.config.barAlign == "Right" then
-			self.timeLabel:SetAnchor(LEFT, self.frame, LEFT, (self.config.height/5), 0)
-			self.bar.backgroundTexture:SetAnchor(RIGHT, self.frame, RIGHT, 0, 0)
-			self.spellIcon:SetAnchor(LEFT, self.frame, RIGHT, (self.config.height/10), 0)
-			self.bar.align = RIGHT
-		elseif self.config.barAlign == "Left" then
-			self.bar.backgroundTexture:SetAnchor(LEFT, self.frame, LEFT, 0, 0)
-			self.timeLabel:SetAnchor(RIGHT, self.frame, RIGHT, -(self.config.height/5), 0) 
-			self.spellIcon:SetAnchor(RIGHT, self.frame, LEFT, -(self.config.height/10), 0)
-			self.bar.align = LEFT
+		self.Progressbar.timeLabel:ClearAnchors()
+		self.Progressbar.bar.backgroundTexture:ClearAnchors()
+		self.Progressbar.spellIcon:ClearAnchors()
+		self.Progressbar.spellIconBorder:ClearAnchors()
+		self.Progressbar.spellIconBorder:SetAnchor(CENTER, self.Progressbar.spellIcon, CENTER, 0, 0)
+		self.Progressbar.bar.borderR:ClearAnchors()
+		self.Progressbar.bar.borderR:SetAnchor(TOPRIGHT)
+		self.Progressbar.bar.borderL:ClearAnchors()
+		self.Progressbar.bar.borderL:SetAnchor(TOPLEFT)
+		self.Progressbar.spellLabel:ClearAnchors()
+		self.Progressbar.spellLabel:SetAnchor(CENTER, self.Progressbar.frame, CENTER, 0, 0)
+		self.Progressbar.bar.background:ClearAnchors()
+		self.Progressbar.bar.background:SetAnchorFill()
+		if CombatMetronome.SV.Progressbar.barAlign == "Right" then
+			self.Progressbar.timeLabel:SetAnchor(LEFT, self.Progressbar.frame, LEFT, (CombatMetronome.SV.Progressbar.height/5), 0)
+			self.Progressbar.bar.backgroundTexture:SetAnchor(RIGHT, self.Progressbar.frame, RIGHT, 0, 0)
+			self.Progressbar.spellIcon:SetAnchor(LEFT, self.Progressbar.frame, RIGHT, (CombatMetronome.SV.Progressbar.height/10), 0)
+			self.Progressbar.bar.align = RIGHT
+		elseif CombatMetronome.SV.Progressbar.barAlign == "Left" then
+			self.Progressbar.bar.backgroundTexture:SetAnchor(LEFT, self.Progressbar.frame, LEFT, 0, 0)
+			self.Progressbar.timeLabel:SetAnchor(RIGHT, self.Progressbar.frame, RIGHT, -(CombatMetronome.SV.Progressbar.height/5), 0) 
+			self.Progressbar.spellIcon:SetAnchor(RIGHT, self.Progressbar.frame, LEFT, -(CombatMetronome.SV.Progressbar.height/10), 0)
+			self.Progressbar.bar.align = LEFT
 		else
-			self.bar.backgroundTexture:SetAnchor(CENTER, self.frame, CENTER, 0, 0)
-			self.timeLabel:SetAnchor(RIGHT, self.frame, RIGHT, -(self.config.height/5), 0) 
-			self.spellIcon:SetAnchor(RIGHT, self.frame, LEFT, -(self.config.height/10), 0)
-			self.bar.align = CENTER
+			self.Progressbar.bar.backgroundTexture:SetAnchor(CENTER, self.Progressbar.frame, CENTER, 0, 0)
+			self.Progressbar.timeLabel:SetAnchor(RIGHT, self.Progressbar.frame, RIGHT, -(CombatMetronome.SV.Progressbar.height/5), 0) 
+			self.Progressbar.spellIcon:SetAnchor(RIGHT, self.Progressbar.frame, LEFT, -(CombatMetronome.SV.Progressbar.height/10), 0)
+			self.Progressbar.bar.align = CENTER
 		end
 		
 		-----------------------
 		---- Label Anchors ----
 		-----------------------
 		
-		self.hpLabel:ClearAnchors()
-		if self.config.reticleHp then
-			self.hpLabel:SetAnchor(LEFT, GuiRoot, CENTER, 40, 0)
+		self.Resources.hpLabel:ClearAnchors()
+		if CombatMetronome.SV.Resources.reticleHp then
+			self.Resources.hpLabel:SetAnchor(LEFT, GuiRoot, CENTER, 40, 0)
 		else
-			self.hpLabel:SetAnchor(BOTTOMRIGHT, self.labelFrame, BOTTOMRIGHT, 0, 0)
+			self.Resources.hpLabel:SetAnchor(BOTTOMRIGHT, self.Resources.frame, BOTTOMRIGHT, 0, 0)
 		end
-		self.magLabel:ClearAnchors()
-		self.magLabel:SetAnchor(TOPLEFT, self.labelFrame, TOPLEFT, 0, 0)
-		self.stamLabel:ClearAnchors()
-		self.stamLabel:SetAnchor(BOTTOMLEFT, self.labelFrame, BOTTOMLEFT, 0, 0)
-		self.ultLabel:ClearAnchors()
-		self.ultLabel:SetAnchor(BOTTOM, self.labelFrame, BOTTOM, 0, 0)
-		self.labelFrame:ClearAnchors()
-		if self.config.anchorResourcesToProgressbar then
-			self.labelFrame:SetAnchor(BOTTOM, self.frame, TOP, 0, 0)
+		self.Resources.magLabel:ClearAnchors()
+		self.Resources.magLabel:SetAnchor(TOPLEFT, self.Resources.frame, TOPLEFT, 0, 0)
+		self.Resources.stamLabel:ClearAnchors()
+		self.Resources.stamLabel:SetAnchor(BOTTOMLEFT, self.Resources.frame, BOTTOMLEFT, 0, 0)
+		self.Resources.ultLabel:ClearAnchors()
+		self.Resources.ultLabel:SetAnchor(BOTTOM, self.Resources.frame, BOTTOM, 0, 0)
+		self.Resources.frame:ClearAnchors()
+		if CombatMetronome.SV.Resources.anchorResourcesToProgressbar then
+			self.Resources.frame:SetAnchor(BOTTOM, self.Progressbar.frame, TOP, 0, 0)
 		else
-			self.labelFrame:SetAnchor(TOPLEFT, GuiRoot, TOPLEFT, self.config.labelFrameXOffset, self.config.labelFrameYOffset)
+			self.Resources.frame:SetAnchor(TOPLEFT, GuiRoot, TOPLEFT, CombatMetronome.SV.Resources.xOffset, CombatMetronome.SV.Resources.yOffset)
 		end
 	end
 	
 	local function Size()
-		self.frame:SetDimensions(self.config.width, self.config.height)
-		self.bar.background:SetDimensions(self.config.width, self.config.height)
-		self.bar.borderR:SetDimensions(self.config.width/2, self.config.height)
-		self.bar.borderL:SetDimensions(self.config.width/2, self.config.height)
-		self.bar.backgroundTexture:SetDimensions(self.config.width, self.config.height)
-		self.spellIconBorder:SetDimensions(self.config.height, self.config.height)
-		self.spellIcon:SetDimensions(self.config.height, self.config.height)
-		if self.config.anchorResourcesToProgressbar then
-			self.config.labelFrameWidth = self.config.width
-			self.config.labelFrameHeight = 50
+		self.Progressbar.frame:SetDimensions(CombatMetronome.SV.Progressbar.width, CombatMetronome.SV.Progressbar.height)
+		self.Progressbar.bar.background:SetDimensions(CombatMetronome.SV.Progressbar.width, CombatMetronome.SV.Progressbar.height)
+		self.Progressbar.bar.borderR:SetDimensions(CombatMetronome.SV.Progressbar.width/2, CombatMetronome.SV.Progressbar.height)
+		self.Progressbar.bar.borderL:SetDimensions(CombatMetronome.SV.Progressbar.width/2, CombatMetronome.SV.Progressbar.height)
+		self.Progressbar.bar.backgroundTexture:SetDimensions(CombatMetronome.SV.Progressbar.width, CombatMetronome.SV.Progressbar.height)
+		self.Progressbar.spellIconBorder:SetDimensions(CombatMetronome.SV.Progressbar.height, CombatMetronome.SV.Progressbar.height)
+		self.Progressbar.spellIcon:SetDimensions(CombatMetronome.SV.Progressbar.height, CombatMetronome.SV.Progressbar.height)
+		if CombatMetronome.SV.Resources.anchorResourcesToProgressbar then
+			CombatMetronome.SV.Resources.width = CombatMetronome.SV.Progressbar.width
+			CombatMetronome.SV.Resources.height = 50
 		end
-		self.labelFrame:SetDimensions(self.config.labelFrameWidth, self.config.labelFrameHeight)
+		self.Resources.frame:SetDimensions(CombatMetronome.SV.Resources.width, CombatMetronome.SV.Resources.height)
 		Anchors()
 	end
 	
 	local function BarColors()
-		self.bar.background:SetCenterColor(unpack(self.config.backgroundColor))
-		self.bar:UpdateSegment(1, {
-			color = self.config.pingColor,
+		self.Progressbar.bar.background:SetCenterColor(unpack(CombatMetronome.SV.Progressbar.backgroundColor))
+		self.Progressbar.bar:UpdateSegment(1, {
+			color = CombatMetronome.SV.Progressbar.pingColor,
 		})
-		self.bar:UpdateSegment(2, {
-			color = self.config.progressColor,
+		self.Progressbar.bar:UpdateSegment(2, {
+			color = CombatMetronome.SV.Progressbar.progressColor,
 			clip = true,
 		})
 	end
 		
 	SCENE_MANAGER:RegisterCallback("SceneStateChanged", function(scene, newState)
-		if scene:GetName() == "gameMenuInGame" and newState == "hiding" and self.showSampleBar then
-			-- d("should've changed visibility on sampleBar")
-			self.showSampleBar = false
-			Position("UI")
-			HiddenStates()
-		end
-	end)
-	
-	SCENE_MANAGER:RegisterCallback("SceneStateChanged", function(scene, newState)
-		if scene:GetName() == "gameMenuInGame" and newState == "hiding" and self.showSampleResources then
-			self.showSampleResources = false
-			ResourcesPosition("UI")
-			HiddenStates()
+		if scene:GetName() == "gameMenuInGame" and newState == "hiding" then
+			if self.Progressbar.showSample then
+				--if self.SV.debug.enabled then CombatMetronome.debug:Print("should've changed visibility on sampleBar") end
+				self.Progressbar.showSample = false
+				Position("UI")
+				HiddenStates()
+			end
+			if self.Resources.showSample then
+				self.Resources.showSample = false
+				ResourcesPosition("UI")
+				HiddenStates()
+			end
 		end
 	end)
 	
@@ -276,9 +274,12 @@ end
 	---- Build Stack Tracker ----
 	-----------------------------
 
-function CombatMetronome:BuildStackTracker()
-	local attributes = CM_TRACKER_CLASS_ATTRIBUTES[self.class]
-	local size = self.config.indicatorSize
+CombatMetronome.StackTracker = CombatMetronome.StackTracker or {}
+local StackTracker = CombatMetronome.StackTracker
+
+function StackTracker:BuildUI()
+	local attributes = self.CLASS_ATTRIBUTES[self.class]
+	local size = CombatMetronome.SV.StackTracker.indicatorSize
 	local distance = size/5
 	
 	------------------------------
@@ -289,12 +290,12 @@ function CombatMetronome:BuildStackTracker()
 		-- local stacksWindow = Util.Controls:NewFrame(self.name.."StackTrackerWindow")
 		local stacksWindow = WINDOW_MANAGER:CreateTopLevelWindow(self.name.."StackTrackerWindow")
 		stacksWindow:SetHandler( "OnMoveStop", function(...)
-			self.config.trackerX = stacksWindow:GetLeft()
-			self.config.trackerY = stacksWindow:GetTop()
+			CombatMetronome.SV.StackTracker.xOffset = stacksWindow:GetLeft()
+			CombatMetronome.SV.StackTracker.yOffset = stacksWindow:GetTop()
 		end)
 		stacksWindow:SetDimensions((size*attributes.iMax+distance*(attributes.iMax-1)), size)
 		stacksWindow:SetMouseEnabled(true)
-		stacksWindow:SetMovable(self.config.trackerIsUnlocked)
+		stacksWindow:SetMovable(CombatMetronome.SV.StackTracker.isUnlocked)
 		stacksWindow:SetClampedToScreen(true)
 		stacksWindow:SetHidden(true)
 		-- stacksWindow:SetDrawTier(DT_HIGH)
@@ -303,7 +304,7 @@ function CombatMetronome:BuildStackTracker()
 	local function Position(value)
 		stacksWindow:ClearAnchors()
 		if value == "UI" then
-			stacksWindow:SetAnchor(TOPLEFT, GuiRoot, TOPLEFT, self.config.trackerX, self.config.trackerY)
+			stacksWindow:SetAnchor(TOPLEFT, GuiRoot, TOPLEFT, CombatMetronome.SV.StackTracker.xOffset, CombatMetronome.SV.StackTracker.yOffset)
 		elseif value == "Sample" then
 			stacksWindow:SetAnchor(RIGHT, GuiRoot, RIGHT, -GuiRoot:GetWidth()/8, GuiRoot:GetHeight()/6)
 		end
@@ -380,16 +381,16 @@ function CombatMetronome:BuildStackTracker()
 		end
 		
 		local function Animate()
-			-- d(tostring(highlightAnimationTimeline:GetDuration()))
+			--if self.SV.debug.enabled then CombatMetronome.debug:Print(tostring(highlightAnimationTimeline:GetDuration())) end
 			highlightAnimation:SetHidden(false)
 			highlightAnimationTimeline:PlayFromStart()
-			-- d("Animation should've started")
+			--if self.SV.debug.enabled then CombatMetronome.debug:Print("Animation should've started") end
 		end
 		
 		local function StopAnimation()
 			highlightAnimationTimeline:Stop()
 			highlightAnimation:SetHidden(true)
-			-- d("Animation should've stopped")
+			--if self.SV.debug.enabled then CombatMetronome.debug:Print("Animation should've stopped") end
 		end
 
 		local controls = {
@@ -441,10 +442,10 @@ function CombatMetronome:BuildStackTracker()
 	
 	local function ApplyIcon()
 		if self.class == "NB" then
-			local value = self:CheckForGFMorph()
+			local value = Util.Stacks:CheckForGFMorph()
 			attributes.graphic = attributes.icon[value]
 		elseif self.class == "CRO" then
-			local value = self:CheckForFSMorph()
+			local value = Util.Stacks:CheckForFSMorph()
 			attributes.graphic = attributes.icon[value]
 		end
 		for i=1,attributes.iMax do
@@ -477,13 +478,13 @@ end
 CM.LATracker = CM.LATracker or {}
 local LATracker = CombatMetronome.LATracker
 
-function LATracker:BuildLATracker()
+function LATracker:BuildUI()
 	if not LATracker.frame then
 		LATracker.frame = Util.Controls:NewFrame(self.name.."Frame")
 		LATracker.frame:SetDimensionConstraints(50, 10, 300, 50)
-		LATracker.frame:SetHeight(CM.config.LATrackerHeight)
-		LATracker.frame:SetWidth(CM.config.LATrackerWidth)
-		LATracker.frame:SetAnchor(TOPLEFT, GuiRoot, TOPLEFT, CM.config.LATrackerXOffset, CM.config.LATrackerYOffset)
+		LATracker.frame:SetHeight(CombatMetronome.SV.LATracker.height)
+		LATracker.frame:SetWidth(CombatMetronome.SV.LATracker.width)
+		LATracker.frame:SetAnchor(TOPLEFT, GuiRoot, TOPLEFT, CombatMetronome.SV.LATracker.xOffset, CombatMetronome.SV.LATracker.yOffset)
 	end
 	
 	LATracker.label = LATracker.label or WINDOW_MANAGER:CreateControl(self.name.."Label", LATracker.frame, CT_LABEL)
@@ -492,17 +493,17 @@ function LATracker:BuildLATracker()
 	LATracker.label:SetAnchor(CENTER, LATracker.frame, CENTER, 0, 0)
 	
 	local function LabelSettings()
-		LATracker.label:SetFont(Util.Text.getFontString(tostring("$("..CM.config.labelFont..")"), LATracker.frame:GetHeight(), CM.config.fontStyle))
+		LATracker.label:SetFont(Util.Text.getFontString(tostring("$("..CombatMetronome.SV.Progressbar.labelFont..")"), LATracker.frame:GetHeight(), CombatMetronome.SV.Progressbar.fontStyle))
 	end
 	
 	LATracker.frame:SetHandler("OnMoveStop", function(...)
-		CM.config.LATrackerXOffset = LATracker.frame:GetLeft()
-		CM.config.LATrackerYOffset = LATracker.frame:GetTop()
+		CombatMetronome.SV.LATracker.xOffset = LATracker.frame:GetLeft()
+		CombatMetronome.SV.LATracker.yOffset = LATracker.frame:GetTop()
 	end)
 	LATracker.frame:SetHandler("OnResizeStop", function(...)
-		CM.config.LATrackerWidth = LATracker.frame:GetWidth()
-		CM.config.LATrackerHeight = LATracker.frame:GetHeight()
-		LATracker.label:SetFont(Util.Text.getFontString(tostring("$("..CM.config.labelFont..")"), LATracker.frame:GetHeight(), CM.config.fontStyle))
+		CombatMetronome.SV.LATracker.width = LATracker.frame:GetWidth()
+		CombatMetronome.SV.LATracker.height = LATracker.frame:GetHeight()
+		LATracker.label:SetFont(Util.Text.getFontString(tostring("$("..CombatMetronome.SV.Progressbar.labelFont..")"), math.min(LATracker.frame:GetHeight(), LATracker.frane:GetWidth()/5), CombatMetronome.SV.Progressbar.fontStyle))
 	end)
 	
 	LabelSettings()

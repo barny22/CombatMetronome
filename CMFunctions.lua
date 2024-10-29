@@ -1,12 +1,10 @@
 local LAM = LibAddonMenu2
 local Util = DariansUtilities
 Util.Text = Util.Text or {}
+Util.Stacks = Util.Stacks or {}
+CombatMetronome.StackTracker = CombatMetronome.StackTracker or {}
+local StackTracker = CombatMetronome.StackTracker
 
--- IDs for easier access
-local cruxId = 184220
-local carverId1 = 183122
-local carverId2 = 193397
-local dodgeId = 29721
 local bAId = { ["buff"] = 203447, ["ability"] = 24165,}
 local mWId = { ["buff"] = 122658, ["ability"] = 20805,} -- 122729
 local gFId = {
@@ -26,127 +24,122 @@ local fSId = {
 	}},
 	}
 	
-local previousStack = 0
+-- local previousStack = 0
 
 	--------------------------------------------------------------------------------------------------------------------
 	---- Script to get (SkillType skillType, luaindex skillLineIndex, luaindex skillIndex) to determine skill morph ----
 	--------------------------------------------------------------------------------------------------------------------
 	
--- /script _,index,_,_,_,_ = GetAbilityProgressionXPInfoFromAbilityId(ID) d(GetSkillAbilityIndicesFromProgressionIndex(index))
+-- /script _,index,_,_,_,_ = GetAbilityProgressionXPInfoFromAbilityId(ID) CombatMetronome.debug:Print(GetSkillAbilityIndicesFromProgressionIndex(index))
 
 	--------------------------
 	---- Helper Functions ----
 	--------------------------
 
 function CombatMetronome:OnCDStop()
-	if self.config.dontHide then
-		if self.config.makeItFancy then
+	if CombatMetronome.SV.Progressbar.dontHide then
+		if CombatMetronome.SV.Progressbar.makeItFancy then
 			self:HideFancy(false)
 		else
 			self:HideFancy(true)
 		end
 	else
 		self:HideFancy(true)
-		self.bar:SetHidden(true)
+		self.Progressbar.bar:SetHidden(true)
 	end
 	self:HideLabels(true)
 	self:SetEventNil()
 end
 
 function CombatMetronome:HideBar(value)
-	if self.config.makeItFancy then
+	if CombatMetronome.SV.Progressbar.makeItFancy then
 		self:HideFancy(value)
 	else
 		self:HideFancy(true)
 	end
-	self.bar:SetHidden(value)
+	self.Progressbar.bar:SetHidden(value)
 end
 
 function CombatMetronome:SetEventNil()
 	self.currentEvent = nil
-	self.bar.segments[1].progress = 0
-	self.bar.segments[2].progress = 0
-	self.bar.backgroundTexture:SetWidth(0)
+	self.Progressbar.bar.segments[1].progress = 0
+	self.Progressbar.bar.segments[2].progress = 0
+	self.Progressbar.bar.backgroundTexture:SetWidth(0)
 end
 
 function CombatMetronome:HideLabels(value)
-	self.spellLabel:SetHidden(value)
-	self.timeLabel:SetHidden(value)
-	self.spellIcon:SetHidden(value)
-	self.spellIconBorder:SetHidden(value)
+	self.Progressbar.spellLabel:SetHidden(value)
+	self.Progressbar.timeLabel:SetHidden(value)
+	self.Progressbar.spellIcon:SetHidden(value)
+	self.Progressbar.spellIconBorder:SetHidden(value)
 end
 
 function CombatMetronome:HideFancy(value)
-	self.bar.backgroundTexture:SetHidden(value)
-	self.bar.borderL:SetHidden(value)
-	self.bar.borderR:SetHidden(value)
+	self.Progressbar.bar.backgroundTexture:SetHidden(value)
+	self.Progressbar.bar.borderL:SetHidden(value)
+	self.Progressbar.bar.borderR:SetHidden(value)
 end
 
 	--------------------------------
 	---- GCD Tracking specifics ----
 	--------------------------------
 	
-function CombatMetronome:CreateMenuIconsPath(string1, string2, string3, string4, string5, string6, string7)
+function CombatMetronome:CreateMenuIconsPath(ControlName)
 	local number = 0
-	for i = 1,#CombatMetronomeOptions.controlsToRefresh do
-		if string1 == CombatMetronomeOptions.controlsToRefresh[i].data.name then
-			number1 = i
-		end
-		if string2 == CombatMetronomeOptions.controlsToRefresh[i].data.name then
-			number2 = i
-		end
-		if string3 == CombatMetronomeOptions.controlsToRefresh[i].data.name then
-			number3 = i
-		end
-		if string4 == CombatMetronomeOptions.controlsToRefresh[i].data.name then
-			number4 = i
-		end
-		if string5 == CombatMetronomeOptions.controlsToRefresh[i].data.name then
-			number5 = i
-		end
-		if string6 == CombatMetronomeOptions.controlsToRefresh[i].data.name then
-			number6 = i
-		end
-		if string7 == CombatMetronomeOptions.controlsToRefresh[i].data.name then
-			number7 = i-1
+	for i, entry in ipairs(CombatMetronomeOptions.controlsToRefresh) do
+		if ControlName == entry.data.name then
+			number = i
 		end
 	end
-	return number1, number2, number3, number4, number5, number6
+	return number
 end
 
 function CombatMetronome:GCDSpecifics(text, icon, gcdProgress)
-	if self.config.showSpell then
-		self.spellLabel:SetHidden(false)
-		self.spellIcon:SetHidden(false)
-		self.spellIconBorder:SetHidden(false)
-		self.spellIcon:SetTexture(icon)
-		self.spellLabel:SetText(text)
+	if CombatMetronome.SV.Progressbar.showSpell then
+		self.Progressbar.spellLabel:SetHidden(false)
+		self.Progressbar.spellIcon:SetHidden(false)
+		self.Progressbar.spellIconBorder:SetHidden(false)
+		self.Progressbar.spellIcon:SetTexture(icon)
+		self.Progressbar.spellLabel:SetText(text)
 	else
-		self.spellLabel:SetHidden(true)
-		self.spellIcon:SetHidden(true)
-		self.spellIconBorder:SetHidden(true)
+		self.Progressbar.spellLabel:SetHidden(true)
+		self.Progressbar.spellIcon:SetHidden(true)
+		self.Progressbar.spellIconBorder:SetHidden(true)
 	end
-	if self.config.showTimeRemaining then
-		self.timeLabel:SetHidden(false)
-		self.timeLabel:SetText(string.format("%.1fs", gcdProgress))
+	if CombatMetronome.SV.Progressbar.showTimeRemaining then
+		self.Progressbar.timeLabel:SetHidden(false)
+		self.Progressbar.timeLabel:SetText(string.format("%.1fs", gcdProgress))
 	else
-		self.timeLabel:SetHidden(true)
+		self.Progressbar.timeLabel:SetHidden(true)
 	end
 	if gcdProgress == 0 then CombatMetronome:SetIconsAndNamesNil() end
 end
 
 function CombatMetronome:SetIconsAndNamesNil()
-	self.activeMount.action = ""
-	self.collectibleInUse = nil
-	self.itemUsed = nil
-	self.killingAction = nil
-	self.breakingFree = nil
-	self.otherSynergies = nil
+	self.Progressbar.activeMount.action = ""
+	self.Progressbar.collectibleInUse = nil
+	self.Progressbar.itemUsed = nil
+	self.Progressbar.killingAction = nil
+	self.Progressbar.breakingFree = nil
+	self.Progressbar.synergy.wasUsed = false
+	self.Progressbar.nonAbilityGCDRunning = false
+	self.Progressbar.timeLabel:SetHidden(true)
+	self.Progressbar.spellLabel:SetHidden(true)
+	self.Progressbar.spellIcon:SetHidden(true)
+	self.Progressbar.spellIconBorder:SetHidden(true)
 end
 
 	-----------------------
 	---- Combat Events ----
 	-----------------------
+
+function CombatMetronome:CheckForCombatEventsRegister()
+	-- local ccTrackingActive = CombatMetronome:CheckForCCRegister()
+	if CombatMetronome.SV.Progressbar.trackMounting or CombatMetronome.SV.Progressbar.trackSynergies or CombatMetronome.SV.Progressbar.trackBreakingFree then
+		return true
+	end
+	return false
+end
 
 -- function CombatMetronome:HandleCombatEvents(...)
     -- local e = Util.CombatEvent:New(...)
@@ -167,14 +160,15 @@ end
 	-------------------------
 	---- Ability Adjusts ----
 	-------------------------
+local ABILITY_ADJUST_PLACEHOLDER = "Add ability adjust"
 
 function CombatMetronome:UpdateAdjustChoices()
 	local names = self.menu.abilityAdjustChoices
 
 	for k in pairs(names) do names[k] = nil end
 
-	for id, adj in pairs(self.config.abilityAdjusts) do
-		local name = Util.Text.CropZOSString(GetAbilityName(id))
+	for id, adj in pairs(CombatMetronome.SV.Progressbar.abilityAdjusts) do
+		local name = "|t20:20:"..GetAbilityIcon(id).."|t "..Util.Text.CropZOSString(GetAbilityName(id))
 		names[#names + 1] = name
 	end
 
@@ -183,8 +177,8 @@ function CombatMetronome:UpdateAdjustChoices()
         self.menu.curSkillName = ABILITY_ADJUST_PLACEHOLDER
         self.menu.curSkillId = -1
     else
-        if not self.config.abilityAdjusts[self.menu.curSkillId] then
-            for id, _ in pairs(self.config.abilityAdjusts) do
+        if not CombatMetronome.SV.Progressbar.abilityAdjusts[self.menu.curSkillId] then
+            for id, _ in pairs(CombatMetronome.SV.Progressbar.abilityAdjusts) do
                 self.menu.curSkillId = id
                 self.menu.curSkillName = GetAbilityName(id)
                 break
@@ -204,13 +198,30 @@ function CombatMetronome:UpdateAdjustChoices()
 end
 
 function CombatMetronome:CreateAdjustList()
-		local names = {}
-		for id, adj in pairs(self.config.abilityAdjusts) do
-			local name = Util.Text.CropZOSString(GetAbilityName(id))
-			names[#names + 1] = name
-		end
-		return names
+	local names = {}
+	for id, adj in pairs(CombatMetronome.SV.Progressbar.abilityAdjusts) do
+		local name = "|t20:20:"..GetAbilityIcon(id).."|t "..Util.Text.CropZOSString(GetAbilityName(id))
+		names[#names + 1] = name
 	end
+	if #names == 0 then table.insert(names, ABILITY_ADJUST_PLACEHOLDER) end
+	return names
+end
+
+function CombatMetronome:CropIconFromSkill(ability)
+    local _, iconDivider = string.find(ability, "%|t ")
+    
+    if iconDivider then
+        return string.sub(ability, iconDivider + 1, -1)
+    else
+        return ability
+    end
+end
+
+function CombatMetronome:FindSkillInAdjustList(name)
+	for i, entry in ipairs(self.menu.abilityAdjustChoices) do
+		if self:CropIconFromSkill(entry) == name then return i end
+	end
+end
 
 -- function CombatMetronome:BuildListOfCurrentSkills()
 	-- local list = {}
@@ -232,175 +243,49 @@ function CombatMetronome:CreateAdjustList()
 	-------------------------
 
 function CombatMetronome:HandleAbilityUsed(event)
-    if not (self.inCombat or self.config.showOOC) then return end
+    if not (self.inCombat or CombatMetronome.SV.Progressbar.trackGCD) then return end
 	if event == "cancel heavy" then
 		if self.currentEvent and self.currentEvent.ability.heavy then
 			self.currentEvent = nil
 			self.gcd = 0
-			return
 		end
+		return
 	end
 
-    self.soundTickPlayed = false
-    self.soundTockPlayed = false
+    self.Progressbar.soundTickPlayed = false
+    self.Progressbar.soundTockPlayed = false
 
     local ability = event.ability
 
-    event.adjust = (self.config.abilityAdjusts[ability.id] or 0)
-                    + ((ability.instant and self.config.gcdAdjust)
-                    or (ability.heavy and self.config.globalHeavyAdjust)
-                    or self.config.globalAbilityAdjust)
-	
-	-- d(event.ability.id)						--gives 183122 for Fatecarver
-	if	event.ability.id == carverId1 or event.ability.id == carverId2 then
-		local cruxes = CombatMetronome:GetCurrentNumCruxOnPlayer()
-		event.adjust = event.adjust + (338 * cruxes)
-		-- d(string.format("Fatecarver duration succesfully adjusted with %d crux(es)", cruxes))
-	end
-	if self.config.stopHATracking and event.ability.heavy then
+    event.adjust = (CombatMetronome.SV.Progressbar.abilityAdjusts[ability.id] or 0)
+                    + ((ability.instant and CombatMetronome.SV.Progressbar.gcdAdjust)
+                    or (ability.heavy and CombatMetronome.SV.Progressbar.globalHeavyAdjust)
+                    or CombatMetronome.SV.Progressbar.globalAbilityAdjust)
+					
+	if CombatMetronome.SV.Progressbar.stopHATracking and event.ability.heavy then
 		return
 	else
 		self.currentEvent = event
-		-- d("Got new Event "..event.ability.name)
+		-- if self.SV.debug.enabled then CombatMetronome.debug:Print("Got new Event "..event.ability.name) end
 	end
     self.gcd = Util.Ability.Tracker.gcd
-end
-
-	-----------------------
-	---- Crux Tracking ----
-	-----------------------
-
-function CombatMetronome:GetCurrentNumCruxOnPlayer()					-- Crux Tracking by barny (special thanks to akasha who basically did all the work)
-	--local start = GetGameTimeMilliseconds()
-	local crux = 0
-	if self.class == "ARC" then
-		for i=1,GetNumBuffs("player") do
-			local _,_,_,_,stack,_,_,_,_,_,abilityId = GetUnitBuffInfo("player", i)
-			if	abilityId == cruxId then
-				crux = stack
-				-- d("You currently have "..tostring(crux).." Crux")
-			break 
-			end
-		end
-	end
-	-- d(string.format("found %d crux(es); search time %d ms", crux, GetGameTimeMilliseconds() - start))
-	return crux
-end
-
-	---------------------------------
-	---- Bound Armaments Tracker ----
-	---------------------------------
-
-function CombatMetronome:GetCurrentNumBAOnPlayer()
-	--local start = GetGameTimeMilliseconds()
-	local bAStacks = 0
-	for i=1,GetNumBuffs("player") do
-		local _,_,_,_,stack,_,_,_,_,_,abilityId = GetUnitBuffInfo("player", i)
-		if	abilityId == bAId.buff then
-			bAStacks = stack
-			-- d("You currently have "..tostring(bAStacks).." Stacks of Bound Armaments")
-		break 
-		end
-	end
-	return bAStacks
-end
-
-	-----------------------------
-	---- Molten Whip Tracker ----
-	-----------------------------
-
-function CombatMetronome:GetCurrentNumMWOnPlayer()
-	--local start = GetGameTimeMilliseconds()
-	local mWStacks = 0
-	for i=1,GetNumBuffs("player") do
-		local _,_,_,_,stack,_,_,_,_,_,abilityId = GetUnitBuffInfo("player", i)
-		if	abilityId == mWId.buff then
-			mWStacks = stack
-			-- d("You currently have "..tostring(mWStacks).." Stacks of Molten Whip")
-		break 
-		end
-	end
-	return mWStacks
-end
-
-	----------------------------------------------------------------
-	---- Grimm Focus/Merciless Resolve/Relentless Focus Tracker ----
-	----------------------------------------------------------------
-	
-function CombatMetronome:CheckForGFMorph()
-	local morph = ""
-	local morphId = GetProgressionSkillCurrentMorphSlot(GetProgressionSkillProgressionId(1, 1, 6))
-		if morphId == 0 then morph = "gF"
-		elseif morphId == 1 then morph = "rF"
-		elseif morphId == 2 then morph = "mR"
-		end
-	if morph ~= self.oldMorph and morph ~= "" then self.morphChanged = true end --self.stackTracker.indicator.ApplyIcon() end
-	-- if morphChanged then d("How dare you change morphs midgame??") end
-	self.oldMorph = morph
-	return morph
-end
-
-function CombatMetronome:GetCurrentNumGFOnPlayer()
-	local morph,_ = CombatMetronome:CheckForGFMorph()
-	local gFStacks = 0
-	for i=1,GetNumBuffs("player") do
-		local _,_,_,_,stack,_,_,_,_,_,abilityId = GetUnitBuffInfo("player", i)
-		if	abilityId == gFId[morph].buff then
-			gFStacks = stack
-			-- d("You currently have "..tostring(gFStacks).." Stacks of Grimm Focus")
-		break 
-		end
-	end
-	return gFStacks
-end
-
-	-----------------------------
-	---- Necro skull Tracker ----
-	-----------------------------
-	
-function CombatMetronome:CheckForFSMorph()
-	local morph = ""
-	local morphId = GetProgressionSkillCurrentMorphSlot(GetProgressionSkillProgressionId(1, 1, 2))
-		if morphId == 0 then morph = "fS"
-		elseif morphId == 1 then morph = "vS"
-		elseif morphId == 2 then morph = "rS"
-		end
-	if morph ~= self.oldMorph and morph ~= "" then self.morphChanged = true end -- self.stackTracker.indicator.ApplyIcon() end
-	self.oldMorph = morph
-	return morph
-end
-
-function CombatMetronome:GetCurrentNumFSOnPlayer()
-	local morph,_ = CombatMetronome:CheckForFSMorph()
-	local fSStacks = 0
-	for i=2,3 do
-			ability = fSId[morph].ability[i]
-			for j=1,12 do
-				if self.actionSlotCache[j].id == ability then
-					fSStacks = i-1
-					break
-				end
-			end
-		if fSStacks ~= 0 then break	end
-		end
-	return fSStacks
 end
 
 	------------------------------------
 	---- Check if Tracker is active ----
 	------------------------------------
 
-function CombatMetronome:TrackerIsActive()
+function StackTracker:TrackerIsActive()
 	local trackerIsActive = false
-	if self.class == "ARC" and self.config.trackCrux then
+	if self.class == "ARC" and CombatMetronome.SV.StackTracker.trackCrux then
 		trackerIsActive = true
-	elseif self.class == "DK" and self.config.trackMW then
+	elseif self.class == "DK" and CombatMetronome.SV.StackTracker.trackMW then
 		trackerIsActive = true
-	elseif self.class == "SORC" and self.config.trackBA then
+	elseif self.class == "SORC" and CombatMetronome.SV.StackTracker.trackBA then
 		trackerIsActive = true
-	elseif self.class == "NB" and self.config.trackGF then
+	elseif self.class == "NB" and CombatMetronome.SV.StackTracker.trackGF then
 		trackerIsActive = true
-	elseif self.class == "CRO" and self.config.trackFS then
+	elseif self.class == "CRO" and CombatMetronome.SV.StackTracker.trackFS then
 		trackerIsActive = true
 	else
 		trackerIsActive = false
@@ -412,41 +297,41 @@ end
         ---- Store abilities on Actionbars ----
         ---------------------------------------
 
-function CombatMetronome:StoreAbilitiesOnActionBar()
-    local actionSlots = {}  -- Create a table to store action slots
+-- function CombatMetronome:StoreAbilitiesOnActionBar()
+    -- local actionSlots = {}  -- Create a table to store action slots
 
-    for j = 0, 1 do
-        for i = 3, 8 do
-            local actionSlot = {}  -- Create a new table for each action slot
-			local slotType = GetSlotType(i, j)
+    -- for j = 0, 1 do
+        -- for i = 3, 8 do
+            -- local actionSlot = {}  -- Create a new table for each action slot
+			-- local slotType = GetSlotType(i, j)
             -- setmetatable(actionSlot, {__index = index})
             
-            actionSlot.place = tostring(i .. j)
-			if slotType == ACTION_TYPE_CRAFTED_ABILITY then
-				actionSlot.id = GetAbilityIdForCraftedAbilityId(GetSlotBoundId(i, j))
-			else
-				actionSlot.id = GetSlotBoundId(i, j)
-			end
-            actionSlot.icon = GetAbilityIcon(actionSlot.id)
-            actionSlot.name = Util.Text.CropZOSString(GetAbilityName(actionSlot.id))
+            -- actionSlot.place = tostring(i .. j)
+			-- if slotType == ACTION_TYPE_CRAFTED_ABILITY then
+				-- actionSlot.id = GetAbilityIdForCraftedAbilityId(GetSlotBoundId(i, j))
+			-- else
+				-- actionSlot.id = GetSlotBoundId(i, j)
+			-- end
+            -- actionSlot.icon = GetAbilityIcon(actionSlot.id)
+            -- actionSlot.name = Util.Text.CropZOSString(GetAbilityName(actionSlot.id))
 
-            table.insert(actionSlots, actionSlot)  -- Add the current action slot to the table
-        end
-    end
+            -- table.insert(actionSlots, actionSlot)  -- Add the current action slot to the table
+        -- end
+    -- end
 
-    return actionSlots
-end
+    -- return actionSlots
+-- end
 
 		------------------------------------------------
         ---- Tracker check if abilities are slotted ----
         ------------------------------------------------
 		
-function CombatMetronome:CheckIfSlotted()
+function StackTracker:CheckIfSlotted()
 	local ability = ""
 	local abilitySlotted = false
 	if self.class == "SORC" then ability = bAId.ability
 	elseif self.class == "NB" then 
-		local morph = self:CheckForGFMorph()
+		local morph = Util.Stacks:CheckForGFMorph()
 		ability = gFId[morph].ability
 	elseif self.class == "DK" then ability = mWId.ability
 	end
@@ -459,7 +344,7 @@ function CombatMetronome:CheckIfSlotted()
 		end
 	elseif self.class == "ARC" then abilitySlotted = true
 	elseif self.class == "CRO" then
-		local morph = self:CheckForFSMorph()
+		local morph = Util.Stacks:CheckForFSMorph()
 		for i=1,3 do
 			ability = fSId[morph].ability[i]
 			for j=1,12 do
@@ -486,31 +371,29 @@ function CombatMetronome:IsInPvPZone()
 	else
 		self.inPVPZone = false
 	end
-	-- d(self.inPVPZone)
+	-- if self.SV.debug.enabled then CombatMetronome.debug:Print(self.inPVPZone) end
 	return self.inPVPZone
 end
 
 function CombatMetronome:CMPVPSwitch()
-	if not self.config.hideProgressbar then
-		if self.config.hideCMInPVP and self.inPVPZone then
+	if not CombatMetronome.SV.Progressbar.hide then
+		if CombatMetronome.SV.Progressbar.hideCMInPVP and self.inPVPZone then
 			if self.cmRegistered then
 				self:UnregisterCM()
 				self:HideBar(true)
-				-- d("registered cm scenario 1")
+				-- if self.SV.debug.enabled then CombatMetronome.debug:Print("registered cm scenario 1") end
 			elseif not self.cmRegistered then
 				self:HideBar(true)
-				-- d("registered cm scenario 2")
+				-- if self.SV.debug.enabled then CombatMetronome.debug:Print("registered cm scenario 2") end
 			end
 		else 
 			if not self.cmRegistered then
 				self:RegisterCM()
-				self:BuildProgressBar()
-				self:HideBar(not self.config.dontHide)
-				-- d("registered cm scenario 3")
+				self:HideBar(not CombatMetronome.SV.Progressbar.dontHide)
+				-- if self.SV.debug.enabled then CombatMetronome.debug:Print("registered cm scenario 3") end
 			else
-				self:BuildProgressBar()
-				self:HideBar(not self.config.dontHide)
-				-- d("registered cm scenario 4")
+				self:HideBar(not CombatMetronome.SV.Progressbar.dontHide)
+				-- if self.SV.debug.enabled then CombatMetronome.debug:Print("registered cm scenario 4") end
 			end
 		end
 	end
@@ -518,19 +401,19 @@ end
 
 function CombatMetronome:ResourcesPVPSwitch()
 	-- local hideResources = false
-	if self.config.hideResourcesInPVP and self.inPVPZone then
+	if CombatMetronome.SV.Resources.hideInPVP and self.inPVPZone then
 		-- hideResources = true
 		if self.rtRegistered then
 			self:UnregisterResourceTracker()
-			self.stamLabel:SetHidden(true)
-            self.magLabel:SetHidden(true)
-            self.hpLabel:SetHidden(true)    
-            self.ultLabel:SetHidden(true)
+			self.Resources.stamLabel:SetHidden(true)
+            self.Resources.magLabel:SetHidden(true)
+            self.Resources.hpLabel:SetHidden(true)    
+            self.Resources.ultLabel:SetHidden(true)
 		elseif not self.rtRegistered then
-			self.stamLabel:SetHidden(true)
-            self.magLabel:SetHidden(true)
-            self.hpLabel:SetHidden(true)    
-            self.ultLabel:SetHidden(true)
+			self.Resources.stamLabel:SetHidden(true)
+            self.Resources.magLabel:SetHidden(true)
+            self.Resources.hpLabel:SetHidden(true)    
+            self.Resources.ultLabel:SetHidden(true)
 		end
 	else
 		if not self.rtRegistered then
@@ -541,22 +424,33 @@ function CombatMetronome:ResourcesPVPSwitch()
 	-- return hideResources
 end
 
-function CombatMetronome:TrackerPVPSwitch()
+function StackTracker:PVPSwitch()
 	if self:TrackerIsActive() then
-		if self.config.hideTrackerInPVP and self.inPVPZone then
-			if self.trackerRegistered then
-				self:UnregisterTracker()
-				self.stackTracker.FadeScenes("NoUI")
-				-- d("registered tracker scenario 1")
-			elseif not self.trackerRegistered then
-				self.stackTracker.FadeScenes("NoUi")
-				-- d("registered tracker scenario 2")
+		if CombatMetronome.SV.StackTracker.hideInPVP and CombatMetronome.inPVPZone then
+			if self.registered then
+				self:Unregister()
+				self.UI.FadeScenes("NoUI")
+				-- if self.SV.debug.enabled then CombatMetronome.debug:Print("registered tracker scenario 1") end
+			elseif not self.registered then
+				self.UI.FadeScenes("NoUi")
+				-- if self.SV.debug.enabled then CombatMetronome.debug:Print("registered tracker scenario 2") end
 			end
 		else
-			if not self.trackerRegistered then
-				self:RegisterTracker()
-				-- d("registered tracker scenario 3")
+			if not self.registered then
+				self:Register()
+				-- if self.SV.debug.enabled then CombatMetronome.debug:Print("registered tracker scenario 3") end
 			end
 		end
 	end
+end
+
+		---------------
+        ---- Debug ----
+        ---------------
+		
+function CombatMetronome:SetAllDebugFalse()
+	for entry, bool in pairs(CombatMetronome.SV.debug) do
+		CombatMetronome.SV.debug[entry] = false
+	end
+	CombatMetronome.SV.debug.triggerTimer = 170
 end

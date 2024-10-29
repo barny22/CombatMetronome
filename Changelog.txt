@@ -1,3 +1,14 @@
+2024-10-25 v1.6.8
+!  Minor fixes in code
+!  Fixed sound cue on stack tracker
+!  Restructuring of constants and saved variables for better readability and consistency
+!  Overhauled the debugging system
+!  Ghost abilities are now properly canceled
++  Added function to show ping when tracking GCD
++  Added ability icons to ability adjust section
++  Added tracking of all synergies that cause GCD
++  API bump
+
 2024-09-05 v1.6.7
 !  Moved updater for castbar to CMCastbar.lua
 !  Ground targeted skills are now properly recognized

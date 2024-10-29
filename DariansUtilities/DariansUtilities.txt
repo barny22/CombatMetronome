@@ -1,9 +1,9 @@
 ﻿## Title: DariansUtilities
 ## Description: Darian's Mod Library
-## Author: Darianopolis, |ce11212b|c3645d6arny|r
-## Version: 1.7.5
-## AddOnVersion: 10705
-## APIVersion: 101043
+## Author: Darianopolis, |c2a52beb|rarny
+## Version: 1.7.7
+## AddOnVersion: 10707
+## APIVersion: 101044
 ## IsLibrary: true
 
 ; This Add-on is not created by, affiliated with or sponsored by ZeniMax
@@ -25,3 +25,4 @@ controls/Frame.lua
 controls/Cooldown.lua
 controls/Bar.lua
 abilities/Ability.lua
+abilities/Stacks.lua

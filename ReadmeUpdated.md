@@ -12,7 +12,7 @@ I added some fixes and new options:
 
 Should there be any bugs, feel free to report them on my [url="https://www.esoui.com/portal.php?id=386&a=listbugs"]ESOUI Portal[/url].
 
-Beta versions are available on [url="https://github.com/barny22/CombatMetronome/tree/Development"]Github[/url]. Install at your own risk.
+Beta version is available for download on [URL="https://github.com/barny22/CombatMetronome/tree/Development"]Github[/URL] or click [URL="https://github.com/barny22/CombatMetronome/archive/refs/heads/Development.zip"]here[/URL] to download directly. Install at your own risk.
 
 Here is the original description by Darianopolis:
 
@@ -26,7 +26,8 @@ Dependencies:
 [list]
 [*]LibAddonMenu-2.0
 [*]libAddonKeybinds
-[/list]
+[*][b]LibChatMessage[/b] [b](!!new!!)[/b]
+[/lIST]
 
 Features
 

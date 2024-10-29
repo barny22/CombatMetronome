@@ -1,3 +1,13 @@
+2024-10-25 v1.7.7
+!  Fixes to ability triggers
+!  Fixed barswap triggering many CancelEvent()s
+!  Implemented debug messages
++  Added a "invalid location" spell as abilities still cause GCD if no location was found
+
+2024-09-18 v1.7.6
+!  Minor fixes to Ability.lua
+!  Moved some functions from CombatMetronome to a new file Stacks.lua
+
 2024-09-05 v1.7.5
 !  Moved function to crop zos strings to Text.lua to use it from there
 !  Updated Ability.lua - interrupts now are triggered here, also abilities cast right after dodgerolling are now properly triggered
