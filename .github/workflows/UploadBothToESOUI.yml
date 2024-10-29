@@ -82,7 +82,7 @@ jobs:
 # Zip-Datei für Addon ID 3790 (ohne ReadmeOriginal.md)
     - name: Zip Addon Files for Addon ID 3790 (excluding ReadmeOriginal.md)
       run: |
-        7z a ./CombatMetronome_3790/CombatMetronome.zip * -xr!ReadmeOriginal.md -xr!*.git* 
+        7z a ./CombatMetronome_3790/CombatMetronome.zip * -xr!ReadmeOriginal.md -xr!*.git* -xr!*_2373
         
     - name: Upload Addon 2373 to ESOUI with PowerShell
       shell: pwsh
