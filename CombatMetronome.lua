@@ -33,7 +33,7 @@ ZO_CreateStringId("SI_BINDING_NAME_COMBATMETRONOME_FORCE", "Force display")
 	-------------------------------------
 
 function CombatMetronome:Init()
-	if _G["CombatMetronomeSavedVars"] and _G["CombatMetronomeSavedVars"].Default[GetDisplayName()][GetCurrentCharacterId()].version == 1 then
+	if _G["CombatMetronomeSavedVars"] and _G["CombatMetronomeSavedVars"].Default[GetDisplayName()] and _G["CombatMetronomeSavedVars"].Default[GetDisplayName()][GetCurrentCharacterId()].version == 1 then
 		for charId, sv in pairs(_G["CombatMetronomeSavedVars"].Default[GetDisplayName()]) do
 			if sv.version == 1 then
 				_G["CombatMetronomeSavedVars"].Default[GetDisplayName()][charId] = {}
