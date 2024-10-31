@@ -514,7 +514,7 @@ function CombatMetronome:BuildMenu()
 							setFunc = function(value)
 							CombatMetronome.SV.Progressbar.showOOC = value
 							end
-							},
+						},
 						{
 							type = "checkbox",
 							name = "Track all GCDs",
