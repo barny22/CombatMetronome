@@ -506,7 +506,6 @@ function CombatMetronome:BuildMenu()
 								CombatMetronome.SV.Progressbar.globalAbilityAdjust = value
 							end,
 						},
-						--[[
 						{
 							type = "checkbox",
 							name = "Show OOC",
@@ -515,12 +514,11 @@ function CombatMetronome:BuildMenu()
 							setFunc = function(value)
 							CombatMetronome.SV.Progressbar.showOOC = value
 							end
-							},
-						]]
+						},
 						{
 							type = "checkbox",
-							name = "Always show GCD",
-							tooltip = "Track GCDs whilst out of combat",
+							name = "Track all GCDs",
+							tooltip = "Track all GCDs",
 							getFunc = function() return CombatMetronome.SV.Progressbar.trackGCD end,
 							setFunc = function(value)
 								CombatMetronome.SV.Progressbar.trackGCD = value

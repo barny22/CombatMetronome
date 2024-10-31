@@ -1,3 +1,6 @@
+2024-10-31 v1.6.10
+!  Fixed HA tracking and added option to show out of combat GCDs (ooc)
+
 2024-10-29 v1.6.9
 !  Fixed exhausting fatecarver not being adjusted when being used with crux
 
