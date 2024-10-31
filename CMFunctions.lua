@@ -244,8 +244,10 @@ end
 
 function CombatMetronome:HandleAbilityUsed(event)
     if not (self.inCombat or CombatMetronome.SV.Progressbar.trackGCD) then return end
+	if CombatMetronome.SV.debug.abilityUsed and event.ability then CombatMetronome.debug:Print("New event "..event.ability.name.." recieved in CombatMetronome") end
 	if event == "cancel heavy" then
 		if self.currentEvent and self.currentEvent.ability.heavy then
+			if CombatMetronome.SV.debug.currentEvent then CombatMetronome.debug:Print("Canceled heavy"..self.currentEvent.ability.name) end
 			self.currentEvent = nil
 			self.gcd = 0
 		end

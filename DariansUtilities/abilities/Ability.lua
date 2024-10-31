@@ -142,7 +142,7 @@ function Ability.Tracker:Start()
     self.lastLightAttack = 0
     self.rollDodgeFinished = true
     self.lastBlockStatus = false
-    self.heavyUsedDuringHeavy = false
+    -- self.heavyUsedDuringHeavy = false
     
     self.abilityTriggerCounters = {}
     self.abilityTriggerCounters.direct = 0
@@ -338,7 +338,7 @@ function Ability.Tracker:Update()
         self.weaponLastSheathed = time
     end
     self.lastBlockStatus = IsBlockActive()
-    self.heavyUsedDuringHeavy = false
+    -- self.heavyUsedDuringHeavy = false
     
     if gcdProgress == 0 then self.lastAbilityFinished = 0 end
 end
@@ -365,7 +365,7 @@ function Ability.Tracker:NewEvent(ability, slot, start)
 
     self.queuedEvent = event
         
-    if self.cdTriggerTime == start and gcdProgress > 0 and not self.currentEvent and self.rollDodgeFinished and not event.castDuringRollDodge then
+    if self.cdTriggerTime == start and (gcdProgress > 0 or event.ability.heavy) and not self.currentEvent and self.rollDodgeFinished and not event.castDuringRollDodge then
         self.eventStart = start + sR - sD
         self:AbilityUsed()
         self.abilityTriggerCounters.direct = self.abilityTriggerCounters.direct + 1
@@ -403,7 +403,11 @@ function Ability.Tracker:AbilityUsed()
     end
     
     local gcdProgress, sR, sD = Ability.Tracker:GCDCheck()
-    if gcdProgress > 0.92 then
+    if gcdProgress > 0.92 or (self.queuedEvent and self.queuedEvent.ability.heavy) then
+    
+        -- killing old self.currentEvent since new event is coming
+        if self.currentEvent then self:CancelCurrentEvent("Old event over, new event coming") end
+        
         local event = self.queuedEvent
         event.start = self.eventStart
         
@@ -418,13 +422,14 @@ function Ability.Tracker:AbilityUsed()
         end
         
         self.gcd = sD
+        if CombatMetronome.SV.debug.abilityUsed then CombatMetronome.debug:Print("New ability used "..event.ability.name) end
         self:CallbackAbilityUsed(event)
 
         if (event.ability.instant or event.ability.channeled) then
             self:CallbackAbilityActivated(event)
         end
 
-        if (not event.ability.instant) then
+        if (not event.ability.instant or event.ability.heavy) then
             -- CombatMetronome.debug:Print("Putting "..event.ability.name.." on current")
             self.currentEvent = event
         end
@@ -454,13 +459,13 @@ function Ability.Tracker:CallbackLightAttackUsed(time)
 end
 
 function Ability.Tracker:CallbackCancelHeavy()
-    if not (self.cdTriggerTime == self.heavyUsedDuringHeavy) then
+    -- if not (self.cdTriggerTime == self.heavyUsedDuringHeavy) then
         self.currentEvent = nil
         if CombatMetronome.SV.debug.currentEvent then CombatMetronome.debug:Print("Canceled heavy") end
         self.gcd = 0
         -- CombatMetronome.debug:Print("cancelling heavy")
         Ability.Tracker:CallbackAbilityUsed("cancel heavy")
-    end
+    -- end
 end
 
 function Ability.Tracker:CallbackAbilityCancelled(event)
@@ -469,71 +474,6 @@ function Ability.Tracker:CallbackAbilityCancelled(event)
     --     callback(event)
     -- end
 end
-
--- function Ability.Tracker:HandleSlotUpdated(_, slot)
-    
-    -- local time = GetFrameTimeMilliseconds()
-    
-    -- table.insert(self.slotsUpdated, slot)
-    -- zo_callLater(function(slot)
-        -- if #self.slotsUpdated == 1 then
-            -- local slotRemaining = GetSlotCooldownInfo(slot)
-            -- if not self.currentEvent and slotRemaining > 0 then
-                -- local ability = Ability:ForId(GetSlotBoundId(slot))
-                -- self:NewEvent(ability, slot, time)
-                -- self.eventStart = time
-                -- self:AbilityUsed()
-                -- self.slotsUpdated = {}
-            -- end
-        -- end
-    -- end,
-    -- 50)
-    -- trigger for only elemental explosion
-    -- for i, num in ipairs(self.slotsNotUpdated) do
-        -- if num == slot then
-            -- table.remove(self.slotsNotUpdated, i)
-            -- break
-        -- end
-    -- end
-    -- if #self.slotsNotUpdated == 1 then
-        -- if GetSlotBoundId(self.slotsNotUpdated[1]) == 5 and self.queuedEvent and self.queuedEvent.ability.id == GetAbilityIdForCraftedAbilityId(GetSlotBoundId(self.slotsNotUpdated[1])) and self.triggerForEleExplosionAllowed then
-            -- self.triggerForEleExplosion = true
-            -- self.triggerForEleExplosionAllowed = false
-            -- zo_callLater(function() self.triggerForEleExplosionAllowed = true end, 500)
-        -- end
-    -- elseif #self.slotsNotUpdated == 0 then
-        -- self:CancelEvent()
-    -- end
-    -- trigger is finished here
-    
-    -- local remaining, duration, global, t = GetSlotCooldownInfo(slot)
-    -- local gcdProgress, remaining, duration = Ability.Tracker:GCDCheck()
-    -- local time = GetFrameTimeMilliseconds()
-
-    -- local abilityUsed = (duration > 0 and remaining > 0)
-    
-    -- if self.triggerForEleExplosion then self.triggerForEleExplosion = false end
-
-    -- if abilityUsed then
-        -- self.gcd = remaining
-
-        -- local oldStart = self.eventStart or 0
-        -- self.eventStart = time + remaining - duration 
-
-        -- if (oldStart ~= self.eventStart) then
-            -- _=self.log and CombatMetronome.debug:Print(""..time.." : Event start "..tostring(duration - remaining).."ms ago")
-        -- end
-        
-        -- if (self.queuedEvent and self.eventStart > oldStart + 100) then
-            -- _=self.log and CombatMetronome.debug:Print(""..time.." : Moved queued "..self.queuedEvent.ability.name.." to current") 
-            -- log("  Dispatching ", self.queuedEvent.ability.name)
-            -- log("    oldStart = ", oldStart)
-            -- log("    newStart = ", self.eventStart)
-            -- log("    current  = ", GetFrameTimeMilliseconds())
-            -- self:AbilityUsed()
-        -- end
-    -- end
--- end
 
 function Ability.Tracker:HandleCooldownsUpdated()
     self.cdTriggerTime = GetFrameTimeMilliseconds()
@@ -557,7 +497,7 @@ function Ability.Tracker:HandleSlotUsed(_, slot)
     local time = GetFrameTimeMilliseconds()
     
     if slot == 2 and self.currentEvent and self.currentEvent.ability.heavy then
-        self.heavyUsedDuringHeavy = time
+        -- self.heavyUsedDuringHeavy = time
         self:CallbackCancelHeavy()
         return
     elseif slot == 2 then
