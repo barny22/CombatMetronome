@@ -23,10 +23,10 @@ function CombatMetronome:UpdateLabels()
             self.Resources.stamLabel:SetHidden(true)
         end
         if CombatMetronome.SV.Resources.showMagicka then
-            self.Resources.stamLabel:SetText("75%")
-            self.Resources.stamLabel:SetHidden(false)
+            self.Resources.magLabel:SetText("75%")
+            self.Resources.magLabel:SetHidden(false)
         else
-            self.Resources.stamLabel:SetHidden(true)
+            self.Resources.magLabel:SetHidden(true)
         end
         if CombatMetronome.SV.Resources.showHealth then
             self.Resources.hpLabel:SetText("51%")
