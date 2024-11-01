@@ -66,10 +66,10 @@ function CombatMetronome:UpdateLabels()
         
         if showResources and CombatMetronome.SV.Resources.showMagicka then
             local mag, _, maxMag = GetUnitPower("player", POWERTYPE_MAGICKA)
-            self.Resources.stamLabel:SetText(mag == maxMag and "100%" or string.format("%i%%", 100 * mag / maxMag))
-            self.Resources.stamLabel:SetHidden(false)
+            self.Resources.magLabel:SetText(mag == maxMag and "100%" or string.format("%i%%", 100 * mag / maxMag))
+            self.Resources.magLabel:SetHidden(false)
         else
-            self.Resources.stamLabel:SetHidden(true)
+            self.Resources.magLabel:SetHidden(true)
         end
 
         local hp, _, maxHp = GetUnitPower("reticleover", POWERTYPE_HEALTH)
