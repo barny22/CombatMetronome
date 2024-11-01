@@ -1,3 +1,6 @@
+2024-11-01 v1.6.11
+!  Fixed stamina label showing magicka
+
 2024-10-31 v1.6.10
 !  Fixed HA tracking and added option to show out of combat GCDs (ooc)
 
