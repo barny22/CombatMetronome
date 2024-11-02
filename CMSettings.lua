@@ -846,6 +846,7 @@ function CombatMetronome:BuildMenu()
 							getFunc = function() return CombatMetronome.SV.Progressbar.soundTickEnabled end,
 							setFunc = function(state)
 								CombatMetronome.SV.Progressbar.soundTickEnabled = state
+								CombatMetronome.Progressbar.soundTickPlayed = true
 							end,
 						},
 						{
@@ -902,6 +903,7 @@ function CombatMetronome:BuildMenu()
 							getFunc = function() return CombatMetronome.SV.Progressbar.soundTockEnabled end,
 							setFunc = function(state)
 								CombatMetronome.SV.Progressbar.soundTockEnabled = state
+								CombatMetronome.Progressbar.soundTockPlayed = true
 							end,
 						},
 						{

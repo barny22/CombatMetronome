@@ -13,6 +13,8 @@
                 <Down> 
                 	CombatMetronome.SV.Progressbar.soundTockEnabled = not CombatMetronome.SV.Progressbar.soundTockEnabled
                     CombatMetronome.SV.Progressbar.soundTickEnabled = not CombatMetronome.SV.Progressbar.soundTickEnabled
+                    CombatMetronome.Progressbar.soundTickPlayed = true
+                    CombatMetronome.Progressbar.soundTockPlayed = true
                 </Down>
                 <Up> 
                 </Up>
@@ -20,6 +22,7 @@
             <Action name="COMBATMETRONOME_TOGGLE_TICK">
                 <Down> 
                 	CombatMetronome.SV.Progressbar.soundTickEnabled = not CombatMetronome.SV.Progressbar.soundTickEnabled
+                    CombatMetronome.Progressbar.soundTickPlayed = true
                 </Down>
                 <Up> 
                 </Up>
@@ -27,6 +30,7 @@
             <Action name="COMBATMETRONOME_TOGGLE_TOCK">
                 <Down> 
                 	CombatMetronome.SV.Progressbar.soundTockEnabled = not CombatMetronome.SV.Progressbar.soundTockEnabled
+                    CombatMetronome.Progressbar.soundTockPlayed = true
                 </Down>
                 <Up> 
                 </Up>
