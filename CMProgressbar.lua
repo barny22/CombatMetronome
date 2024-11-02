@@ -75,7 +75,22 @@ function CombatMetronome:Update()
 			---------------------
 			---- GCD Tracker ----
 			---------------------
-			
+		
+		if not self.currentEvent then
+			self:OnCDStop()
+			self.Progressbar.bar:Update()
+			if (self.inCombat or (CombatMetronome.SV.Progressbar.showOOC and CombatMetronome.SV.Progressbar.playSoundsOOC)) and not self.Progressbar.soundTockPlayed and CombatMetronome.SV.Progressbar.soundTockEnabled then --and time > start + (length / 2) - CombatMetronome.SV.Progressbar.soundTockOffset then
+				self.Progressbar.soundTockPlayed = true
+				local uiVolume = GetSetting(SETTING_TYPE_AUDIO, AUDIO_SETTING_UI_VOLUME)
+				local tockQueue = ZO_QueuedSoundPlayer:New(0)
+				tockQueue:SetFinishedAllSoundsCallback(function()
+					SetSetting(SETTING_TYPE_AUDIO, AUDIO_SETTING_UI_VOLUME, uiVolume)
+				end)
+				SetSetting(SETTING_TYPE_AUDIO, AUDIO_SETTING_UI_VOLUME, CombatMetronome.SV.Progressbar.tickVolume)
+				tockQueue:PlaySound(CombatMetronome.SV.Progressbar.soundTockEffect, 250)
+			end
+		end
+		
 		if CombatMetronome.SV.Progressbar.trackGCD and not self.currentEvent then
 			self.Progressbar.bar.segments[1].progress = (CombatMetronome.SV.Progressbar.showPingOnGCD and latency/1000) or 0
 			self.Progressbar.bar.segments[2].progress = gcdProgress
@@ -152,31 +167,24 @@ function CombatMetronome:Update()
 			if time > start + duration then
 				self:OnCDStop()
 			else
+				local length = duration - latency
+				
 				-- Sound contributed to by Seltiix --
 
-				local length = duration - latency
-
-				if not self.Progressbar.soundTockPlayed and CombatMetronome.SV.Progressbar.soundTockEnabled and time > start + (length / 2) - CombatMetronome.SV.Progressbar.soundTockOffset then
-					self.Progressbar.soundTockPlayed = true
-					local uiVolume = GetSetting(SETTING_TYPE_AUDIO, AUDIO_SETTING_UI_VOLUME)
-					local tockQueue = ZO_QueuedSoundPlayer:New(0)
-					tockQueue:SetFinishedAllSoundsCallback(function()
-						SetSetting(SETTING_TYPE_AUDIO, AUDIO_SETTING_UI_VOLUME, uiVolume)
-					end)
-					SetSetting(SETTING_TYPE_AUDIO, AUDIO_SETTING_UI_VOLUME, CombatMetronome.SV.Progressbar.tickVolume)
-					tockQueue:PlaySound(CombatMetronome.SV.Progressbar.soundTockEffect, 250)
-				end
-
-				if not self.Progressbar.soundTickPlayed and CombatMetronome.SV.Progressbar.soundTickEnabled and time > start + length - CombatMetronome.SV.Progressbar.soundTickOffset then
-					self.Progressbar.soundTickPlayed = true
-					local uiVolume = GetSetting(SETTING_TYPE_AUDIO, AUDIO_SETTING_UI_VOLUME)
-					local tickQueue = ZO_QueuedSoundPlayer:New(0)
-					tickQueue:SetFinishedAllSoundsCallback(function()
-						SetSetting(SETTING_TYPE_AUDIO, AUDIO_SETTING_UI_VOLUME, uiVolume)
-						-- if self.SV.debug.enabled then CombatMetronome.debug:Print("Sound is finished playing. Volume adjusted. Volume is now "..GetSetting(SETTING_TYPE_AUDIO, AUDIO_SETTING_UI_VOLUME)) end
-					end)
-					SetSetting(SETTING_TYPE_AUDIO, AUDIO_SETTING_UI_VOLUME, CombatMetronome.SV.Progressbar.tickVolume)
-					tickQueue:PlaySound(CombatMetronome.SV.Progressbar.soundTickEffect, 250)
+				if (self.inCombat or (CombatMetronome.SV.Progressbar.showOOC and CombatMetronome.SV.Progressbar.playSoundsOOC)) and not self.Progressbar.soundTickPlayed and CombatMetronome.SV.Progressbar.soundTickEnabled then --and time > start + length - CombatMetronome.SV.Progressbar.soundTickOffset then
+					if not CombatMetronome.SV.Progressbar.soundTickMidAbility or (CombatMetronome.SV.Progressbar.soundTickMidAbility and time >= start + duration/2) then
+						if not (ability.heavy and CombatMetronome.SV.Progressbar.noTickOnHeavy) then
+							self.Progressbar.soundTickPlayed = true
+							local uiVolume = GetSetting(SETTING_TYPE_AUDIO, AUDIO_SETTING_UI_VOLUME)
+							local tickQueue = ZO_QueuedSoundPlayer:New(0)
+							tickQueue:SetFinishedAllSoundsCallback(function()
+								SetSetting(SETTING_TYPE_AUDIO, AUDIO_SETTING_UI_VOLUME, uiVolume)
+								-- if self.SV.debug.enabled then CombatMetronome.debug:Print("Sound is finished playing. Volume adjusted. Volume is now "..GetSetting(SETTING_TYPE_AUDIO, AUDIO_SETTING_UI_VOLUME)) end
+							end)
+							SetSetting(SETTING_TYPE_AUDIO, AUDIO_SETTING_UI_VOLUME, CombatMetronome.SV.Progressbar.tickVolume)
+							tickQueue:PlaySound(CombatMetronome.SV.Progressbar.soundTickEffect, 250)
+						end
+					end
 				end
 			------------------------------------------------
 			---- Switching Color on channeled abilities ----
@@ -281,9 +289,6 @@ function CombatMetronome:Update()
 					-- self.Progressbar.bar:Update()
 				-- end
 			end
-		else
-			self:OnCDStop()
-			self.Progressbar.bar:Update()
 		end
 		-- self.lastBlockStatus = IsBlockActive()
 	end

@@ -1,3 +1,9 @@
+2024-11-02 v1.6.12
+!  Changed tick and tock sounds to now play exactly at ability start/end respectively
+!  Therefore removed timer adjusts for tick/tock sound cues
++  Added a bunch of new options for metronome sound cues
++  Added keybinds to toggle metronome sound cues
+
 2024-11-01 v1.6.11
 ! Fixed stamina label showing magicka
 

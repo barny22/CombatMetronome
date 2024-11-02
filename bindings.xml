@@ -1,12 +1,34 @@
 <Bindings>
     <Layer name="SI_KEYBINDINGS_LAYER_GENERAL">
-        <Category name="Combat Metronome">
+        <Category name="|ce11212C|rombat |ce11212M|retronome">
             <Action name="COMBATMETRONOME_FORCE">
                 <Down> 
                 	CombatMetronome.force = true
                 </Down>
                 <Up> 
                 	CombatMetronome.force = false
+                </Up>
+            </Action>
+            <Action name="COMBATMETRONOME_TOGGLE_SOUND_CUES">
+                <Down> 
+                	CombatMetronome.SV.Progressbar.soundTockEnabled = not CombatMetronome.SV.Progressbar.soundTockEnabled
+                    CombatMetronome.SV.Progressbar.soundTickEnabled = not CombatMetronome.SV.Progressbar.soundTickEnabled
+                </Down>
+                <Up> 
+                </Up>
+            </Action>
+            <Action name="COMBATMETRONOME_TOGGLE_TICK">
+                <Down> 
+                	CombatMetronome.SV.Progressbar.soundTickEnabled = not CombatMetronome.SV.Progressbar.soundTickEnabled
+                </Down>
+                <Up> 
+                </Up>
+            </Action>
+            <Action name="COMBATMETRONOME_TOGGLE_TOCK">
+                <Down> 
+                	CombatMetronome.SV.Progressbar.soundTockEnabled = not CombatMetronome.SV.Progressbar.soundTockEnabled
+                </Down>
+                <Up> 
                 </Up>
             </Action>
         </Category>
