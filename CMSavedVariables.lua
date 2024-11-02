@@ -1,5 +1,19 @@
-function CombatMetronome:ConvertSavedVariables(table)
-	local configCache = table
+function CombatMetronome:CheckSavedVariables()
+	if _G["CombatMetronomeSavedVars"] and
+	   _G["CombatMetronomeSavedVars"].Default[GetDisplayName()] and
+	   _G["CombatMetronomeSavedVars"].Default[GetDisplayName()][GetCurrentCharacterId()] and
+	   _G["CombatMetronomeSavedVars"].Default[GetDisplayName()][GetCurrentCharacterId()].version == 1 then
+		for charId, sv in pairs(_G["CombatMetronomeSavedVars"].Default[GetDisplayName()]) do
+			if sv.version == 1 then
+				_G["CombatMetronomeSavedVars"].Default[GetDisplayName()][charId] = {}
+				_G["CombatMetronomeSavedVars"].Default[GetDisplayName()][charId] = CombatMetronome:ConvertSavedVariables(sv)
+			end
+		end
+	end
+end
+
+function CombatMetronome:ConvertSavedVariables(oldSV)
+	local configCache = oldSV
 	self.SV = {}
 	self.SV.version = 2
 	self.SV.global = configCache.global
