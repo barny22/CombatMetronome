@@ -2,7 +2,7 @@ CombatMetronome.StackTracker = CombatMetronome.StackTracker or {}
 CombatMetronome.menu = CombatMetronome.menu or {}
 
 CombatMetronome.DEFAULT_SAVED_VARS = {
-	["version"] = 1,
+	["version"] = 2,
 	["global"] = true,
 	["Progressbar"] = {
 		["hideProgressbar"] = false,
