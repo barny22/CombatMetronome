@@ -8,7 +8,7 @@ CombatMetronome = {
     version = {
 		["patch"] = 1,
 		["major"] = 6,
-		["minor"] = 9,
+		["minor"] = 11,
 	},
 }
 
@@ -33,14 +33,9 @@ ZO_CreateStringId("SI_BINDING_NAME_COMBATMETRONOME_FORCE", "Force display")
 	-------------------------------------
 
 function CombatMetronome:Init()
-	if _G["CombatMetronomeSavedVars"] and _G["CombatMetronomeSavedVars"].Default[GetDisplayName()] and _G["CombatMetronomeSavedVars"].Default[GetDisplayName()][GetCurrentCharacterId()].version == 1 then
-		for charId, sv in pairs(_G["CombatMetronomeSavedVars"].Default[GetDisplayName()]) do
-			if sv.version == 1 then
-				_G["CombatMetronomeSavedVars"].Default[GetDisplayName()][charId] = {}
-				_G["CombatMetronomeSavedVars"].Default[GetDisplayName()][charId] = CombatMetronome:ConvertSavedVariables(sv)
-			end
-		end
-	end
+
+	self:CheckSavedVariables()
+	
 	self.SV = ZO_SavedVars:NewCharacterIdSettings("CombatMetronomeSavedVars", 2, nil, self.DEFAULT_SAVED_VARS)
 	if self.SV.global then
 		self.SV = ZO_SavedVars:NewAccountWide("CombatMetronomeSavedVars", 2, nil, self.DEFAULT_SAVED_VARS)
