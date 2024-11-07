@@ -32,23 +32,34 @@ local fSId = {
 
 function Stacks:StoreAbilitiesOnActionBar()
     local actionSlots = {}  -- Create a table to store action slots
+	
+	local function IsAlreadyInList(id)
+		for i, entry in ipairs(actionSlots) do
+			if entry.id == id then return true end
+		end
+		return false
+	end
 
     for j = 0, 1 do
         for i = 3, 8 do
             local actionSlot = {}  -- Create a new table for each action slot
 			local slotType = GetSlotType(i, j)
             -- setmetatable(actionSlot, {__index = index})
-            
-            actionSlot.place = tostring(i .. j)
-			if slotType == ACTION_TYPE_CRAFTED_ABILITY then
-				actionSlot.id = GetAbilityIdForCraftedAbilityId(GetSlotBoundId(i, j))
-			else
-				actionSlot.id = GetSlotBoundId(i, j)
-			end
-            actionSlot.icon = GetAbilityIcon(actionSlot.id)
-            actionSlot.name = Util.Text.CropZOSString(GetAbilityName(actionSlot.id))
+            if slotType then
+				actionSlot.place = tostring(i .. j)
+				if slotType == ACTION_TYPE_CRAFTED_ABILITY then
+					actionSlot.id = GetAbilityIdForCraftedAbilityId(GetSlotBoundId(i, j))
+				else
+					actionSlot.id = GetSlotBoundId(i, j)
+				end
+				if not IsAlreadyInList(actionSlot.id) then
+					actionSlot.icon = GetAbilityIcon(actionSlot.id)
+					actionSlot.name = Util.Text.CropZOSString(GetAbilityName(actionSlot.id))
 
-            table.insert(actionSlots, actionSlot)  -- Add the current action slot to the table
+					table.insert(actionSlots, actionSlot)  -- Add the current action slot to the table
+					if not Util.Ability.cache[actionSlot.id] then Util.Ability:ForId(actionSlot.id) end
+				end
+			end
         end
     end
 

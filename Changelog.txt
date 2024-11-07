@@ -3,6 +3,8 @@
 !  Therefore removed timer adjusts for tick/tock sound cues
 +  Added a bunch of new options for metronome sound cues
 +  Added keybinds to toggle metronome sound cues
++  Added currently equipped abilities to ability adjust section
++  Minor visual update to menu icons
 
 2024-11-01 v1.6.11
 ! Fixed stamina label showing magicka

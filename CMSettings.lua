@@ -75,6 +75,11 @@ function CombatMetronome:BuildMenu()
 				self.menu.icons[i]:SetAnchor(RIGHT, panel.controlsToRefresh[number].checkbox, LEFT, self.menu.CONTROLS[i].Offset, 0)
 				self.menu.icons[i]:SetTexture(self.menu.CONTROLS[i].Icon)
 				self.menu.icons[i]:SetDimensions(self.menu.CONTROLS[i].Dimensions, self.menu.CONTROLS[i].Dimensions)
+				if CombatMetronome.SV.Progressbar[self.menu.CONTROLS[i].SavedVars] then
+					self.menu.icons[i]:SetDesaturation(0)
+				else
+					self.menu.icons[i]:SetDesaturation(1)
+				end
 			end
 			self.menu.icons[2]:SetTexture(self.Progressbar.activeMount.icon)
 			CALLBACK_MANAGER:UnregisterCallback("LAM-PanelControlsCreated", CreateIcons)
@@ -83,10 +88,8 @@ function CombatMetronome:BuildMenu()
 	CALLBACK_MANAGER:RegisterCallback("LAM-PanelControlsCreated", CreateIcons)
 
     self.menu.abilityAdjustChoices = self:CreateAdjustList()
-	-- local adjustListWithIcons = self:CreateAdjustList()
     self.menu.curSkillName = ABILITY_ADJUST_PLACEHOLDER
     self.menu.curSkillId = -1
-	-- self.listOfCurrentSkills = {}
 	local attributes = StackTracker.CLASS_ATTRIBUTES[StackTracker.class]
     self.menu.metadata = {
         type = "panel",
@@ -551,11 +554,11 @@ function CombatMetronome:BuildMenu()
 									getFunc = function() return CombatMetronome.SV.Progressbar.trackRolldodge end,
 									setFunc = function(value)
 										CombatMetronome.SV.Progressbar.trackRolldodge = value
-										-- if value then
-											-- dodgeIcon:SetDesaturation(0)
-										-- else
-											-- dodgeIcon:SetDesaturation(-100)
-										-- end
+										if value then
+											self.menu.icons[1]:SetDesaturation(0)
+										else
+											self.menu.icons[1]:SetDesaturation(1)
+										end
 									end,
 								},
 								{
@@ -567,7 +570,7 @@ function CombatMetronome:BuildMenu()
 									setFunc = function(value)
 										CombatMetronome.SV.Progressbar.trackMounting = value
 										if value then
-											-- mountIcon:SetDesaturation(0)
+											self.menu.icons[2]:SetDesaturation(0)
 											if not self.combatEventsRegistered then
 												CombatMetronome:RegisterCombatEvents()
 											end
@@ -575,7 +578,7 @@ function CombatMetronome:BuildMenu()
 												CombatMetronome:RegisterCollectiblesTracker()
 											end
 										else
-											-- mountIcon:SetDesaturation(-100)
+											self.menu.icons[2]:SetDesaturation(1)
 											if self.mountingTrackerRegistered and not CombatMetronome:CheckForCombatEventsRegister() then
 												CombatMetronome:UnregisterCombatEvents()
 											end
@@ -613,12 +616,12 @@ function CombatMetronome:BuildMenu()
 									setFunc = function(value)
 										CombatMetronome.SV.Progressbar.trackCollectibles = value
 										if value then
-											-- assistantsIcon:SetDesaturation(0)
+											self.menu.icons[3]:SetDesaturation(0)
 											if not self.CollectiblesTrackerRegistered then
 												CombatMetronome:RegisterCollectiblesTracker()
 											end
 										else
-											-- assistantsIcon:SetDesaturation(-100)
+											self.menu.icons[3]:SetDesaturation(1)
 											if self.collectiblesTrackerRegistered and not CombatMetronome.SV.Progressbar.showMountNick then
 												CombatMetronome:UnregisterCollectiblesTracker()
 											end
@@ -633,11 +636,11 @@ function CombatMetronome:BuildMenu()
 									getFunc = function() return CombatMetronome.SV.Progressbar.trackItems end,
 									setFunc = function(value)
 										CombatMetronome.SV.Progressbar.trackItems = value
-										-- if value then
-											-- itemsIcon:SetDesaturation(0)
-										-- else
-											-- itemsIcon:SetDesaturation(-100)
-										-- end
+										if value then
+											self.menu.icons[4]:SetDesaturation(0)
+										else
+											self.menu.icons[4]:SetDesaturation(1)
+										end
 										if value and not self.itemsTrackerRegistered then
 											CombatMetronome:RegisterItemsTracker()
 										elseif not value and self.itemsTrackerRegistered then
@@ -648,17 +651,17 @@ function CombatMetronome:BuildMenu()
 								{
 									type = "checkbox",
 									name = self.menu.CONTROLS[5].Name,
-									tooltip = "Toggle displaying killing actions like vampire feed and blade of woe",
+									tooltip = "Toggle displaying synergies like vampire feed and blade of woe",
 									disabled = function() return not CombatMetronome.SV.Progressbar.trackGCD end,
 									default = false,
 									getFunc = function() return CombatMetronome.SV.Progressbar.trackSynergies end,
 									setFunc = function(value)
 										CombatMetronome.SV.Progressbar.trackSynergies = value
-										-- if value then
-											-- itemsIcon:SetDesaturation(0)
-										-- else
-											-- itemsIcon:SetDesaturation(-100)
-										-- end
+										if value then
+											self.menu.icons[5]:SetDesaturation(0)
+										else
+											self.menu.icons[5]:SetDesaturation(1)
+										end
 										if value then
 											if not self.combatEventsRegistered then
 												CombatMetronome:RegisterCombatEvents()
@@ -682,11 +685,11 @@ function CombatMetronome:BuildMenu()
 									getFunc = function() return CombatMetronome.SV.Progressbar.trackBreakingFree end,
 									setFunc = function(value)
 										CombatMetronome.SV.Progressbar.trackBreakingFree = value
-										-- if value then
-											-- itemsIcon:SetDesaturation(0)
-										-- else
-											-- itemsIcon:SetDesaturation(-100)
-										-- end
+										if value then
+											self.menu.icons[6]:SetDesaturation(0)
+										else
+											self.menu.icons[6]:SetDesaturation(1)
+										end
 										if value and not self.combatEventsRegistered then
 											CombatMetronome:RegisterCombatEvents()
 										elseif not value and self.combatEventsRegistered and not CombatMetronome:CheckForCombatEventsRegister() then
@@ -842,7 +845,7 @@ function CombatMetronome:BuildMenu()
 						{
 							type = "checkbox",
 							name = "Sound 'tick'",
-							tooltip = "Enable sound 'tick', which marks the beginning/middle of your ability",
+							tooltip = "Enable sound 'tick', which marks the middle/beginning of your ability",
 							getFunc = function() return CombatMetronome.SV.Progressbar.soundTickEnabled end,
 							setFunc = function(state)
 								CombatMetronome.SV.Progressbar.soundTickEnabled = state
@@ -851,12 +854,12 @@ function CombatMetronome:BuildMenu()
 						},
 						{
 							type = "checkbox",
-							name = "Play 'tick' mid ability",
-							tooltip = "Have the tick mark the middle of your ability",
+							name = "Play 'tick' at the start of an ability",
+							tooltip = "Have the tick mark the start of your ability",
 							disabled = function() return not CombatMetronome.SV.Progressbar.soundTickEnabled end,
-							getFunc = function() return CombatMetronome.SV.Progressbar.soundTickMidAbility end,
+							getFunc = function() return not CombatMetronome.SV.Progressbar.soundTickMidAbility end,
 							setFunc = function(value)
-								CombatMetronome.SV.Progressbar.soundTickMidAbility = value
+								CombatMetronome.SV.Progressbar.soundTickMidAbility = not value
 							end,
 						},
 						{
@@ -954,23 +957,37 @@ function CombatMetronome:BuildMenu()
 					description = "Adjusts timers on specific skills - This is applied ON TOP of relevant global adjust",
 					disabled = function() return CombatMetronome.SV.Progressbar.hide end,
 					controls = {
-						-- {
-							-- type = "dropdown",
-							-- name = "Currently equipped abilities",
-							-- width = "half",
-							-- choices = self.listOfCurrentSkills,
-							-- getFunc = function() return self.listOfCurrentSkills end,
-							-- setFunc = function() end
-						-- },
-						-- {
-							-- type = "button",
-							-- name = "Build ability list",
-							-- width = "half",
-							-- func = function()
-								-- self.listOfCurrentSkills = CombatMetronome:BuildListOfCurrentSkills()
-								-- CombatMetronome.debug:Print(self.listOfCurrentSkills)
-							-- end
-						-- },
+						{
+							type = "dropdown",
+							name = "Currently equipped abilities:",
+							width = "half",
+							choices = self.currentlyEquippedAbilities.list,
+							getFunc = function()
+								if self.menu.curSkillId then
+									local i = self:IsSkillCurrentlyEquipped(self.menu.curSkillId)
+									if self:IsSkillCurrentlyEquipped(self.menu.curSkillId) then
+										-- self.debug:Print("Skill currently equipped")
+										return self.currentlyEquippedAbilities.list[i]
+									end
+									return
+								end
+							end,
+							setFunc = function(selectedSkill)
+								local skillData = self:GetEquippedSkillData(selectedSkill)
+								self.menu.curSkillName = skillData.name
+								self.menu.curSkillId = skillData.id
+								CombatMetronome.SV.Progressbar.abilityAdjusts[self.menu.curSkillId] = CombatMetronome.SV.Progressbar.abilityAdjusts[self.menu.curSkillId] or 0
+								self:UpdateAdjustChoices()
+							end,
+						},
+						{
+							type = "button",
+							name = "Refresh ability list",
+							width = "half",
+							func = function()
+								CombatMetronome:BuildListOfCurrentlyEquippedAbilities()
+							end
+						},
 						{
 							type = "editbox",
 							name = "Add skill to adjust",
@@ -988,7 +1005,7 @@ function CombatMetronome:BuildMenu()
 									CombatMetronome.SV.Progressbar.abilityAdjusts[id] = CombatMetronome.SV.Progressbar.abilityAdjusts[self.menu.curSkillId] or 0
 									self:UpdateAdjustChoices()
 								else
-									CombatMetronome.debug:Print("Couldn't find ability in cache. Make sure you cast the ability once to ensure better results while gaming. Will try to find it somewhere else.")
+									CombatMetronome.debug:Print("Couldn't find ability in cache. Make sure you cast the ability once or equip ability to ensure better results while gaming. Will try to find it somewhere else.")
 									for id = 0, 300000 do
 										if Util.Text.CropZOSString(GetAbilityName(id)) == name and GetAbilityIcon(id) ~= "/esoui/art/icons/ability_mage_065.dds" then
 											--[[_=self.log and]] CombatMetronome.debug:Print("Found ability for '"..name.."'. ID: "..id)

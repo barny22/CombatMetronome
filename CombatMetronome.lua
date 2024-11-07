@@ -49,6 +49,8 @@ function CombatMetronome:Init()
 	CombatMetronome.debug:SetEnabled(true)
 	
 	self.currentCharacterName = Util.Text.CropZOSString(GetUnitName("player"))
+	self.currentlyEquippedAbilities = {}
+	CombatMetronome:BuildListOfCurrentlyEquippedAbilities()
 		
 	StackTracker.classId = GetUnitClassId("player")
 	StackTracker.class = StackTracker.CLASS[StackTracker.classId]
@@ -75,7 +77,7 @@ function CombatMetronome:Init()
 	-- CombatMetronome:UpdateAdjustChoices()
 
     self.Progressbar.lastInterval = 0
-	StackTracker.actionSlotCache = Util.Stacks:StoreAbilitiesOnActionBar()
+	StackTracker.actionSlotCache = self.currentlyEquippedAbilities.data
 
 	self:RegisterMetadata()
 	
@@ -123,8 +125,8 @@ function CombatMetronome:RegisterMetadata()
         self.name.."CurrentActionslotsOnHotbar",
         EVENT_ACTION_SLOTS_ALL_HOTBARS_UPDATED,
         function()
-			StackTracker.actionSlotCache = Util.Stacks:StoreAbilitiesOnActionBar()
-			-- self.menu.abilityAdjustChoices = CombatMetronome:BuildListForAbilityAdjusts()
+			CombatMetronome:BuildListOfCurrentlyEquippedAbilities()
+			StackTracker.actionSlotCache = self.currentlyEquippedAbilities.data
         end
     )
 	

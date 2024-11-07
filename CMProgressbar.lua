@@ -77,8 +77,8 @@ function CombatMetronome:Update()
 			---------------------
 		
 		if not self.currentEvent then
-			self:OnCDStop()
-			self.Progressbar.bar:Update()
+			-- self:OnCDStop()
+			-- self.Progressbar.bar:Update()
 			if (self.inCombat or (CombatMetronome.SV.Progressbar.showOOC and CombatMetronome.SV.Progressbar.playSoundsOOC)) and not self.Progressbar.soundTockPlayed and CombatMetronome.SV.Progressbar.soundTockEnabled then --and time > start + (length / 2) - CombatMetronome.SV.Progressbar.soundTockOffset then
 				self.Progressbar.soundTockPlayed = true
 				local uiVolume = GetSetting(SETTING_TYPE_AUDIO, AUDIO_SETTING_UI_VOLUME)
@@ -95,34 +95,34 @@ function CombatMetronome:Update()
 			self.Progressbar.bar.segments[1].progress = (CombatMetronome.SV.Progressbar.showPingOnGCD and latency/1000) or 0
 			self.Progressbar.bar.segments[2].progress = gcdProgress
 			if not Util.Ability.Tracker.rollDodgeFinished and CombatMetronome.SV.Progressbar.trackRolldodge then
-				CombatMetronome:GCDSpecifics("Dodgeroll", "/esoui/art/icons/ability_rogue_035.dds", gcdProgress)
+				CombatMetronome:GCDSpecifics("Dodgeroll", "/esoui/art/icons/ability_rogue_035.dds", gcdProgress, false)
 			end
 			if self.Progressbar.activeMount.action ~= "" and CombatMetronome.SV.Progressbar.trackMounting then
 				if CombatMetronome.SV.Progressbar.showMountNick then
-					CombatMetronome:GCDSpecifics(tostring(self.Progressbar.activeMount.action.." "..self.Progressbar.activeMount.name), self.Progressbar.activeMount.icon, gcdProgress)
+					CombatMetronome:GCDSpecifics(tostring(self.Progressbar.activeMount.action.." "..self.Progressbar.activeMount.name), self.Progressbar.activeMount.icon, gcdProgress, false)
 				else
-					CombatMetronome:GCDSpecifics(self.Progressbar.activeMount.action, self.Progressbar.activeMount.icon, gcdProgress)
+					CombatMetronome:GCDSpecifics(self.Progressbar.activeMount.action, self.Progressbar.activeMount.icon, gcdProgress, false)
 				end
 			end
-			if self.Progressbar.collectibleInUse and CombatMetronome.SV.Progressbar.trackCollectibles and not self.Progressbar.nonAbilityGCDRunning then
-				CombatMetronome:GCDSpecifics(self.Progressbar.collectibleInUse.name, self.Progressbar.collectibleInUse.icon, gcdProgress)
-				self.Progressbar.nonAbilityGCDRunning = true
+			if self.Progressbar.collectibleInUse and CombatMetronome.SV.Progressbar.trackCollectibles then
+				CombatMetronome:GCDSpecifics(self.Progressbar.collectibleInUse.name, self.Progressbar.collectibleInUse.icon, gcdProgress, false)
+				-- self.Progressbar.nonAbilityGCDRunning = true
 			end
-			if self.Progressbar.itemUsed and CombatMetronome.SV.Progressbar.trackItems and not self.Progressbar.nonAbilityGCDRunning then
-				CombatMetronome:GCDSpecifics(self.Progressbar.itemUsed.name, self.Progressbar.itemUsed.icon, gcdProgress)
-				self.Progressbar.nonAbilityGCDRunning = true
+			if self.Progressbar.itemUsed and CombatMetronome.SV.Progressbar.trackItems then
+				CombatMetronome:GCDSpecifics(self.Progressbar.itemUsed.name, self.Progressbar.itemUsed.icon, gcdProgress, false)
+				-- self.Progressbar.nonAbilityGCDRunning = true
 			end
-			if self.Progressbar.killingAction and CombatMetronome.SV.Progressbar.trackKillingActions and not self.Progressbar.nonAbilityGCDRunning then
-				CombatMetronome:GCDSpecifics(self.Progressbar.killingAction.name, self.Progressbar.killingAction.icon, gcdProgress)
-				self.Progressbar.nonAbilityGCDRunning = true
+			-- if self.Progressbar.killingAction and CombatMetronome.SV.Progressbar.trackKillingActions and not self.Progressbar.nonAbilityGCDRunning then
+				-- CombatMetronome:GCDSpecifics(self.Progressbar.killingAction.name, self.Progressbar.killingAction.icon, gcdProgress)
+				-- self.Progressbar.nonAbilityGCDRunning = true
+			-- end
+			if self.Progressbar.breakingFree and CombatMetronome.SV.Progressbar.trackBreakingFree then
+				CombatMetronome:GCDSpecifics(self.Progressbar.breakingFree.name, self.Progressbar.breakingFree.icon, gcdProgress, false)
+				-- self.Progressbar.nonAbilityGCDRunning = true
 			end
-			if self.Progressbar.breakingFree and CombatMetronome.SV.Progressbar.trackBreakingFree and not self.Progressbar.nonAbilityGCDRunning then
-				CombatMetronome:GCDSpecifics(self.Progressbar.breakingFree.name, self.Progressbar.breakingFree.icon, gcdProgress)
-				self.Progressbar.nonAbilityGCDRunning = true
-			end
-			if self.Progressbar.synergy and CombatMetronome.SV.Progressbar.trackSynergies and self.Progressbar.synergy.wasUsed and not self.Progressbar.nonAbilityGCDRunning then
-				CombatMetronome:GCDSpecifics(self.Progressbar.synergy.name, self.Progressbar.synergy.icon, gcdProgress)
-				self.Progressbar.nonAbilityGCDRunning = true
+			if self.Progressbar.synergy and CombatMetronome.SV.Progressbar.trackSynergies and self.Progressbar.synergy.wasUsed then
+				CombatMetronome:GCDSpecifics(self.Progressbar.synergy.name, self.Progressbar.synergy.icon, gcdProgress, true)
+				-- self.Progressbar.nonAbilityGCDRunning = true
 			end
 			
 			if gcdProgress <= 0 then
@@ -170,7 +170,6 @@ function CombatMetronome:Update()
 				local length = duration - latency
 				
 				-- Sound contributed to by Seltiix --
-
 				if (self.inCombat or (CombatMetronome.SV.Progressbar.showOOC and CombatMetronome.SV.Progressbar.playSoundsOOC)) and not self.Progressbar.soundTickPlayed and CombatMetronome.SV.Progressbar.soundTickEnabled then --and time > start + length - CombatMetronome.SV.Progressbar.soundTickOffset then
 					if not CombatMetronome.SV.Progressbar.soundTickMidAbility or (CombatMetronome.SV.Progressbar.soundTickMidAbility and time >= start + duration/2) then
 						if not (ability.heavy and CombatMetronome.SV.Progressbar.noTickOnHeavy) then
@@ -289,6 +288,9 @@ function CombatMetronome:Update()
 					-- self.Progressbar.bar:Update()
 				-- end
 			end
+		else
+			self:OnCDStop()
+			self.Progressbar.bar:Update()
 		end
 		-- self.lastBlockStatus = IsBlockActive()
 	end

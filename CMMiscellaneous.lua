@@ -110,35 +110,41 @@ CombatMetronome.menu.CONTROLS = {
 		["Icon"] = "/esoui/art/icons/ability_rogue_035.dds",
 		["Dimensions"] = 35,
 		["Offset"] = -25,
+		["SavedVars"] = "trackRolldodge",
 	},
 	{
 		["Name"] = "Mounting/Dismounting",
 		["Dimensions"] = 45,
 		["Offset"] = -20,
+		["SavedVars"] = "trackMounting",
 	},
 	{
 		["Name"] = "Assistants and companions",
 		["Icon"] = "/esoui/art/icons/assistant_ezabibanker.dds",
 		["Dimensions"] = 45,
 		["Offset"] = -20,
+		["SavedVars"] = "trackCollectibles",
 	},
 	{
 		["Name"] = "Usage of items",
 		["Icon"] = "/esoui/art/tribute/tributeendofgamereward_overflow.dds",
 		["Dimensions"] = 35,
 		["Offset"] = -25,
+		["SavedVars"] = "trackItems",
 	},
 	{
 		["Name"] = "Synergies",
 		["Icon"] = "/esoui/art/icons/achievement_u23_skillmaster_darkbrotherhood.dds",
 		["Dimensions"] = 35,
 		["Offset"] = -25,
+		["SavedVars"] = "trackSynergies",
 	},
 	{
 		["Name"] = "Breaking free",
 		["Icon"] = "/esoui/art/icons/ability_debuff_stun.dds",
 		["Dimensions"] = 35,
 		["Offset"] = -25,
+		["SavedVars"] = "trackBreakingFree",
 	},
 }
 
