@@ -191,6 +191,7 @@ function CombatMetronome:BuildMenu()
 						if value then
 							self.Progressbar.UI.Position("Sample")
 							self.Progressbar.frame:SetHidden(false)
+							self.Progressbar.bar:SetHidden(false)
 						else
 							self.Progressbar.UI.Position("UI")
 							self.Progressbar.UI.HiddenStates()
@@ -313,6 +314,7 @@ function CombatMetronome:BuildMenu()
 							type = "checkbox",
 							name = "Show permanently",
 							tooltip = "If you don't want to hide the cast bar when it's unused, it will display the background color.",
+							disabled = function() return CombatMetronome.Progressbar.showSample end,
 							getFunc = function() return CombatMetronome.SV.Progressbar.dontHide end,
 							setFunc = function(value)
 								CombatMetronome.SV.Progressbar.dontHide = value
@@ -805,7 +807,7 @@ function CombatMetronome:BuildMenu()
 						{
 							type = "checkbox",
 							name = "Display spell name in cast bar",
-							tooltip = "Displays the spell Name in the cast bar",
+							tooltip = "Displays the spell name in the cast bar, when the ability is not an instant cast",
 							getFunc = function() return CombatMetronome.SV.Progressbar.showSpell end,
 							setFunc = function(value)
 								CombatMetronome.SV.Progressbar.showSpell = value
@@ -813,11 +815,31 @@ function CombatMetronome:BuildMenu()
 						},
 						{
 							type = "checkbox",
+							name = "Display spell name for any ability",
+							tooltip = "Always displays the spell name in the cast bar, not only when the ability is not an instant cast",
+							disabled = function() return not CombatMetronome.SV.Progressbar.showSpell end,
+							getFunc = function() return CombatMetronome.SV.Progressbar.alwaysShowSpell end,
+							setFunc = function(value)
+								CombatMetronome.SV.Progressbar.alwaysShowSpell = value
+							end,
+						},
+						{
+							type = "checkbox",
 							name = "Display time remaining in cast bar",
-							tooltip = "Displays the remaining time on channel or cast in the cast bar",
+							tooltip = "Displays the remaining time on channel or cast in the cast bar, when the ability is not an instant cast",
 							getFunc = function() return CombatMetronome.SV.Progressbar.showTimeRemaining end,
 							setFunc = function(value)
 								CombatMetronome.SV.Progressbar.showTimeRemaining = value
+							end,
+						},
+						{
+							type = "checkbox",
+							name = "Display time remaining for all abilities",
+							tooltip = "Always displays the remaining time on channel or cast in the cast bar, not only when the ability is not an instant cast",
+							disabled = function() return not CombatMetronome.SV.Progressbar.showTimeRemaining end,
+							getFunc = function() return CombatMetronome.SV.Progressbar.alwaysShowTimeRemaining end,
+							setFunc = function(value)
+								CombatMetronome.SV.Progressbar.alwaysShowTimeRemaining = value
 							end,
 						},
 					},
