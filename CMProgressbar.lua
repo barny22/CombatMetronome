@@ -222,7 +222,7 @@ function CombatMetronome:Update()
 			------------------------------
 			---- Spell Label and Icon ----					--Spell Label on Castbar by barny
 			------------------------------
-			if CombatMetronome.SV.Progressbar.showSpell and (ability.delay > 0 or self.SV.Progressbar.alwaysShowSpell) and timeRemaining >= 0 and not ability.heavy then
+			if CombatMetronome.SV.Progressbar.showSpell and ((ability.delay > 0 and timeRemaining >= 0) or self.SV.Progressbar.alwaysShowSpell) and not ability.heavy then
 				local spellName = Util.Text.CropZOSString(ability.name)
 				self.Progressbar.spellLabel:SetText(spellName)
 				self.Progressbar.spellLabel:SetHidden(false)
@@ -237,7 +237,10 @@ function CombatMetronome:Update()
 			end
 				
 			--Remaining time on Castbar by barny
-			if CombatMetronome.SV.Progressbar.showTimeRemaining and (ability.delay > 0 or self.SV.Progressbar.alwaysShowTimeRemaining) and timeRemaining >= 0 and not ability.heavy then
+			if CombatMetronome.SV.Progressbar.showTimeRemaining and ((ability.delay > 0 and timeRemaining >= 0) or self.SV.Progressbar.alwaysShowTimeRemaining) and not ability.heavy then
+				if self.SV.Progressbar.alwaysShowTimeRemaining then
+					timeRemaining = gcdProgress
+				end
 				self.Progressbar.timeLabel:SetText(string.format("%.1fs", timeRemaining))
 				self.Progressbar.timeLabel:SetHidden(false)
 			else
