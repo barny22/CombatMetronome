@@ -151,6 +151,7 @@ function CombatMetronome:Update()
 			local duration = math.max(ability.heavy and 0 or (self.gcd or 1000), ability.delay) + self.currentEvent.adjust
 			local channelTime = ability.delay + self.currentEvent.adjust
 			local timeRemaining = ((start + channelTime + GetLatency()) - time) / 1000
+			
 			-- local playerDidBlock = (self.lastBlockStatus == false) and IsBlockActive()
 			-- if playerDidBlock and self.SV.debug.enabled then CombatMetronome.debug:Print("Player blocked") end
 			
@@ -238,7 +239,8 @@ function CombatMetronome:Update()
 				
 			--Remaining time on Castbar by barny
 			if CombatMetronome.SV.Progressbar.showTimeRemaining and ((ability.delay > 0 and timeRemaining >= 0) or self.SV.Progressbar.alwaysShowTimeRemaining) and not ability.heavy then
-				if self.SV.Progressbar.alwaysShowTimeRemaining then
+				-- to have timers at least at 1 second
+				if self.SV.Progressbar.alwaysShowTimeRemaining and ability.delay < 1000 then
 					timeRemaining = gcdProgress
 				end
 				self.Progressbar.timeLabel:SetText(string.format("%.1fs", timeRemaining))
@@ -247,37 +249,37 @@ function CombatMetronome:Update()
 				self.Progressbar.timeLabel:SetHidden(true)
 			end
 			--------------------
-			---- Interrupts ----							-- check for interrupts by dodge, barswap or block
+			---- Interrupts ----							-- check for interrupts by dodge, barswap or block -- moved to DariansUtilities.Ability.Tracker
 			--------------------
-			if not Util.Ability.Tracker.rollDodgeFinished and CombatMetronome.SV.Progressbar.trackGCD then
-				self:OnCDStop()
-				--if self.SV.debug.enabled then CombatMetronome.debug:Print("dodge should be interrupting now") end
-				if CombatMetronome.SV.Progressbar.showSpell then
-					self.Progressbar.spellLabel:SetHidden(false)
-					self.Progressbar.spellIcon:SetHidden(false)
-					self.Progressbar.spellIconBorder:SetHidden(false)
-					self.Progressbar.spellIcon:SetTexture("/esoui/art/icons/ability_rogue_035.dds")
-					self.Progressbar.spellLabel:SetText("Dodgeroll")
-				else
-					self.Progressbar.spellLabel:SetHidden(true)
-					self.Progressbar.spellIcon:SetHidden(true)
-					self.Progressbar.spellIconBorder:SetHidden(true)
-				end
-				if CombatMetronome.SV.Progressbar.showTimeRemaining then
-					self.Progressbar.timeLabel:SetHidden(false)
-					self.Progressbar.timeLabel:SetText(string.format("%.1fs", gcdProgress))
-				else
-					self.Progressbar.timeLabel:SetHidden(true)
-				end
-				self.Progressbar.bar.segments[1].progress = (CombatMetronome.SV.Progressbar.showPingOnGCD and latency/1000) or 0
-				self.Progressbar.bar.segments[2].progress = gcdProgress
-				if gcdProgress == 0 then
-					self:OnCDStop()
-				else
-					self:HideBar(false)
-					self.Progressbar.bar.backgroundTexture:SetWidth(gcdProgress*CombatMetronome.SV.Progressbar.width)
-				end
-				self.Progressbar.bar:Update()
+			-- if not Util.Ability.Tracker.rollDodgeFinished and CombatMetronome.SV.Progressbar.trackGCD then
+				-- self:OnCDStop()
+				-- if self.SV.debug.enabled then CombatMetronome.debug:Print("dodge should be interrupting now") end
+				-- if CombatMetronome.SV.Progressbar.showSpell then
+					-- self.Progressbar.spellLabel:SetHidden(false)
+					-- self.Progressbar.spellIcon:SetHidden(false)
+					-- self.Progressbar.spellIconBorder:SetHidden(false)
+					-- self.Progressbar.spellIcon:SetTexture("/esoui/art/icons/ability_rogue_035.dds")
+					-- self.Progressbar.spellLabel:SetText("Dodgeroll")
+				-- else
+					-- self.Progressbar.spellLabel:SetHidden(true)
+					-- self.Progressbar.spellIcon:SetHidden(true)
+					-- self.Progressbar.spellIconBorder:SetHidden(true)
+				-- end
+				-- if CombatMetronome.SV.Progressbar.showTimeRemaining then
+					-- self.Progressbar.timeLabel:SetHidden(false)
+					-- self.Progressbar.timeLabel:SetText(string.format("%.1fs", gcdProgress))
+				-- else
+					-- self.Progressbar.timeLabel:SetHidden(true)
+				-- end
+				-- self.Progressbar.bar.segments[1].progress = (CombatMetronome.SV.Progressbar.showPingOnGCD and latency/1000) or 0
+				-- self.Progressbar.bar.segments[2].progress = gcdProgress
+				-- if gcdProgress == 0 then
+					-- self:OnCDStop()
+				-- else
+					-- self:HideBar(false)
+					-- self.Progressbar.bar.backgroundTexture:SetWidth(gcdProgress*CombatMetronome.SV.Progressbar.width)
+				-- end
+				-- self.Progressbar.bar:Update()
 			-- elseif playerDidBlock then
 				-- local eventAdjust = 0
 				-- if self.currentEvent then
@@ -290,7 +292,7 @@ function CombatMetronome:Update()
 					-- self:OnCDStop()
 					-- self.Progressbar.bar:Update()
 				-- end
-			end
+			-- end
 		else
 			self:OnCDStop()
 			self.Progressbar.bar:Update()
