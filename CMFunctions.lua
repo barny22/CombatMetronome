@@ -94,7 +94,8 @@ function CombatMetronome:CreateMenuIconsPath(ControlName)
 	return number
 end
 
-function CombatMetronome:GCDSpecifics(text, icon, gcdProgress)
+function CombatMetronome:GCDSpecifics(text, icon, gcdProgress, wasSynergy)
+	if not wasSynergy and self.Progressbar.synergy.wasUsed then self.Progressbar.synergy.wasUsed = false end
 	if CombatMetronome.SV.Progressbar.showSpell then
 		self.Progressbar.spellLabel:SetHidden(false)
 		self.Progressbar.spellIcon:SetHidden(false)
@@ -119,10 +120,10 @@ function CombatMetronome:SetIconsAndNamesNil()
 	self.Progressbar.activeMount.action = ""
 	self.Progressbar.collectibleInUse = nil
 	self.Progressbar.itemUsed = nil
-	self.Progressbar.killingAction = nil
+	-- self.Progressbar.killingAction = nil
 	self.Progressbar.breakingFree = nil
 	self.Progressbar.synergy.wasUsed = false
-	self.Progressbar.nonAbilityGCDRunning = false
+	-- self.Progressbar.nonAbilityGCDRunning = false
 	self.Progressbar.timeLabel:SetHidden(true)
 	self.Progressbar.spellLabel:SetHidden(true)
 	self.Progressbar.spellIcon:SetHidden(true)
@@ -223,21 +224,52 @@ function CombatMetronome:FindSkillInAdjustList(name)
 	end
 end
 
--- function CombatMetronome:BuildListOfCurrentSkills()
-	-- local list = {}
-	-- local listVariables = CombatMetronome:StoreAbilitiesOnActionBar()
-	-- table.insert(list, "----FRONTBAR----")
-	-- for i=1,5 do
-		-- table.insert(list, tostring(i..": "..listVariables[i].id..", "..listVariables[i].name))
-	-- end
-	-- table.insert(list, tostring("Ultimate: "..listVariables[6].id..", "..listVariables[6].name))
-	-- table.insert(list, "----BACKBAR----")
-	-- for i=7,11 do
-		-- table.insert(list, tostring((i-6)..": "..listVariables[i].id..", "..listVariables[i].name))
-	-- end
-	-- table.insert(list, tostring("Ultimate: "..listVariables[12].id..", "..listVariables[12].name))
-	-- return list
--- end
+function CombatMetronome:IsSkillCurrentlyEquipped(id)
+	for i, entry in ipairs(self.currentlyEquippedAbilities.data) do
+		if id == entry.id then return i end
+	end
+	return false
+end
+
+function CombatMetronome:GetEquippedSkillData(selectedSkill)
+	for i, entry in ipairs(self.currentlyEquippedAbilities.list) do
+		if entry == selectedSkill then
+		-- self.debug:Print("Returning selected skill data")
+		-- d(self.currentlyEquippedAbilities.data[i])
+		return self.currentlyEquippedAbilities.data[i] end
+	end
+end
+
+function CombatMetronome:BuildListOfCurrentlyEquippedAbilities()
+	self.currentlyEquippedAbilities.data = Util.Stacks:StoreAbilitiesOnActionBar()
+	
+	-- clear current list
+	if self.currentlyEquippedAbilities.list then
+		for i in pairs(self.currentlyEquippedAbilities.list) do self.currentlyEquippedAbilities.list[i] = nil end
+	end
+	
+	if not self.currentlyEquippedAbilities.list then self.currentlyEquippedAbilities.list = {} end
+	
+	for i, skill in ipairs(self.currentlyEquippedAbilities.data) do
+		self.currentlyEquippedAbilities.list[i] = tostring("|t20:20:"..skill.icon.."|t "..skill.name)
+	end
+	
+	-- refresh equipped ability list
+	if self.menu.panel then
+		local panelControls = self.menu.panel.controlsToRefresh
+		for i = 1, #panelControls do
+			local control = panelControls[i]
+			if (control.data and control.data.name == "Currently equipped abilities:") then
+				-- CombatMetronome.debug:Print("Updating currently equipped skills")
+				-- self.currentlyEquippedAbilities = self:BuildListOfCurrentlyEquippedAbilities()
+				control:UpdateChoices()
+				control:UpdateValue()
+				break
+			end
+		end
+	end
+end
+
 	-------------------------
 	---- Ability Handler ----
 	-------------------------
@@ -338,7 +370,7 @@ function StackTracker:CheckIfSlotted()
 	elseif self.class == "DK" then ability = mWId.ability
 	end
 	if ability ~= "" then
-		for i=1,12 do
+		for i=1,#self.actionSlotCache do
 			if self.actionSlotCache[i].id == ability then
 				abilitySlotted = true
 				break
@@ -349,7 +381,7 @@ function StackTracker:CheckIfSlotted()
 		local morph = Util.Stacks:CheckForFSMorph()
 		for i=1,3 do
 			ability = fSId[morph].ability[i]
-			for j=1,12 do
+			for j=1,#self.actionSlotCache do
 				if self.actionSlotCache[j].id == ability then
 					abilitySlotted = true
 					break

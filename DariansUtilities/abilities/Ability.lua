@@ -88,6 +88,8 @@ function Ability:ForId(id)
     o.ground = o.target == TargetGround[Util.language]
     o.heavy = o.id == GetSlotBoundId(2)
     o.light = o.id == GetSlotBoundId(1)
+    
+    if o.heavy then o.delay = 1500 end
 
     o.hasProgression,
     o.progressionIndex = GetAbilityProgressionXPInfoFromAbilityId(id)
@@ -258,7 +260,12 @@ end
 
 function Ability.Tracker:Update()
     local time = GetFrameTimeMilliseconds()
-    local gcdProgress, sR, sD = Ability.Tracker:GCDCheck()
+    local gcdProgress, sR, sD
+    if self.queuedEvent and self.queuedEvent.ability.heavy then
+        sR, sD, _, _ = GetSlotCooldownInfo(2)
+    else
+        gcdProgress, sR, sD = Ability.Tracker:GCDCheck()
+    end
     self.adjustedGCD = 1000 - GetLatency()
     if (self.lastBlockStatus == false) and IsBlockActive() and self.currentEvent then
         self:CancelCurrentEvent("Blocked")
@@ -269,7 +276,7 @@ function Ability.Tracker:Update()
     if self.queuedEvent or (self.queuedEvent and self.queuedEvent.castDuringRollDodge and self.rollDodgeFinished) and not self.currentEvent and gcdProgress > (CombatMetronome.SV.debug.triggers and ((self.adjustedGCD - CombatMetronome.SV.debug.triggerTimer)/1000) or 0.9) and CanAbilityFire() then
         -- if time > self.queuedEvent.recorded then
             self.eventStart = time + sR - sD
-            self:AbilityUsed()
+            self:AbilityUsed("late")
             self.abilityTriggerCounters.late = self.abilityTriggerCounters.late + 1
         -- end
     -- elseif (not self.eventStart and self.queuedEvent and self.queuedEvent.allowForce and not self.queuedEvent.castDuringRollDodge and not self.currentEvent) and CanAbilityFire() then
@@ -346,7 +353,13 @@ end
 function Ability.Tracker:NewEvent(ability, slot, start)
     -- CombatMetronome.debug:Print("creating new event -"..ability.name)
     local time = GetFrameTimeMilliseconds()
-    local gcdProgress, sR, sD = self:GCDCheck()
+    local gcdProgress, sR, sD
+    if slot == 2 then
+        sR, sD, _, _ = GetSlotCooldownInfo(2)
+        gcdProgress = sR/sD
+    else
+        gcdProgress, sR, sD = self:GCDCheck()
+    end
 
     local event = { }
 
@@ -365,9 +378,9 @@ function Ability.Tracker:NewEvent(ability, slot, start)
 
     self.queuedEvent = event
         
-    if self.cdTriggerTime == start and (gcdProgress > 0 or event.ability.heavy) and not self.currentEvent and self.rollDodgeFinished and not event.castDuringRollDodge then
+    if self.cdTriggerTime == start and gcdProgress > 0 and not self.currentEvent and self.rollDodgeFinished and not event.castDuringRollDodge then
         self.eventStart = start + sR - sD
-        self:AbilityUsed()
+        self:AbilityUsed("direct")
         self.abilityTriggerCounters.direct = self.abilityTriggerCounters.direct + 1
     end
     if CombatMetronome.SV.debug.abilityUsed then CombatMetronome.debug:Print("New event "..event.ability.name) end
@@ -395,14 +408,21 @@ function Ability.Tracker:CancelEvent(reason)
     -- self.currentEvent = nil
 end
 
-function Ability.Tracker:AbilityUsed()
+function Ability.Tracker:AbilityUsed(trigger)
 
     if not CanAbilityFire() then 
         if CombatMetronome.SV.debug.abilityUsed then CombatMetronome.debug:Print("Couldn't fire ability") end
         return
     end
     
-    local gcdProgress, sR, sD = Ability.Tracker:GCDCheck()
+    local gcdProgress, sR, sD
+    if self.queuedEvent and self.queuedEvent.ability.heavy then
+        sR, sD, _, _ = GetSlotCooldownInfo(2)
+        gcdProgress = sR/sD
+    else
+        gcdProgress, sR, sD = Ability.Tracker:GCDCheck()
+    end
+    
     if gcdProgress > 0.92 or (self.queuedEvent and self.queuedEvent.ability.heavy) then
     
         -- killing old self.currentEvent since new event is coming
@@ -422,7 +442,7 @@ function Ability.Tracker:AbilityUsed()
         end
         
         self.gcd = sD
-        if CombatMetronome.SV.debug.abilityUsed then CombatMetronome.debug:Print("New ability used "..event.ability.name) end
+        if CombatMetronome.SV.debug.abilityUsed then CombatMetronome.debug:Print("New ability used "..event.ability.name.." - Trigger: "..trigger) end
         self:CallbackAbilityUsed(event)
 
         if (event.ability.instant or event.ability.channeled) then
@@ -482,11 +502,18 @@ function Ability.Tracker:HandleCooldownsUpdated()
     self.gcd = slotDuration
     -- local oldStart = self.eventStart or 0
     
+    local heavySR = GetSlotCooldownInfo(2)
+    if heavySR > 0 then
+        self.heavyOnCooldown = true
+    else
+        self.heavyOnCooldown = false
+    end
+    
     if self.queuedEvent and self.rollDodgeFinished and not self.queuedEvent.castDuringRollDodge then
         self.eventStart = self.cdTriggerTime + sR - sD
         if self.eventStart + (CombatMetronome.SV.debug.triggers and CombatMetronome.SV.debug.triggerTimer or 170) >= self.cdTriggerTime then
             -- CombatMetronome.debug:Print("Firing "..self.queuedEvent.ability.name)
-            self:AbilityUsed()
+            self:AbilityUsed("normal")
             self.abilityTriggerCounters.normal = self.abilityTriggerCounters.normal + 1
         end
     end
@@ -497,8 +524,12 @@ function Ability.Tracker:HandleSlotUsed(_, slot)
     local time = GetFrameTimeMilliseconds()
     
     if slot == 2 and self.currentEvent and self.currentEvent.ability.heavy then
+        local _,possibleCancelTime = GetAbilityCastInfo(GetSlotBoundId(2))
         -- self.heavyUsedDuringHeavy = time
-        self:CallbackCancelHeavy()
+        -- CombatMetronome.debug:Print("Heavy slot was used "..(time-self.currentEvent.start).."ms after heavy started")
+        if self.currentEvent.start + possibleCancelTime > time and not self.heavyOnCooldown then
+            self:CallbackCancelHeavy()
+        end
         return
     elseif slot == 2 then
         return
@@ -574,7 +605,7 @@ function Ability.Tracker:HandleCombatEvent(_,     res,  err,   aName, _, aSlotTy
 
         -- log("Not error!")
 
-		if (aSlotType == ACTION_SLOT_TYPE_HEAVY_ATTACK and res == (ACTION_RESULT_BEGIN or ACTION_RESULT_BEGIN_CHANNEL)) then
+		if aSlotType == ACTION_SLOT_TYPE_HEAVY_ATTACK and (res == ACTION_RESULT_BEGIN or res == ACTION_RESULT_BEGIN_CHANNEL) then
             -- CombatMetronome.debug:Print("Heavy ability is current combat event")
             if (self.currentEvent and self.currentEvent.ability.id == aId) then
                 return
@@ -601,7 +632,7 @@ function Ability.Tracker:HandleCombatEvent(_,     res,  err,   aName, _, aSlotTy
 end
 
 function Ability.Tracker:HandleWeaponLockChange(locked)
-    if not locked and self.currentEvent and self.currentEvent.ability.casted and ((GetFrameTimeMilliseconds()-self.currentEvent.start) < self.currentEvent.ability.delay and self.currentEvent.start ~= GetFrameTimeMilliseconds()) then
+    if not locked and self.currentEvent and self.currentEvent.ability.casted and not self.currentEvent.ability.heavy and ((GetFrameTimeMilliseconds()-self.currentEvent.start) < self.currentEvent.ability.delay and self.currentEvent.start ~= GetFrameTimeMilliseconds()) then
         self:CancelCurrentEvent("Weapon lock change")
     end
 end

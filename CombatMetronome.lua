@@ -8,7 +8,7 @@ CombatMetronome = {
     version = {
 		["patch"] = 1,
 		["major"] = 6,
-		["minor"] = 11,
+		["minor"] = 12,
 	},
 }
 
@@ -27,6 +27,9 @@ LATracker.name = CombatMetronome.name.."LightAttackTracker"
 Util.onLoad(CombatMetronome, function(self) self:Init() end)
 
 ZO_CreateStringId("SI_BINDING_NAME_COMBATMETRONOME_FORCE", "Force display")
+ZO_CreateStringId("SI_BINDING_NAME_COMBATMETRONOME_TOGGLE_SOUND_CUES", "Toggle metronome sound cues")
+ZO_CreateStringId("SI_BINDING_NAME_COMBATMETRONOME_TOGGLE_TICK", "Toggle 'tick'")
+ZO_CreateStringId("SI_BINDING_NAME_COMBATMETRONOME_TOGGLE_TOCK", "Toggle 'tock'")
 
 	-------------------------------------
 	---- Initialize Combat Metronome ----
@@ -46,6 +49,8 @@ function CombatMetronome:Init()
 	CombatMetronome.debug:SetEnabled(true)
 	
 	self.currentCharacterName = Util.Text.CropZOSString(GetUnitName("player"))
+	self.currentlyEquippedAbilities = {}
+	CombatMetronome:BuildListOfCurrentlyEquippedAbilities()
 		
 	StackTracker.classId = GetUnitClassId("player")
 	StackTracker.class = StackTracker.CLASS[StackTracker.classId]
@@ -59,6 +64,7 @@ function CombatMetronome:Init()
     self.gcd = 1000
 
 	self.Progressbar = {}
+	self.Progressbar.soundTockPlayed = true
 	self.Progressbar.activeMount = {}
 	self.Progressbar.activeMount.name = Util.Text.CropZOSString(GetCollectibleNickname(GetActiveCollectibleByType(COLLECTIBLE_CATEGORY_TYPE_MOUNT,GAMEPLAY_ACTOR_CATEGORY_PLAYER)))
 	self.Progressbar.activeMount.icon = GetCollectibleIcon(GetActiveCollectibleByType(COLLECTIBLE_CATEGORY_TYPE_MOUNT,GAMEPLAY_ACTOR_CATEGORY_PLAYER))
@@ -71,7 +77,7 @@ function CombatMetronome:Init()
 	-- CombatMetronome:UpdateAdjustChoices()
 
     self.Progressbar.lastInterval = 0
-	StackTracker.actionSlotCache = Util.Stacks:StoreAbilitiesOnActionBar()
+	StackTracker.actionSlotCache = self.currentlyEquippedAbilities.data
 
 	self:RegisterMetadata()
 	
@@ -119,8 +125,8 @@ function CombatMetronome:RegisterMetadata()
         self.name.."CurrentActionslotsOnHotbar",
         EVENT_ACTION_SLOTS_ALL_HOTBARS_UPDATED,
         function()
-			StackTracker.actionSlotCache = Util.Stacks:StoreAbilitiesOnActionBar()
-			-- self.menu.abilityAdjustChoices = CombatMetronome:BuildListForAbilityAdjusts()
+			CombatMetronome:BuildListOfCurrentlyEquippedAbilities()
+			StackTracker.actionSlotCache = self.currentlyEquippedAbilities.data
         end
     )
 	

@@ -32,23 +32,34 @@ local fSId = {
 
 function Stacks:StoreAbilitiesOnActionBar()
     local actionSlots = {}  -- Create a table to store action slots
+	
+	local function IsAlreadyInList(id)
+		for i, entry in ipairs(actionSlots) do
+			if entry.id == id then return true end
+		end
+		return false
+	end
 
     for j = 0, 1 do
         for i = 3, 8 do
             local actionSlot = {}  -- Create a new table for each action slot
 			local slotType = GetSlotType(i, j)
             -- setmetatable(actionSlot, {__index = index})
-            
-            actionSlot.place = tostring(i .. j)
-			if slotType == ACTION_TYPE_CRAFTED_ABILITY then
-				actionSlot.id = GetAbilityIdForCraftedAbilityId(GetSlotBoundId(i, j))
-			else
-				actionSlot.id = GetSlotBoundId(i, j)
-			end
-            actionSlot.icon = GetAbilityIcon(actionSlot.id)
-            actionSlot.name = Util.Text.CropZOSString(GetAbilityName(actionSlot.id))
+            if slotType then
+				actionSlot.place = tostring(i .. j)
+				if slotType == ACTION_TYPE_CRAFTED_ABILITY then
+					actionSlot.id = GetAbilityIdForCraftedAbilityId(GetSlotBoundId(i, j))
+				else
+					actionSlot.id = GetSlotBoundId(i, j)
+				end
+				if not IsAlreadyInList(actionSlot.id) then
+					actionSlot.icon = GetAbilityIcon(actionSlot.id)
+					actionSlot.name = Util.Text.CropZOSString(GetAbilityName(actionSlot.id))
 
-            table.insert(actionSlots, actionSlot)  -- Add the current action slot to the table
+					table.insert(actionSlots, actionSlot)  -- Add the current action slot to the table
+					if not Util.Ability.cache[actionSlot.id] then Util.Ability:ForId(actionSlot.id) end
+				end
+			end
         end
     end
 
@@ -122,13 +133,13 @@ function Stacks:CheckForGFMorph()
 		elseif morphId == 2 then morph = "mR"
 		end
 	if morph ~= self.oldMorph and morph ~= "" then self.morphChanged = true end --self.stackTracker.indicator.ApplyIcon() end
-	-- if morphChanged then if self.SV.debug.enabled then CombatMetronome.debug:Print("How dare you change morphs midgame??") end
+	-- if morphChanged then if self.SV.debug.enabled then CombatMetronome.debug:Print("How dare you change morphs midgame??") end end
 	self.oldMorph = morph
 	return morph
 end
 
 function Stacks:GetCurrentNumGFOnPlayer()
-	local morph,_ = Stacks:CheckForGFMorph()
+	local morph = Stacks:CheckForGFMorph()
 	local gFStacks = 0
 	for i=1,GetNumBuffs("player") do
 		local _,_,_,_,stack,_,_,_,_,_,abilityId = GetUnitBuffInfo("player", i)
@@ -158,17 +169,18 @@ function Stacks:CheckForFSMorph()
 end
 
 function Stacks:GetCurrentNumFSOnPlayer()
-	local morph,_ = Stacks:CheckForFSMorph()
+	local morph = Stacks:CheckForFSMorph()
 	local fSStacks = 0
+	local ability
 	for i=2,3 do
-			ability = fSId[morph].ability[i]
-			for j=1,12 do
-				if CombatMetronome.actionSlotCache[j].id == ability then
-					fSStacks = i-1
-					break
-				end
+		ability = fSId[morph].ability[i]
+		for j=1,#CombatMetronome.StackTracker.actionSlotCache do
+			if CombatMetronome.StackTracker.actionSlotCache[j].id == ability then
+				fSStacks = i-1
+				break
 			end
-		if fSStacks ~= 0 then break	end
 		end
+		if fSStacks ~= 0 then break	end
+	end
 	return fSStacks
 end
