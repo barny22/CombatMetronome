@@ -23,7 +23,7 @@ jobs:
     - name: Set Test only
       id: test_only
       run: |
-        echo "TEST_ONLY=true" >> $GITHUB_ENV
+        echo "TEST_ONLY=false" >> $GITHUB_ENV
 
     - name: Extract API Version and Addon Version
       id: version_info
@@ -67,7 +67,7 @@ jobs:
           -ApiToken "${{ secrets.ESOUI_API_TOKEN }}" `
           -AddonId 3987 `
           -Title "Combat Metronome (GCD Tracker) - beta" `
-          -Version "${{ env.ADDON_VERSION }}" `
+          -Version "${{ env.ADDON_VERSION }} - beta" `
           -FilePath "./CombatMetronome/CombatMetronome_${{ env.ADDON_VERSION }}_beta.zip" `
           -ChangelogFilePath "$changelogPath" `
           -Compatible "${{ env.PATCH_ID }}" `
