@@ -1,0 +1,19 @@
+[b][u]CombatMetronome Beta Version[/u][/b]
+
+Thank you for trying out the beta version of [b]CombatMetronome[/b]!
+
+This version includes experimental features and updates that are not yet part of the stable release. By using this beta, you help improve the add-on by providing feedback on potential issues or suggesting enhancements.
+
+[b]Key Features of the Beta:[/b]
+[list]
+[*] [color=#00FF00]New experimental mechanics for advanced combat tracking[/color]
+[*] Optimizations to reduce in-game performance impact
+[*] Early access to upcoming features
+[/list]
+
+[b]Important Notes:[/b]
+[quote]
+This beta version may contain bugs or incomplete features. Please report any issues or suggestions via the [url=https://www.esoui.com/downloads/info3987-CombatMetronomeGCDTrackerbeta.html#comments]comment section[/url] or the [url=https://github.com/barny22/CombatMetronome/issues]GitHub issue tracker[/url].
+[/quote]
+
+Thank you for being part of the development process and helping make CombatMetronome better for everyone!

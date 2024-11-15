@@ -4,7 +4,7 @@ Since Darianopolis can no longer maintain the Addon, I will probably do further 
 
 Should there be any bugs, feel free to report them on my [url="https://www.esoui.com/portal.php?id=386&a=listbugs"]ESOUI Portal[/url].
 
-Beta version is available for download on [URL="https://github.com/barny22/CombatMetronome/tree/Development"]Github[/URL] or click [URL="https://github.com/barny22/CombatMetronome/archive/refs/heads/Development.zip"]here[/URL] to download directly. Install at your own risk.
+Beta version is available for download on [URL="https://github.com/barny22/CombatMetronome/tree/Development"]Github[/URL] or [URL="https://www.esoui.com/downloads/info3987-CombatMetronomeGCDTrackerbeta.html"]ESOUI[/URL]. Install at your own risk.
 
 ! Fixed time adjustment on exhausting fatecarver depending on crux
 ! Fixed: Channeled abilities or abilities with cast time are now interrupted by block, dodgeroll or barswap
