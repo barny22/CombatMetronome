@@ -1,0 +1,75 @@
+name: CombatMetronome Beta Release
+
+# Auslöser: Nur workflow dispatch
+on:
+  workflow_dispatch:
+    inputs:
+      target_branch:
+        description: "The branch to run this workflow on"
+        default: "Development"
+        required: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        ref: ${{ github.event.inputs.target_branch }}
+        path: 'CombatMetronome'
+
+    - name: Set Test only
+      id: test_only
+      run: |
+        echo "TEST_ONLY=true" >> $GITHUB_ENV
+
+    - name: Extract API Version and Addon Version
+      id: version_info
+      run: |
+        APIVersion=$(grep -Po '(?<=## APIVersion: )\d+' CombatMetronome/CombatMetronome.txt)
+        AddonVersion=$(grep -Po '(?<=## Version: )[\d.]+' CombatMetronome/CombatMetronome.txt)
+        echo "API_VERSION=$APIVersion" >> $GITHUB_ENV
+        echo "ADDON_VERSION=$AddonVersion" >> $GITHUB_ENV
+        
+    - name: Get Compatible Patch ID
+      id: get_patch_id
+      run: |
+        # Hole die aktuelle Patchnummer
+        PatchVersion=$(grep -Po '(?<=## APIVersion: )\d+' CombatMetronome/CombatMetronome.txt)
+        # Anfrage an die ESOUI API, um die ID für die Patch-Version zu erhalten
+        PatchID=$(curl -s -H "x-api-token: ${{ secrets.ESOUI_API_TOKEN }}" "https://api.esoui.com/addons/compatible.json" | jq -r ".[] | select(.interface == \"$PatchVersion\") | .id")
+        echo "PATCH_ID=$PatchID" >> $GITHUB_ENV
+        
+    - name: Extract Changelog
+      id: changelog
+      run: |
+        Changelog=$(cat CombatMetronome/Changelog.txt)
+        echo "CHANGELOG<<EOF" >> $GITHUB_ENV
+        echo "$Changelog" >> $GITHUB_ENV
+        echo "EOF" >> $GITHUB_ENV
+
+# Zip-Datei (ohne nicht beta Readmes)
+    - name: Zip Addon Files for Addon ID 3987 (excluding Readmes)
+      run: |
+        7z a ./CombatMetronome/CombatMetronome_${{ env.ADDON_VERSION }}_beta.zip * -xr!ReadmeOriginal.md -xr!ReadmeUpdated.md -xr!*.git*
+        
+    - name: Upload Beta to ESOUI with PowerShell
+      shell: pwsh
+      run: |
+        $baseDir = Get-Location
+        $changelogPath = "$baseDir/CombatMetronome/Changelog.txt"
+        $readmePath = "$baseDir/CombatMetronome/ReadmeBeta.md"
+        Write-Host "Changelog Path: $changelogPath" # Debugging-Ausgabe
+        Write-Host "Readme Path: $readmePath" # Debugging-Ausgabe
+        ./CombatMetronome/.github/scripts/upload_to_esoui.ps1 `
+          -ApiToken "${{ secrets.ESOUI_API_TOKEN }}" `
+          -AddonId 3987 `
+          -Title "Combat Metronome (GCD Tracker) - beta" `
+          -Version "${{ env.ADDON_VERSION }}" `
+          -FilePath "./CombatMetronome/CombatMetronome_${{ env.ADDON_VERSION }}_beta.zip" `
+          -ChangelogFilePath "$changelogPath" `
+          -Compatible "${{ env.PATCH_ID }}" `
+          -ReadmeFilePath "$readmePath" `
+          -TestOnly "${{ env.TEST_ONLY }}"
