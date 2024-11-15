@@ -1,4 +1,4 @@
-name: ESO Addon Dual Release
+name: CombatMetronome Dual Release
 
 # Auslöser: Bei einem Pull Request auf die master-Branch von development oder workflow dispatch
 on:
