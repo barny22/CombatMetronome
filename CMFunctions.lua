@@ -48,6 +48,9 @@ function CombatMetronome:OnCDStop()
 		self.Progressbar.bar:SetHidden(true)
 	end
 	self:HideLabels(true)
+	if self.currentEvent then
+		self.abilityFinished = GetFrameTimeMilliseconds()
+	end
 	self:SetEventNil()
 end
 
@@ -302,12 +305,13 @@ function CombatMetronome:HandleAbilityUsed(event)
 		self.currentEvent = event
 		-- if self.SV.debug.enabled then CombatMetronome.debug:Print("Got new Event "..event.ability.name) end
 	end
+	self.abilityFinished = event.start + math.max(ability.delay, 1000)
     self.gcd = Util.Ability.Tracker.gcd
 end
 
-	------------------------------------
-	---- Check if Tracker is active ----
-	------------------------------------
+	-------------------------------------------
+	---- Check if Stack  Tracker is active ----
+	-------------------------------------------
 
 function StackTracker:TrackerIsActive()
 	local trackerIsActive = false
@@ -321,8 +325,6 @@ function StackTracker:TrackerIsActive()
 		trackerIsActive = true
 	elseif self.class == "CRO" and CombatMetronome.SV.StackTracker.trackFS then
 		trackerIsActive = true
-	else
-		trackerIsActive = false
 	end
 	return trackerIsActive
 end

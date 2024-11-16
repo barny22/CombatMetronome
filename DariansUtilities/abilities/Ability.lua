@@ -668,6 +668,7 @@ function Ability.Tracker:CancelCurrentEvent(reason)
     if self.currentEvent then
         if self.CombatMetronome and CombatMetronome.currentEvent then
             CombatMetronome:OnCDStop()
+            -- CombatMetronome.abilityFinished = GetFrameTimeMilliseconds()
             -- if CombatMetronome.SV.debug.currentEvent then CombatMetronome.debug:Print("Also reset CombatMetronome currentEvent") end
         end
         self.currentEvent = nil

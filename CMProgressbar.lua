@@ -76,18 +76,21 @@ function CombatMetronome:Update()
 			---- GCD Tracker ----
 			---------------------
 		
-		if not self.currentEvent then
+		if CombatMetronome.SV.Progressbar.soundTockEnabled then
 			-- self:OnCDStop()
 			-- self.Progressbar.bar:Update()
-			if (self.inCombat or (CombatMetronome.SV.Progressbar.showOOC and CombatMetronome.SV.Progressbar.playSoundsOOC)) and not self.Progressbar.soundTockPlayed and CombatMetronome.SV.Progressbar.soundTockEnabled then --and time > start + (length / 2) - CombatMetronome.SV.Progressbar.soundTockOffset then
-				self.Progressbar.soundTockPlayed = true
-				local uiVolume = GetSetting(SETTING_TYPE_AUDIO, AUDIO_SETTING_UI_VOLUME)
-				local tockQueue = ZO_QueuedSoundPlayer:New(0)
-				tockQueue:SetFinishedAllSoundsCallback(function()
-					SetSetting(SETTING_TYPE_AUDIO, AUDIO_SETTING_UI_VOLUME, uiVolume)
-				end)
-				SetSetting(SETTING_TYPE_AUDIO, AUDIO_SETTING_UI_VOLUME, CombatMetronome.SV.Progressbar.tickVolume)
-				tockQueue:PlaySound(CombatMetronome.SV.Progressbar.soundTockEffect, 250)
+			if (self.inCombat or (CombatMetronome.SV.Progressbar.showOOC and CombatMetronome.SV.Progressbar.playSoundsOOC)) and not self.Progressbar.soundTockPlayed then --and time > start + (length / 2) - CombatMetronome.SV.Progressbar.soundTockOffset then
+				local timeToPlayTock = (self.abilityFinished or 0) + CombatMetronome.SV.Progressbar.soundTockOffset
+				if time >= timeToPlayTock then
+					self.Progressbar.soundTockPlayed = true
+					local uiVolume = GetSetting(SETTING_TYPE_AUDIO, AUDIO_SETTING_UI_VOLUME)
+					local tockQueue = ZO_QueuedSoundPlayer:New(0)
+					tockQueue:SetFinishedAllSoundsCallback(function()
+						SetSetting(SETTING_TYPE_AUDIO, AUDIO_SETTING_UI_VOLUME, uiVolume)
+					end)
+					SetSetting(SETTING_TYPE_AUDIO, AUDIO_SETTING_UI_VOLUME, CombatMetronome.SV.Progressbar.tickVolume)
+					tockQueue:PlaySound(CombatMetronome.SV.Progressbar.soundTockEffect, 250)
+				end
 			end
 		end
 		
@@ -151,7 +154,7 @@ function CombatMetronome:Update()
 			local duration = math.max(ability.heavy and 0 or (self.gcd or 1000), ability.delay) + self.currentEvent.adjust
 			local channelTime = ability.delay + self.currentEvent.adjust
 			local timeRemaining = ((start + channelTime + GetLatency()) - time) / 1000
-			
+						
 			-- local playerDidBlock = (self.lastBlockStatus == false) and IsBlockActive()
 			-- if playerDidBlock and self.SV.debug.enabled then CombatMetronome.debug:Print("Player blocked") end
 			
@@ -167,12 +170,13 @@ function CombatMetronome:Update()
 			----------------------
 			if time > start + duration then
 				self:OnCDStop()
+				return
 			else
 				local length = duration - latency
 				
 				-- Sound contributed to by Seltiix --
 				if (self.inCombat or (CombatMetronome.SV.Progressbar.showOOC and CombatMetronome.SV.Progressbar.playSoundsOOC)) and not self.Progressbar.soundTickPlayed and CombatMetronome.SV.Progressbar.soundTickEnabled then --and time > start + length - CombatMetronome.SV.Progressbar.soundTickOffset then
-					if not CombatMetronome.SV.Progressbar.soundTickMidAbility or (CombatMetronome.SV.Progressbar.soundTickMidAbility and time >= start + duration/2) then
+					if (not CombatMetronome.SV.Progressbar.soundTickMidAbility and time >= start + self.SV.Progressbar.soundTickOffset) or (CombatMetronome.SV.Progressbar.soundTickMidAbility and time >= start + duration/2 + self.SV.Progressbar.soundTickOffset) then
 						if not (ability.heavy and CombatMetronome.SV.Progressbar.noTickOnHeavy) then
 							self.Progressbar.soundTickPlayed = true
 							local uiVolume = GetSetting(SETTING_TYPE_AUDIO, AUDIO_SETTING_UI_VOLUME)

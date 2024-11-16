@@ -907,24 +907,11 @@ function CombatMetronome:BuildMenu()
 								PlaySound(value)
 							end,
 						},
-						-- {
-							-- type = "slider",
-							-- name = "Sound 'tick' offset",
-							-- disabled = function()
-								-- return (not CombatMetronome.SV.Progressbar.soundTickEnabled)
-							-- end,
-							-- min = 0,
-							-- max = 1000,
-							-- step =  1,
-							-- getFunc = function() return CombatMetronome.SV.Progressbar.soundTickOffset end,
-							-- setFunc = function(value)
-								-- CombatMetronome.SV.Progressbar.soundTickOffset = value
-							-- end,
-						-- },
 						{
 							type = "checkbox",
 							name = "Sound 'tock'",
 							tooltip = "This sound cue marks the end of an ability",
+							warning = "If you don't hear this cue, you either have perfect weave or, and chances for that are much much higher, missed a light attack ¯\\_(ツ)_/¯",
 							getFunc = function() return CombatMetronome.SV.Progressbar.soundTockEnabled end,
 							setFunc = function(state)
 								CombatMetronome.SV.Progressbar.soundTockEnabled = state
@@ -955,19 +942,45 @@ function CombatMetronome:BuildMenu()
 							end,
 						},
 						-- {
-							-- type = "slider",
-							-- name = "Sound 'tock' offset",
-							-- disabled = function()
-								-- return (not CombatMetronome.SV.Progressbar.soundTockEnabled)
-							-- end,
-							-- min = 0,
-							-- max = 1000,
-							-- step = 1,
-							-- getFunc = function() return CombatMetronome.SV.Progressbar.soundTockOffset end,
+							-- type = "checkbox",
+							-- name = "Enable sound offsets",
+							-- tooltip = "This option enables finetuning your sound cues",
+							-- disabled = function() return not (CombatMetronome.SV.Progressbar.soundTockEnabled or CombatMetronome.SV.Progressbar.soundTickEnabled) end,
+							-- getFunc = function() return CombatMetronome.SV.Progressbar.soundOffsets end,
 							-- setFunc = function(value)
-								-- CombatMetronome.SV.Progressbar.soundTockOffset = value
+								-- CombatMetronome.SV.Progressbar.soundOffsets = value
 							-- end,
 						-- },
+						{
+							type = "slider",
+							name = "Sound 'tick' offset",
+							disabled = function()
+								return not (CombatMetronome.SV.Progressbar.soundTickEnabled) -- and CombatMetronome.SV.Progressbar.soundOffsets)
+							end,
+							width = "half",
+							min = 0,
+							max = 1000,
+							step =  1,
+							getFunc = function() return CombatMetronome.SV.Progressbar.soundTickOffset end,
+							setFunc = function(value)
+								CombatMetronome.SV.Progressbar.soundTickOffset = value
+							end,
+						},
+						{
+							type = "slider",
+							name = "Sound 'tock' offset",
+							disabled = function()
+								return not (CombatMetronome.SV.Progressbar.soundTockEnabled) -- and CombatMetronome.SV.Progressbar.soundOffsets)
+							end,
+							width = "half",
+							min = 0,
+							max = 1000,
+							step = 1,
+							getFunc = function() return CombatMetronome.SV.Progressbar.soundTockOffset end,
+							setFunc = function(value)
+								CombatMetronome.SV.Progressbar.soundTockOffset = value
+							end,
+						},
 					},
 				},
 		-------------------------------

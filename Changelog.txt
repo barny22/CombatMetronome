@@ -1,4 +1,7 @@
-2024-11-02 v1.6.12
+2024-11-16 v1.6.13
++  Reenabled sound offsets for combat metronome sound cues
+
+2024-11-15 v1.6.12
 !  Fix for necro skull tracker
 !  Minor UI fixes
 !  Changed tick and tock sounds to now play exactly at ability start/end respectively
