@@ -480,6 +480,52 @@ function StackTracker:PVPSwitch()
 	end
 end
 
+		--------------
+        ---- Menu ----
+        --------------
+		
+local MENU_SOUND_CONTROLS = {
+["Volume of 'tick' and 'tock'"] = true,
+["Sound 'tick'"] = true,
+["Sound 'tock'"] = true,
+["Sound 'tick' effect"] = true,
+["Sound 'tock' effect"] = true,
+["Sound 'tick' offset"] = true,
+["Sound 'tock' offset"] = true,
+["Play 'tick' at the start of an ability"] = true,
+["Don't play 'tick' on heavy attacks"] = true,
+["Play sounds ooc"] = true,
+}
+
+function CombatMetronome:RefreshSoundControls()
+	if not self.menu.soundControlsToRefresh then self.menu.soundControlsToRefresh = {} end
+	if #self.menu.soundControlsToRefresh == 0 then
+		if self.menu.panel then
+			local num = 0
+			for _,_ in pairs(MENU_SOUND_CONTROLS) do
+				num = num + 1
+			end
+			local updateCount = 0
+			local panelControls = self.menu.panel.controlsToRefresh
+			for i, control in ipairs(panelControls) do
+				if control.data and MENU_SOUND_CONTROLS[control.data.name] then
+					if control.UpdateValue then control:UpdateValue() end
+					if control.UpdateDisabled then control:UpdateDisabled() end
+					updateCount = updateCount + 1
+					self.menu.soundControlsToRefresh[updateCount] = i				
+				end
+				if updateCount == num then break end -- number of 
+			end
+		end
+	else
+		CombatMetronome.debug:Print("Second wind")
+		for _, i in ipairs(self.menu.soundControlsToRefresh) do
+			if self.menu.panel.controlsToRefresh[i].UpdateValue then self.menu.panel.controlsToRefresh[i]:UpdateValue() end
+			if self.menu.panel.controlsToRefresh[i].UpdateDisabled then self.menu.panel.controlsToRefresh[i]:UpdateDisabled() end
+		end
+	end
+end
+
 		---------------
         ---- Debug ----
         ---------------
