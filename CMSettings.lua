@@ -977,6 +977,16 @@ function CombatMetronome:BuildMenu()
 						},
 						{
 							type = "checkbox",
+							name = "Force 'tock'",
+							tooltip = "Forces the 'tock' sound even when you missed a light attack and already have another ability queued, to keep the rythm",
+							disabled = function() return not CombatMetronome.SV.Progressbar.soundTockEnabled end,
+							getFunc = function() return CombatMetronome.SV.Progressbar.forceSoundTock end,
+							setFunc = function(value)
+								CombatMetronome.SV.Progressbar.forceSoundTock = value
+							end,
+						},
+						{
+							type = "checkbox",
 							name = "Play sounds ooc",
 							tooltip = "When enabled, will play 'tick' and 'tock' sounds even while out of combat",
 							disabled = function() return not (CombatMetronome.SV.Progressbar.showOOC and (CombatMetronome.SV.Progressbar.soundTockEnabled or CombatMetronome.SV.Progressbar.soundTickEnabled)) end,

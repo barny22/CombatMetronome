@@ -305,6 +305,7 @@ function CombatMetronome:HandleAbilityUsed(event)
 		self.currentEvent = event
 		-- if self.SV.debug.enabled then CombatMetronome.debug:Print("Got new Event "..event.ability.name) end
 	end
+	self.lastAbilityFinished = self.abilityFinished
 	self.abilityFinished = event.start + math.max(ability.delay, 1000)
     self.gcd = Util.Ability.Tracker.gcd
 end
@@ -518,7 +519,7 @@ function CombatMetronome:RefreshSoundControls()
 			end
 		end
 	else
-		CombatMetronome.debug:Print("Second wind")
+		-- CombatMetronome.debug:Print("Second wind")
 		for _, i in ipairs(self.menu.soundControlsToRefresh) do
 			if self.menu.panel.controlsToRefresh[i].UpdateValue then self.menu.panel.controlsToRefresh[i]:UpdateValue() end
 			if self.menu.panel.controlsToRefresh[i].UpdateDisabled then self.menu.panel.controlsToRefresh[i]:UpdateDisabled() end

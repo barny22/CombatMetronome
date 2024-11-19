@@ -81,8 +81,15 @@ function CombatMetronome:Update()
 			-- self.Progressbar.bar:Update()
 			if (self.inCombat or (CombatMetronome.SV.Progressbar.showOOC and CombatMetronome.SV.Progressbar.playSoundsOOC)) and not self.Progressbar.soundTockPlayed then --and time > start + (length / 2) - CombatMetronome.SV.Progressbar.soundTockOffset then
 				local timeToPlayTock = (self.abilityFinished or 0) + CombatMetronome.SV.Progressbar.soundTockOffset
-				if time >= timeToPlayTock then
-					self.Progressbar.soundTockPlayed = true
+				local timeToForceTock = (self.lastAbilityFinished or 0) + CombatMetronome.SV.Progressbar.soundTockOffset
+				if time >= timeToPlayTock or (CombatMetronome.SV.Progressbar.forceSoundTock and self.currentEvent and time >= timeToForceTock and timeToForceTock >= self.currentEvent.start) then
+				
+					if CombatMetronome.SV.Progressbar.forceSoundTock and self.currentEvent and time >= timeToForceTock and timeToForceTock >= self.currentEvent.start then		-- kill self.lastAbilityFinished so the statement will not be true in the future
+						self.lastAbilityFinished = self.abilityFinished
+					else
+						self.Progressbar.soundTockPlayed = true
+					end
+										
 					local uiVolume = GetSetting(SETTING_TYPE_AUDIO, AUDIO_SETTING_UI_VOLUME)
 					local tockQueue = ZO_QueuedSoundPlayer:New(0)
 					tockQueue:SetFinishedAllSoundsCallback(function()
