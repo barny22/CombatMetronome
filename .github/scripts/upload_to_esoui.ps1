@@ -7,6 +7,7 @@ param(
     [string]$ChangelogFilePath,
     [string]$Compatible,
     [string]$ReadmeFilePath,
+    [string]$Archive,
     [string]$TestOnly
 )
 
@@ -19,6 +20,7 @@ param(
     Write-Host "Changelog File Path: $ChangelogFilePath"
     Write-Host "Compatible: $Compatible"
     Write-Host "Readme File Path: $ReadmeFilePath"
+    Write-Host "Archive: $Archive"
     Write-Host "Test: $TestOnly"
 
 function Upload-Addon {
@@ -31,6 +33,7 @@ function Upload-Addon {
         [string]$ChangelogFilePath,
         [string]$Compatible,
         [string]$ReadmeFilePath,
+        [string]$Archive,
         [string]$TestOnly
     )
 
@@ -48,7 +51,7 @@ function Upload-Addon {
     
     # Prepare the multipart form data
     $formData = @{
-        "archive" = "Yes"  # Set to "Yes" or "No" as required
+        "archive" = $Archive  # Set to "Yes" or "No" as required
         "updatefile" = Get-Item $FilePath
         "id" = $AddonId
         "title" = $Title  # Optional
@@ -75,4 +78,4 @@ $changelog = Get-Content $ChangelogFilePath -Raw
 $description = Get-Content $ReadmeFilePath -Raw
 
 # Call the function with parameters
-Upload-Addon -ApiToken $ApiToken -AddonId $AddonId -Title $Title -Version $Version -FilePath $FilePath -changelog $changelog -Compatible $Compatible -description $description -TestOnly $TestOnly
+Upload-Addon -ApiToken $ApiToken -AddonId $AddonId -Title $Title -Version $Version -FilePath $FilePath -changelog $changelog -Compatible $Compatible -description $description -Archive $Archive -TestOnly $TestOnly
