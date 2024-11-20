@@ -23,7 +23,7 @@ jobs:
     - name: Set Test only
       id: test_only
       run: |
-        echo "TEST_ONLY=true" >> $GITHUB_ENV
+        echo "TEST_ONLY=false" >> $GITHUB_ENV
 
     - name: Extract API Version and Addon Version
       id: version_info
