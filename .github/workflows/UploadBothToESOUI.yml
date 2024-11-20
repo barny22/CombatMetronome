@@ -23,7 +23,7 @@ jobs:
     - name: Set Test only
       id: test_only
       run: |
-        echo "TEST_ONLY=false" >> $GITHUB_ENV
+        echo "TEST_ONLY=true" >> $GITHUB_ENV
 
     - name: Extract API Version and Addon Version
       id: version_info
@@ -101,6 +101,7 @@ jobs:
           -ChangelogFilePath "$changelogPath" `
           -Compatible "${{ env.PATCH_ID }}" `
           -ReadmeFilePath "$readmePath" `
+          -Archive "Yes" `
           -TestOnly "${{ env.TEST_ONLY }}"
 
 
@@ -121,4 +122,5 @@ jobs:
           -ChangelogFilePath "$changelogPath" `
           -Compatible "${{ env.PATCH_ID }}" `
           -ReadmeFilePath "$readmePath" `
+          -Archive "Yes" `
           -TestOnly "${{ env.TEST_ONLY }}"
