@@ -246,10 +246,10 @@ function CombatMetronome:RegisterItemsTracker()
 				self.itemCache.name[i] = Util.Text.CropZOSString(GetItemName(1, i))
 				self.itemCache.icon[i] = GetItemInfo(1, i)
 			end
-			zo_callLater(function()
-				self.itemCache = nil
-			end,
-			400)
+			-- zo_callLater(function()
+				-- self.itemCache = nil
+			-- end,
+			-- 400)
 		end
 	)
 
