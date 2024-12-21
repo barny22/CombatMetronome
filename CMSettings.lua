@@ -868,10 +868,91 @@ function CombatMetronome:BuildMenu()
 							type = "checkbox",
 							name = "Sound 'tick'",
 							tooltip = "Enable sound 'tick', which marks the middle/beginning of your ability",
+							width = "half",
 							getFunc = function() return CombatMetronome.SV.Progressbar.soundTickEnabled end,
 							setFunc = function(state)
 								CombatMetronome.SV.Progressbar.soundTickEnabled = state
 								CombatMetronome.Progressbar.soundTickPlayed = true
+							end,
+						},
+						{
+							type = "checkbox",
+							name = "Sound 'tock'",
+							tooltip = "This sound cue marks the end of an ability",
+							warning = "If you don't hear this cue, you either have perfect weave or, and chances for that are much much higher, missed a light attack ¯\\_(ツ)_/¯",
+							width = "half",
+							getFunc = function() return CombatMetronome.SV.Progressbar.soundTockEnabled end,
+							setFunc = function(state)
+								CombatMetronome.SV.Progressbar.soundTockEnabled = state
+								CombatMetronome.Progressbar.soundTockPlayed = true
+							end,
+						},
+						{
+							type = "dropdown",
+							name = "Sound 'tick' effect",
+							disabled = function()
+								return (not CombatMetronome.SV.Progressbar.soundTickEnabled)
+							end,
+							width = "half",
+							choices = sounds,
+							getFunc = function() return CombatMetronome.SV.Progressbar.soundTickEffect end,
+							setFunc = function(value)
+								CombatMetronome.SV.Progressbar.soundTickEffect = value
+								PlaySound(value)
+							end,
+						},
+						{
+							type = "dropdown",
+							name = "Sound 'tock' effect",
+							disabled = function()
+								return (not CombatMetronome.SV.Progressbar.soundTockEnabled)
+							end,
+							width = "half",
+							choices = sounds,
+							getFunc = function() return CombatMetronome.SV.Progressbar.soundTockEffect end,
+							setFunc = function(value)
+								CombatMetronome.SV.Progressbar.soundTockEffect = value
+								PlaySound(value)
+							end,
+						},
+						-- {
+							-- type = "checkbox",
+							-- name = "Enable sound offsets",
+							-- tooltip = "This option enables finetuning your sound cues",
+							-- disabled = function() return not (CombatMetronome.SV.Progressbar.soundTockEnabled or CombatMetronome.SV.Progressbar.soundTickEnabled) end,
+							-- getFunc = function() return CombatMetronome.SV.Progressbar.soundOffsets end,
+							-- setFunc = function(value)
+								-- CombatMetronome.SV.Progressbar.soundOffsets = value
+							-- end,
+						-- },
+						{
+							type = "slider",
+							name = "Sound 'tick' offset",
+							disabled = function()
+								return not (CombatMetronome.SV.Progressbar.soundTickEnabled) -- and CombatMetronome.SV.Progressbar.soundOffsets)
+							end,
+							width = "half",
+							min = 0,
+							max = 1000,
+							step =  1,
+							getFunc = function() return CombatMetronome.SV.Progressbar.soundTickOffset end,
+							setFunc = function(value)
+								CombatMetronome.SV.Progressbar.soundTickOffset = value
+							end,
+						},
+						{
+							type = "slider",
+							name = "Sound 'tock' offset",
+							disabled = function()
+								return not (CombatMetronome.SV.Progressbar.soundTockEnabled) -- and CombatMetronome.SV.Progressbar.soundOffsets)
+							end,
+							width = "half",
+							min = 0,
+							max = 1000,
+							step = 1,
+							getFunc = function() return CombatMetronome.SV.Progressbar.soundTockOffset end,
+							setFunc = function(value)
+								CombatMetronome.SV.Progressbar.soundTockOffset = value
 							end,
 						},
 						{
@@ -895,53 +976,13 @@ function CombatMetronome:BuildMenu()
 							end,
 						},
 						{
-							type = "dropdown",
-							name = "Sound 'tick' effect",
-							disabled = function()
-								return (not CombatMetronome.SV.Progressbar.soundTickEnabled)
-							end,
-							choices = sounds,
-							getFunc = function() return CombatMetronome.SV.Progressbar.soundTickEffect end,
-							setFunc = function(value)
-								CombatMetronome.SV.Progressbar.soundTickEffect = value
-								PlaySound(value)
-							end,
-						},
-						-- {
-							-- type = "slider",
-							-- name = "Sound 'tick' offset",
-							-- disabled = function()
-								-- return (not CombatMetronome.SV.Progressbar.soundTickEnabled)
-							-- end,
-							-- min = 0,
-							-- max = 1000,
-							-- step =  1,
-							-- getFunc = function() return CombatMetronome.SV.Progressbar.soundTickOffset end,
-							-- setFunc = function(value)
-								-- CombatMetronome.SV.Progressbar.soundTickOffset = value
-							-- end,
-						-- },
-						{
 							type = "checkbox",
-							name = "Sound 'tock'",
-							tooltip = "This sound cue marks the end of an ability",
-							getFunc = function() return CombatMetronome.SV.Progressbar.soundTockEnabled end,
-							setFunc = function(state)
-								CombatMetronome.SV.Progressbar.soundTockEnabled = state
-								CombatMetronome.Progressbar.soundTockPlayed = true
-							end,
-						},
-						{
-							type = "dropdown",
-							name = "Sound 'tock' effect",
-							disabled = function()
-								return (not CombatMetronome.SV.Progressbar.soundTockEnabled)
-							end,
-							choices = sounds,
-							getFunc = function() return CombatMetronome.SV.Progressbar.soundTockEffect end,
+							name = "Force 'tock'",
+							tooltip = "Forces the 'tock' sound even when you missed a light attack and already have another ability queued, to keep the rythm",
+							disabled = function() return not CombatMetronome.SV.Progressbar.soundTockEnabled end,
+							getFunc = function() return CombatMetronome.SV.Progressbar.forceSoundTock end,
 							setFunc = function(value)
-								CombatMetronome.SV.Progressbar.soundTockEffect = value
-								PlaySound(value)
+								CombatMetronome.SV.Progressbar.forceSoundTock = value
 							end,
 						},
 						{
@@ -954,20 +995,6 @@ function CombatMetronome:BuildMenu()
 								CombatMetronome.SV.Progressbar.playSoundsOOC = value
 							end,
 						},
-						-- {
-							-- type = "slider",
-							-- name = "Sound 'tock' offset",
-							-- disabled = function()
-								-- return (not CombatMetronome.SV.Progressbar.soundTockEnabled)
-							-- end,
-							-- min = 0,
-							-- max = 1000,
-							-- step = 1,
-							-- getFunc = function() return CombatMetronome.SV.Progressbar.soundTockOffset end,
-							-- setFunc = function(value)
-								-- CombatMetronome.SV.Progressbar.soundTockOffset = value
-							-- end,
-						-- },
 					},
 				},
 		-------------------------------

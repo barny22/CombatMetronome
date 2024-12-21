@@ -39,6 +39,7 @@ CombatMetronome.DEFAULT_SAVED_VARS = {
 		["soundTockEnabled"] = false,
 		["soundTockEffect"] = "Dialog_Decline",
 		["soundTockOffset"] = 300,
+		["forceSoundTock"] = true,
 		["stopHATracking"] = false,
 		["makeItFancy"] = false,
 		["maxLatency"] = 150,

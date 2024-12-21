@@ -174,9 +174,9 @@ function Ability.Tracker:Start()
     EVENT_MANAGER:RegisterForEvent(self.name.."CooldownsUpdated", EVENT_ACTION_UPDATE_COOLDOWNS, function()
         self:HandleCooldownsUpdated()
     end)
-	EVENT_MANAGER:RegisterForEvent(self.name.."RollDodge", EVENT_EFFECT_CHANGED, function(...)
-        self:HandleRollDodge(...)
-	end)
+	-- EVENT_MANAGER:RegisterForEvent(self.name.."RollDodge", EVENT_EFFECT_CHANGED, function(...)
+        -- self:HandleRollDodge(...)
+	-- end)
 	EVENT_MANAGER:RegisterForEvent(self.name.."BarSwap", EVENT_ACTION_SLOTS_ACTIVE_HOTBAR_UPDATED, function(...)
         self:HandleBarSwap(...)
     end)
@@ -228,17 +228,17 @@ function Ability.Tracker:GCDCheck()
     return gcdProgress, slotRemaining, slotDuration
 end
 
-function Ability.Tracker:HandleRollDodge(_,changeType,_,name,_,_,_,_,icon,_,_,_,statusEffectType,_,_,abilityId,sourceType)
-    if sourceType == COMBAT_UNIT_TYPE_PLAYER and abilityId == 29721 and changeType == EFFECT_RESULT_UPDATED then			--- 69143 is DodgeFatigue
-        self.rollDodgeFinished = false
-        local remaining = GetSlotCooldownInfo(3)
-        zo_callLater(function() self.rollDodgeFinished = true end, remaining)
-        self:CancelEvent("Rolldodge")
-    end
-    if not self.rollDodgeFinished and self.currentEvent then
-        self:CancelCurrentEvent("Rolldodge")
-    end
-end
+-- function Ability.Tracker:HandleRollDodge(_,changeType,_,name,_,_,_,_,icon,_,_,_,statusEffectType,_,_,abilityId,sourceType)
+    -- if sourceType == COMBAT_UNIT_TYPE_PLAYER and abilityId == 29721 and changeType == EFFECT_RESULT_UPDATED then			--- 69143 is DodgeFatigue
+        -- self.rollDodgeFinished = false
+        -- local remaining = GetSlotCooldownInfo(3)
+        -- zo_callLater(function() self.rollDodgeFinished = true end, remaining)
+        -- self:CancelEvent("Rolldodge")
+        -- if self.currentEvent then
+            -- self:CancelCurrentEvent("Rolldodge")
+        -- end
+    -- end
+-- end
 
 function Ability.Tracker:HandleBarSwap(_, barswap, _, _)
     if self.barswap == barswap then return end
@@ -582,6 +582,7 @@ function Ability.Tracker:HandleCombatEvent(_,     res,  err,   aName, _, aSlotTy
     -- log("sName = ", sName, ", sUId = ", sUId)
 
     if (Util.Targeting.isUnitPlayer(sName, sUId)) then
+        
         -- log("Source is player")
 
         -- if res == ACTION_RESULT_CANNOT_USE then
@@ -598,6 +599,16 @@ function Ability.Tracker:HandleCombatEvent(_,     res,  err,   aName, _, aSlotTy
             -- if CombatMetronome.SV.debug.currentEvent then CombatMetronome.debug:Print("No location for currentEvent. Name: "..aName.." - Id: "..aId) end
             self:CancelCurrentEvent("Invalid location")
             CombatMetronome.currentEvent.ability = Ability.cache.invalidLocation
+            return
+                    -- rolldodge
+        elseif aId == 28549 and res == ACTION_RESULT_EFFECT_GAINED then
+            self.rollDodgeFinished = false
+            local remaining = GetSlotCooldownInfo(3)
+            zo_callLater(function() self.rollDodgeFinished = true end, remaining)
+            self:CancelEvent("Rolldodge")
+            if self.currentEvent then
+                self:CancelCurrentEvent("Rolldodge")
+            end
             return
         end
 
@@ -668,6 +679,7 @@ function Ability.Tracker:CancelCurrentEvent(reason)
     if self.currentEvent then
         if self.CombatMetronome and CombatMetronome.currentEvent then
             CombatMetronome:OnCDStop()
+            -- CombatMetronome.abilityFinished = GetFrameTimeMilliseconds()
             -- if CombatMetronome.SV.debug.currentEvent then CombatMetronome.debug:Print("Also reset CombatMetronome currentEvent") end
         end
         self.currentEvent = nil

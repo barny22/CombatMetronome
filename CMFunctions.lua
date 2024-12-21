@@ -48,6 +48,9 @@ function CombatMetronome:OnCDStop()
 		self.Progressbar.bar:SetHidden(true)
 	end
 	self:HideLabels(true)
+	if self.currentEvent then
+		self.abilityFinished = GetFrameTimeMilliseconds()
+	end
 	self:SetEventNil()
 end
 
@@ -302,12 +305,14 @@ function CombatMetronome:HandleAbilityUsed(event)
 		self.currentEvent = event
 		-- if self.SV.debug.enabled then CombatMetronome.debug:Print("Got new Event "..event.ability.name) end
 	end
+	self.lastAbilityFinished = self.abilityFinished
+	self.abilityFinished = event.start + math.max(ability.delay, 1000)
     self.gcd = Util.Ability.Tracker.gcd
 end
 
-	------------------------------------
-	---- Check if Tracker is active ----
-	------------------------------------
+	-------------------------------------------
+	---- Check if Stack  Tracker is active ----
+	-------------------------------------------
 
 function StackTracker:TrackerIsActive()
 	local trackerIsActive = false
@@ -321,8 +326,6 @@ function StackTracker:TrackerIsActive()
 		trackerIsActive = true
 	elseif self.class == "CRO" and CombatMetronome.SV.StackTracker.trackFS then
 		trackerIsActive = true
-	else
-		trackerIsActive = false
 	end
 	return trackerIsActive
 end
@@ -474,6 +477,52 @@ function StackTracker:PVPSwitch()
 				self:Register()
 				-- if self.SV.debug.enabled then CombatMetronome.debug:Print("registered tracker scenario 3") end
 			end
+		end
+	end
+end
+
+		--------------
+        ---- Menu ----
+        --------------
+		
+local MENU_SOUND_CONTROLS = {
+["Volume of 'tick' and 'tock'"] = true,
+["Sound 'tick'"] = true,
+["Sound 'tock'"] = true,
+["Sound 'tick' effect"] = true,
+["Sound 'tock' effect"] = true,
+["Sound 'tick' offset"] = true,
+["Sound 'tock' offset"] = true,
+["Play 'tick' at the start of an ability"] = true,
+["Don't play 'tick' on heavy attacks"] = true,
+["Play sounds ooc"] = true,
+}
+
+function CombatMetronome:RefreshSoundControls()
+	if not self.menu.soundControlsToRefresh then self.menu.soundControlsToRefresh = {} end
+	if #self.menu.soundControlsToRefresh == 0 then
+		if self.menu.panel then
+			local num = 0
+			for _,_ in pairs(MENU_SOUND_CONTROLS) do
+				num = num + 1
+			end
+			local updateCount = 0
+			local panelControls = self.menu.panel.controlsToRefresh
+			for i, control in ipairs(panelControls) do
+				if control.data and MENU_SOUND_CONTROLS[control.data.name] then
+					if control.UpdateValue then control:UpdateValue() end
+					if control.UpdateDisabled then control:UpdateDisabled() end
+					updateCount = updateCount + 1
+					self.menu.soundControlsToRefresh[updateCount] = i				
+				end
+				if updateCount == num then break end -- number of 
+			end
+		end
+	else
+		-- CombatMetronome.debug:Print("Second wind")
+		for _, i in ipairs(self.menu.soundControlsToRefresh) do
+			if self.menu.panel.controlsToRefresh[i].UpdateValue then self.menu.panel.controlsToRefresh[i]:UpdateValue() end
+			if self.menu.panel.controlsToRefresh[i].UpdateDisabled then self.menu.panel.controlsToRefresh[i]:UpdateDisabled() end
 		end
 	end
 end

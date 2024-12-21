@@ -15,6 +15,7 @@
                     CombatMetronome.SV.Progressbar.soundTickEnabled = not CombatMetronome.SV.Progressbar.soundTickEnabled
                     CombatMetronome.Progressbar.soundTickPlayed = true
                     CombatMetronome.Progressbar.soundTockPlayed = true
+                    CombatMetronome:RefreshSoundControls()
                 </Down>
                 <Up> 
                 </Up>
@@ -23,6 +24,7 @@
                 <Down> 
                 	CombatMetronome.SV.Progressbar.soundTickEnabled = not CombatMetronome.SV.Progressbar.soundTickEnabled
                     CombatMetronome.Progressbar.soundTickPlayed = true
+                    CombatMetronome:RefreshSoundControls()
                 </Down>
                 <Up> 
                 </Up>
@@ -31,6 +33,7 @@
                 <Down> 
                 	CombatMetronome.SV.Progressbar.soundTockEnabled = not CombatMetronome.SV.Progressbar.soundTockEnabled
                     CombatMetronome.Progressbar.soundTockPlayed = true
+                    CombatMetronome:RefreshSoundControls()
                 </Down>
                 <Up> 
                 </Up>
