@@ -101,6 +101,7 @@ jobs:
           -ChangelogFilePath "$changelogPath" `
           -Compatible "${{ env.PATCH_ID }}" `
           -ReadmeFilePath "$readmePath" `
+          -Archive "Yes" `
           -TestOnly "${{ env.TEST_ONLY }}"
 
 
@@ -121,4 +122,5 @@ jobs:
           -ChangelogFilePath "$changelogPath" `
           -Compatible "${{ env.PATCH_ID }}" `
           -ReadmeFilePath "$readmePath" `
+          -Archive "Yes" `
           -TestOnly "${{ env.TEST_ONLY }}"
