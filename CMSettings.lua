@@ -99,6 +99,7 @@ function CombatMetronome:BuildMenu()
         version = self.version.patch.."."..self.version.major.."."..self.version.minor,
 		website = "https://www.esoui.com/downloads/info2373-CombatMetronomeGCDTracker.html",
 		feedback = "https://www.esoui.com/portal.php?&id=386",
+		donation = "https://ko-fi.com/barnyteso",
         slashCommand = "/cm",
         registerForRefresh = true,
 		registerForDefaults = true,

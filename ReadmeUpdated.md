@@ -1,4 +1,7 @@
 An updated Version of Darianopolis' tool "Combat Metronome". (That's why he is mentioned as author.)
+
+If you like my work and want to support what I'm doing, consider supporting me on [url=https://ko-fi.com/barnyteso][color=green]Ko-Fi[/color][/url].
+
 I added some fixes and new options:
 
 !  Fixed time adjustment on exhausting fatecarver depending on crux
