@@ -45,7 +45,7 @@ function CombatMetronome:Init()
 		self.SV.global = true
 	end
 	
-	CombatMetronome.debug = LibChatMessage("CombatMetronome", "CM")
+	CombatMetronome.debug = LibChatMessage("|ce11212C|rombat |ce11212M|retronome", "|ce11212C|r|ce11212M|r")
 	CombatMetronome.debug:SetEnabled(true)
 	
 	self.currentCharacterName = Util.Text.CropZOSString(GetUnitName("player"))

@@ -13,6 +13,16 @@
                 <Down> 
                 	CombatMetronome.SV.Progressbar.soundTockEnabled = not CombatMetronome.SV.Progressbar.soundTockEnabled
                     CombatMetronome.SV.Progressbar.soundTickEnabled = not CombatMetronome.SV.Progressbar.soundTickEnabled
+                    if CombatMetronome.SV.Progressbar.soundTockEnabled then
+                        CombatMetronome.debug:Print("Sound 'tock' toggled on")
+                    else
+                        CombatMetronome.debug:Print("Sound 'tock' toggled off")
+                    end
+                    if CombatMetronome.SV.Progressbar.soundTickEnabled then
+                        CombatMetronome.debug:Print("Sound 'tick' toggled on")
+                    else
+                        CombatMetronome.debug:Print("Sound 'tick' toggled off")
+                    end
                     CombatMetronome.Progressbar.soundTickPlayed = true
                     CombatMetronome.Progressbar.soundTockPlayed = true
                     CombatMetronome:RefreshSoundControls()
@@ -23,6 +33,11 @@
             <Action name="COMBATMETRONOME_TOGGLE_TICK">
                 <Down> 
                 	CombatMetronome.SV.Progressbar.soundTickEnabled = not CombatMetronome.SV.Progressbar.soundTickEnabled
+                    if CombatMetronome.SV.Progressbar.soundTickEnabled then
+                        CombatMetronome.debug:Print("Sound 'tick' toggled on")
+                    else
+                        CombatMetronome.debug:Print("Sound 'tick' toggled off")
+                    end
                     CombatMetronome.Progressbar.soundTickPlayed = true
                     CombatMetronome:RefreshSoundControls()
                 </Down>
@@ -32,6 +47,11 @@
             <Action name="COMBATMETRONOME_TOGGLE_TOCK">
                 <Down> 
                 	CombatMetronome.SV.Progressbar.soundTockEnabled = not CombatMetronome.SV.Progressbar.soundTockEnabled
+                    if CombatMetronome.SV.Progressbar.soundTockEnabled then
+                        CombatMetronome.debug:Print("Sound 'tock' toggled on")
+                    else
+                        CombatMetronome.debug:Print("Sound 'tock' toggled off")
+                    end
                     CombatMetronome.Progressbar.soundTockPlayed = true
                     CombatMetronome:RefreshSoundControls()
                 </Down>
