@@ -18,4 +18,4 @@ This beta version may contain bugs or incomplete features. Please report any iss
 
 Thank you for being part of the development process and helping make CombatMetronome better for everyone!
 
-If you like my work and want to support what I'm doing, consider supporting me on [url=https://ko-fi.com/barnyteso][color=green]Ko-Fi[/color][/url].
+If you like my work and want to support what I'm doing, consider supporting me on [url=https://ko-fi.com/barnyteso][color=green]Ko-Fi[/color][/url] or on [url=https://buymeacoffee.com/barnyteso][color=green]buymeacoffee[/color][/url].
