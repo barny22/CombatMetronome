@@ -1027,6 +1027,7 @@ function CombatMetronome:BuildMenu()
 								self.menu.curSkillName = skillData.name
 								self.menu.curSkillId = skillData.id
 								CombatMetronome.SV.Progressbar.abilityAdjusts[self.menu.curSkillId] = CombatMetronome.SV.Progressbar.abilityAdjusts[self.menu.curSkillId] or 0
+								CombatMetronome.debug:Print("Selected skill '"..skillData.name.."'. ID: "..skillData.id)
 								self:UpdateAdjustChoices()
 							end,
 						},
@@ -1080,8 +1081,10 @@ function CombatMetronome:BuildMenu()
 								self.menu.curSkillName = self:CropIconFromSkill(value)
 								if CombatMetronome.SV.debug.enabled then CombatMetronome.debug:Print("Current skill is: "..self.menu.curSkillName) end
 								for id, adj in pairs(CombatMetronome.SV.Progressbar.abilityAdjusts) do
-									if Util.Text.CropZOSString(GetAbilityName(id)) == self:CropIconFromSkill(value) then
+									local name = Util.Text.CropZOSString(GetAbilityName(id))
+									if name == self:CropIconFromSkill(value) then
 										self.menu.curSkillId = id
+										CombatMetronome.debug:Print("Selected skill '"..name.."'. ID: "..id)
 									end
 								end
 							end
