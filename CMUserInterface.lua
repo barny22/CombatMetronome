@@ -199,8 +199,14 @@ function CombatMetronome:BuildUI()
 				self.Resources.stamLabel:SetAnchor(BOTTOMLEFT, GuiRoot, CENTER, -80, 0)
 			end
 		else
-			self.Resources.magLabel:SetAnchor(TOPLEFT, self.Resources.frame, TOPLEFT, 0, 0)
-			self.Resources.stamLabel:SetAnchor(BOTTOMLEFT, self.Resources.frame, BOTTOMLEFT, 0, 0)
+			if CombatMetronome.SV.Resources.showMagicka and (not CombatMetronome.SV.Resources.showStamina) then
+				self.Resources.magLabel:SetAnchor(LEFT, self.Resources.frame, LEFT, 0, 0)
+			elseif CombatMetronome.SV.Resources.showStamina and (not CombatMetronome.SV.Resources.showMagicka) then
+				self.Resources.stamLabel:SetAnchor(LEFT, self.Resources.frame, LEFT, 0, 0)
+			else
+				self.Resources.magLabel:SetAnchor(TOPLEFT, self.Resources.frame, TOPLEFT, 0, 0)
+				self.Resources.stamLabel:SetAnchor(BOTTOMLEFT, self.Resources.frame, BOTTOMLEFT, 0, 0)
+			end
 		end
 		self.Resources.ultLabel:ClearAnchors()
 		self.Resources.ultLabel:SetAnchor(BOTTOM, self.Resources.frame, BOTTOM, 0, 0)
