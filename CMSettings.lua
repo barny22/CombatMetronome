@@ -1262,6 +1262,7 @@ function CombatMetronome:BuildMenu()
 							getFunc = function() return CombatMetronome.SV.Resources.showStamina end,
 							setFunc = function(value)
 								CombatMetronome.SV.Resources.showStamina = value
+								self.Progressbar.UI.Anchors()
 							end,
 						},
 						{
@@ -1303,6 +1304,7 @@ function CombatMetronome:BuildMenu()
 							getFunc = function() return CombatMetronome.SV.Resources.showMagicka end,
 							setFunc = function(value)
 								CombatMetronome.SV.Resources.showMagicka = value
+								self.Progressbar.UI.Anchors()
 								-- self.sampleBar.Mag:SetHidden(not value)
 							end,
 						},
@@ -1391,6 +1393,20 @@ function CombatMetronome:BuildMenu()
 								CombatMetronome.SV.Resources.reticleHp = value
 								self.Progressbar.UI.Anchors()
 								-- self:BuildUI()
+							end,
+						},
+						{
+							type = "checkbox",
+							name = "Attach Player Mag and Stam to reticle",
+							tooltip = "Attach Player Mag and Stam to side of reticle",
+							disabled = function()
+								return (not CombatMetronome.SV.Resources.showMagicka) and (not CombatMetronome.SV.Resources.showStamina)
+							end,
+							getFunc = function() return CombatMetronome.SV.Resources.reticleMagStam end,
+							setFunc = function(value) 
+								CombatMetronome.SV.Resources.reticleMagStam = value
+								self.Progressbar.UI.Anchors()
+								--self:BuildUI()
 							end,
 						},
 						{
