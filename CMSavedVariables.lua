@@ -89,7 +89,6 @@ function CombatMetronome:ConvertSavedVariables(oldSV)
 	self.SV.Resources.showResourcesForGuard = configCache.showResourcesForGuard
 	self.SV.Resources.hpHighlightThreshold = configCache.hpHighlightThreshold
 	self.SV.Resources.reticleHp = configCache.reticleHp
-	self.SV.Resources.reticleMagStam = configCache.reticleMagStam
 	
 	self.SV.StackTracker = { }
 	self.SV.StackTracker.isUnlocked = configCache.trackerIsUnlocked
