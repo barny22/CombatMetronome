@@ -1,3 +1,9 @@
+2025-02-17 v1.7.12
++  Enabled detection of ground, enemy or ally targeting spells regardless of language
++  Making GCD and its values a regularly updated resource in the library
+!  Fixed cancelling of channeled abilities when target is ST and target is dead 
+!  Fixed recognition of psijik abilities mend wounds and meditate 
+
 2024-12-08 v1.7.11
 !  Changed the way rolldodge is detected to be more accurate
 

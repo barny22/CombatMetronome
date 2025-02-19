@@ -1,6 +1,7 @@
 local Util = DariansUtilities
 Util.Ability = Util.Ability or {}
-Util.Ability.Tracker = Util.Ability.Tracker or {}
+Util.Ability.Tracker = Util.Ability.Tracker or {["GCD"] = {}}
+local GCD = Util.Ability.Tracker.GCD
 Util.Text = Util.Text or {}
 CombatMetronome.SV = CombatMetronome.SV or {}
 
@@ -64,7 +65,7 @@ function CombatMetronome:Update()
 		local time = GetFrameTimeMilliseconds()
 		
 		-- this is important for GCD Tracking
-		local gcdProgress, slotRemaining, slotDuration = Util.Ability.Tracker:GCDCheck()
+		-- local gcdProgress, slotRemaining, slotDuration = Util.Ability.Tracker:GCDCheck()
 
 		local interval = false
 		if time > self.Progressbar.lastInterval + INTERVAL then
@@ -103,50 +104,50 @@ function CombatMetronome:Update()
 		
 		if CombatMetronome.SV.Progressbar.trackGCD and not self.currentEvent then
 			self.Progressbar.bar.segments[1].progress = (CombatMetronome.SV.Progressbar.showPingOnGCD and latency/1000) or 0
-			self.Progressbar.bar.segments[2].progress = gcdProgress
+			self.Progressbar.bar.segments[2].progress = GCD.progress
 			if not Util.Ability.Tracker.rollDodgeFinished and CombatMetronome.SV.Progressbar.trackRolldodge then
-				CombatMetronome:GCDSpecifics("Dodgeroll", "/esoui/art/icons/ability_rogue_035.dds", gcdProgress, false)
+				CombatMetronome:GCDSpecifics("Dodgeroll", "/esoui/art/icons/ability_rogue_035.dds", GCD.progress, false)
 			end
 			if self.Progressbar.activeMount.action ~= "" and CombatMetronome.SV.Progressbar.trackMounting then
 				if CombatMetronome.SV.Progressbar.showMountNick then
-					CombatMetronome:GCDSpecifics(tostring(self.Progressbar.activeMount.action.." "..self.Progressbar.activeMount.name), self.Progressbar.activeMount.icon, gcdProgress, false)
+					CombatMetronome:GCDSpecifics(tostring(self.Progressbar.activeMount.action.." "..self.Progressbar.activeMount.name), self.Progressbar.activeMount.icon, GCD.progress, false)
 				else
-					CombatMetronome:GCDSpecifics(self.Progressbar.activeMount.action, self.Progressbar.activeMount.icon, gcdProgress, false)
+					CombatMetronome:GCDSpecifics(self.Progressbar.activeMount.action, self.Progressbar.activeMount.icon, GCD.progress, false)
 				end
 			end
 			if self.Progressbar.collectibleInUse and CombatMetronome.SV.Progressbar.trackCollectibles then
-				CombatMetronome:GCDSpecifics(self.Progressbar.collectibleInUse.name, self.Progressbar.collectibleInUse.icon, gcdProgress, false)
+				CombatMetronome:GCDSpecifics(self.Progressbar.collectibleInUse.name, self.Progressbar.collectibleInUse.icon, GCD.progress, false)
 				-- self.Progressbar.nonAbilityGCDRunning = true
 			end
 			if self.Progressbar.itemUsed and CombatMetronome.SV.Progressbar.trackItems then
-				CombatMetronome:GCDSpecifics(self.Progressbar.itemUsed.name, self.Progressbar.itemUsed.icon, gcdProgress, false)
+				CombatMetronome:GCDSpecifics(self.Progressbar.itemUsed.name, self.Progressbar.itemUsed.icon, GCD.progress, false)
 				-- self.Progressbar.nonAbilityGCDRunning = true
 			end
 			-- if self.Progressbar.killingAction and CombatMetronome.SV.Progressbar.trackKillingActions and not self.Progressbar.nonAbilityGCDRunning then
-				-- CombatMetronome:GCDSpecifics(self.Progressbar.killingAction.name, self.Progressbar.killingAction.icon, gcdProgress)
+				-- CombatMetronome:GCDSpecifics(self.Progressbar.killingAction.name, self.Progressbar.killingAction.icon, GCD.progress)
 				-- self.Progressbar.nonAbilityGCDRunning = true
 			-- end
 			if self.Progressbar.breakingFree and CombatMetronome.SV.Progressbar.trackBreakingFree then
-				CombatMetronome:GCDSpecifics(self.Progressbar.breakingFree.name, self.Progressbar.breakingFree.icon, gcdProgress, false)
+				CombatMetronome:GCDSpecifics(self.Progressbar.breakingFree.name, self.Progressbar.breakingFree.icon, GCD.progress, false)
 				-- self.Progressbar.nonAbilityGCDRunning = true
 			end
 			if self.Progressbar.synergy and CombatMetronome.SV.Progressbar.trackSynergies and self.Progressbar.synergy.wasUsed then
-				CombatMetronome:GCDSpecifics(self.Progressbar.synergy.name, self.Progressbar.synergy.icon, gcdProgress, true)
+				CombatMetronome:GCDSpecifics(self.Progressbar.synergy.name, self.Progressbar.synergy.icon, GCD.progress, true)
 				-- self.Progressbar.nonAbilityGCDRunning = true
 			end
 			
-			if gcdProgress <= 0 then
+			if GCD.progress <= 0 then
 				CombatMetronome:SetIconsAndNamesNil()
 				self:OnCDStop()
 			else
 				self:HideBar(false)
-				self.Progressbar.bar.backgroundTexture:SetWidth(gcdProgress*CombatMetronome.SV.Progressbar.width)
+				self.Progressbar.bar.backgroundTexture:SetWidth(GCD.progress*CombatMetronome.SV.Progressbar.width)
 			end
 			self.Progressbar.bar:Update()
 		elseif self.currentEvent then
-			-- if CombatMetronome.SV.debug.triggers then CombatMetronome.debug:Print(slotRemaining) end
+			-- if CombatMetronome.SV.debug.triggers then CombatMetronome.debug:Print(GCD.remaining) end
 			CombatMetronome:SetIconsAndNamesNil()
-			if gcdProgress <= 0 and self.currentEvent.ability.delay <= 1000 and not self.currentEvent.ability.channeled then
+			if GCD.progress <= 0 and self.currentEvent.ability.delay <= 1000 and not self.currentEvent.ability.channeled then
 				self:OnCDStop()
 				return
 			end
@@ -252,7 +253,7 @@ function CombatMetronome:Update()
 			if CombatMetronome.SV.Progressbar.showTimeRemaining and ((ability.delay > 0 and timeRemaining >= 0) or self.SV.Progressbar.alwaysShowTimeRemaining) and not ability.heavy then
 				-- to have timers at least at 1 second
 				if self.SV.Progressbar.alwaysShowTimeRemaining and ability.delay < 1000 then
-					timeRemaining = gcdProgress
+					timeRemaining = GCD.progress
 				end
 				self.Progressbar.timeLabel:SetText(string.format("%.1fs", timeRemaining))
 				self.Progressbar.timeLabel:SetHidden(false)
@@ -278,17 +279,17 @@ function CombatMetronome:Update()
 				-- end
 				-- if CombatMetronome.SV.Progressbar.showTimeRemaining then
 					-- self.Progressbar.timeLabel:SetHidden(false)
-					-- self.Progressbar.timeLabel:SetText(string.format("%.1fs", gcdProgress))
+					-- self.Progressbar.timeLabel:SetText(string.format("%.1fs", GCD.progress))
 				-- else
 					-- self.Progressbar.timeLabel:SetHidden(true)
 				-- end
 				-- self.Progressbar.bar.segments[1].progress = (CombatMetronome.SV.Progressbar.showPingOnGCD and latency/1000) or 0
-				-- self.Progressbar.bar.segments[2].progress = gcdProgress
-				-- if gcdProgress == 0 then
+				-- self.Progressbar.bar.segments[2].progress = GCD.progress
+				-- if GCD.progress == 0 then
 					-- self:OnCDStop()
 				-- else
 					-- self:HideBar(false)
-					-- self.Progressbar.bar.backgroundTexture:SetWidth(gcdProgress*CombatMetronome.SV.Progressbar.width)
+					-- self.Progressbar.bar.backgroundTexture:SetWidth(GCD.progress*CombatMetronome.SV.Progressbar.width)
 				-- end
 				-- self.Progressbar.bar:Update()
 			-- elseif playerDidBlock then

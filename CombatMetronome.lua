@@ -156,7 +156,7 @@ function CombatMetronome:RegisterCM()
 	EVENT_MANAGER:RegisterForUpdate(
         self.name.."Update",
         1000 / 60,
-        function(...) self:Update() end
+        function(...) CombatMetronome:Update() end
     )
     
     -- EVENT_MANAGER:RegisterForEvent(
