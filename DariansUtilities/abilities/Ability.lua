@@ -201,9 +201,9 @@ function Ability.Tracker:Start()
         self:Update()
     end)
     
-    EVENT_MANAGER:RegisterForUpdate(self.name.."GCD", 10, function()
-        GCD.progress, GCD.remaining, GCD.duration = self:GCDCheck()
-    end)
+    -- EVENT_MANAGER:RegisterForUpdate(self.name.."GCD", 10, function()
+        -- GCD.progress, GCD.remaining, GCD.duration = self:GCDCheck()
+    -- end)
 
     -- EVENT_MANAGER:RegisterForEvent(self.name.."SlotUpdated", EVENT_ACTION_SLOT_STATE_UPDATED, function(_, slot) 
         -- if slot > 2 and slot < 9 then self:HandleSlotUpdated(_, slot) end
@@ -417,10 +417,10 @@ function Ability.Tracker:NewEvent(ability, slot, start)
         sR, sD, _, _ = GetSlotCooldownInfo(2)
         gcdProgress = sR/sD
     else
-        -- gcdProgress, sR, sD = self:GCDCheck()
-        gcdProgress = GCD.progress
-        sR = GCD.remaining
-        sD = GCD.duration
+        gcdProgress, sR, sD = self:GCDCheck()
+        -- gcdProgress = GCD.progress
+        -- sR = GCD.remaining
+        -- sD = GCD.duration
     end
 
     local event = { }
@@ -560,10 +560,10 @@ end
 function Ability.Tracker:HandleCooldownsUpdated()
     self.cdTriggerTime = GetFrameTimeMilliseconds()
     
-    -- local gcdProgress, sR, sD = self:GCDCheck()
-    gcdProgress = GCD.progress
-    sR = GCD.remaining
-    sD = GCD.duration
+    local gcdProgress, sR, sD = self:GCDCheck()
+    -- gcdProgress = GCD.progress
+    -- sR = GCD.remaining
+    -- sD = GCD.duration
     self.gcd = sD
     -- local oldStart = self.eventStart or 0
     
@@ -644,15 +644,19 @@ function Ability.Tracker:HandleCombatEvent(_,     res,  err,   aName, _, aSlotTy
         end
     end
     
+    --------------------------------
+    -- not sure about this here.. --
+    --------------------------------
+    
     if self.currentEvent and self.currentEvent.ability.id == aId and self.currentEvent.ability.checkForDeadTarget and res == ACTION_RESULT_EFFECT_FADED then
-        -- local remaining = self:GCDCheck()
-        if GCD.remaining > 0 then
+        local remaining = self:GCDCheck()
+        if remaining > 0 then
             zo_callLater(
                 function()
                     self:CancelEvent()
                     self:CancelCurrentEvent("Result faded and GCD = 0")
                 end,
-                GCD.remaining
+                remaining
             )
         else
             self:CancelEvent()
@@ -665,6 +669,10 @@ function Ability.Tracker:HandleCombatEvent(_,     res,  err,   aName, _, aSlotTy
         -- end
         return
     end
+    
+    -----------------------------------------------------------------
+    -- This does happen too often and in the wrong cases sometimes --
+    -----------------------------------------------------------------
         
     -- if self.currentTarget and (self.currentTarget.eId == aId or self.currentTarget.aId == aId) and res == ACTION_RESULT_EFFECT_FADED then
         -- if CombatMetronome and CombatMetronome.currentEvent and (CombatMetronome.currentEvent.ability.id == self.currentTarget.eId or CombatMetronome.currentEvent.ability.id == self.currentTarget.aId) then
