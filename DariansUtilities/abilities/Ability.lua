@@ -6,12 +6,26 @@ Util.Text = Util.Text or {}
 local Ability = Util.Ability
 Ability.cache = { }
 Ability.nameCache = { }
-Util.language = GetCVar("Language.2")
+-- Util.language = GetCVar("Language.2")
 
 Ability.cache.invalidLocation = {
     ["name"] = "Invalid location",
     ["icon"] = "/esoui/art/icons/icon_missing.dds",
     ["delay"] = 1000,
+    ["casted"] = true,
+}
+
+Ability.cache.effectFaded = {
+    ["name"] = "Effect faded",
+    ["icon"] = "/esoui/art/icons/servicemappins/servicepin_transmute.dds",
+    ["delay"] = 0,
+    ["casted"] = true,
+}
+
+Ability.cache.targetDied = {
+    ["name"] = "Target dead",
+    ["icon"] = "/esoui/art/targetmarkers/gamepad/target_white_skull.dds",
+    ["delay"] = 0,
     ["casted"] = true,
 }
 
@@ -36,26 +50,36 @@ local carverId = {
     ["mag"] = 183122,
     ["stam"] = 193397,
 }
+local CARVER_DELAY_PLACEHOLDER = 4500
 
 local mendWoundsIds = {
         107579,107583,107629,107630,107636,107637,107638,114990,114991,114992,118617,118638,118645
     }
 
-local function IsMendWounds(cacheId)
-    for _, id in ipairs(mendWoundsIds) do
-        if id == cacheId then
-            return true
-        end
-    end
-    return false
-end
+-- local function IsMendWounds(cacheId)
+    -- for _, id in ipairs(mendWoundsIds) do
+        -- if id == cacheId then
+            -- return true
+        -- end
+    -- end
+    -- return false
+-- end
 
 local meditateIds = {
     103665, 103492, 103652
 }
 
-local function IsMeditate(cacheId)
-    for _, id in ipairs(meditateIds) do
+-- local function IsMeditate(cacheId)
+    -- for _, id in ipairs(meditateIds) do
+        -- if id == cacheId then
+            -- return true
+        -- end
+    -- end
+    -- return false
+-- end
+
+local function AbilityInList(cacheId, list)
+    for _, id in ipairs(list) do
         if id == cacheId then
             return true
         end
@@ -116,8 +140,8 @@ function Ability:ForId(id)
     o.enemy = o.target == targetConstants.enemy
     o.ally = o.target == targetConstants.ally
     
-    o.isMendWounds = IsMendWounds(id)
-    o.isMeditate = IsMeditate(id)
+    o.isMendWounds = AbilityInList(id, mendWoundsIds)
+    o.isMeditate = AbilityInList(id, meditateIds)
     if o.isMeditate then o.delay = 1000 end
     
     o.checkForDeadTarget = ((o.enemy or o.ally) and duration > 0) or (o.isMendWounds)
@@ -389,16 +413,16 @@ function Ability.Tracker:Update()
     end
     
     -- reset for fatecarver delay
-    if (self.currentEvent and not self.currentEvent.ability.id == carverId.mag and not self.currentEvent.ability.id == carverId.stam) or not self.currentEvent then
-        if Ability.cache[carverId.mag] and Ability.cache[carverId.mag].delay > 4500 then
-            Ability.cache[carverId.mag].delay = 4500
+    -- if (self.currentEvent and not self.currentEvent.ability.id == carverId.mag and not self.currentEvent.ability.id == carverId.stam) or not self.currentEvent then
+        -- if Ability.cache[carverId.mag] and Ability.cache[carverId.mag].delay > 4500 then
+            -- Ability.cache[carverId.mag].delay = 4500
             -- CombatMetronome.debug:Print("Magicka atecarver delay reset")
-        end
-        if Ability.cache[carverId.stam] and Ability.cache[carverId.stam].delay > 4500 then
-            Ability.cache[carverId.stam].delay = 4500
+        -- end
+        -- if Ability.cache[carverId.stam] and Ability.cache[carverId.stam].delay > 4500 then
+            -- Ability.cache[carverId.stam].delay = 4500
             -- CombatMetronome.debug:Print("Stamina fatecarver delay reset")
-        end
-    end
+        -- end
+    -- end
     
     if ArePlayerWeaponsSheathed() then
         self.weaponLastSheathed = time
@@ -499,7 +523,7 @@ function Ability.Tracker:AbilityUsed(trigger)
         
         if event.ability.id == carverId.mag or event.ability.id == carverId.stam then
             local cruxes = Util.Stacks:GetCurrentNumCruxOnPlayer()
-            event.ability.delay = event.ability.delay + (338 * cruxes)
+            event.ability.delay = CARVER_DELAY_PLACEHOLDER + (338 * cruxes)
             -- CombatMetronome.debug:Print(string.format("Fatecarver duration succesfully adjusted with %d crux(es)", cruxes))
         end
         
@@ -651,16 +675,14 @@ function Ability.Tracker:HandleCombatEvent(_,     res,  err,   aName, _, aSlotTy
     if self.currentEvent and self.currentEvent.ability.id == aId and self.currentEvent.ability.checkForDeadTarget and res == ACTION_RESULT_EFFECT_FADED then
         local remaining = self:GCDCheck()
         if remaining > 0 then
-            zo_callLater(
-                function()
-                    self:CancelEvent()
-                    self:CancelCurrentEvent("Result faded and GCD = 0")
-                end,
-                remaining
-            )
+            Ability.cache.effectFaded.delay = remaining
+            self:CancelCurrentEvent("Effect faded. GCD > 0")
+            if CombatMetronome and CombatMetronome.currentEvent then
+                CombatMetronome.currentEvent.ability = Ability.cache.effectFaded
+            end
         else
             self:CancelEvent()
-            self:CancelCurrentEvent("Result faded")
+            self:CancelCurrentEvent("Effect faded")
         end
         -- if CombatMetronome.SV.debug.currentEvent then
             -- for i=3,7 do
@@ -709,7 +731,17 @@ function Ability.Tracker:HandleCombatEvent(_,     res,  err,   aName, _, aSlotTy
                 -- self.currentTarget.eId = nil
                 -- self.currentTarget = nil
             -- end
-            self:CancelCurrentEvent("Target died")
+            local remaining = self:GCDCheck()
+            if remaining > 0 then
+                Ability.cache.targetDied.delay = remaining
+                self:CancelCurrentEvent("Target died. GCD > 0")
+                if CombatMetronome and CombatMetronome.currentEvent then
+                    CombatMetronome.currentEvent.ability = Ability.cache.targetDied
+                end
+            else
+                self:CancelEvent()
+                self:CancelCurrentEvent("Target died")
+            end
             return
         -- elseif CombatMetronome and CombatMetronome.currentEvent and CombatMetronome.currentEvent.ability.checkForDeadTarget and CombatMetronome.currentEvent.ability.name == aName then
             -- self.currentTarget = {
