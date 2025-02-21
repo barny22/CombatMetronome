@@ -18,14 +18,14 @@ Ability.cache.invalidLocation = {
 Ability.cache.effectFaded = {
     ["name"] = "Effect faded",
     ["icon"] = "/esoui/art/icons/servicemappins/servicepin_transmute.dds",
-    ["delay"] = 0,
+    ["delay"] = 1000,
     ["casted"] = true,
 }
 
 Ability.cache.targetDied = {
     ["name"] = "Target dead",
     ["icon"] = "/esoui/art/targetmarkers/gamepad/target_white_skull.dds",
-    ["delay"] = 0,
+    ["delay"] = 1000,
     ["casted"] = true,
 }
 
@@ -668,17 +668,25 @@ function Ability.Tracker:HandleCombatEvent(_,     res,  err,   aName, _, aSlotTy
         end
     end
     
+    local time = GetFrameTimeMilliseconds()
+    
     --------------------------------
     -- not sure about this here.. --
     --------------------------------
     
-    if self.currentEvent and self.currentEvent.ability.id == aId and self.currentEvent.ability.checkForDeadTarget and res == ACTION_RESULT_EFFECT_FADED then
+    if self.currentEvent and self.currentEvent.ability.id == aId and self.currentEvent.ability.checkForDeadTarget and CombatMetronome.currentEvent.target == tUId and res == ACTION_RESULT_EFFECT_FADED then
         local remaining = self:GCDCheck()
         if remaining > 0 then
-            Ability.cache.effectFaded.delay = remaining
-            self:CancelCurrentEvent("Effect faded. GCD > 0")
-            if CombatMetronome and CombatMetronome.currentEvent then
-                CombatMetronome.currentEvent.ability = Ability.cache.effectFaded
+            local start = CombatMetronome.currentEvent.start
+            self:CancelCurrentEvent("Effect faded but GCD > 0")
+            -- Ability.cache.effectFaded.delay = remaining
+            if CombatMetronome then
+                -- self.cdTriggerTime = time
+                -- self:NewEvent(Ability.cache.effectFaded, 0, time)
+                CombatMetronome.currentEvent = {
+                    ["start"] = start,
+                    ["ability"] = Ability.cache.targetDied,
+                }
             end
         else
             self:CancelEvent()
@@ -707,13 +715,15 @@ function Ability.Tracker:HandleCombatEvent(_,     res,  err,   aName, _, aSlotTy
         -- return
     -- end
         
-    local time = GetFrameTimeMilliseconds()
     aName = Util.Text.CropZOSString(aName)
 
     -- log("Checking combat event")
     -- log("sName = ", sName, ", sUId = ", sUId)
 
     if (Util.Targeting.isUnitPlayer(sName, sUId)) then
+        if CombatMetronome and CombatMetronome.currentEvent and CombatMetronome.currentEvent.ability.id == aId and CombatMetronome.currentEvent.ability.checkForDeadTarget then
+            CombatMetronome.currentEvent.target = tUId
+        end
         
         -- log("Source is player")
 
@@ -723,7 +733,7 @@ function Ability.Tracker:HandleCombatEvent(_,     res,  err,   aName, _, aSlotTy
             -- return
         -- end
         -- CombatMetronome.debug:Print("Got an event that might kill currentEvent. Name: "..aName.." - Id: "..aId)
-        if res == ACTION_RESULT_DIED and CombatMetronome and CombatMetronome.currentEvent and CombatMetronome.currentEvent.ability.checkForDeadTarget and CombatMetronome.currentEvent.ability.name == aName then -- ACTION_RESULT_TARGET_DEAD
+        if res == ACTION_RESULT_DIED and CombatMetronome and CombatMetronome.currentEvent and CombatMetronome.currentEvent.ability.checkForDeadTarget and CombatMetronome.currentEvent.target == tUId then -- ACTION_RESULT_TARGET_DEAD
             if CombatMetronome.SV.debug.currentEvent then CombatMetronome.debug:Print("Target dead. Cancelling: "..aName.." - Id: "..aId) end
             -- if self.currentTarget and self.currentTarget.tId == tUId then
                 -- self.currentTarget.tId = nil
@@ -733,15 +743,22 @@ function Ability.Tracker:HandleCombatEvent(_,     res,  err,   aName, _, aSlotTy
             -- end
             local remaining = self:GCDCheck()
             if remaining > 0 then
-                Ability.cache.targetDied.delay = remaining
-                self:CancelCurrentEvent("Target died. GCD > 0")
-                if CombatMetronome and CombatMetronome.currentEvent then
-                    CombatMetronome.currentEvent.ability = Ability.cache.targetDied
+                local start = CombatMetronome.currentEvent.start
+                self:CancelCurrentEvent("Target died but GCD > 0")
+                -- Ability.cache.targetDied.delay = remaining
+                if CombatMetronome then
+                    -- self.cdTriggerTime = time
+                    -- self:NewEvent(Ability.cache.targetDied, 0, time)
+                    CombatMetronome.currentEvent = {
+                        ["start"] = start,
+                        ["ability"] = Ability.cache.targetDied,
+                    }
                 end
             else
                 self:CancelEvent()
                 self:CancelCurrentEvent("Target died")
             end
+            self.currentTarget = nil
             return
         -- elseif CombatMetronome and CombatMetronome.currentEvent and CombatMetronome.currentEvent.ability.checkForDeadTarget and CombatMetronome.currentEvent.ability.name == aName then
             -- self.currentTarget = {
@@ -752,8 +769,14 @@ function Ability.Tracker:HandleCombatEvent(_,     res,  err,   aName, _, aSlotTy
             -- return
         elseif res == ACTION_RESULT_NO_LOCATION_FOUND and CombatMetronome and CombatMetronome.currentEvent and CombatMetronome.currentEvent.ability.id == aId then --ACTION_RESULT_NO_LOCATION_FOUND
             -- if CombatMetronome.SV.debug.currentEvent then CombatMetronome.debug:Print("No location for currentEvent. Name: "..aName.." - Id: "..aId) end
+            local start = CombatMetronome.currentEvent.start
             self:CancelCurrentEvent("Invalid location")
-            CombatMetronome.currentEvent.ability = Ability.cache.invalidLocation
+            -- self.cdTriggerTime = time
+            -- self:NewEvent(Ability.cache.invalidLocation, 0, time)
+            CombatMetronome.currentEvent = {
+                ["start"] = start,
+                ["ability"] = Ability.cache.targetDied,
+            }
             return
                     -- rolldodge
         elseif aId == 28549 and res == ACTION_RESULT_EFFECT_GAINED then

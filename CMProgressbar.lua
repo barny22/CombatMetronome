@@ -158,8 +158,8 @@ function CombatMetronome:Update()
 				cdTimer = time - start
 			end
 			
-			local duration = math.max(ability.heavy and 0 or (self.gcd or 1000), ability.delay) + self.currentEvent.adjust
-			local channelTime = ability.delay + self.currentEvent.adjust
+			local duration = math.max(ability.heavy and 0 or (self.gcd or 1000), ability.delay) + (self.currentEvent.adjust or 0)
+			local channelTime = ability.delay + (self.currentEvent.adjust or 0)
 			local timeRemaining = ((start + channelTime + GetLatency()) - time) / 1000
 						
 			-- local playerDidBlock = (self.lastBlockStatus == false) and IsBlockActive()
