@@ -29,6 +29,13 @@ Ability.cache.targetDied = {
     ["casted"] = true,
 }
 
+Ability.cache.silenced = {
+    ["name"] = "Silenced",
+    ["icon"] = "/esoui/art/icons/ability_debuff_silence.dds",
+    ["delay"] = 1000,
+    ["casted"] = true,
+}
+
 local Class = {
 [1] = "DK",
 [2] = "SORC",
@@ -659,6 +666,14 @@ function Ability.Tracker:HandleCombatEvent(_,     res,  err,   aName, _, aSlotTy
             self:CancelCurrentEvent("CC")
             self:CancelEvent("CC")
             return
+        elseif res == ACTION_RESULT_SILENCED and CombatMetronome and CombatMetronome.currentEvent and CombatMetronome.currentEvent.ability.id == aId then
+            local start = CombatMetronome.currentEvent.start
+            self:CancelCurrentEvent("Silenced")
+            CombatMetronome.currentEvent = {
+                ["start"] = start,
+                ["ability"] = Ability.cache.silenced,
+            }
+            return
         -- elseif IsMeditate(aId) then
             -- if res == ACTION_RESULT_EFFECT_GAINED then
                 -- self.meditating = true
@@ -679,10 +694,7 @@ function Ability.Tracker:HandleCombatEvent(_,     res,  err,   aName, _, aSlotTy
         if remaining > 0 then
             local start = CombatMetronome.currentEvent.start
             self:CancelCurrentEvent("Effect faded but GCD > 0")
-            -- Ability.cache.effectFaded.delay = remaining
             if CombatMetronome then
-                -- self.cdTriggerTime = time
-                -- self:NewEvent(Ability.cache.effectFaded, 0, time)
                 CombatMetronome.currentEvent = {
                     ["start"] = start,
                     ["ability"] = Ability.cache.targetDied,
@@ -704,17 +716,6 @@ function Ability.Tracker:HandleCombatEvent(_,     res,  err,   aName, _, aSlotTy
     -- This does happen too often and in the wrong cases sometimes --
     -----------------------------------------------------------------
         
-    -- if self.currentTarget and (self.currentTarget.eId == aId or self.currentTarget.aId == aId) and res == ACTION_RESULT_EFFECT_FADED then
-        -- if CombatMetronome and CombatMetronome.currentEvent and (CombatMetronome.currentEvent.ability.id == self.currentTarget.eId or CombatMetronome.currentEvent.ability.id == self.currentTarget.aId) then
-            -- self:CancelCurrentEvent("Event over by ACTION_RESULT_EFFECT_FADED")
-        -- end
-        -- self.currentTarget.tId = nil
-        -- self.currentTarget.aId = nil
-        -- self.currentTarget.eId = nil
-        -- self.currentTarget = nil
-        -- return
-    -- end
-        
     aName = Util.Text.CropZOSString(aName)
 
     -- log("Checking combat event")
@@ -735,20 +736,11 @@ function Ability.Tracker:HandleCombatEvent(_,     res,  err,   aName, _, aSlotTy
         -- CombatMetronome.debug:Print("Got an event that might kill currentEvent. Name: "..aName.." - Id: "..aId)
         if res == ACTION_RESULT_DIED and CombatMetronome and CombatMetronome.currentEvent and CombatMetronome.currentEvent.ability.checkForDeadTarget and CombatMetronome.currentEvent.target == tUId then -- ACTION_RESULT_TARGET_DEAD
             if CombatMetronome.SV.debug.currentEvent then CombatMetronome.debug:Print("Target dead. Cancelling: "..aName.." - Id: "..aId) end
-            -- if self.currentTarget and self.currentTarget.tId == tUId then
-                -- self.currentTarget.tId = nil
-                -- self.currentTarget.aId = nil
-                -- self.currentTarget.eId = nil
-                -- self.currentTarget = nil
-            -- end
             local remaining = self:GCDCheck()
             if remaining > 0 then
                 local start = CombatMetronome.currentEvent.start
                 self:CancelCurrentEvent("Target died but GCD > 0")
-                -- Ability.cache.targetDied.delay = remaining
                 if CombatMetronome then
-                    -- self.cdTriggerTime = time
-                    -- self:NewEvent(Ability.cache.targetDied, 0, time)
                     CombatMetronome.currentEvent = {
                         ["start"] = start,
                         ["ability"] = Ability.cache.targetDied,
@@ -771,11 +763,9 @@ function Ability.Tracker:HandleCombatEvent(_,     res,  err,   aName, _, aSlotTy
             -- if CombatMetronome.SV.debug.currentEvent then CombatMetronome.debug:Print("No location for currentEvent. Name: "..aName.." - Id: "..aId) end
             local start = CombatMetronome.currentEvent.start
             self:CancelCurrentEvent("Invalid location")
-            -- self.cdTriggerTime = time
-            -- self:NewEvent(Ability.cache.invalidLocation, 0, time)
             CombatMetronome.currentEvent = {
                 ["start"] = start,
-                ["ability"] = Ability.cache.targetDied,
+                ["ability"] = Ability.cache.invalidLocation,
             }
             return
                     -- rolldodge
