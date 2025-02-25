@@ -54,7 +54,10 @@ function CombatMetronome:Update()
 	-------------------------
 	---- Actual Updating ----
 	-------------------------
-
+	
+		-- reset channeled color --
+		if self.Progressbar.bar.segments[2].color ~= CombatMetronome.SV.Progressbar.progressColor then self.Progressbar.bar.segments[2].color = CombatMetronome.SV.Progressbar.progressColor end
+		
 		if CombatMetronome.SV.Progressbar.dontShowPing then
 			latency = 0
 		else
