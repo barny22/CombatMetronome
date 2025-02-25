@@ -151,7 +151,7 @@ function Ability:ForId(id)
     o.isMeditate = AbilityInList(id, meditateIds)
     if o.isMeditate then o.delay = 1000 end
     
-    o.checkForDeadTarget = ((o.enemy or o.ally) and duration > 0) or (o.isMendWounds)
+    o.checkForDeadTarget = ((o.enemy or o.ally) and duration > 1000) or (o.isMendWounds)
     
     o.heavy = o.id == GetSlotBoundId(2) and not o.isMendWounds
     o.light = o.id == GetSlotBoundId(1) and not o.isMendWounds
@@ -689,28 +689,28 @@ function Ability.Tracker:HandleCombatEvent(_,     res,  err,   aName, _, aSlotTy
     -- not sure about this here.. --
     --------------------------------
     
-    if self.currentEvent and self.currentEvent.ability.id == aId and self.currentEvent.ability.checkForDeadTarget and CombatMetronome.currentEvent.target == tUId and res == ACTION_RESULT_EFFECT_FADED then
-        local remaining = self:GCDCheck()
-        if remaining > 0 then
-            local start = CombatMetronome.currentEvent.start
-            self:CancelCurrentEvent("Effect faded but GCD > 0")
-            if CombatMetronome then
-                CombatMetronome.currentEvent = {
-                    ["start"] = start,
-                    ["ability"] = Ability.cache.targetDied,
-                }
-            end
-        else
-            self:CancelEvent()
-            self:CancelCurrentEvent("Effect faded")
-        end
+    -- if self.currentEvent and self.currentEvent.ability.id == aId and self.currentEvent.ability.checkForDeadTarget and CombatMetronome.currentEvent.target == tUId and res == ACTION_RESULT_EFFECT_FADED then
+        -- local remaining = self:GCDCheck()
+        -- if remaining > 0 then
+            -- local start = CombatMetronome.currentEvent.start
+            -- self:CancelCurrentEvent("Effect faded but GCD > 0")
+            -- if CombatMetronome then
+                -- CombatMetronome.currentEvent = {
+                    -- ["start"] = start,
+                    -- ["ability"] = Ability.cache.effectFaded,
+                -- }
+            -- end
+        -- else
+            -- self:CancelEvent()
+            -- self:CancelCurrentEvent("Effect faded")
+        -- end
         -- if CombatMetronome.SV.debug.currentEvent then
             -- for i=3,7 do
                 -- CombatMetronome.debug:Print(i..": "..GetSlotCooldownInfo(i))
             -- end
         -- end
-        return
-    end
+        -- return
+    -- end
     
     -----------------------------------------------------------------
     -- This does happen too often and in the wrong cases sometimes --
