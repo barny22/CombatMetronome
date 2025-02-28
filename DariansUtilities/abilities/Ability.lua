@@ -98,15 +98,13 @@ local SlotNumbers = {3,4,5,6,7,8}
 
 local log = Util.log
 
-function Ability:ForId(id, isScribedAbility)
-	if not isScribedAbility then
-        local o = self.cache[id]
-        if (o) then 
-            -- CombatMetronome.debug:Print(" Ability "..o.name.." is cached for id, "..id)
-            -- o.slot = slot or o.slot
-            -- o.hotbar = GetActiveHotbarCategory()
-            return o 
-        end
+function Ability:ForId(id)
+    local o = self.cache[id]
+    if (o) then 
+        -- CombatMetronome.debug:Print(" Ability "..o.name.." is cached for id, "..id)
+        -- o.slot = slot or o.slot
+        -- o.hotbar = GetActiveHotbarCategory()
+        return o 
     end
 
 	o = { }
@@ -179,6 +177,14 @@ function Ability:ForId(id, isScribedAbility)
     self.cache[id] = o
 
     return o
+end
+
+function Ability:UpdateScribedSkills()
+    for i = 1, 12 do
+        local abilityId = GetAbilityIdForCraftedAbilityId(i)
+        self.cache[abilityId] = nil
+        Ability:ForId(abilityId)
+    end
 end
 
 -- -------- --
@@ -265,6 +271,9 @@ function Ability.Tracker:Start()
     end)
     EVENT_MANAGER:RegisterForEvent(self.name.."WeaponLockChange", EVENT_WEAPON_PAIR_LOCK_CHANGED, function(_, locked)
 		Ability.Tracker:HandleWeaponLockChange(locked)
+    end)
+    EVENT_MANAGER:RegisterForEvent(self.name.."UpdateScribedSkills", EVENT_END_CRAFTING_STATION_INTERACT, function(_, craftType, _)
+        if craftType == CRAFTING_TYPE_SCRIBING then Ability:UpdateScribedSkills() end
     end)
 end
 
