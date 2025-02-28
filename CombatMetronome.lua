@@ -8,7 +8,7 @@ CombatMetronome = {
     version = {
 		["patch"] = 1,
 		["major"] = 6,
-		["minor"] = 13,
+		["minor"] = 14,
 	},
 }
 
@@ -45,7 +45,7 @@ function CombatMetronome:Init()
 		self.SV.global = true
 	end
 	
-	CombatMetronome.debug = LibChatMessage("CombatMetronome", "CM")
+	CombatMetronome.debug = LibChatMessage("|ce11212C|rombat |ce11212M|retronome", "|ce11212C|r|ce11212M|r")
 	CombatMetronome.debug:SetEnabled(true)
 	
 	self.currentCharacterName = Util.Text.CropZOSString(GetUnitName("player"))
@@ -156,7 +156,7 @@ function CombatMetronome:RegisterCM()
 	EVENT_MANAGER:RegisterForUpdate(
         self.name.."Update",
         1000 / 60,
-        function(...) self:Update() end
+        function(...) CombatMetronome:Update() end
     )
     
     -- EVENT_MANAGER:RegisterForEvent(

@@ -1,3 +1,10 @@
+2025-02-17 v1.6.14
+!  Fixed cancelling of channeled abilities when target is ST and target is dead  
+!  Fix for empty itemUsed string/icon if mount was summoned
++  Added debug messages to keybinds for clarity with toggles
++  Added donation options
++  Stam and mag label can now be attached to reticle and will be centered respectively if only one resource is shown [b](thanks to quantumfate)[/b]
+
 2024-11-16 v1.6.13
 +  Reenabled sound offsets for combat metronome sound cues
 

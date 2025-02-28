@@ -188,9 +188,26 @@ function CombatMetronome:BuildUI()
 			self.Resources.hpLabel:SetAnchor(BOTTOMRIGHT, self.Resources.frame, BOTTOMRIGHT, 0, 0)
 		end
 		self.Resources.magLabel:ClearAnchors()
-		self.Resources.magLabel:SetAnchor(TOPLEFT, self.Resources.frame, TOPLEFT, 0, 0)
 		self.Resources.stamLabel:ClearAnchors()
-		self.Resources.stamLabel:SetAnchor(BOTTOMLEFT, self.Resources.frame, BOTTOMLEFT, 0, 0)
+		if CombatMetronome.SV.Resources.reticleMagStam then
+			if CombatMetronome.SV.Resources.showMagicka and (not CombatMetronome.SV.Resources.showStamina) then
+				self.Resources.magLabel:SetAnchor(RIGHT, GuiRoot, CENTER, -40, 0)
+			elseif CombatMetronome.SV.Resources.showStamina and (not CombatMetronome.SV.Resources.showMagicka) then
+				self.Resources.stamLabel:SetAnchor(RIGHT, GuiRoot, CENTER, -40, 0)
+			else
+				self.Resources.magLabel:SetAnchor(TOPLEFT, GuiRoot, CENTER, -80, 0)
+				self.Resources.stamLabel:SetAnchor(BOTTOMLEFT, GuiRoot, CENTER, -80, 0)
+			end
+		else
+			if CombatMetronome.SV.Resources.showMagicka and (not CombatMetronome.SV.Resources.showStamina) then
+				self.Resources.magLabel:SetAnchor(LEFT, self.Resources.frame, LEFT, 0, 0)
+			elseif CombatMetronome.SV.Resources.showStamina and (not CombatMetronome.SV.Resources.showMagicka) then
+				self.Resources.stamLabel:SetAnchor(LEFT, self.Resources.frame, LEFT, 0, 0)
+			else
+				self.Resources.magLabel:SetAnchor(TOPLEFT, self.Resources.frame, TOPLEFT, 0, 0)
+				self.Resources.stamLabel:SetAnchor(BOTTOMLEFT, self.Resources.frame, BOTTOMLEFT, 0, 0)
+			end
+		end
 		self.Resources.ultLabel:ClearAnchors()
 		self.Resources.ultLabel:SetAnchor(BOTTOM, self.Resources.frame, BOTTOM, 0, 0)
 		self.Resources.frame:ClearAnchors()

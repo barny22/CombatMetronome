@@ -99,6 +99,7 @@ function CombatMetronome:BuildMenu()
         version = self.version.patch.."."..self.version.major.."."..self.version.minor,
 		website = "https://www.esoui.com/downloads/info2373-CombatMetronomeGCDTracker.html",
 		feedback = "https://www.esoui.com/portal.php?&id=386",
+		donation = "https://ko-fi.com/barnyteso",
         slashCommand = "/cm",
         registerForRefresh = true,
 		registerForDefaults = true,
@@ -1026,6 +1027,7 @@ function CombatMetronome:BuildMenu()
 								self.menu.curSkillName = skillData.name
 								self.menu.curSkillId = skillData.id
 								CombatMetronome.SV.Progressbar.abilityAdjusts[self.menu.curSkillId] = CombatMetronome.SV.Progressbar.abilityAdjusts[self.menu.curSkillId] or 0
+								CombatMetronome.debug:Print("Selected skill '"..skillData.name.."'. ID: "..skillData.id)
 								self:UpdateAdjustChoices()
 							end,
 						},
@@ -1079,8 +1081,10 @@ function CombatMetronome:BuildMenu()
 								self.menu.curSkillName = self:CropIconFromSkill(value)
 								if CombatMetronome.SV.debug.enabled then CombatMetronome.debug:Print("Current skill is: "..self.menu.curSkillName) end
 								for id, adj in pairs(CombatMetronome.SV.Progressbar.abilityAdjusts) do
-									if Util.Text.CropZOSString(GetAbilityName(id)) == self:CropIconFromSkill(value) then
+									local name = Util.Text.CropZOSString(GetAbilityName(id))
+									if name == self:CropIconFromSkill(value) then
 										self.menu.curSkillId = id
+										CombatMetronome.debug:Print("Selected skill '"..name.."'. ID: "..id)
 									end
 								end
 							end
@@ -1262,6 +1266,7 @@ function CombatMetronome:BuildMenu()
 							getFunc = function() return CombatMetronome.SV.Resources.showStamina end,
 							setFunc = function(value)
 								CombatMetronome.SV.Resources.showStamina = value
+								self.Progressbar.UI.Anchors()
 							end,
 						},
 						{
@@ -1303,6 +1308,7 @@ function CombatMetronome:BuildMenu()
 							getFunc = function() return CombatMetronome.SV.Resources.showMagicka end,
 							setFunc = function(value)
 								CombatMetronome.SV.Resources.showMagicka = value
+								self.Progressbar.UI.Anchors()
 								-- self.sampleBar.Mag:SetHidden(not value)
 							end,
 						},
@@ -1391,6 +1397,20 @@ function CombatMetronome:BuildMenu()
 								CombatMetronome.SV.Resources.reticleHp = value
 								self.Progressbar.UI.Anchors()
 								-- self:BuildUI()
+							end,
+						},
+						{
+							type = "checkbox",
+							name = "Attach Player Mag and Stam to reticle",
+							tooltip = "Attach Player Mag and Stam to side of reticle",
+							disabled = function()
+								return (not CombatMetronome.SV.Resources.showMagicka) and (not CombatMetronome.SV.Resources.showStamina)
+							end,
+							getFunc = function() return CombatMetronome.SV.Resources.reticleMagStam end,
+							setFunc = function(value) 
+								CombatMetronome.SV.Resources.reticleMagStam = value
+								self.Progressbar.UI.Anchors()
+								--self:BuildUI()
 							end,
 						},
 						{

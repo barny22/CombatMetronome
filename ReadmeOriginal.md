@@ -2,6 +2,8 @@ The All-in-one Combat Timing bar with the update all of you guys have been waiti
 
 Since Darianopolis can no longer maintain the Addon, I will probably do further updates only on the "optional Update", as it is easier for me to maintain. - barny
 
+If you like my work and want to support what I'm doing, consider supporting me on [url=https://ko-fi.com/barnyteso][color=green]Ko-Fi[/color][/url] or on [url=https://buymeacoffee.com/barnyteso][color=green]buymeacoffee[/color][/url].
+
 Should there be any bugs, feel free to report them on my [url="https://www.esoui.com/portal.php?id=386&a=listbugs"]ESOUI Portal[/url].
 
 Beta version is available for download on [URL="https://github.com/barny22/CombatMetronome/tree/Development"]Github[/URL] or [URL="https://www.esoui.com/downloads/info3987-CombatMetronomeGCDTrackerbeta.html"]ESOUI[/URL]. Install at your own risk.

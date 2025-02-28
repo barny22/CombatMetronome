@@ -54,7 +54,10 @@ function CombatMetronome:Update()
 	-------------------------
 	---- Actual Updating ----
 	-------------------------
-
+	
+		-- reset channeled color --
+		if self.Progressbar.bar.segments[2].color ~= CombatMetronome.SV.Progressbar.progressColor then self.Progressbar.bar.segments[2].color = CombatMetronome.SV.Progressbar.progressColor end
+		
 		if CombatMetronome.SV.Progressbar.dontShowPing then
 			latency = 0
 		else
@@ -123,7 +126,7 @@ function CombatMetronome:Update()
 				-- self.Progressbar.nonAbilityGCDRunning = true
 			end
 			-- if self.Progressbar.killingAction and CombatMetronome.SV.Progressbar.trackKillingActions and not self.Progressbar.nonAbilityGCDRunning then
-				-- CombatMetronome:GCDSpecifics(self.Progressbar.killingAction.name, self.Progressbar.killingAction.icon, gcdProgress)
+				-- CombatMetronome:GCDSpecifics(self.Progressbar.killingAction.name, self.Progressbar.killingAction.icon, GCD.progress)
 				-- self.Progressbar.nonAbilityGCDRunning = true
 			-- end
 			if self.Progressbar.breakingFree and CombatMetronome.SV.Progressbar.trackBreakingFree then
@@ -144,7 +147,7 @@ function CombatMetronome:Update()
 			end
 			self.Progressbar.bar:Update()
 		elseif self.currentEvent then
-			-- if CombatMetronome.SV.debug.triggers then CombatMetronome.debug:Print(slotRemaining) end
+			-- if CombatMetronome.SV.debug.triggers then CombatMetronome.debug:Print(remaining) end
 			CombatMetronome:SetIconsAndNamesNil()
 			if gcdProgress <= 0 and self.currentEvent.ability.delay <= 1000 and not self.currentEvent.ability.channeled then
 				self:OnCDStop()
@@ -158,8 +161,8 @@ function CombatMetronome:Update()
 				cdTimer = time - start
 			end
 			
-			local duration = math.max(ability.heavy and 0 or (self.gcd or 1000), ability.delay) + self.currentEvent.adjust
-			local channelTime = ability.delay + self.currentEvent.adjust
+			local duration = math.max(ability.heavy and 0 or (self.gcd or 1000), ability.delay) + (self.currentEvent.adjust or 0)
+			local channelTime = ability.delay + (self.currentEvent.adjust or 0)
 			local timeRemaining = ((start + channelTime + GetLatency()) - time) / 1000
 						
 			-- local playerDidBlock = (self.lastBlockStatus == false) and IsBlockActive()

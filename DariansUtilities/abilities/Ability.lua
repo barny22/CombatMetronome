@@ -6,11 +6,32 @@ Util.Text = Util.Text or {}
 local Ability = Util.Ability
 Ability.cache = { }
 Ability.nameCache = { }
-Util.language = GetCVar("Language.2")
+-- Util.language = GetCVar("Language.2")
 
 Ability.cache.invalidLocation = {
     ["name"] = "Invalid location",
     ["icon"] = "/esoui/art/icons/icon_missing.dds",
+    ["delay"] = 1000,
+    ["casted"] = true,
+}
+
+Ability.cache.effectFaded = {
+    ["name"] = "Effect faded",
+    ["icon"] = "/esoui/art/icons/servicemappins/servicepin_transmute.dds",
+    ["delay"] = 1000,
+    ["casted"] = true,
+}
+
+Ability.cache.targetDied = {
+    ["name"] = "Target dead",
+    ["icon"] = "/esoui/art/targetmarkers/gamepad/target_white_skull.dds",
+    ["delay"] = 1000,
+    ["casted"] = true,
+}
+
+Ability.cache.silenced = {
+    ["name"] = "Silenced",
+    ["icon"] = "/esoui/art/icons/ability_debuff_silence.dds",
     ["delay"] = 1000,
     ["casted"] = true,
 }
@@ -25,28 +46,67 @@ local Class = {
 [117] = "ARC",
 }
 
-local carverId1 = 183122
-local carverId2 = 193397
-
-local TargetGround = {
-["en"] = "Ground";
-["de"] = "Bodenziel";
-["es"] = "Suelo";
-["fr"] = "Sol";
-["ru"] = "Указанная область";
-["zh"] = "地面";
+local targetConstants = {
+    ["ground"] = GetString(SI_ABILITY_TOOLTIP_TARGET_TYPE_GROUND),
+    ["enemy"] = GetString(SI_TARGETTYPE0),
+    ["ally"] = GetString(SI_TARGETTYPE1),
+    ["self"] = GetString(SI_TARGETTYPE2)
 }
+
+local carverId = {
+    ["mag"] = 183122,
+    ["stam"] = 193397,
+}
+local CARVER_DELAY_PLACEHOLDER = 4500
+
+local mendWoundsIds = {
+        107579,107583,107629,107630,107636,107637,107638,114990,114991,114992,118617,118638,118645
+    }
+
+-- local function IsMendWounds(cacheId)
+    -- for _, id in ipairs(mendWoundsIds) do
+        -- if id == cacheId then
+            -- return true
+        -- end
+    -- end
+    -- return false
+-- end
+
+local meditateIds = {
+    103665, 103492, 103652
+}
+
+-- local function IsMeditate(cacheId)
+    -- for _, id in ipairs(meditateIds) do
+        -- if id == cacheId then
+            -- return true
+        -- end
+    -- end
+    -- return false
+-- end
+
+local function AbilityInList(cacheId, list)
+    for _, id in ipairs(list) do
+        if id == cacheId then
+            return true
+        end
+    end
+    return false
+end
+
 local SlotNumbers = {3,4,5,6,7,8}
 
 local log = Util.log
 
-function Ability:ForId(id)
-	local o = self.cache[id]
-	if (o) then 
-        -- CombatMetronome.debug:Print(" Ability "..o.name.." is cached for id, "..id)
-        -- o.slot = slot or o.slot
-        -- o.hotbar = GetActiveHotbarCategory()
-        return o 
+function Ability:ForId(id, isScribedAbility)
+	if not isScribedAbility then
+        local o = self.cache[id]
+        if (o) then 
+            -- CombatMetronome.debug:Print(" Ability "..o.name.." is cached for id, "..id)
+            -- o.slot = slot or o.slot
+            -- o.hotbar = GetActiveHotbarCategory()
+            return o 
+        end
     end
 
 	o = { }
@@ -85,9 +145,18 @@ function Ability:ForId(id)
     o.isHealerAbility, 
     o.isDamageAbility = GetAbilityRoles(id)
 
-    o.ground = o.target == TargetGround[Util.language]
-    o.heavy = o.id == GetSlotBoundId(2)
-    o.light = o.id == GetSlotBoundId(1)
+    o.ground = o.target == targetConstants.ground
+    o.enemy = o.target == targetConstants.enemy
+    o.ally = o.target == targetConstants.ally
+    
+    o.isMendWounds = AbilityInList(id, mendWoundsIds)
+    o.isMeditate = AbilityInList(id, meditateIds)
+    if o.isMeditate then o.delay = 1000 end
+    
+    o.checkForDeadTarget = ((o.enemy or o.ally) and duration > 1000) or (o.isMendWounds)
+    
+    o.heavy = o.id == GetSlotBoundId(2) and not o.isMendWounds
+    o.light = o.id == GetSlotBoundId(1) and not o.isMendWounds
     
     if o.heavy then o.delay = 1500 end
 
@@ -120,6 +189,12 @@ end
 
 Ability.Tracker = Ability.Tracker or { }
 Ability.Tracker.name = "Util.Ability.Tracker"
+Ability.Tracker.GCD = {
+    ["progress"] = 0,
+    ["duration"] = 0,
+    ["remaining"] = 0,
+}
+local GCD = Ability.Tracker.GCD
 
 local EVENT_RECORD_DELAY = 10
 local EVENT_FORCE_WAIT = 100
@@ -144,6 +219,7 @@ function Ability.Tracker:Start()
     self.lastLightAttack = 0
     self.rollDodgeFinished = true
     self.lastBlockStatus = false
+    -- self.meditating = false
     -- self.heavyUsedDuringHeavy = false
     
     self.abilityTriggerCounters = {}
@@ -157,6 +233,10 @@ function Ability.Tracker:Start()
     EVENT_MANAGER:RegisterForUpdate(self.name.."Update", 1000 / 30, function(...)
         self:Update()
     end)
+    
+    -- EVENT_MANAGER:RegisterForUpdate(self.name.."GCD", 10, function()
+        -- GCD.progress, GCD.remaining, GCD.duration = self:GCDCheck()
+    -- end)
 
     -- EVENT_MANAGER:RegisterForEvent(self.name.."SlotUpdated", EVENT_ACTION_SLOT_STATE_UPDATED, function(_, slot) 
         -- if slot > 2 and slot < 9 then self:HandleSlotUpdated(_, slot) end
@@ -174,8 +254,8 @@ function Ability.Tracker:Start()
     EVENT_MANAGER:RegisterForEvent(self.name.."CooldownsUpdated", EVENT_ACTION_UPDATE_COOLDOWNS, function()
         self:HandleCooldownsUpdated()
     end)
-	-- EVENT_MANAGER:RegisterForEvent(self.name.."RollDodge", EVENT_EFFECT_CHANGED, function(...)
-        -- self:HandleRollDodge(...)
+	-- EVENT_MANAGER:RegisterForEvent(self.name.."Meditate", EVENT_EFFECT_CHANGED, function(...)
+        -- self:HandleMeditate(...)
 	-- end)
 	EVENT_MANAGER:RegisterForEvent(self.name.."BarSwap", EVENT_ACTION_SLOTS_ACTIVE_HOTBAR_UPDATED, function(...)
         self:HandleBarSwap(...)
@@ -240,6 +320,16 @@ end
     -- end
 -- end
 
+-- function Ability.Tracker:HandleMeditate(_,changeType,_,name,_,_,_,_,icon,_,_,_,statusEffectType,_,_,abilityId,sourceType)
+    -- if IsMeditate(abilityId) then
+        -- if changeType == EFFECT_RESULT_GAINED then
+            -- self.meditating = true
+        -- elseif changeType == EFFECT_RESULT_FADED then
+            -- self.meditating = false
+        -- end
+    -- end
+-- end
+
 function Ability.Tracker:HandleBarSwap(_, barswap, _, _)
     if self.barswap == barswap then return end
     self.barswap = barswap == true
@@ -252,6 +342,8 @@ end
 
 local function CanAbilityFire()
     local time = GetFrameTimeMilliseconds()
+    -- if DariansUtilities.Ability.Tracker.meditating then
+        -- return false
     if time >= DariansUtilities.Ability.Tracker.lastAbilityFinished then 
         return true
     end
@@ -330,16 +422,16 @@ function Ability.Tracker:Update()
     end
     
     -- reset for fatecarver delay
-    if (self.currentEvent and not self.currentEvent.ability.id == carverId1 and not self.currentEvent.ability.id == carverId2) or not self.currentEvent then
-        if Ability.cache[carverId1] and Ability.cache[carverId1].delay > 4500 then
-            Ability.cache[carverId1].delay = 4500
+    -- if (self.currentEvent and not self.currentEvent.ability.id == carverId.mag and not self.currentEvent.ability.id == carverId.stam) or not self.currentEvent then
+        -- if Ability.cache[carverId.mag] and Ability.cache[carverId.mag].delay > 4500 then
+            -- Ability.cache[carverId.mag].delay = 4500
             -- CombatMetronome.debug:Print("Magicka atecarver delay reset")
-        end
-        if Ability.cache[carverId2] and Ability.cache[carverId2].delay > 4500 then
-            Ability.cache[carverId2].delay = 4500
+        -- end
+        -- if Ability.cache[carverId.stam] and Ability.cache[carverId.stam].delay > 4500 then
+            -- Ability.cache[carverId.stam].delay = 4500
             -- CombatMetronome.debug:Print("Stamina fatecarver delay reset")
-        end
-    end
+        -- end
+    -- end
     
     if ArePlayerWeaponsSheathed() then
         self.weaponLastSheathed = time
@@ -359,6 +451,9 @@ function Ability.Tracker:NewEvent(ability, slot, start)
         gcdProgress = sR/sD
     else
         gcdProgress, sR, sD = self:GCDCheck()
+        -- gcdProgress = GCD.progress
+        -- sR = GCD.remaining
+        -- sD = GCD.duration
     end
 
     local event = { }
@@ -383,7 +478,7 @@ function Ability.Tracker:NewEvent(ability, slot, start)
         self:AbilityUsed("direct")
         self.abilityTriggerCounters.direct = self.abilityTriggerCounters.direct + 1
     end
-    if CombatMetronome.SV.debug.abilityUsed then CombatMetronome.debug:Print("New event "..event.ability.name) end
+    -- if CombatMetronome.SV.debug.abilityUsed then CombatMetronome.debug:Print("New event "..event.ability.name) end
     -- CombatMetronome.debug:Print("  Allow force = "..tostring(self.queuedEvent.allowForce))
 end
 
@@ -435,9 +530,9 @@ function Ability.Tracker:AbilityUsed(trigger)
         
         self.queuedEvent = nil
         
-        if event.ability.id == carverId1 or event.ability.id == carverId2 then
+        if event.ability.id == carverId.mag or event.ability.id == carverId.stam then
             local cruxes = Util.Stacks:GetCurrentNumCruxOnPlayer()
-            event.ability.delay = event.ability.delay + (338 * cruxes)
+            event.ability.delay = CARVER_DELAY_PLACEHOLDER + (338 * cruxes)
             -- CombatMetronome.debug:Print(string.format("Fatecarver duration succesfully adjusted with %d crux(es)", cruxes))
         end
         
@@ -499,7 +594,10 @@ function Ability.Tracker:HandleCooldownsUpdated()
     self.cdTriggerTime = GetFrameTimeMilliseconds()
     
     local gcdProgress, sR, sD = self:GCDCheck()
-    self.gcd = slotDuration
+    -- gcdProgress = GCD.progress
+    -- sR = GCD.remaining
+    -- sD = GCD.duration
+    self.gcd = sD
     -- local oldStart = self.eventStart or 0
     
     local heavySR = GetSlotCooldownInfo(2)
@@ -538,10 +636,14 @@ function Ability.Tracker:HandleSlotUsed(_, slot)
     local ability = {}
     local actionType = GetSlotType(slot)
     if actionType == ACTION_TYPE_CRAFTED_ABILITY then
-        ability = Util.Ability:ForId(GetAbilityIdForCraftedAbilityId(GetSlotBoundId(slot)))
+        local isScribedAbility = true
+        ability = Util.Ability:ForId(GetAbilityIdForCraftedAbilityId(GetSlotBoundId(slot)), isScribedAbility)
     else
-        ability = Util.Ability:ForId(GetSlotBoundId(slot))
+        local isScribedAbility = false
+        ability = Util.Ability:ForId(GetSlotBoundId(slot), isScribedAbility)
     end
+    
+    -- if ability.isMeditate then return end
         
     if self.queuedEvent then self:CancelEvent("Overwrite") end
     
@@ -568,20 +670,65 @@ function Ability.Tracker:HandleCombatEvent(_,     res,  err,   aName, _, aSlotTy
             self:CancelCurrentEvent("CC")
             self:CancelEvent("CC")
             return
+        elseif res == ACTION_RESULT_SILENCED and CombatMetronome and CombatMetronome.currentEvent and CombatMetronome.currentEvent.ability.id == aId then
+            local start = CombatMetronome.currentEvent.start
+            self:CancelCurrentEvent("Silenced")
+            CombatMetronome.currentEvent = {
+                ["start"] = start,
+                ["ability"] = Ability.cache.silenced,
+            }
+            return
+        -- elseif IsMeditate(aId) then
+            -- if res == ACTION_RESULT_EFFECT_GAINED then
+                -- self.meditating = true
+            -- elseif res == ACTION_RESULT_EFFECT_FADED then
+                -- self.meditating = false
+            -- end
         end
-        -- if self.currentEvent and self.currentEvent.ability.id == aId and res == ACTION_RESULT_EFFECT_FADED then
-            -- self:CancelEvent()
-            -- self:CancelCurrentEvent("Result faded")
-            -- return
-        -- end
     end
     
     local time = GetFrameTimeMilliseconds()
+    
+    --------------------------------
+    -- not sure about this here.. --
+    --------------------------------
+    
+    -- if self.currentEvent and self.currentEvent.ability.id == aId and self.currentEvent.ability.checkForDeadTarget and CombatMetronome.currentEvent.target == tUId and res == ACTION_RESULT_EFFECT_FADED then
+        -- local remaining = self:GCDCheck()
+        -- if remaining > 0 then
+            -- local start = CombatMetronome.currentEvent.start
+            -- self:CancelCurrentEvent("Effect faded but GCD > 0")
+            -- if CombatMetronome then
+                -- CombatMetronome.currentEvent = {
+                    -- ["start"] = start,
+                    -- ["ability"] = Ability.cache.effectFaded,
+                -- }
+            -- end
+        -- else
+            -- self:CancelEvent()
+            -- self:CancelCurrentEvent("Effect faded")
+        -- end
+        -- if CombatMetronome.SV.debug.currentEvent then
+            -- for i=3,7 do
+                -- CombatMetronome.debug:Print(i..": "..GetSlotCooldownInfo(i))
+            -- end
+        -- end
+        -- return
+    -- end
+    
+    -----------------------------------------------------------------
+    -- This does happen too often and in the wrong cases sometimes --
+    -----------------------------------------------------------------
+        
+    aName = Util.Text.CropZOSString(aName)
 
     -- log("Checking combat event")
     -- log("sName = ", sName, ", sUId = ", sUId)
 
     if (Util.Targeting.isUnitPlayer(sName, sUId)) then
+        if CombatMetronome and CombatMetronome.currentEvent and CombatMetronome.currentEvent.ability.id == aId and CombatMetronome.currentEvent.ability.checkForDeadTarget then
+            CombatMetronome.currentEvent.target = tUId
+        end
         
         -- log("Source is player")
 
@@ -591,14 +738,39 @@ function Ability.Tracker:HandleCombatEvent(_,     res,  err,   aName, _, aSlotTy
             -- return
         -- end
         -- CombatMetronome.debug:Print("Got an event that might kill currentEvent. Name: "..aName.." - Id: "..aId)
-        if res == ACTION_RESULT_TARGET_DEAD and CombatMetronome and CombatMetronome.currentEvent and CombatMetronome.currentEvent.ability.id == aId then -- ACTION_RESULT_TARGET_DEAD
-            -- if CombatMetronome.SV.debug.currentEvent then CombatMetronome.debug:Print("Target dead. Cancelling: "..aName.." - Id: "..aId) end
-            self:CancelCurrentEvent("Target died")
+        if res == ACTION_RESULT_DIED and CombatMetronome and CombatMetronome.currentEvent and CombatMetronome.currentEvent.ability.checkForDeadTarget and CombatMetronome.currentEvent.target == tUId then -- ACTION_RESULT_TARGET_DEAD
+            if CombatMetronome.SV.debug.currentEvent then CombatMetronome.debug:Print("Target dead. Cancelling: "..aName.." - Id: "..aId) end
+            local remaining = self:GCDCheck()
+            if remaining > 0 then
+                local start = CombatMetronome.currentEvent.start
+                self:CancelCurrentEvent("Target died but GCD > 0")
+                if CombatMetronome then
+                    CombatMetronome.currentEvent = {
+                        ["start"] = start,
+                        ["ability"] = Ability.cache.targetDied,
+                    }
+                end
+            else
+                self:CancelEvent()
+                self:CancelCurrentEvent("Target died")
+            end
+            self.currentTarget = nil
             return
+        -- elseif CombatMetronome and CombatMetronome.currentEvent and CombatMetronome.currentEvent.ability.checkForDeadTarget and CombatMetronome.currentEvent.ability.name == aName then
+            -- self.currentTarget = {
+                -- ["tId"] = tUId,
+                -- ["aId"] = aId,
+                -- ["eId"] = CombatMetronome.currentEvent.ability.id,
+            -- }
+            -- return
         elseif res == ACTION_RESULT_NO_LOCATION_FOUND and CombatMetronome and CombatMetronome.currentEvent and CombatMetronome.currentEvent.ability.id == aId then --ACTION_RESULT_NO_LOCATION_FOUND
             -- if CombatMetronome.SV.debug.currentEvent then CombatMetronome.debug:Print("No location for currentEvent. Name: "..aName.." - Id: "..aId) end
+            local start = CombatMetronome.currentEvent.start
             self:CancelCurrentEvent("Invalid location")
-            CombatMetronome.currentEvent.ability = Ability.cache.invalidLocation
+            CombatMetronome.currentEvent = {
+                ["start"] = start,
+                ["ability"] = Ability.cache.invalidLocation,
+            }
             return
                     -- rolldodge
         elseif aId == 28549 and res == ACTION_RESULT_EFFECT_GAINED then
@@ -624,7 +796,7 @@ function Ability.Tracker:HandleCombatEvent(_,     res,  err,   aName, _, aSlotTy
                 return
             end
 
-            local heavy = Util.Ability:ForId(aId)
+            local heavy = Util.Ability:ForId(aId, false)
             -- _=self.log and CombatMetronome.debug:Print("New heavy ability - "..heavy.name)
             self:NewEvent(heavy, 2, time)
             return
@@ -686,5 +858,5 @@ function Ability.Tracker:CancelCurrentEvent(reason)
         self.lastAbilityFinished = 0
         self.gcd = 1000
     end
-    if CombatMetronome.SV.debug.currentEvent --[[and (self.currentEvent.ability.id == carverId1 or self.currentEvent.ability.id == carverId2)]] then CombatMetronome.debug:Print("Current event cancel: "..reason) end
+    if CombatMetronome.SV.debug.currentEvent --[[and (self.currentEvent.ability.id == carverId.mag or self.currentEvent.ability.id == carverId.stam)]] then CombatMetronome.debug:Print("Current event cancel: "..reason) end
 end
