@@ -8,7 +8,7 @@ CombatMetronome = {
     version = {
 		["patch"] = 1,
 		["major"] = 6,
-		["minor"] = 14,
+		["minor"] = 15,
 	},
 }
 

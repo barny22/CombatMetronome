@@ -1,3 +1,6 @@
+2025-02-28 v1.7.13
+!  Changed updating of scribed skills. They will now be updated when finishing interaction with a scribing station
+
 2025-02-17 v1.7.12
 +  Enabled detection of ground, enemy or ally targeting spells regardless of language
 +  Making GCD and its values a regularly updated resource in the library
