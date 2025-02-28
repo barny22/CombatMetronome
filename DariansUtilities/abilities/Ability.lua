@@ -98,13 +98,15 @@ local SlotNumbers = {3,4,5,6,7,8}
 
 local log = Util.log
 
-function Ability:ForId(id)
-	local o = self.cache[id]
-	if (o) then 
-        -- CombatMetronome.debug:Print(" Ability "..o.name.." is cached for id, "..id)
-        -- o.slot = slot or o.slot
-        -- o.hotbar = GetActiveHotbarCategory()
-        return o 
+function Ability:ForId(id, isScribedAbility)
+	if not isScribedAbility then
+        local o = self.cache[id]
+        if (o) then 
+            -- CombatMetronome.debug:Print(" Ability "..o.name.." is cached for id, "..id)
+            -- o.slot = slot or o.slot
+            -- o.hotbar = GetActiveHotbarCategory()
+            return o 
+        end
     end
 
 	o = { }
@@ -634,9 +636,11 @@ function Ability.Tracker:HandleSlotUsed(_, slot)
     local ability = {}
     local actionType = GetSlotType(slot)
     if actionType == ACTION_TYPE_CRAFTED_ABILITY then
-        ability = Util.Ability:ForId(GetAbilityIdForCraftedAbilityId(GetSlotBoundId(slot)))
+        local isScribedAbility = true
+        ability = Util.Ability:ForId(GetAbilityIdForCraftedAbilityId(GetSlotBoundId(slot)), isScribedAbility)
     else
-        ability = Util.Ability:ForId(GetSlotBoundId(slot))
+        local isScribedAbility = false
+        ability = Util.Ability:ForId(GetSlotBoundId(slot), isScribedAbility)
     end
     
     -- if ability.isMeditate then return end
@@ -792,7 +796,7 @@ function Ability.Tracker:HandleCombatEvent(_,     res,  err,   aName, _, aSlotTy
                 return
             end
 
-            local heavy = Util.Ability:ForId(aId)
+            local heavy = Util.Ability:ForId(aId, false)
             -- _=self.log and CombatMetronome.debug:Print("New heavy ability - "..heavy.name)
             self:NewEvent(heavy, 2, time)
             return
