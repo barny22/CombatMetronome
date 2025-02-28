@@ -33,11 +33,12 @@ function Util.Text.formatNumberCompact(value)
 end
 
 function Util.Text.CropZOSString(zosString)
-    local _, zosStringDivider = string.find(zosString, "%^")
+    -- local _, zosStringDivider = string.find(zosString, "%^")
     
-    if zosStringDivider then
-        return string.sub(zosString, 1, zosStringDivider - 1)
-    else
-        return zosString
-    end
+    -- if zosStringDivider then
+        -- return string.sub(zosString, 1, zosStringDivider - 1)
+    -- else
+        -- return zosString
+    -- end
+	return zo_strformat("<<!aC:1>>", zosString)
 end
