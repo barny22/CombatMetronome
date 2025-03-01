@@ -256,17 +256,17 @@ function CombatMetronome:RegisterItemsTracker()
 	EVENT_MANAGER:RegisterForEvent(
 		self.name.."InventoryItemInfo",
 		EVENT_INVENTORY_SINGLE_SLOT_UPDATE,
-		function(_, _, slotId, _, _, _, stackCountChange, _, _, _, _)
+		function(_, bagId, slotId, _, _, _, stackCountChange, _, _, _, _)
 			if stackCountChange == -1 and self.itemCache then
 				CombatMetronome:SetIconsAndNamesNil()
-				self.Progressbar.itemUsed = {}
-				self.Progressbar.itemUsed.name = self.itemCache.name[slotId]
-				self.Progressbar.itemUsed.icon = self.itemCache.icon[slotId]
+				self.Progressbar.itemUsed = {
+					["name"] = self.itemCache.name[slotId],
+					["icon"] = self.itemCache.icon[slotId]
+				}
 				zo_callLater(function()
 					if self.Progressbar.itemUsed then
-						self.Progressbar.itemUsed.name = nil
-						self.Progressbar.itemUsed.icon = nil
 						self.Progressbar.itemUsed = nil
+						self.itemCache = nil
 					end
 				end,
 				950)

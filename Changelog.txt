@@ -1,3 +1,6 @@
+2025-02-28 v1.6.15
+!  Updates to DariansUtilies
+
 2025-02-17 v1.6.14
 !  Fixed cancelling of channeled abilities when target is ST and target is dead  
 !  Fix for empty itemUsed string/icon if mount was summoned
