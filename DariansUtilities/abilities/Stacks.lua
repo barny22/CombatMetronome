@@ -54,7 +54,7 @@ function Stacks:StoreAbilitiesOnActionBar()
 				end
 				if not IsAlreadyInList(actionSlot.id) then
 					actionSlot.icon = GetAbilityIcon(actionSlot.id)
-					actionSlot.name = Util.Text.CropZOSString(GetAbilityName(actionSlot.id))
+					actionSlot.name = Util.Text.CropZOSString(GetAbilityName(actionSlot.id), "ability")
 
 					table.insert(actionSlots, actionSlot)  -- Add the current action slot to the table
 					if not Util.Ability.cache[actionSlot.id] then Util.Ability:ForId(actionSlot.id) end

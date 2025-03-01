@@ -1,5 +1,5 @@
 2025-02-28 v1.6.15
-!  Updates to DariansUtilies
+!  Updates to string formatting
 
 2025-02-17 v1.6.14
 !  Fixed cancelling of channeled abilities when target is ST and target is dead  

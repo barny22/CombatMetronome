@@ -1044,7 +1044,7 @@ function CombatMetronome:BuildMenu()
 							name = "Add skill to adjust",
 							isMultiline = false,
 							-- disabled = true,
-							getFunc = function() return self:CropIconFromSkill(Util.Text.CropZOSString(self.menu.curSkillName)) end,
+							getFunc = function() return self:CropIconFromSkill(Util.Text.CropZOSString(self.menu.curSkillName), "ability") end,
 							setFunc = function(name)
 								if name == ABILITY_ADJUST_PLACEHOLDER or not name or #name == 0  or name == self.menu.curSkillName then return end
 								if Util.Ability.nameCache[name] then
@@ -1058,7 +1058,7 @@ function CombatMetronome:BuildMenu()
 								else
 									CombatMetronome.debug:Print("Couldn't find ability in cache. Make sure you cast the ability once or equip ability to ensure better results while gaming. Will try to find it somewhere else.")
 									for id = 0, 300000 do
-										if Util.Text.CropZOSString(GetAbilityName(id)) == name and GetAbilityIcon(id) ~= "/esoui/art/icons/ability_mage_065.dds" then
+										if Util.Text.CropZOSString(GetAbilityName(id), "ability") == name and GetAbilityIcon(id) ~= "/esoui/art/icons/ability_mage_065.dds" then
 											--[[_=self.log and]] CombatMetronome.debug:Print("Found ability for '"..name.."'. ID: "..id)
 											self.menu.curSkillName = name
 											self.menu.curSkillId = id
@@ -1081,7 +1081,7 @@ function CombatMetronome:BuildMenu()
 								self.menu.curSkillName = self:CropIconFromSkill(value)
 								if CombatMetronome.SV.debug.enabled then CombatMetronome.debug:Print("Current skill is: "..self.menu.curSkillName) end
 								for id, adj in pairs(CombatMetronome.SV.Progressbar.abilityAdjusts) do
-									local name = Util.Text.CropZOSString(GetAbilityName(id))
+									local name = Util.Text.CropZOSString(GetAbilityName(id), "ability")
 									if name == self:CropIconFromSkill(value) then
 										self.menu.curSkillId = id
 										CombatMetronome.debug:Print("Selected skill '"..name.."'. ID: "..id)
@@ -1097,7 +1097,7 @@ function CombatMetronome:BuildMenu()
 							step = 1,
 							getFunc = function()
 								-- for id, adj in pairs(CombatMetronome.SV.Progressbar.abilityAdjusts) do
-									-- if Util.Text.CropZOSString(GetAbilityName(id)) == self.menu.curSkillName then
+									-- if Util.Text.CropZOSString(GetAbilityName(id), "ability") == self.menu.curSkillName then
 										-- self.menu.curSkillId = id
 									-- end
 								-- end
@@ -1118,7 +1118,7 @@ function CombatMetronome:BuildMenu()
 								self:UpdateAdjustChoices()
 								self.menu.curSkillName = self:CropIconFromSkill(self.menu.abilityAdjustChoices[1])
 								for id, adj in pairs(CombatMetronome.SV.Progressbar.abilityAdjusts) do
-									if Util.Text.CropZOSString(GetAbilityName(id)) == self.curSkillName then
+									if Util.Text.CropZOSString(GetAbilityName(id), "ability") == self.curSkillName then
 										self.menu.curSkillId = id
 									end
 								end

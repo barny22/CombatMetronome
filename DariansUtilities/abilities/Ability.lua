@@ -120,7 +120,7 @@ function Ability:ForId(id)
     -- end
 
     o.id = id
-    o.name = Util.Text.CropZOSString(GetAbilityName(id))
+    o.name = Util.Text.CropZOSString(GetAbilityName(id), "ability")
     local channeled, duration = GetAbilityCastInfo(id)
     o.channeled = channeled
     if channeled then
@@ -195,12 +195,12 @@ end
 
 Ability.Tracker = Ability.Tracker or { }
 Ability.Tracker.name = "Util.Ability.Tracker"
-Ability.Tracker.GCD = {
-    ["progress"] = 0,
-    ["duration"] = 0,
-    ["remaining"] = 0,
-}
-local GCD = Ability.Tracker.GCD
+-- Ability.Tracker.GCD = {
+    -- ["progress"] = 0,
+    -- ["duration"] = 0,
+    -- ["remaining"] = 0,
+-- }
+-- local GCD = Ability.Tracker.GCD
 
 local EVENT_RECORD_DELAY = 10
 local EVENT_FORCE_WAIT = 100
@@ -729,7 +729,7 @@ function Ability.Tracker:HandleCombatEvent(_,     res,  err,   aName, _, aSlotTy
     -- This does happen too often and in the wrong cases sometimes --
     -----------------------------------------------------------------
         
-    aName = Util.Text.CropZOSString(aName)
+    aName = Util.Text.CropZOSString(aName, "ability")
 
     -- log("Checking combat event")
     -- log("sName = ", sName, ", sUId = ", sUId)

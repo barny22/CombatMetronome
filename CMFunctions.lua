@@ -173,7 +173,7 @@ function CombatMetronome:UpdateAdjustChoices()
 	for k in pairs(names) do names[k] = nil end
 
 	for id, adj in pairs(CombatMetronome.SV.Progressbar.abilityAdjusts) do
-		local name = "|t20:20:"..GetAbilityIcon(id).."|t "..Util.Text.CropZOSString(GetAbilityName(id))
+		local name = "|t20:20:"..GetAbilityIcon(id).."|t "..Util.Text.CropZOSString(GetAbilityName(id), "ability")
 		names[#names + 1] = name
 	end
 
@@ -205,7 +205,7 @@ end
 function CombatMetronome:CreateAdjustList()
 	local names = {}
 	for id, adj in pairs(CombatMetronome.SV.Progressbar.abilityAdjusts) do
-		local name = "|t20:20:"..GetAbilityIcon(id).."|t "..Util.Text.CropZOSString(GetAbilityName(id))
+		local name = "|t20:20:"..GetAbilityIcon(id).."|t "..Util.Text.CropZOSString(GetAbilityName(id), "ability")
 		names[#names + 1] = name
 	end
 	if #names == 0 then table.insert(names, ABILITY_ADJUST_PLACEHOLDER) end
@@ -351,7 +351,7 @@ end
 				-- actionSlot.id = GetSlotBoundId(i, j)
 			-- end
             -- actionSlot.icon = GetAbilityIcon(actionSlot.id)
-            -- actionSlot.name = Util.Text.CropZOSString(GetAbilityName(actionSlot.id))
+            -- actionSlot.name = Util.Text.CropZOSString(GetAbilityName(actionSlot.id), "ability")
 
             -- table.insert(actionSlots, actionSlot)  -- Add the current action slot to the table
         -- end

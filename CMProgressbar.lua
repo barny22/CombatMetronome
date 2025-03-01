@@ -108,7 +108,7 @@ function CombatMetronome:Update()
 			self.Progressbar.bar.segments[1].progress = (CombatMetronome.SV.Progressbar.showPingOnGCD and latency/1000) or 0
 			self.Progressbar.bar.segments[2].progress = gcdProgress
 			if not Util.Ability.Tracker.rollDodgeFinished and CombatMetronome.SV.Progressbar.trackRolldodge then
-				CombatMetronome:GCDSpecifics("Dodgeroll", "/esoui/art/icons/ability_rogue_035.dds", gcdProgress, false)
+				CombatMetronome:GCDSpecifics(Util.Text.CropZOSString(GetAbilityName(28549), "ability"), "/esoui/art/icons/ability_rogue_035.dds", gcdProgress, false)
 			end
 			if self.Progressbar.activeMount.action ~= "" and CombatMetronome.SV.Progressbar.trackMounting then
 				if CombatMetronome.SV.Progressbar.showMountNick then
@@ -238,8 +238,7 @@ function CombatMetronome:Update()
 			---- Spell Label and Icon ----					--Spell Label on Castbar by barny
 			------------------------------
 			if CombatMetronome.SV.Progressbar.showSpell and ((ability.delay > 0 and timeRemaining >= 0) or self.SV.Progressbar.alwaysShowSpell) and not ability.heavy then
-				local spellName = Util.Text.CropZOSString(ability.name)
-				self.Progressbar.spellLabel:SetText(spellName)
+				self.Progressbar.spellLabel:SetText(ability.name)
 				self.Progressbar.spellLabel:SetHidden(false)
 			--Spell Icon next to Castbar
 				self.Progressbar.spellIcon:SetTexture(ability.icon)
