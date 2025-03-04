@@ -204,18 +204,14 @@ function CombatMetronome:Update()
 			---- Switching Color on channeled abilities ----
 			------------------------------------------------
 				if CombatMetronome.SV.Progressbar.changeOnChanneled then
-					if not ability.instant and ability.delay <= 1000 then
+					if (not ability.instant and ability.delay <= 1000) or ability.channeled then
 						-- self.SV.debug.enabled then CombatMetronome.debug:Print("Ability with cast time < 1s detected") end
-						if timeRemaining >= 0 then
-							if self.Progressbar.bar.segments[2].color == CombatMetronome.SV.Progressbar.progressColor then
-								self.Progressbar.bar.segments[2].color = CombatMetronome.SV.Progressbar.channelColor
-								--if self.SV.debug.enabled then CombatMetronome.debug:Print("Trying to update Channel Color") end
-							end
-						elseif timeRemaining <= 0 then
-							if self.Progressbar.bar.segments[2].color == CombatMetronome.SV.Progressbar.channelColor then
-								self.Progressbar.bar.segments[2].color = CombatMetronome.SV.Progressbar.progressColor
-								--if self.SV.debug.enabled then CombatMetronome.debug:Print("Turning back to Progress Color") end
-							end
+						if timeRemaining >= 0 and self.Progressbar.bar.segments[2].color == CombatMetronome.SV.Progressbar.progressColor then
+							self.Progressbar.bar.segments[2].color = CombatMetronome.SV.Progressbar.channelColor
+							--if self.SV.debug.enabled then CombatMetronome.debug:Print("Trying to update Channel Color") end
+						elseif timeRemaining <= 0  and self.Progressbar.bar.segments[2].color == CombatMetronome.SV.Progressbar.channelColor then
+							self.Progressbar.bar.segments[2].color = CombatMetronome.SV.Progressbar.progressColor
+							--if self.SV.debug.enabled then CombatMetronome.debug:Print("Turning back to Progress Color") end
 						end
 					else
 						if self.Progressbar.bar.segments[2].color == CombatMetronome.SV.Progressbar.channelColor then
