@@ -1043,8 +1043,9 @@ function CombatMetronome:BuildMenu()
 							type = "editbox",
 							name = "Add skill to adjust",
 							isMultiline = false,
+							warning = "This is case sensitive, so if you don't find your ability it might be because of that",
 							-- disabled = true,
-							getFunc = function() return self:CropIconFromSkill(Util.Text.CropZOSString(self.menu.curSkillName), "ability") end,
+							getFunc = function() return self:CropIconFromSkill(Util.Text.CropZOSString(self.menu.curSkillName, "ability")) end,
 							setFunc = function(name)
 								if name == ABILITY_ADJUST_PLACEHOLDER or not name or #name == 0  or name == self.menu.curSkillName then return end
 								if Util.Ability.nameCache[name] then
