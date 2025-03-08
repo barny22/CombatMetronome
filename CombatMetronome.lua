@@ -48,6 +48,12 @@ function CombatMetronome:Init()
 	CombatMetronome.debug = LibChatMessage("|ce11212C|rombat |ce11212M|retronome", "|ce11212C|r|ce11212M|r")
 	CombatMetronome.debug:SetEnabled(true)
 	
+	if LibSetDetection and LibSetDetection.RegisterEvent then
+		CombatMetronome.LSD = LibSetDetection
+	else
+		CombatMetronome.SV.Resources.coralBahsei = false
+	end
+	
 	self.currentCharacterName = Util.Text.CropZOSString(GetUnitName("player"), "name")
 	self.currentlyEquippedAbilities = {}
 	CombatMetronome:BuildListOfCurrentlyEquippedAbilities()
@@ -349,7 +355,27 @@ function CombatMetronome:RegisterResourceTracker()
         function(...) self:UpdateLabels() end
     )
 	
+	if self.SV.Resources.coralBahsei and self.LSD then
+		CombatMetronome:RegisterCoralBahsei()
+	end
+	
 	self.rtRegistered = true
+end
+
+function CombatMetronome:RegisterCoralBahsei()
+	local setIds = {647,587}
+	CombatMetronome.LSD.RegisterEvent(
+		LSD_EVENT_SET_CHANGE,
+		CombatMetronome.name.."CoralBahseiActive",
+		function(...)
+			CombatMetronome:UpdateCoralBahsei(...)
+		end,
+		LSD_UNIT_TYPE_PLAYER,
+		setIds
+	)
+	-- CombatMetronome.debug:Print("Coral/Bahsei active status registered")
+	CombatMetronome:UpdateCoralBahsei()
+	self.coralBahseiRegistered = true
 end
 
 function StackTracker:Register()
@@ -400,6 +426,18 @@ function CombatMetronome:UnregisterResourceTracker()
         self.name.."UpdateLabels")
 		
 	self.rtRegistered = false
+end
+
+function CombatMetronome:UnregisterCoralBahsei()
+	local setIds = {647,587}
+	CombatMetronome.LSD.UnregisterEvent(
+		LSD_EVENT_SET_CHANGE,
+		CombatMetronome.name.."CoralBahseiActive",
+		LSD_UNIT_TYPE_PLAYER,
+		setIds
+	)
+	-- CombatMetronome.debug:Print("Coral/Bahsei active status unregistered")
+	self.coralBahseiRegistered = false
 end
 
 function StackTracker:Unregister()

@@ -528,6 +528,19 @@ function CombatMetronome:RefreshSoundControls()
 	end
 end
 
+		-----------------------------
+        ---- CoralBahseiTracking ----
+        -----------------------------
+
+function CombatMetronome:UpdateCoralBahsei(setId, changeType, unitTag, localPlayer, activeType)
+	if setId == 647 then
+		self.Resources.coralActive = self.LSD.ConvertActiveType(activeType)
+	elseif setId == 587 then
+		self.Resources.bahseiActive = self.LSD.ConvertActiveType(activeType)
+	end
+	self.Progressbar.UI.Anchors()
+end
+
 		---------------
         ---- Debug ----
         ---------------

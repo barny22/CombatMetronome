@@ -189,19 +189,22 @@ function CombatMetronome:BuildUI()
 		end
 		self.Resources.magLabel:ClearAnchors()
 		self.Resources.stamLabel:ClearAnchors()
+		local magActive, stamActive
+		magActive = CombatMetronome.SV.Resources.showMagicka or (CombatMetronome.SV.Resources.coralBahsei and CombatMetronome.Resources.bahseiActive)
+		stamActive = CombatMetronome.SV.Resources.showStamina or (CombatMetronome.SV.Resources.coralBahsei and CombatMetronome.Resources.coralActive)
 		if CombatMetronome.SV.Resources.reticleMagStam then
-			if CombatMetronome.SV.Resources.showMagicka and (not CombatMetronome.SV.Resources.showStamina) then
+			if magActive and (not stamActive) then
 				self.Resources.magLabel:SetAnchor(RIGHT, GuiRoot, CENTER, -40, 0)
-			elseif CombatMetronome.SV.Resources.showStamina and (not CombatMetronome.SV.Resources.showMagicka) then
+			elseif stamActive and (not magActive) then
 				self.Resources.stamLabel:SetAnchor(RIGHT, GuiRoot, CENTER, -40, 0)
 			else
 				self.Resources.magLabel:SetAnchor(TOPLEFT, GuiRoot, CENTER, -80, 0)
 				self.Resources.stamLabel:SetAnchor(BOTTOMLEFT, GuiRoot, CENTER, -80, 0)
 			end
 		else
-			if CombatMetronome.SV.Resources.showMagicka and (not CombatMetronome.SV.Resources.showStamina) then
+			if magActive and (not stamActive) then
 				self.Resources.magLabel:SetAnchor(LEFT, self.Resources.frame, LEFT, 0, 0)
-			elseif CombatMetronome.SV.Resources.showStamina and (not CombatMetronome.SV.Resources.showMagicka) then
+			elseif stamActive and (not magActive) then
 				self.Resources.stamLabel:SetAnchor(LEFT, self.Resources.frame, LEFT, 0, 0)
 			else
 				self.Resources.magLabel:SetAnchor(TOPLEFT, self.Resources.frame, TOPLEFT, 0, 0)

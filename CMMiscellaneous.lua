@@ -53,6 +53,7 @@ CombatMetronome.DEFAULT_SAVED_VARS = {
 		["labelFrameWidth"] = 303,
 		["labelFrameHeight"] = 50,
 		["showResources"] = false,
+		["coralBahsei"] = false,
 		["showUltimate"] = true,
 		["showStamina"] = true,
 		["showMagicka"] = true,

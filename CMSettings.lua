@@ -1158,7 +1158,7 @@ function CombatMetronome:BuildMenu()
 					type = "checkbox",
 					name = "Anchor resource tracker atop the progressbar",
 					tooltip = "If turned off, resourcebar can be dragged or resized independently",
-					warning = "Turning this off will automaticly resize resourcebar to fit your GCD bar!",
+					warning = "Turning this off will automatically resize resourcebar to fit your GCD bar!",
 					disabled = function()
 						return not (CombatMetronome.SV.Resources.showUltimate or CombatMetronome.SV.Resources.showStamina or CombatMetronome.SV.Resources.showMagicka or CombatMetronome.SV.Resources.showHealth) or self.Resources.frame.IsUnlocked()
 					end,
@@ -1221,6 +1221,22 @@ function CombatMetronome:BuildMenu()
 						},
 						{
 							type = "checkbox",
+							name = "Show stam/mag when using Coral/Bahsei",
+							tooltip = "Will autmatically show you stam/mag when at least one of the sets is active",
+							warning = "This will only be available when LibSetDetection is installed",
+							disabled = function() return not CombatMetronome.LSD end,
+							getFunc = function() return CombatMetronome.SV.Resources.coralBahsei end,
+							setFunc = function(value)
+								CombatMetronome.SV.Resources.coralBahsei = value
+								if value and not CombatMetronome.coralBahseiRegistered then
+									self:RegisterCoralBahsei()
+								elseif not value and CombatMetronome.coralBahseiRegistered then
+									self:UnregisterCoralBahsei()
+								end
+							end,
+						},
+						{
+							type = "checkbox",
 							name = "Show Ultimate",
 							tooltip = "Toggle show ultimate above cast bar",
 							getFunc = function() return CombatMetronome.SV.Resources.showUltimate end,
@@ -1275,7 +1291,7 @@ function CombatMetronome:BuildMenu()
 							name = "Stamina Label Size",
 							tooltip = "Set the size of the Stamina label",
 							disabled = function()
-								return (not CombatMetronome.SV.Resources.showStamina)
+								return not (CombatMetronome.SV.Resources.showStamina or CombatMetronome.SV.Resources.coralBahsei)
 							end,
 							min = 0,
 							max = CombatMetronome.SV.Resources.height/2,
@@ -1293,7 +1309,7 @@ function CombatMetronome:BuildMenu()
 							name = "Stamina Label Color",
 							tooltip = "Color of your stamina label",
 							disabled = function()
-								return (not CombatMetronome.SV.Resources.showStamina)
+								return not (CombatMetronome.SV.Resources.showStamina or CombatMetronome.SV.Resources.coralBahsei)
 							end,
 							getFunc = function() return unpack(CombatMetronome.SV.Resources.stamColor) end,
 							setFunc = function(r, g, b, a)
@@ -1318,7 +1334,7 @@ function CombatMetronome:BuildMenu()
 							name = "Magicka Label Size",
 							tooltip = "Set the size of the Magicka label",
 							disabled = function()
-								return (not CombatMetronome.SV.Resources.showMagicka)
+								return not (CombatMetronome.SV.Resources.showMagicka or CombatMetronome.SV.Resources.coralBahsei)
 							end,
 							min = 0,
 							max = CombatMetronome.SV.Resources.height/2,
@@ -1336,7 +1352,7 @@ function CombatMetronome:BuildMenu()
 							name = "Magicka Label Color",
 							tooltip = "Color of your magicka label",
 							disabled = function()
-								return (not CombatMetronome.SV.Resources.showMagicka)
+								return not (CombatMetronome.SV.Resources.showMagicka or CombatMetronome.SV.Resources.coralBahsei)
 							end,
 							getFunc = function() return unpack(CombatMetronome.SV.Resources.magColor) end,
 							setFunc = function(r, g, b, a)
@@ -1405,7 +1421,7 @@ function CombatMetronome:BuildMenu()
 							name = "Attach Player Mag and Stam to reticle",
 							tooltip = "Attach Player Mag and Stam to side of reticle",
 							disabled = function()
-								return (not CombatMetronome.SV.Resources.showMagicka) and (not CombatMetronome.SV.Resources.showStamina)
+								return not (CombatMetronome.SV.Resources.showMagicka or CombatMetronome.SV.Resources.showStamina or CombatMetronome.SV.Resources.coralBahsei)
 							end,
 							getFunc = function() return CombatMetronome.SV.Resources.reticleMagStam end,
 							setFunc = function(value) 
@@ -1586,7 +1602,7 @@ function CombatMetronome:BuildMenu()
 						{
 							type = "checkbox",
 							name = "Track Molten Whip Stacks",
-							-- warning = "If changed, will automaticly reload the UI.",
+							-- warning = "If changed, will automatically reload the UI.",
 							disabled = function()
 								return StackTracker.class ~= "DK"
 							end,
@@ -1599,7 +1615,7 @@ function CombatMetronome:BuildMenu()
 						{
 							type = "checkbox",
 							name = "Track Bound Armaments Stacks",
-							-- warning = "If changed, will automaticly reload the UI.",
+							-- warning = "If changed, will automatically reload the UI.",
 							disabled = function()
 								return StackTracker.class ~= "SORC"
 							end,
@@ -1612,7 +1628,7 @@ function CombatMetronome:BuildMenu()
 						{
 							type = "checkbox",
 							name = "Track Stacks of Grimm Focus and its Morphs",
-							-- warning = "If changed, will automaticly reload the UI.",
+							-- warning = "If changed, will automatically reload the UI.",
 							disabled = function()
 								return StackTracker.class ~= "NB"
 							end,
@@ -1625,7 +1641,7 @@ function CombatMetronome:BuildMenu()
 						{
 							type = "checkbox",
 							name = "Track Crux Stacks",
-							-- warning = "If changed, will automaticly reload the UI.",
+							-- warning = "If changed, will automatically reload the UI.",
 							disabled = function() 
 								return StackTracker.class ~= "ARC"
 							end,
@@ -1638,7 +1654,7 @@ function CombatMetronome:BuildMenu()
 						{
 							type = "checkbox",
 							name = "Track Stacks of flame skull and its Morphs",
-							-- warning = "If changed, will automaticly reload the UI.",
+							-- warning = "If changed, will automatically reload the UI.",
 							disabled = function()
 								return StackTracker.class ~= "CRO"
 							end,
