@@ -61,5 +61,4 @@ Thanks to [b]Seltiix[/b] for prototyping the initial sound cue system.
 [size=4][b][color=red]Known Issues:[/color][/b][/size]
 [list]
 [*] Some types of cast cancels are not tracked.
-[*] Rarely, ground-targeted abilities (e.g., Endless Hail) won't trigger a timer.
 [/list]
