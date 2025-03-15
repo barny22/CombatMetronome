@@ -1,65 +1,65 @@
-The All-in-one Combat Timing bar with the update all of you guys have been waiting for!
+[size=6][color=orange][b]The All-in-One Combat Timing Bar[/b][/color][/size]
 
-Since Darianopolis can no longer maintain the Addon, I will probably do further updates only on the "optional Update", as it is easier for me to maintain. - barny
+[size=5][color=yellow]With the update you've been waiting for![/color][/size]
 
-If you like my work and want to support what I'm doing, consider supporting me on [url=https://ko-fi.com/barnyteso][color=green]Ko-Fi[/color][/url] or on [url=https://buymeacoffee.com/barnyteso][color=green]buymeacoffee[/color][/url].
+[size=3]If you like my work and want to support what I'm doing, consider supporting me on [url=https://ko-fi.com/barnyteso][color=green]Ko-Fi[/color][/url] or on [url=https://buymeacoffee.com/barnyteso][color=green]buymeacoffee[/color][/url].[/size]
 
 Should there be any bugs, feel free to report them on my [url="https://www.esoui.com/portal.php?id=386&a=listbugs"]ESOUI Portal[/url].
 
-Beta version is available for download on [URL="https://github.com/barny22/CombatMetronome/tree/Development"]Github[/URL] or [URL="https://www.esoui.com/downloads/info3987-CombatMetronomeGCDTrackerbeta.html"]ESOUI[/URL]. Install at your own risk.
+[size=4][b][color=cyan]Beta Version Available for Download:[/color][/b][/size]
+- [URL="https://github.com/barny22/CombatMetronome/tree/Development"]Github[/URL]
+- [URL="https://www.esoui.com/downloads/info3987-CombatMetronomeGCDTrackerbeta.html"]ESOUI[/URL]
 
-! Fixed time adjustment on exhausting fatecarver depending on crux
-! Fixed: Channeled abilities or abilities with cast time are now interrupted by block, dodgeroll or barswap
-! Fixed a bug after resizing the cast bar in unlock mode
-+ Added options to display remaining time, spell name and spell icon on cast bar for spells with cast/channel time
-+ Remaining time label and spell icon now move according to bar alignment
-+ Added option to stop HA tracking
-+ Added option to show the cast bar permanently
-+ Added fancy mode.
+[i]Install at your own risk.[/i]
 
-[quote]IMPORTANT: [color="Red"]I no longer play ESO and can't actively maintain this addon.[/color]
-I have enabled "Allow Updates & AddOns" if someone wants to keep this release working with new ESO API and library changes.
-Anyone is absolutely [u][color="Green"]free[/color][/u] to use this addon and adapt, modify or build it into any project you're working on.
-I would love to see some version of this addon continue, but I don't have the time or available classes to re-install ESO and properly maintain and bug-fix for all of the different classes and abilities on new builds and changes.[/quote]
+[size=4][b][color=lime]Features[/color][/b][/size]
 
-Track your heavy swings, ability cooldowns and cast/channels all in one bar to help you perfect your rotation timing and take advantage of abilty queuing with live latency information.
-Now includes optional Ultimate tracking.
+Track your [b]heavy swings[/b], [b]ability cooldowns[/b], and [b]cast/channels[/b] all in one bar to help you perfect your rotation timing and take advantage of ability queuing with live latency information. Now includes optional [b]Ultimate tracking[/b].
 
-To access the addon settings quickly, enter the command /cm
+[list]
+[*] [b]Heavy attack + Cast / Channel + GCD tracking[/b] = Consolidate all of your combat timing into one bar.
+[*] Display [b]remaining time[/b], [b]spell names[/b], and [b]spell icons[/b] on the cast bar for spells with cast or channel time.
+[*] Displays your [b]ping live[/b] on the bar to allow spell queuing with live latency information.
+[*] Fine-tune the displayed GCD / heavy timer / cast / channel [b]individually[/b] (or globally) for ANY ability to best suit your play.
+[*] Change the color of the GCD bar on channeled abilities.
+[*] [b]Auto hides[/b] - Keeps your UI clean.
+[*] Flashing animation on health percentage during execute.
+[*] Keybind to force display + show absolute health.
+[*] '[b]Tick Tock[/b]' sound cues for audio feedback.
+[*] New UI customization options for a personalized experience.
+[*] [b]Track stacks[/b] for class-specific skills: Bound Armaments, Crux, Flame Skull, Molten Whip, and Grim Focus (+ its morphs).
+[/list]
 
-This addon's counterpart "Combat Auras" has now been released! (You can see it in the preview)
-https://www.esoui.com/downloads/info2408-CombatAurasAbilityTimers.html
+To access the addon settings quickly, enter the command: [b]/cm[/b]
 
-IMPORTANT - This addon and "Combat Auras" SHOULD always be updated at the same time. They share a common library to improve perforamnce, and there is a good chance on any update that I've made changes to this central library.
+[size=4][b][color=lightblue]Combat Auras - Companion Addon[/color][/b][/size]
 
-[quote]IMPORTANT: There have been changes to the central library. Combat Auras probably won't work after you updated Combat Metronome![/quote]
+This addon's counterpart, "Combat Auras," has now been released! (You can see it in the preview)
 
-Thanks for Seltiix for prototyping the initial sound cue system.
+[url=https://www.esoui.com/downloads/info2408-CombatAurasAbilityTimers.html][b]Combat Auras - Ability Timers[/b][/url]
 
-Dependencies:
+[color=red][b]IMPORTANT:[/b][/color] This addon and "Combat Auras" [b]SHOULD[/b] always be updated at the same time. They share a common library to improve performance, and there is a good chance on any update that changes have been made to this central library.
+
+[quote][color=red]IMPORTANT: There have been changes to the central library. Combat Auras may not work properly after updating Combat Metronome![/color][/quote]
+
+[size=4][b][color=purple]Special Thanks[/color][/b][/size]
+
+Thanks to [b]Seltiix[/b] for prototyping the initial sound cue system.
+
+[size=4][b][color=orange]Dependencies:[/color][/b][/size]
 [list]
 [*]LibAddonMenu-2.0
 [*]LibAddonKeybinds
 [*][b]LibChatMessage[/b] [b](!!new!!)[/b]
-[/LIST]
-
-
-Features
-[list]
-[*]Heavy attack + Cast / Channel + GCD tracking = Consolidate all of your combat timing into one bar
-[*]Displays your ping live on the bar to allow spell queueing with live latency information.
-[*]Timing adjustments. Firing abilities too early or too late? - Fine tune the displayed GCD / heavy timer / cast / channel individually (or globally) for ANY ability to best suit your play.
-[*]Auto hides - Keeps your UI clean
-[*]Flashing animation on health percentage during execute
-[*]Keybind to force display + show absolute health
-[*]'Tick Tock' sound cues for audio feedback
 [/list]
-Future Features (No guarantee or time frame):
+
+[size=4][b][color=yellow]Future Features (No guarantee or time frame):[/color][/b][/size]
 [list]
-[*]Light attack miss alert ? (Audio/Visual alert to provide feedback and improve timing reflexes)
+[*] Light attack miss alert? (Audio/Visual alert to provide feedback and improve timing reflexes)
 [/list]
-Known issues:
+
+[size=4][b][color=red]Known Issues:[/color][/b][/size]
 [list]
-[*]Some types of cast cancels are not tracked
-[*]Rarely, ground targeted abilities (E.g. Endless Hail) won't trigger a timer
+[*] Some types of cast cancels are not tracked.
+[*] Rarely, ground-targeted abilities (e.g., Endless Hail) won't trigger a timer.
 [/list]
