@@ -535,8 +535,14 @@ end
 function CombatMetronome:UpdateCoralBahsei(setId, changeType, unitTag, localPlayer, activeType)
 	if setId == 647 then
 		self.Resources.coralActive = self.LSD.ConvertActiveType(activeType)
+	elseif setId == 147 then
+		self.Resources.mkActive = self.LSD.ConvertActiveType(activeType)
 	elseif setId == 587 then
 		self.Resources.bahseiActive = self.LSD.ConvertActiveType(activeType)
+	elseif not setId then
+		self.Resources.mkActive = self.LSD.ConvertActiveType(self.LSD.GetUnitSetActiveType("player", 147))
+		self.Resources.coralActive = self.LSD.ConvertActiveType(self.LSD.GetUnitSetActiveType("player", 647))
+		self.Resources.bahseiActive = self.LSD.ConvertActiveType(self.LSD.GetUnitSetActiveType("player", 587))
 	end
 	self.Progressbar.UI.Anchors()
 end

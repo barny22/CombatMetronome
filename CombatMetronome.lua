@@ -363,7 +363,7 @@ function CombatMetronome:RegisterResourceTracker()
 end
 
 function CombatMetronome:RegisterCoralBahsei()
-	local setIds = {647,587}
+	local setIds = {647,587,147}
 	CombatMetronome.LSD.RegisterEvent(
 		LSD_EVENT_SET_CHANGE,
 		CombatMetronome.name.."CoralBahseiActive",

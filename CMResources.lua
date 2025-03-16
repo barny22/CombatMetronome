@@ -56,7 +56,7 @@ function CombatMetronome:UpdateLabels()
             self.Resources.ultLabel:SetHidden(true)
         end
 
-        if showResources and (CombatMetronome.SV.Resources.showStamina or (CombatMetronome.SV.Resources.coralBahsei and CombatMetronome.Resources.coralActive)) then
+        if showResources and (CombatMetronome.SV.Resources.showStamina or (CombatMetronome.SV.Resources.coralBahsei and (CombatMetronome.Resources.coralActive or CombatMetronome.Resources.mkActive))) then
             local stam, _, maxStam = GetUnitPower("player", POWERTYPE_STAMINA)
             self.Resources.stamLabel:SetText(stam == maxStam and "100%" or string.format("%i%%", 100 * stam / maxStam))
             self.Resources.stamLabel:SetHidden(false)

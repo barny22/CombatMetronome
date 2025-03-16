@@ -1221,7 +1221,7 @@ function CombatMetronome:BuildMenu()
 						},
 						{
 							type = "checkbox",
-							name = "Show stam/mag when using Coral/Bahsei",
+							name = "Show stam/mag when using Coral/MK/Bahsei",
 							tooltip = "Will autmatically show you stam/mag when at least one of the sets is active",
 							warning = "This will only be available when LibSetDetection is installed",
 							disabled = function() return not CombatMetronome.LSD end,
