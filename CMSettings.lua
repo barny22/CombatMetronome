@@ -289,6 +289,40 @@ function CombatMetronome:BuildMenu()
 							end,
 						},
 						{
+							type = "checkbox",
+							name = "Expand width with abilities > 1s",
+							tooltip = "Will expand castbar width by multiplying width x time",
+							getFunc = function() return CombatMetronome.SV.Progressbar.expandDynamically end,
+							setFunc = function(value)
+								CombatMetronome.SV.Progressbar.expandDynamically = value
+							end,
+							width = "half",
+						},
+						{
+							type = "checkbox",
+							name = "Move spellicon dynamically",
+							disabled = function() return not (CombatMetronome.SV.Progressbar.showSpell and CombatMetronome.SV.Progressbar.expandDynamically and CombatMetronome.SV.Progressbar.barAlign == "Center") end,
+							getFunc = function() return CombatMetronome.SV.Progressbar.moveIconDynamically end,
+							setFunc = function(value)
+								CombatMetronome.SV.Progressbar.moveIconDynamically = value
+							end,
+							width = "half",
+						},
+						{
+							type = "slider",
+							name = "Dynamic expansion multiplyer",
+							tooltip = "You may chose a custom multiplyer for dynamic castbar expansion",
+							disabled = function() return not CombatMetronome.SV.Progressbar.expandDynamically end,
+							min = 1,
+							max = 10,
+							step = 1,
+							default = 5,
+							getFunc = function() return CombatMetronome.SV.Progressbar.dynamicExpansionMultiplyer end,
+							setFunc = function(value)
+								CombatMetronome.SV.Progressbar.dynamicExpansionMultiplyer = value
+							end,
+						},
+						{
 							type = "slider",
 							name = "Height",
 							min = MIN_HEIGHT,

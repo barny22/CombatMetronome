@@ -6,6 +6,18 @@ CombatMetronome.SV = CombatMetronome.SV or {}
 
 local INTERVAL = 200
 
+local function AnchorSpellIcon(dynamic)
+	if dynamic then
+		CombatMetronome.Progressbar.spellIcon:ClearAnchors()
+		CombatMetronome.Progressbar.spellIcon:SetAnchor(RIGHT, CombatMetronome.Progressbar.bar.segments[2].bars[1], RIGHT, -(CombatMetronome.SV.Progressbar.height/10), 0)
+		CombatMetronome.Progressbar.spellIconAnchoredDynamically = true
+	elseif CombatMetronome.Progressbar.spellIconAnchoredDynamically then
+		CombatMetronome.Progressbar.spellIcon:ClearAnchors()
+		CombatMetronome.Progressbar.spellIcon:SetAnchor(RIGHT, CombatMetronome.Progressbar.frame, LEFT, -(CombatMetronome.SV.Progressbar.height/10), 0)
+		CombatMetronome.Progressbar.spellIconAnchoredDynamically = false
+	end
+end
+
 	--------------------------
 	---- Cast Bar Updater ----
 	--------------------------
@@ -105,6 +117,12 @@ function CombatMetronome:Update()
 		end
 		
 		if CombatMetronome.SV.Progressbar.trackGCD and not self.currentEvent then
+			
+			--reset spellIcon anchor
+			if self.Progressbar.spellIconAnchoredDynamically then
+				AnchorSpellIcon(false)
+			end
+			
 			self.Progressbar.bar.segments[1].progress = (CombatMetronome.SV.Progressbar.showPingOnGCD and latency/1000) or 0
 			self.Progressbar.bar.segments[2].progress = gcdProgress
 			if not Util.Ability.Tracker.rollDodgeFinished and CombatMetronome.SV.Progressbar.trackRolldodge then
@@ -163,7 +181,12 @@ function CombatMetronome:Update()
 			
 			local duration = math.max(ability.heavy and 0 or (self.gcd or 1000), ability.delay) + (self.currentEvent.adjust or 0)
 			local channelTime = ability.delay + (self.currentEvent.adjust or 0)
-			local timeRemaining = ((start + channelTime + GetLatency()) - time) / 1000
+			local timeRemaining = ((start + channelTime + latency) - time) / 1000
+			local castProgress = 1 - (cdTimer/duration)
+			
+			local dynamicProgress = self.SV.Progressbar.expandDynamically and duration > 1000
+			local multiplyer = self.SV.Progressbar.dynamicExpansionMultiplyer*duration/10000
+			local dynamicAnchor = self.SV.Progressbar.barAlign == "Center" and self.SV.Progressbar.moveIconDynamically and (castProgress*multiplyer > 1)
 						
 			-- local playerDidBlock = (self.lastBlockStatus == false) and IsBlockActive()
 			-- if playerDidBlock and self.SV.debug.enabled then CombatMetronome.debug:Print("Player blocked") end
@@ -220,8 +243,15 @@ function CombatMetronome:Update()
 					end
 				end
 				
-				self.Progressbar.bar.segments[2].progress = 1 - (cdTimer/duration)
-				self.Progressbar.bar.segments[1].progress = latency / duration
+				if dynamicProgress then
+					self.Progressbar.bar.segments[2].progress = castProgress*multiplyer
+					self.Progressbar.bar.segments[1].progress = (latency / duration)*multiplyer
+					AnchorSpellIcon(dynamicAnchor)
+				else
+					self.Progressbar.bar.segments[2].progress = castProgress
+					self.Progressbar.bar.segments[1].progress = latency / duration
+					AnchorSpellIcon(false)
+				end
 				if cdTimer >= (duration+latency) then
 					self:OnCDStop()
 				else

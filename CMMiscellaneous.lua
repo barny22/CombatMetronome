@@ -44,6 +44,9 @@ CombatMetronome.DEFAULT_SAVED_VARS = {
 		["makeItFancy"] = false,
 		["maxLatency"] = 150,
 		["showPingOnGCD"] = true,
+		["expandDynamically"] = false,
+		["moveIconDynamically"] = true,
+		["dynamicExpansionMultiplyer"] = 1,
 	},
 	["Resources"] = {
 		["anchorResourcesToProgressbar"] = true,

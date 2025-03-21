@@ -2,6 +2,7 @@
 !  Updates to string formatting
 !  Finally adding channeled abilities to abilities that change channel color
 +  Added option to automatically show stam/mag if coral/MK/bahsei is detected (requires LibSetDetection)
++  Added option to automatically expand castbar for abilities with channel-/casttime > 1
 
 2025-02-17 v1.6.14
 !  Fixed cancelling of channeled abilities when target is ST and target is dead  

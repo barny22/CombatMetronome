@@ -38,8 +38,12 @@ function CombatMetronome:BuildUI()
 		self.Progressbar.bar = self.Progressbar.bar or Util.Bar:New(self.name.."TimerBar", self.Progressbar.frame)
 		
 		self.Progressbar.spellIcon = self.Progressbar.spellIcon or WINDOW_MANAGER:CreateControl(self.name.."SpellIcon", self.Progressbar.frame, CT_TEXTURE)
+		self.Progressbar.spellIcon:SetDrawLayer(4)
+		self.Progressbar.spellIcon:SetDrawTier(2)
 		self.Progressbar.spellIconBorder = self.Progressbar.spellIconBorder or WINDOW_MANAGER:CreateControl(self.name.."SpellIconBorder", self.Progressbar.spellIcon, CT_TEXTURE)
 		self.Progressbar.spellIconBorder:SetTexture("/esoui/art/actionbar/abilityframe64_up.dds")
+		self.Progressbar.spellIconBorder:SetDrawLayer(4)
+		self.Progressbar.spellIconBorder:SetDrawTier(2)
 	
 		self.Progressbar.bar.backgroundTexture = self.Progressbar.bar.backgroundTexture or WINDOW_MANAGER:CreateControl(self.name.."BackgroundTexture", self.Progressbar.frame, CT_STATUSBAR)
 		self.Progressbar.bar.backgroundTexture:SetTexture("/esoui/art/unitframes/progressbar_mechanic_fill.dds")
