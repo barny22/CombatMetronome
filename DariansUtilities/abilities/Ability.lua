@@ -687,6 +687,8 @@ function Ability.Tracker:HandleCombatEvent(_,     res,  err,   aName, _, aSlotTy
                 ["ability"] = Ability.cache.silenced,
             }
             return
+        elseif res == ACTION_RESULT_EFFECT_FADED and self.currentEvent and self.currentEvent.ability.id == aId then
+            self:CancelCurrentEvent("Effect faded")
         -- elseif IsMeditate(aId) then
             -- if res == ACTION_RESULT_EFFECT_GAINED then
                 -- self.meditating = true
