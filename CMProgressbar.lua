@@ -5,6 +5,10 @@ Util.Text = Util.Text or {}
 CombatMetronome.SV = CombatMetronome.SV or {}
 
 local INTERVAL = 200
+local CherryBlossom = {
+	["name"] = Util.Text.CropZOSString(GetAbilityName(87474), "ability"),
+	["icon"] = "/esoui/art/icons/event_jestersfestival_2016_cherry_blossom_branch.dds",
+}
 
 local function AnchorSpellIcon(dynamic)
 	if dynamic then
@@ -127,33 +131,26 @@ function CombatMetronome:Update()
 			self.Progressbar.bar.segments[2].progress = gcdProgress
 			if not Util.Ability.Tracker.rollDodgeFinished and CombatMetronome.SV.Progressbar.trackRolldodge then
 				CombatMetronome:GCDSpecifics(Util.Text.CropZOSString(GetAbilityName(28549), "ability"), "/esoui/art/icons/ability_rogue_035.dds", gcdProgress, false)
-			end
-			if self.Progressbar.activeMount.action ~= "" and CombatMetronome.SV.Progressbar.trackMounting then
+			elseif self.Progressbar.activeMount.action ~= "" and CombatMetronome.SV.Progressbar.trackMounting then
 				if CombatMetronome.SV.Progressbar.showMountNick then
 					CombatMetronome:GCDSpecifics(tostring(self.Progressbar.activeMount.action.." "..self.Progressbar.activeMount.name), self.Progressbar.activeMount.icon, gcdProgress, false)
 				else
 					CombatMetronome:GCDSpecifics(self.Progressbar.activeMount.action, self.Progressbar.activeMount.icon, gcdProgress, false)
 				end
-			end
-			if self.Progressbar.collectibleInUse and CombatMetronome.SV.Progressbar.trackCollectibles then
+			elseif self.Progressbar.collectibleInUse and CombatMetronome.SV.Progressbar.trackCollectibles then
 				CombatMetronome:GCDSpecifics(self.Progressbar.collectibleInUse.name, self.Progressbar.collectibleInUse.icon, gcdProgress, false)
 				-- self.Progressbar.nonAbilityGCDRunning = true
-			end
-			if self.Progressbar.itemUsed and CombatMetronome.SV.Progressbar.trackItems then
+			elseif self.Progressbar.itemUsed and CombatMetronome.SV.Progressbar.trackItems then
 				CombatMetronome:GCDSpecifics(self.Progressbar.itemUsed.name, self.Progressbar.itemUsed.icon, gcdProgress, false)
 				-- self.Progressbar.nonAbilityGCDRunning = true
-			end
-			-- if self.Progressbar.killingAction and CombatMetronome.SV.Progressbar.trackKillingActions and not self.Progressbar.nonAbilityGCDRunning then
-				-- CombatMetronome:GCDSpecifics(self.Progressbar.killingAction.name, self.Progressbar.killingAction.icon, GCD.progress)
-				-- self.Progressbar.nonAbilityGCDRunning = true
-			-- end
-			if self.Progressbar.breakingFree and CombatMetronome.SV.Progressbar.trackBreakingFree then
+			elseif self.Progressbar.breakingFree and CombatMetronome.SV.Progressbar.trackBreakingFree then
 				CombatMetronome:GCDSpecifics(self.Progressbar.breakingFree.name, self.Progressbar.breakingFree.icon, gcdProgress, false)
 				-- self.Progressbar.nonAbilityGCDRunning = true
-			end
-			if self.Progressbar.synergy and CombatMetronome.SV.Progressbar.trackSynergies and self.Progressbar.synergy.wasUsed then
+			elseif self.Progressbar.synergy and CombatMetronome.SV.Progressbar.trackSynergies and self.Progressbar.synergy.wasUsed then
 				CombatMetronome:GCDSpecifics(self.Progressbar.synergy.name, self.Progressbar.synergy.icon, gcdProgress, true)
 				-- self.Progressbar.nonAbilityGCDRunning = true
+			elseif self.Progressbar.jesterFestivalCherryBlossom then
+				CombatMetronome:GCDSpecifics(CherryBlossom.name, CherryBlossom.icon, gcdProgress, false)
 			end
 			
 			if gcdProgress <= 0 then

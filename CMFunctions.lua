@@ -98,6 +98,7 @@ function CombatMetronome:CreateMenuIconsPath(ControlName)
 end
 
 function CombatMetronome:GCDSpecifics(text, icon, gcdProgress, wasSynergy)
+	if not (text and icon) then return end
 	if not wasSynergy and self.Progressbar.synergy.wasUsed then self.Progressbar.synergy.wasUsed = false end
 	if CombatMetronome.SV.Progressbar.showSpell then
 		self.Progressbar.spellLabel:SetHidden(false)
@@ -123,6 +124,7 @@ function CombatMetronome:SetIconsAndNamesNil()
 	self.Progressbar.activeMount.action = ""
 	self.Progressbar.collectibleInUse = nil
 	self.Progressbar.itemUsed = nil
+	self.Progressbar.jesterFestivalCherryBlossom = false
 	-- self.itemCache = nil
 	-- self.Progressbar.killingAction = nil
 	self.Progressbar.breakingFree = nil
