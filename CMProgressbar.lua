@@ -177,12 +177,13 @@ function CombatMetronome:Update()
 			end
 			
 			local duration = math.max(ability.heavy and 0 or (self.gcd or 1000), ability.delay) + (self.currentEvent.adjust or 0)
-			local channelTime = ability.delay + (self.currentEvent.adjust or 0)
-			local timeRemaining = ((start + channelTime + latency) - time) / 1000
+			-- local timeRemaining = ((start + duration + latency) - time) / 1000 or ((start + channelTime + latency) - time) < 0 and 0
+			local timeRemaining = (duration - cdTimer) / 1000
 			local castProgress = 1 - (cdTimer/duration)
 			
 			local dynamicProgress = self.SV.Progressbar.expandDynamically and duration > 1000
-			local multiplyer = self.SV.Progressbar.dynamicExpansionMultiplyer*duration/10000
+			local multiplyerCheck = self.SV.Progressbar.dynamicExpansionMultiplyer*duration/10000 > 1
+			local multiplyer = multiplyerCheck and self.SV.Progressbar.dynamicExpansionMultiplyer*duration/10000 or 1
 			local dynamicAnchor = self.SV.Progressbar.barAlign == "Center" and self.SV.Progressbar.moveIconDynamically and (castProgress*multiplyer > 1)
 						
 			-- local playerDidBlock = (self.lastBlockStatus == false) and IsBlockActive()
@@ -224,7 +225,7 @@ function CombatMetronome:Update()
 			---- Switching Color on channeled abilities ----
 			------------------------------------------------
 				if CombatMetronome.SV.Progressbar.changeOnChanneled then
-					if (not ability.instant and ability.delay <= 1000) or ability.channeled then
+					if (not ability.instant and ability.delay <= 1000) or ability.delay > 1000 then
 						-- self.SV.debug.enabled then CombatMetronome.debug:Print("Ability with cast time < 1s detected") end
 						if timeRemaining >= 0 and self.Progressbar.bar.segments[2].color == CombatMetronome.SV.Progressbar.progressColor then
 							self.Progressbar.bar.segments[2].color = CombatMetronome.SV.Progressbar.channelColor
