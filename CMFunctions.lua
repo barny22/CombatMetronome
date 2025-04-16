@@ -87,9 +87,9 @@ end
 	---- GCD Tracking specifics ----
 	--------------------------------
 	
-function CombatMetronome:CreateMenuIconsPath(ControlName)
+function CombatMetronome:CreateMenuIconsPath(ControlName, panel)
 	local number = 0
-	for i, entry in ipairs(CombatMetronomeOptions.controlsToRefresh) do
+	for i, entry in ipairs(panel.controlsToRefresh) do
 		if ControlName == entry.data.name then
 			number = i
 		end
@@ -399,6 +399,20 @@ function StackTracker:CheckIfSlotted()
 		end
 	end
 	return abilitySlotted
+end
+
+function StackTracker:IsTrackingAvailable(stacksToTrack)
+	if stacksToTrack == "mW" then
+		return self.class == "DK"
+	elseif stacksToTrack == "bA" then
+		return self.class == "SORC"
+	elseif stacksToTrack == "gF" then
+		return self.class == "NB"
+	elseif stacksToTrack == "crux" then
+		return self.class == "ARC"
+	elseif stacksToTrack == "fS" then
+		return self.class == "CRO"
+	end
 end
 
 		-------------------------------

@@ -109,47 +109,82 @@ CombatMetronome.DEFAULT_SAVED_VARS = {
 	},
 }
 
+local frameTexture = "/esoui/art/actionbar/abilityframe64_up.dds"
 CombatMetronome.menu.CONTROLS = {
-	{
-		["Name"] = "Dodgeroll",
-		["Icon"] = "/esoui/art/icons/ability_rogue_035.dds",
-		["Dimensions"] = 35,
-		["Offset"] = -25,
-		["SavedVars"] = "trackRolldodge",
+	["progressbar"] = {
+		{
+			["Name"] = "Dodgeroll",
+			["Icon"] = "/esoui/art/icons/ability_rogue_035.dds",
+			["Dimensions"] = 35,
+			["Offset"] = -25,
+			["SavedVars"] = "trackRolldodge",
+		},
+		{
+			["Name"] = "Mounting/Dismounting",
+			["Dimensions"] = 45,
+			["Offset"] = -20,
+			["SavedVars"] = "trackMounting",
+		},
+		{
+			["Name"] = "Assistants and companions",
+			["Icon"] = "/esoui/art/icons/assistant_ezabibanker.dds",
+			["Dimensions"] = 45,
+			["Offset"] = -20,
+			["SavedVars"] = "trackCollectibles",
+		},
+		{
+			["Name"] = "Usage of items",
+			["Icon"] = "/esoui/art/tribute/tributeendofgamereward_overflow.dds",
+			["Dimensions"] = 35,
+			["Offset"] = -25,
+			["SavedVars"] = "trackItems",
+		},
+		{
+			["Name"] = "Synergies",
+			["Icon"] = "/esoui/art/icons/achievement_u23_skillmaster_darkbrotherhood.dds",
+			["Dimensions"] = 35,
+			["Offset"] = -25,
+			["SavedVars"] = "trackSynergies",
+		},
+		{
+			["Name"] = "Breaking free",
+			["Icon"] = "/esoui/art/icons/ability_debuff_stun.dds",
+			["Dimensions"] = 35,
+			["Offset"] = -25,
+			["SavedVars"] = "trackBreakingFree",
+		},
 	},
-	{
-		["Name"] = "Mounting/Dismounting",
-		["Dimensions"] = 45,
-		["Offset"] = -20,
-		["SavedVars"] = "trackMounting",
-	},
-	{
-		["Name"] = "Assistants and companions",
-		["Icon"] = "/esoui/art/icons/assistant_ezabibanker.dds",
-		["Dimensions"] = 45,
-		["Offset"] = -20,
-		["SavedVars"] = "trackCollectibles",
-	},
-	{
-		["Name"] = "Usage of items",
-		["Icon"] = "/esoui/art/tribute/tributeendofgamereward_overflow.dds",
-		["Dimensions"] = 35,
-		["Offset"] = -25,
-		["SavedVars"] = "trackItems",
-	},
-	{
-		["Name"] = "Synergies",
-		["Icon"] = "/esoui/art/icons/achievement_u23_skillmaster_darkbrotherhood.dds",
-		["Dimensions"] = 35,
-		["Offset"] = -25,
-		["SavedVars"] = "trackSynergies",
-	},
-	{
-		["Name"] = "Breaking free",
-		["Icon"] = "/esoui/art/icons/ability_debuff_stun.dds",
-		["Dimensions"] = 35,
-		["Offset"] = -25,
-		["SavedVars"] = "trackBreakingFree",
+	["stackTracker"] = {
+		["mW"] = {
+			["Name"] = "Track Molten Whip Stacks",
+			["SavedVars"] = "trackMW",
+			["frame"] = frameTexture,
+			["icon"] = "/esoui/art/icons/ability_dragonknight_001_b.dds",
+		},
+		["bA"] = {
+			["Name"] = "Track Bound Armaments Stacks",
+			["SavedVars"] = "trackBA",
+			["frame"] = frameTexture,
+			["icon"] = "/esoui/art/icons/ability_sorcerer_bound_armaments.dds",
+		},
+		["gF"] = {
+			["Name"] = "Track Stacks of Grimm Focus and its Morphs",
+			["SavedVars"] = "trackGF",
+			["frame"] = frameTexture,
+			["icon"] = "/esoui/art/icons/ability_nightblade_005.dds",
+		},
+		["crux"] = {
+			["Name"] = "Track Crux Stacks",
+			["SavedVars"] = "trackCrux",
+			["frame"] = frameTexture,
+			["icon"] = "/esoui/art/icons/class_buff_arcanist_crux.dds",
+		},
+		["fS"] = {
+			["Name"] = "Track Stacks of flame skull and its Morphs",
+			["SavedVars"] = "trackFS",
+			["frame"] = frameTexture,
+			["icon"] = "/esoui/art/icons/ability_necromancer_001.dds",
+		},
 	},
 }
 
