@@ -93,15 +93,17 @@ function CombatMetronome:Init()
 	-----------------------
 	---- Stack Tracker ----
 	-----------------------
-	
-	if StackTracker.CLASS_ATTRIBUTES[StackTracker.class] then
-		StackTracker.UI = StackTracker:BuildUI()
-		StackTracker.UI.indicator.ApplyDistance(CombatMetronome.SV.StackTracker.indicatorSize/5, CombatMetronome.SV.StackTracker.indicatorSize)
-		StackTracker.UI.indicator.ApplySize(CombatMetronome.SV.StackTracker.indicatorSize)
-		StackTracker.UI.indicator.ApplyIcon()
-	
-		StackTracker:Register()
-		StackTracker.showSampleTracker = false
+	StackTracker.registered = {
+	}
+	for skill, _ in pairs(StackTracker.SKILL_ATTRIBUTES) do
+		StackTracker.UI[skill] = StackTracker:BuildUI(skill)
+		StackTracker.UI[skill].indicator.ApplyDistance(CombatMetronome.SV.StackTracker[skill].indicatorSize/5, CombatMetronome.SV.StackTracker[skill].indicatorSize)
+		StackTracker.UI[skill].indicator.ApplySize(CombatMetronome.SV.StackTracker[skill].indicatorSize)
+		StackTracker.UI[skill].indicator.ApplyIcon()
+		
+		if CombatMetronome.SV.StackTracker[skill].tracked and StackTracker:IsTrackingAvailable(skill) then
+			StackTracker:Register(skill)
+		end
 	end
 	
 	------------------------------
@@ -381,14 +383,29 @@ function CombatMetronome:RegisterCoralBahsei()
 	self.coralBahseiRegistered = true
 end
 
-function StackTracker:Register()
-	EVENT_MANAGER:RegisterForUpdate(
-		self.name.."Update",
-		1000 / 60,
-		function(...) self:Update() end
-	)
-	self.registered = true
-	-- if self.SV.debug.enabled then CombatMetronome.debug:Print("tracker is registered") end
+function StackTracker:Register(skill)
+	if not self.registered[skill] then
+		self.registered[skill] = true
+		self.stacks[skill] = self:GetCurrentStacks(skill)
+		if skill == "FS" and not self.registered.hotbarUpdate then
+			EVENT_MANAGER:RegisterForEvent(
+				self.name.."HotbarUpdateUpdate",
+				EVENT_HOTBAR_SLOT_CHANGE_REQUESTED,
+				function(...) self:HandleHotbarChangeRequested(...) end
+			)
+			self.registered.hotbarUpdate = true
+			if self.SV.debug.enabled then CombatMetronome.debug:Print("hotbarUpdate is registered") end
+		elseif skill ~= "FS" and not self.registered.effectChanged then
+			EVENT_MANAGER:RegisterForEvent(
+				self.name.."EffectChanged",
+				EVENT_EFFECT_CHANGED,
+				function(...) self:HandleEffectChanged(...) end
+			)
+			self.registered.effectChanged = true
+			if self.SV.debug.enabled then CombatMetronome.debug:Print("effectChanged is registered") end
+		end
+		if self.SV.debug.enabled then CombatMetronome.debug:Print(skill.." tracker is registered") end
+	end
 end
 
 function CombatMetronome:UnregisterCM()
@@ -443,13 +460,25 @@ function CombatMetronome:UnregisterCoralBahsei()
 	self.coralBahseiRegistered = false
 end
 
-function StackTracker:Unregister()
-	EVENT_MANAGER:UnregisterForUpdate(
-		self.name.."Update")
-	
-	self.registered = false
-	-- if self.SV.debug.enabled then CombatMetronome.debug:Print("tracker is unregistered") end
-	-- self.trackerWarning = false
+function StackTracker:Unregister(skill)
+	if self.registered[skill] then
+		self.registered[skill] = false
+		self.stacks[skill] = nil
+		if skill == "FS" and self.registered.hotbarUpdate then
+			EVENT_MANAGER:UnregisterForEvent(
+				self.name.."HotbarUpdate")
+			
+			self.registered.hotbarUpdate = false
+			if self.SV.debug.enabled then CombatMetronome.debug:Print("hotbarUpdate is unregistered") end
+		elseif skill ~= "FS" and not self:EffectChangedShouldBeActive() and self.registered.effectChanged then
+			EVENT_MANAGER:UnregisterForEvent(
+				self.name.."EffectChanged")
+				
+			self.registered.effectChanged = false
+			if self.SV.debug.enabled then CombatMetronome.debug:Print("effectChanged is unregistered") end
+		end
+		if self.SV.debug.enabled then CombatMetronome.debug:Print(skill.." tracker is unregistered") end
+	end
 end
 
 function CombatMetronome:UnregisterCollectiblesTracker()

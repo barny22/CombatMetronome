@@ -76,20 +76,61 @@ CombatMetronome.DEFAULT_SAVED_VARS = {
 	},
 	["StackTracker"] = {
 		["isUnlocked"] = false,
-		["hideInPVP"] = false,
-		["trackMW"] = false,
-		["trackBA"] = false,
-		["trackGF"] = false,
-		["trackCrux"] = false,
-		["trackFS"] = false,
-		["indicatorSize"] = 30,
-		["xOffset"] = 0,
-		["yOffset"] = 0,
-		["hideTracker"] = true,
-		["playSound"] = false,
-		["volume"] = 100,
-		["hightlightOnFullStacks"] = false,
-		["sound"] = "Ability_Companion_Ultimate_Ready",
+		["MW"] = {
+			["tracked"] = false,
+			["xOffset"] = 0,
+			["yOffset"] = 0,
+			["indicatorSize"] = 30,
+			["hideInPVP"] = false,
+			["playSound"] = false,
+			["sound"] = "Ability_Companion_Ultimate_Ready",
+			["hightlightOnFullStacks"] = false,
+			["volume"] = 100,
+		},
+		["BA"] = {
+			["tracked"] = false,
+			["xOffset"] = 0,
+			["yOffset"] = 0,
+			["indicatorSize"] = 30,
+			["hideInPVP"] = false,
+			["playSound"] = false,
+			["sound"] = "Ability_Companion_Ultimate_Ready",
+			["hightlightOnFullStacks"] = false,
+			["volume"] = 100,
+		},
+		["GF"] = {
+			["tracked"] = false,
+			["xOffset"] = 0,
+			["yOffset"] = 0,
+			["indicatorSize"] = 30,
+			["hideInPVP"] = false,
+			["playSound"] = false,
+			["sound"] = "Ability_Companion_Ultimate_Ready",
+			["hightlightOnFullStacks"] = false,
+			["volume"] = 100,
+		},
+		["Crux"] = {
+			["tracked"] = false,
+			["xOffset"] = 0,
+			["yOffset"] = 0,
+			["indicatorSize"] = 30,
+			["hideInPVP"] = false,
+			["playSound"] = false,
+			["sound"] = "Ability_Companion_Ultimate_Ready",
+			["hightlightOnFullStacks"] = false,
+			["volume"] = 100,
+		},
+		["FS"] = {
+			["tracked"] = false,
+			["xOffset"] = 0,
+			["yOffset"] = 0,
+			["indicatorSize"] = 30,
+			["hideInPVP"] = false,
+			["playSound"] = false,
+			["sound"] = "Ability_Companion_Ultimate_Ready",
+			["hightlightOnFullStacks"] = false,
+			["volume"] = 100,
+		},
 	},
 	["LATracker"] = {
 		["xOffset"] = GuiRoot:GetWidth()/2,
@@ -155,79 +196,93 @@ CombatMetronome.menu.CONTROLS = {
 		},
 	},
 	["stackTracker"] = {
-		["mW"] = {
+		["MW"] = {
 			["Name"] = "Track Molten Whip Stacks",
-			["SavedVars"] = "trackMW",
 			["frame"] = frameTexture,
 			["icon"] = "/esoui/art/icons/ability_dragonknight_001_b.dds",
 		},
-		["bA"] = {
+		["BA"] = {
 			["Name"] = "Track Bound Armaments Stacks",
-			["SavedVars"] = "trackBA",
 			["frame"] = frameTexture,
 			["icon"] = "/esoui/art/icons/ability_sorcerer_bound_armaments.dds",
 		},
-		["gF"] = {
+		["GF"] = {
 			["Name"] = "Track Stacks of Grimm Focus and its Morphs",
-			["SavedVars"] = "trackGF",
 			["frame"] = frameTexture,
 			["icon"] = "/esoui/art/icons/ability_nightblade_005.dds",
 		},
-		["crux"] = {
+		["Crux"] = {
 			["Name"] = "Track Crux Stacks",
-			["SavedVars"] = "trackCrux",
 			["frame"] = frameTexture,
 			["icon"] = "/esoui/art/icons/class_buff_arcanist_crux.dds",
 		},
-		["fS"] = {
+		["FS"] = {
 			["Name"] = "Track Stacks of flame skull and its Morphs",
-			["SavedVars"] = "trackFS",
 			["frame"] = frameTexture,
 			["icon"] = "/esoui/art/icons/ability_necromancer_001.dds",
 		},
 	},
 }
 
-CombatMetronome.StackTracker.CLASS_ATTRIBUTES = {
-	["ARC"] = {
+CombatMetronome.StackTracker.SKILL_ATTRIBUTES = {
+	["Crux"] = {
 		["iMax"] = 3,
 		["graphic"] = "/esoui/art/icons/class_buff_arcanist_crux.dds",
 		["highlight"] = {0,1,0,0.2},
 		["highlightAnimation"] = {0.8,1,0.8,0.8},
+		["id"] = 184220,
 	},
-	["DK"] = {
+	["MW"] = {
 		["iMax"] = 3,
 		["graphic"] = "/esoui/art/icons/ability_dragonknight_001_b.dds",
 		["highlight"] = {1,0,0,0.2},
 		["highlightAnimation"] = {1,0.8,0.8,0.8},
+		["id"] = { ["buff"] = 122658, ["ability"] = 20805,}, -- 122729
 	},
-	["SORC"] = {
+	["BA"] = {
 		["iMax"] = 4,
 		["graphic"] = "/esoui/art/icons/ability_sorcerer_bound_armaments.dds",
 		["highlight"] = {0,0,1,0.2},
 		["highlightAnimation"] = {0.8,0.8,1,0.8},
+		["id"] = { ["buff"] = 203447, ["ability"] = 24165,},
 	},
-	["NB"] = {
+	["GF"] = {
 		["iMax"] = 5,
 		["icon"] = {
-			["gF"] = "/esoui/art/icons/ability_nightblade_005.dds",
-			["rF"] = "/esoui/art/icons/ability_nightblade_005_a.dds",
-			["mR"] = "/esoui/art/icons/ability_nightblade_005_b.dds",
+			["GF"] = "/esoui/art/icons/ability_nightblade_005.dds",
+			["RF"] = "/esoui/art/icons/ability_nightblade_005_a.dds",
+			["MR"] = "/esoui/art/icons/ability_nightblade_005_b.dds",
 		},
 		["graphic"] = "",
 		["highlight"] = {1,0,0,0.2},
 		["highlightAnimation"] = {1,0.8,0.8,0.8},
+		["id"] = {
+			["GF"] = { ["buff"] = 122585, ["ability"] = 61902,},
+			["MR"] = { ["buff"] = 122586, ["ability"] = 61919,},
+			["RF"] = { ["buff"] = 122587, ["ability"] = 61927,},
+		},
 	},
-	["CRO"] = {
+	["FS"] = {
 		["iMax"] = 2,
 		["icon"] = {
-			["fs"] = "/esoui/art/icons/ability_necromancer_001.dds",
-			["rS"] = "/esoui/art/icons/ability_necromancer_001_b.dds",
-			["vS"] = "/esoui/art/icons/ability_necromancer_001_a.dds",
+			["FS"] = "/esoui/art/icons/ability_necromancer_001.dds",
+			["RS"] = "/esoui/art/icons/ability_necromancer_001_b.dds",
+			["VS"] = "/esoui/art/icons/ability_necromancer_001_a.dds",
 		},
 		["graphic"] = "",
 		["highlight"] = {0.3,0,1,0.2},
 		["highlightAnimation"] = {0.9,0.8,1,0.8},
+		["id"] = {
+			["FS"] = { ["buff"] = 114131, ["ability"] = {
+			[1] = 114108, [2] = 123683, [3] = 123685
+			}},	
+			["RS"] = { ["buff"] = 117638, ["ability"] = {
+			[1] = 117637, [2] = 123718, [3] = 123719
+			}},
+			["VS"] = { ["buff"] = 117625, ["ability"] = {
+			[1] = 117624, [2] = 123699, [3] = 123704
+			}},
+		},
 	},
 }
 

@@ -4,25 +4,6 @@ Util.Text = Util.Text or {}
 Util.Stacks = Util.Stacks or {}
 CombatMetronome.StackTracker = CombatMetronome.StackTracker or {}
 local StackTracker = CombatMetronome.StackTracker
-
-local bAId = { ["buff"] = 203447, ["ability"] = 24165,}
-local mWId = { ["buff"] = 122658, ["ability"] = 20805,} -- 122729
-local gFId = {
-	["gF"] = { ["buff"] = 122585, ["ability"] = 61902,},
-	["mR"] = { ["buff"] = 122586, ["ability"] = 61919,},
-	["rF"] = { ["buff"] = 122587, ["ability"] = 61927,},
-	}
-local fSId = {
-	["fS"] = { ["buff"] = 114131, ["ability"] = {
-	[1] = 114108, [2] = 123683, [3] = 123685
-	}},	
-	["rS"] = { ["buff"] = 117638, ["ability"] = {
-	[1] = 117637, [2] = 123718, [3] = 123719
-	}},
-	["vS"] = { ["buff"] = 117625, ["ability"] = {
-	[1] = 117624, [2] = 123699, [3] = 123704
-	}},
-	}
 	
 -- local previousStack = 0
 
@@ -318,19 +299,19 @@ end
 	-------------------------------------------
 
 function StackTracker:TrackerIsActive()
-	local trackerIsActive = false
-	if self.class == "ARC" and CombatMetronome.SV.StackTracker.trackCrux then
-		trackerIsActive = true
-	elseif self.class == "DK" and CombatMetronome.SV.StackTracker.trackMW then
-		trackerIsActive = true
-	elseif self.class == "SORC" and CombatMetronome.SV.StackTracker.trackBA then
-		trackerIsActive = true
-	elseif self.class == "NB" and CombatMetronome.SV.StackTracker.trackGF then
-		trackerIsActive = true
-	elseif self.class == "CRO" and CombatMetronome.SV.StackTracker.trackFS then
-		trackerIsActive = true
+	for skill, _ in pairs(self.SKILL_ATTRIBUTES) do
+		if self:IsTrackingAvailable(skill) and CombatMetronome.SV.StackTracker[skill].tracked then
+			return true
+		end
 	end
-	return trackerIsActive
+	return false
+end
+
+function StackTracker:EffectChangedShouldBeActive()
+	if self:TrackerIsActive() and not self:IsTrackingAvailable("FS") then
+		return true
+	end
+	return false
 end
 
 		---------------------------------------
@@ -366,14 +347,15 @@ end
         ---- Tracker check if abilities are slotted ----
         ------------------------------------------------
 		
-function StackTracker:CheckIfSlotted()
+function StackTracker:CheckIfSlotted(skill)
 	local ability = ""
+	local attributes = StackTracker.SKILL_ATTRIBUTES[skill]
 	local abilitySlotted = false
-	if self.class == "SORC" then ability = bAId.ability
-	elseif self.class == "NB" then 
+	if skill == "BA" then ability = attributes.id.ability
+	elseif skill == "GF" then 
 		local morph = Util.Stacks:CheckForGFMorph()
-		ability = gFId[morph].ability
-	elseif self.class == "DK" then ability = mWId.ability
+		ability = attributes.id[morph].ability
+	elseif skill == "MW" then ability = attributes.id.ability
 	end
 	if ability ~= "" then
 		for i=1,#self.actionSlotCache do
@@ -383,10 +365,10 @@ function StackTracker:CheckIfSlotted()
 			end
 		end
 	elseif self.class == "ARC" then abilitySlotted = true
-	elseif self.class == "CRO" then
+	elseif skill == "FS" then
 		local morph = Util.Stacks:CheckForFSMorph()
 		for i=1,3 do
-			ability = fSId[morph].ability[i]
+			ability = attributes.id[morph].ability[i]
 			for j=1,#self.actionSlotCache do
 				if self.actionSlotCache[j].id == ability then
 					abilitySlotted = true
@@ -401,17 +383,34 @@ function StackTracker:CheckIfSlotted()
 	return abilitySlotted
 end
 
-function StackTracker:IsTrackingAvailable(stacksToTrack)
-	if stacksToTrack == "mW" then
-		return self.class == "DK"
-	elseif stacksToTrack == "bA" then
-		return self.class == "SORC"
-	elseif stacksToTrack == "gF" then
-		return self.class == "NB"
-	elseif stacksToTrack == "crux" then
-		return self.class == "ARC"
-	elseif stacksToTrack == "fS" then
-		return self.class == "CRO"
+function StackTracker:GetCurrentStacks(skill)
+	local stacks
+	if self:CheckIfSlotted(skill) then
+		if skill == "BA" then stacks = Util.Stacks:GetCurrentNumBAOnPlayer()
+		elseif skill == "MW" then stacks = Util.Stacks:GetCurrentNumMWOnPlayer()
+		elseif skill == "GF" then stacks = Util.Stacks:GetCurrentNumGFOnPlayer()
+		elseif skill == "FS" then stacks = Util.Stacks:GetCurrentNumFSOnPlayer()
+		elseif skill == "Crux" then stacks = Util.Stacks:GetCurrentNumCruxOnPlayer()
+		end
+		return stacks
+	end
+	return 0
+end
+
+function StackTracker:IsTrackingAvailable(skill)
+	if GetAPIVersion() < 101046 then
+		if skill == "MW" then
+			return self.class == "DK"
+		elseif skill == "BA" then
+			return self.class == "SORC"
+		elseif skill == "GF" then
+			return self.class == "NB"
+		elseif skill == "Crux" then
+			return self.class == "ARC"
+		elseif skill == "FS" then
+			return self.class == "CRO"
+		end
+	else
 	end
 end
 

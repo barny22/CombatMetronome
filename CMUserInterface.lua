@@ -301,25 +301,26 @@ end
 CombatMetronome.StackTracker = CombatMetronome.StackTracker or {}
 local StackTracker = CombatMetronome.StackTracker
 
-function StackTracker:BuildUI()
-	local attributes = self.CLASS_ATTRIBUTES[self.class]
-	local size = CombatMetronome.SV.StackTracker.indicatorSize
+function StackTracker:BuildUI(skill)
+	local attributes = self.SKILL_ATTRIBUTES[skill]
+	local size = CombatMetronome.SV.StackTracker[skill].indicatorSize
 	local distance = size/5
+	local multiplier = (GetAPIVersion() >= 101046 and (skill == "BA" or skill == "GF")) and 2 or 1
 	
 	------------------------------
 	---- Build TopLevelWindow ----
 	------------------------------
 	
 	-- if not stacksWindow then
-		-- local stacksWindow = Util.Controls:NewFrame(self.name.."StackTrackerWindow")
-		local stacksWindow = WINDOW_MANAGER:CreateTopLevelWindow(self.name.."StackTrackerWindow")
+		-- local stacksWindow = Util.Controls:NewFrame(self.name..skill.."StackTrackerWindow")
+		local stacksWindow = WINDOW_MANAGER:CreateTopLevelWindow(self.name..skill.."StackTrackerWindow")
 		stacksWindow:SetHandler( "OnMoveStop", function(...)
-			CombatMetronome.SV.StackTracker.xOffset = stacksWindow:GetLeft()
-			CombatMetronome.SV.StackTracker.yOffset = stacksWindow:GetTop()
+			CombatMetronome.SV.StackTracker[skill].xOffset = stacksWindow:GetLeft()
+			CombatMetronome.SV.StackTracker[skill].yOffset = stacksWindow:GetTop()
 		end)
-		stacksWindow:SetDimensions((size*attributes.iMax+distance*(attributes.iMax-1)), size)
+		stacksWindow:SetDimensions((size*attributes.iMax+distance*(attributes.iMax-1)), size*multiplier)
 		stacksWindow:SetMouseEnabled(true)
-		stacksWindow:SetMovable(CombatMetronome.SV.StackTracker.isUnlocked)
+		stacksWindow:SetMovable(CombatMetronome.SV.StackTracker[skill].isUnlocked)
 		stacksWindow:SetClampedToScreen(true)
 		stacksWindow:SetHidden(true)
 		-- stacksWindow:SetDrawTier(DT_HIGH)
@@ -328,7 +329,7 @@ function StackTracker:BuildUI()
 	local function Position(value)
 		stacksWindow:ClearAnchors()
 		if value == "UI" then
-			stacksWindow:SetAnchor(TOPLEFT, GuiRoot, TOPLEFT, CombatMetronome.SV.StackTracker.xOffset, CombatMetronome.SV.StackTracker.yOffset)
+			stacksWindow:SetAnchor(TOPLEFT, GuiRoot, TOPLEFT, CombatMetronome.SV.StackTracker[skill].xOffset, CombatMetronome.SV.StackTracker[skill].yOffset)
 		elseif value == "Sample" then
 			stacksWindow:SetAnchor(RIGHT, GuiRoot, RIGHT, -GuiRoot:GetWidth()/8, GuiRoot:GetHeight()/6)
 		end
@@ -361,27 +362,27 @@ function StackTracker:BuildUI()
 	---- Build new indicator ----
 	-----------------------------
 		
-		local stackIndicator = WINDOW_MANAGER:CreateControl(self.name.."StackIndicator"..tostring(i), stacksWindow, CT_CONTROL)
+		local stackIndicator = WINDOW_MANAGER:CreateControl(self.name..skill.."StackIndicator"..tostring(i), stacksWindow, CT_CONTROL)
 	
-		local icon = WINDOW_MANAGER:CreateControl(self.name.."StackIcon"..tostring(i), stackIndicator, CT_TEXTURE)
+		local icon = WINDOW_MANAGER:CreateControl(self.name..skill.."StackIcon"..tostring(i), stackIndicator, CT_TEXTURE)
 		icon:ClearAnchors() 
 		icon:SetAnchor(TOPLEFT, stackIndicator, TOPLEFT, 0, 0) 
 		icon:SetDesaturation(0.1)
 	
-		local frame = WINDOW_MANAGER:CreateControl(self.name.."StackFrame"..tostring(i), stackIndicator, CT_TEXTURE)
+		local frame = WINDOW_MANAGER:CreateControl(self.name..skill.."StackFrame"..tostring(i), stackIndicator, CT_TEXTURE)
 		frame:ClearAnchors()
 		frame:SetAnchor(TOPLEFT, stackIndicator, TOPLEFT, 0, 0)
 		-- frame:SetTexture("esoui/art/champion/actionbar/champion_bar_slot_frame_disabled.dds")
 		frame:SetTexture("/esoui/art/actionbar/abilityframe64_up.dds")
 	
-		local highlight = WINDOW_MANAGER:CreateControl(self.name.."StackHighlight"..tostring(i), stackIndicator, CT_TEXTURE)
+		local highlight = WINDOW_MANAGER:CreateControl(self.name..skill.."StackHighlight"..tostring(i), stackIndicator, CT_TEXTURE)
 		highlight:ClearAnchors()
 		highlight:SetAnchor(TOPLEFT, stackIndicator, TOPLEFT, 0, 0)
 		highlight:SetDesaturation(0.4)
 		highlight:SetTexture("/esoui/art/actionbar/actionslot_toggledon.dds")
 		highlight:SetColor(unpack(attributes.highlight))
 		
-		local highlightAnimation = WINDOW_MANAGER:CreateControl(self.name.."StackHighlightAnimation"..tostring(i), stackIndicator, CT_TEXTURE)
+		local highlightAnimation = WINDOW_MANAGER:CreateControl(self.name..skill.."StackHighlightAnimation"..tostring(i), stackIndicator, CT_TEXTURE)
 		highlightAnimation:ClearAnchors()
 		highlightAnimation:SetTexture("/esoui/art/actionbar/abilityhighlight_mage_med.dds")
 		highlightAnimation:SetDrawTier(DT_HIGH)
@@ -406,15 +407,19 @@ function StackTracker:BuildUI()
 		
 		local function Animate()
 			--if self.SV.debug.enabled then CombatMetronome.debug:Print(tostring(highlightAnimationTimeline:GetDuration())) end
-			highlightAnimation:SetHidden(false)
+			-- highlightAnimation:SetHidden(false)
 			highlightAnimationTimeline:PlayFromStart()
 			--if self.SV.debug.enabled then CombatMetronome.debug:Print("Animation should've started") end
 		end
 		
 		local function StopAnimation()
 			highlightAnimationTimeline:Stop()
-			highlightAnimation:SetHidden(true)
+			-- highlightAnimation:SetHidden(true)
 			--if self.SV.debug.enabled then CombatMetronome.debug:Print("Animation should've stopped") end
+		end
+		
+		local function SetAnimationHidden(value)
+			highlightAnimation:SetHidden(value)
 		end
 
 		local controls = {
@@ -432,10 +437,11 @@ function StackTracker:BuildUI()
 		Deactivate = Deactivate,
 		Animate = Animate,
 		StopAnimation = StopAnimation,
+		SetAnimationHidden = SetAnimationHidden,
 		}
 	end
 
-	for i =1,attributes.iMax do 
+	for i =1,attributes.iMax*multiplier do 
 		indicator[i] = GetIndicator(i)
 	end 
 	
@@ -444,7 +450,7 @@ function StackTracker:BuildUI()
 	-----------------------
 	
 	local function ApplySize(size) 
-		for i=1,attributes.iMax do 
+		for i=1,attributes.iMax*multiplier do 
 			indicator[i].controls.frame:SetDimensions(size,size)
 			indicator[i].controls.highlight:SetDimensions(size,size)
 			indicator[i].controls.icon:SetDimensions(size,size)
@@ -455,20 +461,25 @@ function StackTracker:BuildUI()
 	indicator.ApplySize = ApplySize
 	
 	local function ApplyDistance(distance, size) 
-		for i=1,attributes.iMax do
-			-- local xOffset = (i-(attributes.iMax+1)/2)*(size+distance)
-			local xOffset = (i-1)*(size+distance)
-			indicator[i].controls.stackIndicator:ClearAnchors()
-			indicator[i].controls.stackIndicator:SetAnchor(TOPLEFT, stacksWindow, TOPLEFT, xOffset, 0)
+		for i=1,attributes.iMax*multiplier do
+			if i <= attributes.iMax then
+				local xOffset = (i-1)*(size+distance)
+				indicator[i].controls.stackIndicator:ClearAnchors()
+				indicator[i].controls.stackIndicator:SetAnchor(TOPLEFT, stacksWindow, TOPLEFT, xOffset, 0)
+			else
+				local xOffset = (i-attributes.iMax-1)*(size+distance)
+				indicator[i].controls.stackIndicator:ClearAnchors()
+				indicator[i].controls.stackIndicator:SetAnchor(TOPLEFT, stacksWindow, TOPLEFT, xOffset, size+distance)
+			end
 		end
 	end
 	indicator.ApplyDistance = ApplyDistance
 	
 	local function ApplyIcon()
-		if self.class == "NB" then
+		if skill == "GF" then
 			local value = Util.Stacks:CheckForGFMorph()
 			attributes.graphic = attributes.icon[value]
-		elseif self.class == "CRO" then
+		elseif skill == "FS" then
 			local value = Util.Stacks:CheckForFSMorph()
 			attributes.graphic = attributes.icon[value]
 		end

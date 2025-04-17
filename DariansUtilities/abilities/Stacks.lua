@@ -10,18 +10,18 @@ local dodgeId = 29721
 local bAId = { ["buff"] = 203447, ["ability"] = 24165,}
 local mWId = { ["buff"] = 122658, ["ability"] = 20805,} -- 122729
 local gFId = {
-	["gF"] = { ["buff"] = 122585, ["ability"] = 61902,},
-	["mR"] = { ["buff"] = 122586, ["ability"] = 61919,},
-	["rF"] = { ["buff"] = 122587, ["ability"] = 61927,},
+	["GF"] = { ["buff"] = 122585, ["ability"] = 61902,},
+	["MR"] = { ["buff"] = 122586, ["ability"] = 61919,},
+	["RF"] = { ["buff"] = 122587, ["ability"] = 61927,},
 	}
 local fSId = {
-	["fS"] = { ["buff"] = 114131, ["ability"] = {
+	["FS"] = { ["buff"] = 114131, ["ability"] = {
 	[1] = 114108, [2] = 123683, [3] = 123685
 	}},	
-	["rS"] = { ["buff"] = 117638, ["ability"] = {
+	["RS"] = { ["buff"] = 117638, ["ability"] = {
 	[1] = 117637, [2] = 123718, [3] = 123719
 	}},
-	["vS"] = { ["buff"] = 117625, ["ability"] = {
+	["VS"] = { ["buff"] = 117625, ["ability"] = {
 	[1] = 117624, [2] = 123699, [3] = 123704
 	}},
 	}
@@ -128,9 +128,9 @@ end
 function Stacks:CheckForGFMorph()
 	local morph = ""
 	local morphId = GetProgressionSkillCurrentMorphSlot(GetProgressionSkillProgressionId(1, 1, 6))
-		if morphId == 0 then morph = "gF"
-		elseif morphId == 1 then morph = "rF"
-		elseif morphId == 2 then morph = "mR"
+		if morphId == 0 then morph = "GF"
+		elseif morphId == 1 then morph = "RF"
+		elseif morphId == 2 then morph = "MR"
 		end
 	if morph ~= self.oldMorph and morph ~= "" then self.morphChanged = true end --self.stackTracker.indicator.ApplyIcon() end
 	-- if morphChanged then if self.SV.debug.enabled then CombatMetronome.debug:Print("How dare you change morphs midgame??") end end
@@ -159,9 +159,9 @@ end
 function Stacks:CheckForFSMorph()
 	local morph = ""
 	local morphId = GetProgressionSkillCurrentMorphSlot(GetProgressionSkillProgressionId(1, 1, 2))
-		if morphId == 0 then morph = "fS"
-		elseif morphId == 1 then morph = "vS"
-		elseif morphId == 2 then morph = "rS"
+		if morphId == 0 then morph = "FS"
+		elseif morphId == 1 then morph = "VS"
+		elseif morphId == 2 then morph = "RS"
 		end
 	if morph ~= self.oldMorph and morph ~= "" then self.morphChanged = true end -- CombatMetronome.stackTracker.indicator.ApplyIcon() end
 	self.oldMorph = morph

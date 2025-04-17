@@ -76,6 +76,97 @@ function CombatMetronome:BuildMenu()
 		},
 	}
 	local LATrackerSettings = LATracker:BuildUI()
+	local CreateStacksSettings
+	CreateStacksSettings = function(skill)
+		local position
+		for i, entry in ipairs(self.menu.options.stackTracker) do
+			if entry.name == "Stacks to track" then position = i break end
+		end
+		for skill, entry in pairs(StackTracker.SKILL_ATTRIBUTES) do
+			position = position + 1
+			local trackerSettings = {
+				{
+					type = "checkbox",
+					name = self.menu.CONTROLS.stackTracker[skill].Name,
+					disabled = function()
+						return not StackTracker:IsTrackingAvailable(skill)
+					end,
+					getFunc = function() return CombatMetronome.SV.StackTracker[skill].tracked end,
+					setFunc = function(value)
+						CombatMetronome.SV.StackTracker[skill].tracked = value
+						IconDesaturation(self.menu.icons.stackTracker.frame[skill], value and StackTracker:IsTrackingAvailable(skill))
+						IconDesaturation(self.menu.icons.stackTracker.icon[skill], value and StackTracker:IsTrackingAvailable(skill))
+					end
+				},
+				{
+					type = "submenu",
+					name = skill.." tracker options",
+					disabled = function() return not (StackTracker:IsTrackingAvailable(skill) and CombatMetronome.SV.StackTracker[skill].tracked) end
+					controls = {
+						{	
+							type = "slider",
+							name = "Stack indicator size",
+							min = 10,
+							max = 60,
+							step = 1,
+							default = CombatMetronome.SV.StackTracker[skill].indicatorSize,
+							getFunc = function() return CombatMetronome.SV.StackTracker[skill].indicatorSize end,
+							setFunc = function(value)
+								CombatMetronome.SV.StackTracker[skill].indicatorSize = value
+								StackTracker.UI[skill].indicator.ApplySize(value)
+								StackTracker.UI[skill].indicator.ApplyDistance(value/5, value)
+								local attributes = StackTracker.CLASS_ATTRIBUTES[StackTracker.class]
+								StackTracker.UI[skill].stacksWindow:SetDimensions((value*attributes.iMax+(value/5)*(attributes.iMax-1)), value)
+							end,
+						},
+						{
+							type = "header",
+							name = "Audio and visual cues",
+							tooltip = "Settings regarding audio and visual cues when reaching full stacks",
+						},
+						{	type = "checkbox",
+							name = "Play sound cue at max stacks",
+							tooltip = "Plays a sound when you are at max stacks, so you don't miss to cast your ability",
+							getFunc = function() return CombatMetronome.SV.StackTracker[skill].playSound end,
+							setFunc = function(value) CombatMetronome.SV.StackTracker[skill].playSound = value end,
+						},
+						{
+							type = "slider",
+							name = "Sound cue volume",
+							tooltip = "Adjust volume of the sound cue effect",
+							warning = "You may have to adjust your general audio settings and general audio volume for this to have a noticable effect. Take care not to overadjust, your ears can only take so much!",
+							disabled = function() return not CombatMetronome.SV.StackTracker[skill].playSound end,
+							min = 0,
+							max = 100,
+							setp = 1,
+							getFunc = function() return CombatMetronome.SV.StackTracker[skill].volume end,
+							setFunc = function(value) CombatMetronome.SV.StackTracker[skill].volume = value end,
+						},
+						{
+							type = "dropdown",
+							name = "Select Sound",
+							choices = fullStackSounds,
+							default = CombatMetronome.SV.StackTracker[skill].sound,
+							disabled = function() return not CombatMetronome.SV.StackTracker[skill].playSound end,
+							getFunc = function() return CombatMetronome.SV.StackTracker[skill].sound end,
+							setFunc = function(value) 
+								CombatMetronome.SV.StackTracker[skill].sound = value
+								PlaySound(SOUNDS[value])
+							end
+						},
+						{	type = "checkbox",
+							name = "Play animation when reaching full stacks/stacks needed to fire ability",
+							tooltip = "Gives you a more intense visual cue",
+							getFunc = function() return CombatMetronome.SV.StackTracker[skill].hightlightOnFullStacks end,
+							setFunc = function(value)
+								CombatMetronome.SV.StackTracker[skill].hightlightOnFullStacks = value
+							end,
+						},
+					},
+				},
+			}
+		table.insert(self.menu.stackTracker.options, position, unpack(trackerSettings))
+	end
 	local CreateIcons
 	CreateIcons = function(panel)
 		if panel == CombatMetronomeprogressbarOptions then
@@ -111,7 +202,7 @@ function CombatMetronome:BuildMenu()
 					self.menu.icons.stackTracker.frame[trackedStack]:SetDimensions(35, 35)
 					self.menu.icons.stackTracker.frame[trackedStack]:SetDrawTier(DT_HIGH)
 				end
-				if CombatMetronome.SV.StackTracker[entry.SavedVars] and StackTracker:IsTrackingAvailable(trackedStack) then
+				if CombatMetronome.SV.StackTracker[trackedStack].tracked and StackTracker:IsTrackingAvailable(trackedStack) then
 					self.menu.icons.stackTracker.frame[trackedStack]:SetDesaturation(0)
 					self.menu.icons.stackTracker.icon[trackedStack]:SetDesaturation(0)
 				else
@@ -1678,33 +1769,17 @@ function CombatMetronome:BuildMenu()
 				name = "Hide tracker in PVP Zones",
 				tooltip = "Hides stack tracker in PVPZones to keep UI clean",
 				disabled = function ()
-					return not StackTracker:TrackerIsActive()											--CM_TRACKER_CLASS_ATTRIBUTES[StackTracker.class]
+					for skill, _ in pairs(StackTracker.SKILL_ATTRIBUTES) do
+						if not (StackTracker:IsTrackingAvailable(skill) and CombatMetronome.SV.StackTracker[skill].tracked) then
+							return true
+						end
+						return false
+					end
 				end,
 				getFunc = function() return CombatMetronome.SV.StackTracker.hideInPVP end,
 				setFunc = function(value)
 					CombatMetronome.SV.StackTracker.hideInPVP = value
 					StackTracker:TrackerPVPSwitch()
-				end,
-			},
-			{
-				type = "checkbox",
-				name = "How does it look?",
-				tooltip = "Shows tracker at the right of the screen to check your settings. This tracker is not movable!",
-				warning = "This temporarily disables the Unlock function! Deactivate again to be able to unlock the tracker. This resets, if you leave the menu.",
-				default = false,
-				disabled = function ()
-					return not (StackTracker:TrackerIsActive() and StackTracker:CheckIfSlotted())					--CM_TRACKER_CLASS_ATTRIBUTES[StackTracker.class]
-				end,
-				getFunc = function() return (StackTracker.showSampleTracker and StackTracker:TrackerIsActive() and StackTracker:CheckIfSlotted()) end,
-				setFunc = function(value)
-					StackTracker.showSampleTracker = value
-					if value then
-						StackTracker.UI.Position("Sample")
-						StackTracker.UI.FadeScenes("Sample")
-					else
-						StackTracker.UI.Position("UI")
-						StackTracker.UI.FadeScenes("NoSample")
-					end
 				end,
 			},
 	---------------------------
@@ -1715,68 +1790,23 @@ function CombatMetronome:BuildMenu()
 				name = "Position and size",
 			},
 			{	type = "checkbox",
-				name = "Unlock Tracker",
-				tooltip = "Move stack tracker",
+				name = "Unlock Trackers",
+				tooltip = "Move stack trackers",
 				-- width = "half",
 				disabled = function ()
-					return not (StackTracker:TrackerIsActive() and StackTracker:CheckIfSlotted()) or StackTracker.showSampleTracker		--CM_TRACKER_CLASS_ATTRIBUTES[StackTracker.class]
+					for skill, _ in pairs(StackTracker.SKILL_ATTRIBUTES) do
+						if not (StackTracker:IsTrackingAvailable(skill) and CombatMetronome.SV.StackTracker[skill].tracked) then
+							return true
+						end
+						return false
+					end
 				end,
 				getFunc = function() return CombatMetronome.SV.StackTracker.isUnlocked end,
 				setFunc = function(value)
 					CombatMetronome.SV.StackTracker.isUnlocked = value
-					StackTracker.UI.stacksWindow:SetMovable(value)
-					if not value then
-						StackTracker.UI.FadeScenes("NoSample")
-					else
-						StackTracker.UI.FadeScenes("Sample")
+					for skill, _ in pairs(StackTracker.SKILL_ATTRIBUTES) do
+						StackTracker.UI[skill].stacksWindow:SetMovable(value)
 					end
-				end,
-			},
-			-- {
-				-- type = "checkbox",
-				-- name = "Show tracker over settings menu",
-				-- tooltip = "Shows tracker over settings menu in unlocked mode",
-				-- disabled = function() return not CombatMetronome.SV.StackTracker.isUnlocked end,
-				-- width = "half",
-				-- getFunc = function() return false end,
-				-- setFunc = function(value)
-					-- if self:TrackerIsActive() then
-						-- StackTracker.UI.stacksWindow:SetHidden(not value)
-						-- if value then
-							-- StackTracker.UI.stacksWindow:SetDrawTier(DT_HIGH)
-						-- else
-							-- StackTracker.UI.stacksWindow:SetDrawTier(DT_LOW)
-						-- end
-					-- end
-				-- end,
-			-- },
-			{	type = "slider",
-				name = "Stack indicator size",
-				disabled = function()
-					if StackTracker.class == "ARC" and CombatMetronome.SV.StackTracker.trackCrux then
-						value = false
-					elseif StackTracker.class == "SORC" and CombatMetronome.SV.StackTracker.trackBA then
-						value = false
-					elseif StackTracker.class == "DK" and CombatMetronome.SV.StackTracker.trackMW then
-						value = false
-					elseif StackTracker.class == "NB" and CombatMetronome.SV.StackTracker.trackGF then
-						value = false
-					else
-						value = true
-					end
-					return value
-				end,
-				min = 10,
-				max = 60,
-				step = 1,
-				default = CombatMetronome.SV.StackTracker.indicatorSize,
-				getFunc = function() return CombatMetronome.SV.StackTracker.indicatorSize end,
-				setFunc = function(value)
-					CombatMetronome.SV.StackTracker.indicatorSize = value
-					StackTracker.UI.indicator.ApplySize(value)
-					StackTracker.UI.indicator.ApplyDistance(value/5, value)
-					local attributes = StackTracker.CLASS_ATTRIBUTES[StackTracker.class]
-					StackTracker.UI.stacksWindow:SetDimensions((value*attributes.iMax+(value/5)*(attributes.iMax-1)), value)
 				end,
 			},
 	-------------------------
@@ -1786,163 +1816,6 @@ function CombatMetronome:BuildMenu()
 				type = "header",
 				name = "Stacks to track",
 			},
-			{
-				type = "checkbox",
-				name = self.menu.CONTROLS.stackTracker.mW.Name,
-				-- warning = "If changed, will automatically reload the UI.",
-				disabled = function()
-					return not StackTracker:IsTrackingAvailable("mW")
-				end,
-				getFunc = function() return CombatMetronome.SV.StackTracker.trackMW end,
-				setFunc = function(value)
-					CombatMetronome.SV.StackTracker.trackMW = value
-					IconDesaturation(self.menu.icons.stackTracker.frame["mW"], value and StackTracker:IsTrackingAvailable("mW"))
-					IconDesaturation(self.menu.icons.stackTracker.icon["mW"], value and StackTracker:IsTrackingAvailable("mW"))
-					-- ReloadUI()
-				end
-			},
-			{
-				type = "checkbox",
-				name = self.menu.CONTROLS.stackTracker.bA.Name,
-				-- warning = "If changed, will automatically reload the UI.",
-				disabled = function()
-					return not StackTracker:IsTrackingAvailable("bA")
-				end,
-				getFunc = function() return CombatMetronome.SV.StackTracker.trackBA end,
-				setFunc = function(value)
-					CombatMetronome.SV.StackTracker.trackBA = value
-					IconDesaturation(self.menu.icons.stackTracker.frame["bA"], value and StackTracker:IsTrackingAvailable("bA"))
-					IconDesaturation(self.menu.icons.stackTracker.icon["bA"], value and StackTracker:IsTrackingAvailable("bA"))
-					-- ReloadUI()
-				end
-			},
-			{
-				type = "checkbox",
-				name = self.menu.CONTROLS.stackTracker.gF.Name,
-				-- warning = "If changed, will automatically reload the UI.",
-				disabled = function()
-					return not StackTracker:IsTrackingAvailable("gF")
-				end,
-				getFunc = function() return CombatMetronome.SV.StackTracker.trackGF end,
-				setFunc = function(value)
-					CombatMetronome.SV.StackTracker.trackGF = value
-					IconDesaturation(self.menu.icons.stackTracker.frame["gF"], value and StackTracker:IsTrackingAvailable("gF"))
-					IconDesaturation(self.menu.icons.stackTracker.icon["gF"], value and StackTracker:IsTrackingAvailable("gF"))
-					-- ReloadUI()
-				end
-			},
-			{
-				type = "checkbox",
-				name = self.menu.CONTROLS.stackTracker.crux.Name,
-				-- warning = "If changed, will automatically reload the UI.",
-				disabled = function() 
-					return not StackTracker:IsTrackingAvailable("crux")
-				end,
-				getFunc = function() return CombatMetronome.SV.StackTracker.trackCrux end,
-				setFunc = function(value)
-					CombatMetronome.SV.StackTracker.trackCrux = value
-					IconDesaturation(self.menu.icons.stackTracker.frame["crux"], value and StackTracker:IsTrackingAvailable("crux"))
-					IconDesaturation(self.menu.icons.stackTracker.icon["crux"], value and StackTracker:IsTrackingAvailable("crux"))
-					-- ReloadUI()
-				end
-			},
-			{
-				type = "checkbox",
-				name = self.menu.CONTROLS.stackTracker.fS.Name,
-				-- warning = "If changed, will automatically reload the UI.",
-				disabled = function()
-					return not StackTracker:IsTrackingAvailable("fS")
-				end,
-				getFunc = function() return CombatMetronome.SV.StackTracker.trackFS end,
-				setFunc = function(value)
-					CombatMetronome.SV.StackTracker.trackFS = value
-					IconDesaturation(self.menu.icons.stackTracker.frame["fS"], value and StackTracker:IsTrackingAvailable("fS"))
-					IconDesaturation(self.menu.icons.stackTracker.icon["fS"], value and StackTracker:IsTrackingAvailable("fS"))
-					-- ReloadUI()
-				end
-			},
-	--------------------------
-	---- Tracker Behavior ----
-	--------------------------
-			{
-				type = "header",
-				name = "Audio and visual cues",
-				tooltip = "Settings regarding audio and visual cues when reaching full stacks",
-			},
-			{	type = "checkbox",
-				name = "Play sound cue at max stacks",
-				tooltip = "Plays a sound when you are at max stacks, so you don't miss to cast your ability",
-				disabled = function ()
-					return not StackTracker:TrackerIsActive()											--CM_TRACKER_CLASS_ATTRIBUTES[StackTracker.class]
-				end,
-				getFunc = function() return CombatMetronome.SV.StackTracker.playSound end,
-				setFunc = function(value) CombatMetronome.SV.StackTracker.playSound = value end,
-			},
-			{
-				type = "slider",
-				name = "Sound cue volume",
-				tooltip = "Adjust volume of the sound cue effect",
-				warning = "You may have to adjust your general audio settings and general audio volume for this to have a noticable effect. Take care not to overadjust, your ears can only take so much!",
-				disabled = function() return not (CombatMetronome.SV.StackTracker.playSound and StackTracker:TrackerIsActive()) end,
-				min = 0,
-				max = 100,
-				setp = 1,
-				getFunc = function() return CombatMetronome.SV.StackTracker.volume end,
-				setFunc = function(value) CombatMetronome.SV.StackTracker.volume = value end,
-			},
-			{
-				type = "dropdown",
-				name = "Select Sound",
-				choices = fullStackSounds,
-				default = CombatMetronome.SV.StackTracker.sound,
-				disabled = function() return not (StackTracker:TrackerIsActive() and CombatMetronome.SV.StackTracker.playSound) end,
-				getFunc = function() return CombatMetronome.SV.StackTracker.sound end,
-				setFunc = function(value) 
-					CombatMetronome.SV.StackTracker.sound = value
-					PlaySound(SOUNDS[value])
-				end
-			},
-			{	type = "checkbox",
-				name = "Play animation when reaching full stacks",
-				tooltip = "Gives you a more intense visual cue",
-				-- width = "half",
-				disabled = function ()
-					return not StackTracker:TrackerIsActive()											--CM_TRACKER_CLASS_ATTRIBUTES[StackTracker.class]
-				end,
-				getFunc = function() return CombatMetronome.SV.StackTracker.hightlightOnFullStacks end,
-				setFunc = function(value)
-					CombatMetronome.SV.StackTracker.hightlightOnFullStacks = value
-				end,
-			},
-			-- {
-				-- type = "checkbox",
-				-- name = "Hide Tracker",
-				-- disabled = function ()
-					-- return not StackTracker.UI.stacksWindow
-				-- end,
-				-- getFunc = function() return CombatMetronome.SV.StackTracker.hideTracker end,
-				-- setFunc = function(value)
-					-- CombatMetronome.SV.StackTracker.hideTracker = value
-					-- StackTracker.UI.DefineFragmentScenes(not value)
-				-- end,
-			-- },
-			-- {
-				-- type = "description",
-				-- titel = "I lost my stack tracker",
-				-- width = "half",
-			-- },
-			-- {
-				-- type = "button",
-				-- name = "Centralize Tracker",
-				-- tooltip = "This button centers the stack tracker in the middle of your screen",
-				-- width = "half",
-				-- disabled = function ()
-					-- return not StackTracker.UI.stacksWindow
-				-- end,
-				-- func = function()
-					-- StackTracker.UI.stacksWindow:SetAnchor(TOPLEFT, GuiRoot, TOPLEFT, GuiRoot:GetWidth()/2, GuiRoot:GetHeight()/2)
-				-- end,
-			-- },
 		},
 		["laTracker"] = {
 			------------------------------
@@ -2020,7 +1893,7 @@ function CombatMetronome:BuildMenu()
 			},
 		},
     }
-
+	CreateStacksSettings
     self.menu.panels = {}
 	for panelName, panelOptions in pairs(self.menu.metadata) do
 		self.menu.panels[panelName] = LAM:RegisterAddonPanel(self.name..panelName.."Options", self.menu.metadata[panelName])
