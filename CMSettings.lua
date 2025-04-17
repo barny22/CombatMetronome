@@ -440,8 +440,8 @@ function CombatMetronome:BuildMenu()
 				type = "checkbox",
 				name = "How does it look?",
 				tooltip = "Shows bar at the right of the screen to check your settings. This bar is not resizable nor movable! This resets if you leave the menu.",
-				warning = "This temporarily disables the Unlock function! Deactivate again to be able to unlock the bar.",
-				disabled = function() return CombatMetronome.SV.Progressbar.hide end,
+				warning = "This temporarily disables the Unlock function and is disabled if progressbar is unlocked! Deactivate again to be able to unlock the bar.",
+				disabled = function() return CombatMetronome.SV.Progressbar.hide or CombatMetronome.Progressbar.frame.IsUnlocked() end,
 				default = false,
 				getFunc = function() return self.Progressbar.showSample end,
 				setFunc = function(value)
