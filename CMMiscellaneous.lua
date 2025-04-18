@@ -198,28 +198,38 @@ CombatMetronome.menu.CONTROLS = {
 	["stackTracker"] = {
 		["MW"] = {
 			["Name"] = "Track Molten Whip Stacks",
-			["frame"] = frameTexture,
+			["subName"] = "Molten whip",
+			-- ["frame"] = frameTexture,
 			["icon"] = "/esoui/art/icons/ability_dragonknight_001_b.dds",
+			["order"] = 5,
 		},
 		["BA"] = {
 			["Name"] = "Track Bound Armaments Stacks",
-			["frame"] = frameTexture,
+			["subName"] = "Bound armaments",
+			-- ["frame"] = frameTexture,
 			["icon"] = "/esoui/art/icons/ability_sorcerer_bound_armaments.dds",
+			["order"] = 1,
 		},
 		["GF"] = {
 			["Name"] = "Track Stacks of Grimm Focus and its Morphs",
-			["frame"] = frameTexture,
+			["subName"] = "Grimm focus (and morphs)",
+			-- ["frame"] = frameTexture,
 			["icon"] = "/esoui/art/icons/ability_nightblade_005.dds",
+			["order"] = 4,
 		},
 		["Crux"] = {
 			["Name"] = "Track Crux Stacks",
-			["frame"] = frameTexture,
+			["subName"] = "Crux",
+			-- ["frame"] = frameTexture,
 			["icon"] = "/esoui/art/icons/class_buff_arcanist_crux.dds",
+			["order"] = 2,
 		},
 		["FS"] = {
 			["Name"] = "Track Stacks of flame skull and its Morphs",
-			["frame"] = frameTexture,
+			["subName"] = "Flame skull (and morphs)",
+			-- ["frame"] = frameTexture,
 			["icon"] = "/esoui/art/icons/ability_necromancer_001.dds",
+			["order"] = 3,
 		},
 	},
 }

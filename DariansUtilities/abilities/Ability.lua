@@ -540,7 +540,7 @@ function Ability.Tracker:AbilityUsed(trigger)
         self.queuedEvent = nil
         
         if event.ability.id == carverId.mag or event.ability.id == carverId.stam then
-            local cruxes = Util.Stacks:GetCurrentNumCruxOnPlayer()
+            local cruxes = Util.Stacks:GetCurrentNumStacksOnPlayer("Crux")
             event.ability.delay = CARVER_DELAY_PLACEHOLDER + (338 * cruxes)
             -- CombatMetronome.debug:Print(string.format("Fatecarver duration succesfully adjusted with %d crux(es)", cruxes))
         end

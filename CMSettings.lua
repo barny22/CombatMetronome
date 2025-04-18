@@ -76,33 +76,52 @@ function CombatMetronome:BuildMenu()
 		},
 	}
 	local LATrackerSettings = LATracker:BuildUI()
-	local CreateStacksSettings
-	CreateStacksSettings = function(skill)
+	local function CreateStacksSettings()
 		local position
 		for i, entry in ipairs(self.menu.options.stackTracker) do
 			if entry.name == "Stacks to track" then position = i break end
 		end
-		for skill, entry in pairs(StackTracker.SKILL_ATTRIBUTES) do
-			position = position + 1
-			local trackerSettings = {
-				{
-					type = "checkbox",
-					name = self.menu.CONTROLS.stackTracker[skill].Name,
-					disabled = function()
-						return not StackTracker:IsTrackingAvailable(skill)
-					end,
-					getFunc = function() return CombatMetronome.SV.StackTracker[skill].tracked end,
-					setFunc = function(value)
-						CombatMetronome.SV.StackTracker[skill].tracked = value
-						IconDesaturation(self.menu.icons.stackTracker.frame[skill], value and StackTracker:IsTrackingAvailable(skill))
-						IconDesaturation(self.menu.icons.stackTracker.icon[skill], value and StackTracker:IsTrackingAvailable(skill))
-					end
-				},
+		local sortedControls = {}
+		for skill, entry in pairs(self.menu.CONTROLS.stackTracker) do
+			sortedControls[entry.order] = {skill = skill, entry = entry}
+		end
+		for i = 1, #sortedControls do
+			local skill, entry = sortedControls[i].skill, sortedControls[i].entry
+			local submenu = {
 				{
 					type = "submenu",
-					name = skill.." tracker options",
-					disabled = function() return not (StackTracker:IsTrackingAvailable(skill) and CombatMetronome.SV.StackTracker[skill].tracked) end
+					name = "|t20:20:"..entry.icon.."|t "..entry.subName,
+					disabled = function() return not StackTracker:IsTrackingAvailable(skill) end,
 					controls = {
+						{
+							type = "checkbox",
+							name = entry.Name,
+							disabled = function()
+								return not StackTracker:IsTrackingAvailable(skill)
+							end,
+							getFunc = function() return CombatMetronome.SV.StackTracker[skill].tracked end,
+							setFunc = function(value)
+								CombatMetronome.SV.StackTracker[skill].tracked = value
+								if value and not StackTracker.UI[skill] and StackTracker:CheckIfSlotted(skill) then
+									StackTracker:InitializeUI(skill)
+								-- IconDesaturation(self.menu.icons.stackTracker.frame[skill], value and StackTracker:IsTrackingAvailable(skill))
+								-- IconDesaturation(self.menu.icons.stackTracker.icon[skill], value and StackTracker:IsTrackingAvailable(skill))
+								elseif not value and StackTracker.UI[skill] then
+									StackTracker:HandleUIVisibility(skill, "NoSample")
+								end
+							end,
+						},
+						{
+							type = "checkbox",
+							name = "Hide in PVP Zones",
+							tooltip = "Hides stack tracker in PVPZones to keep UI clean",
+							disabled = function () return not StackTracker:TrackerIsActive() end,
+							getFunc = function() return CombatMetronome.SV.StackTracker[skill].hideInPVP end,
+							setFunc = function(value)
+								CombatMetronome.SV.StackTracker[skill].hideInPVP = value
+								StackTracker:PVPSwitch(skill)
+							end,
+						},
 						{	
 							type = "slider",
 							name = "Stack indicator size",
@@ -115,7 +134,7 @@ function CombatMetronome:BuildMenu()
 								CombatMetronome.SV.StackTracker[skill].indicatorSize = value
 								StackTracker.UI[skill].indicator.ApplySize(value)
 								StackTracker.UI[skill].indicator.ApplyDistance(value/5, value)
-								local attributes = StackTracker.CLASS_ATTRIBUTES[StackTracker.class]
+								local attributes = StackTracker.SKILL_ATTRIBUTES[skill]
 								StackTracker.UI[skill].stacksWindow:SetDimensions((value*attributes.iMax+(value/5)*(attributes.iMax-1)), value)
 							end,
 						},
@@ -165,7 +184,13 @@ function CombatMetronome:BuildMenu()
 					},
 				},
 			}
-		table.insert(self.menu.stackTracker.options, position, unpack(trackerSettings))
+			table.insert(self.menu.options.stackTracker, position+i, unpack(submenu))
+			-- for i=#self.menu.options.stackTracker, 1, -1 do
+				-- if not self.menu.options.stackTracker[i] then
+					-- table.remove(self.menu.options.stackTracker, i)
+				-- end
+			-- end
+		end
 	end
 	local CreateIcons
 	CreateIcons = function(panel)
@@ -186,42 +211,13 @@ function CombatMetronome:BuildMenu()
 			end
 			self.menu.icons.progressbar[2]:SetTexture(self.Progressbar.activeMount.icon)
 		end
-		if panel == CombatMetronomestackTrackerOptions then
-			for trackedStack, entry in pairs(self.menu.CONTROLS.stackTracker) do
-				local number = CombatMetronome:CreateMenuIconsPath(entry.Name, panel)
-				if not self.menu.icons.stackTracker.icon[trackedStack] then
-					self.menu.icons.stackTracker.icon[trackedStack] = WINDOW_MANAGER:CreateControl(self.name.."TrackerMenuIcon"..trackedStack, panel.controlsToRefresh[number].checkbox, CT_TEXTURE)
-					self.menu.icons.stackTracker.icon[trackedStack]:SetAnchor(RIGHT, panel.controlsToRefresh[number].checkbox, LEFT, -25, 0)
-					self.menu.icons.stackTracker.icon[trackedStack]:SetTexture(entry.icon)
-					self.menu.icons.stackTracker.icon[trackedStack]:SetDimensions(35, 35)
-				end
-				if not self.menu.icons.stackTracker.frame[trackedStack] then
-					self.menu.icons.stackTracker.frame[trackedStack] = WINDOW_MANAGER:CreateControl(self.name.."TrackerMenuIconFrame"..trackedStack, panel.controlsToRefresh[number].checkbox, CT_TEXTURE)
-					self.menu.icons.stackTracker.frame[trackedStack]:SetAnchor(RIGHT, panel.controlsToRefresh[number].checkbox, LEFT, -25, 0)
-					self.menu.icons.stackTracker.frame[trackedStack]:SetTexture(entry.frame)
-					self.menu.icons.stackTracker.frame[trackedStack]:SetDimensions(35, 35)
-					self.menu.icons.stackTracker.frame[trackedStack]:SetDrawTier(DT_HIGH)
-				end
-				if CombatMetronome.SV.StackTracker[trackedStack].tracked and StackTracker:IsTrackingAvailable(trackedStack) then
-					self.menu.icons.stackTracker.frame[trackedStack]:SetDesaturation(0)
-					self.menu.icons.stackTracker.icon[trackedStack]:SetDesaturation(0)
-				else
-					self.menu.icons.stackTracker.frame[trackedStack]:SetDesaturation(1)
-					self.menu.icons.stackTracker.icon[trackedStack]:SetDesaturation(1)
-				end
-			end
-		end
-		if self.menu.icons.progressbar[#self.menu.CONTROLS.progressbar] and self.menu.icons.stackTracker.frame[#self.menu.CONTROLS.stackTracker] and self.menu.icons.stackTracker.icon[#self.menu.CONTROLS.stackTracker] then
-			CALLBACK_MANAGER:UnregisterCallback("LAM-PanelControlsCreated", CreateIcons)
-			self.debug:Print("Unregistered icons callback")
-		end
+		CALLBACK_MANAGER:UnregisterCallback("LAM-PanelControlsCreated", CreateIcons)
 	end
 	CALLBACK_MANAGER:RegisterCallback("LAM-PanelControlsCreated", CreateIcons)
 
     self.menu.abilityAdjustChoices = self:CreateAdjustList()
     self.menu.curSkillName = ABILITY_ADJUST_PLACEHOLDER
     self.menu.curSkillId = -1
-	local attributes = StackTracker.CLASS_ATTRIBUTES[StackTracker.class]
 	self.menu.metadata = {
 		["general"] = {
 			type = "panel",
@@ -1759,59 +1755,36 @@ function CombatMetronome:BuildMenu()
 			-----------------------
 			---- Stack Tracker ----
 			-----------------------
-			{	
-				type = "header",
-				name = "General Options",
-				tooltip = "Lets you track your stacks on e.g. crux or bound armaments. This works on Nightblade, Sorcerer, Dragonknight and Arcanist.",
-			},
-			{
-				type = "checkbox",
-				name = "Hide tracker in PVP Zones",
-				tooltip = "Hides stack tracker in PVPZones to keep UI clean",
-				disabled = function ()
-					for skill, _ in pairs(StackTracker.SKILL_ATTRIBUTES) do
-						if not (StackTracker:IsTrackingAvailable(skill) and CombatMetronome.SV.StackTracker[skill].tracked) then
-							return true
-						end
-						return false
-					end
-				end,
-				getFunc = function() return CombatMetronome.SV.StackTracker.hideInPVP end,
-				setFunc = function(value)
-					CombatMetronome.SV.StackTracker.hideInPVP = value
-					StackTracker:TrackerPVPSwitch()
-				end,
-			},
-	---------------------------
-	---- Position and Size ----
-	---------------------------
+			------------------
+			---- Position ----
+			------------------
 			{
 				type = "header",
-				name = "Position and size",
+				name = "Position",
 			},
 			{	type = "checkbox",
 				name = "Unlock Trackers",
 				tooltip = "Move stack trackers",
 				-- width = "half",
-				disabled = function ()
-					for skill, _ in pairs(StackTracker.SKILL_ATTRIBUTES) do
-						if not (StackTracker:IsTrackingAvailable(skill) and CombatMetronome.SV.StackTracker[skill].tracked) then
-							return true
-						end
-						return false
-					end
-				end,
+				disabled = function() return not StackTracker:TrackerIsActive() end,
 				getFunc = function() return CombatMetronome.SV.StackTracker.isUnlocked end,
 				setFunc = function(value)
 					CombatMetronome.SV.StackTracker.isUnlocked = value
 					for skill, _ in pairs(StackTracker.SKILL_ATTRIBUTES) do
-						StackTracker.UI[skill].stacksWindow:SetMovable(value)
+						if StackTracker.UI[skill] then 
+							StackTracker.UI[skill].stacksWindow:SetMovable(value)
+							if value then
+								StackTracker.UI[skill].FadeScenes("Sample")
+							else
+								StackTracker.UI[skill].FadeScenes("NoSample")
+							end
+						end
 					end
 				end,
 			},
-	-------------------------
-	---- Stacks to track ----
-	-------------------------
+			-------------------------
+			---- Stacks to track ----
+			-------------------------
 			{
 				type = "header",
 				name = "Stacks to track",
@@ -1893,7 +1866,7 @@ function CombatMetronome:BuildMenu()
 			},
 		},
     }
-	CreateStacksSettings
+	CreateStacksSettings()
     self.menu.panels = {}
 	for panelName, panelOptions in pairs(self.menu.metadata) do
 		self.menu.panels[panelName] = LAM:RegisterAddonPanel(self.name..panelName.."Options", self.menu.metadata[panelName])

@@ -305,7 +305,7 @@ function StackTracker:BuildUI(skill)
 	local attributes = self.SKILL_ATTRIBUTES[skill]
 	local size = CombatMetronome.SV.StackTracker[skill].indicatorSize
 	local distance = size/5
-	local multiplier = (GetAPIVersion() >= 101046 and (skill == "BA" or skill == "GF")) and 2 or 1
+	local multiplier = (CombatMetronome.API >= 101046 and (skill == "BA" or skill == "GF")) and 2 or 1
 	
 	------------------------------
 	---- Build TopLevelWindow ----
@@ -477,11 +477,9 @@ function StackTracker:BuildUI(skill)
 	
 	local function ApplyIcon()
 		if skill == "GF" then
-			local value = Util.Stacks:CheckForGFMorph()
-			attributes.graphic = attributes.icon[value]
+			attributes.graphic = attributes.icon[Util.Stacks.morphs.GF.new]
 		elseif skill == "FS" then
-			local value = Util.Stacks:CheckForFSMorph()
-			attributes.graphic = attributes.icon[value]
+			attributes.graphic = attributes.icon[Util.Stacks.morphs.FS.new]
 		end
 		for i=1,attributes.iMax do
 			indicator[i].controls.icon:SetTexture(attributes.graphic)

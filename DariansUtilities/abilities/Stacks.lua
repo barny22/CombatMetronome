@@ -2,29 +2,100 @@ local Util = DariansUtilities
 Util.Ability = Util.Ability or { }
 Util.Stacks = Util.Stacks or {}
 local Stacks = Util.Stacks
+Stacks.morphs = {}
+
+function Stacks:HandleMorphRegister(value)
+	local needToRegister = false
+	if value == "CRO" or value == "NB" then
+		needToRegister = true
+	end
+	if needToRegister and not Stacks.morphCheckRegistered then
+		EVENT_MANAGER:RegisterForEvent(
+			"StacksMorphCheck",
+			EVENT_ABILITY_LIST_CHANGED,
+			function()
+				local morph = self:CheckMorph(value)
+				local morphUpdated = false
+				if value == "CRO" then
+					if not Stacks.morphs.FS or Stacks.morphs.FS ~= morph then
+						Stacks.morphs.FS = morph
+						morphUpdated = true
+					end
+					if morphUpdated and CombatMetronome and CombatMetronome.StackTracker and CombatMetronome.StackTracker.UI and CombatMetronome.StackTracker.UI.FS then CombatMetronome.StackTracker.UI.FS.indicator.ApplyIcon() end
+				elseif value == "NB" then
+					if not Stacks.morphs.GF or Stacks.morphs.GF ~= morph then
+						Stacks.morphs.GF = morph
+						morphUpdated = true
+					end
+					if morphUpdated and CombatMetronome and CombatMetronome.StackTracker and CombatMetronome.StackTracker.UI and CombatMetronome.StackTracker.UI.GF then CombatMetronome.StackTracker.UI.GF.indicator.ApplyIcon() end
+				end
+			end
+		)
+		
+		Stacks.morphCheckRegistered = true
+	elseif not needToRegister and Stacks.morphCheckRegistered then
+		EVENT_MANAGER:UnregisterForEvent(
+			"StacksMorphCheck")
+			
+		Stacks.morphCheckRegistered = false
+	end
+end
+
+function Stacks:CheckMorph(value)
+	local morph = ""
+	local morphId
+	if value == "CRO" then
+		morphId = GetProgressionSkillCurrentMorphSlot(GetProgressionSkillProgressionId(1, 1, 2))
+		if morphId == 0 then morph = "FS"
+		elseif morphId == 1 then morph = "VS"
+		elseif morphId == 2 then morph = "RS"
+		end
+	elseif value == "NB" then
+		morphId = GetProgressionSkillCurrentMorphSlot(GetProgressionSkillProgressionId(1, 1, 2))
+		if morphId == 0 then morph = "GF"
+		elseif morphId == 1 then morph = "RF"
+		elseif morphId == 2 then morph = "MR"
+		end
+	end
+	return morph
+end
 
 --IDs for easy access
 
-local cruxId = 184220
-local dodgeId = 29721
-local bAId = { ["buff"] = 203447, ["ability"] = 24165,}
-local mWId = { ["buff"] = 122658, ["ability"] = 20805,} -- 122729
-local gFId = {
-	["GF"] = { ["buff"] = 122585, ["ability"] = 61902,},
-	["MR"] = { ["buff"] = 122586, ["ability"] = 61919,},
-	["RF"] = { ["buff"] = 122587, ["ability"] = 61927,},
-	}
-local fSId = {
-	["FS"] = { ["buff"] = 114131, ["ability"] = {
-	[1] = 114108, [2] = 123683, [3] = 123685
-	}},	
-	["RS"] = { ["buff"] = 117638, ["ability"] = {
-	[1] = 117637, [2] = 123718, [3] = 123719
-	}},
-	["VS"] = { ["buff"] = 117625, ["ability"] = {
-	[1] = 117624, [2] = 123699, [3] = 123704
-	}},
-	}
+local IDS = {
+	["Crux"] = 184220,
+	["BA"] = 203447,
+	["MW"] = 122658,
+	["GF"] = {
+		["GF"] = 122585,
+		["MR"] = 122586,
+		["RF"] = 122587,
+	},
+	["FS"] = {
+		["FS"] = {[1] = 114108, [2] = 123683, [3] = 123685},
+		["RS"] = {[1] = 117637, [2] = 123718, [3] = 123719},
+		["VS"] = {[1] = 117624, [2] = 123699, [3] = 123704},
+	},
+}
+-- local cruxId = 184220
+-- local bAId = { ["buff"] = 203447, ["ability"] = 24165,}
+-- local mWId = { ["buff"] = 122658, ["ability"] = 20805,} -- 122729
+-- local gFId = {
+	-- ["GF"] = { ["buff"] = 122585, ["ability"] = 61902,},
+	-- ["MR"] = { ["buff"] = 122586, ["ability"] = 61919,},
+	-- ["RF"] = { ["buff"] = 122587, ["ability"] = 61927,},
+	-- }
+-- local fSId = {
+	-- ["FS"] = { ["buff"] = 114131, ["ability"] = {
+	-- [1] = 114108, [2] = 123683, [3] = 123685
+	-- }},	
+	-- ["RS"] = { ["buff"] = 117638, ["ability"] = {
+	-- [1] = 117637, [2] = 123718, [3] = 123719
+	-- }},
+	-- ["VS"] = { ["buff"] = 117625, ["ability"] = {
+	-- [1] = 117624, [2] = 123699, [3] = 123704
+	-- }},
+	-- }
 
 		---------------------------------------
         ---- Store abilities on Actionbars ----
@@ -66,121 +137,50 @@ function Stacks:StoreAbilitiesOnActionBar()
     return actionSlots
 end
 
-	-----------------------
-	---- Crux Tracking ----
-	-----------------------
+	--------------------
+	-- Stack Tracking --
+	--------------------
 
-function Stacks:GetCurrentNumCruxOnPlayer()					-- Crux Tracking by barny (special thanks to akasha who basically did all the work)
-	--local start = GetGameTimeMilliseconds()
-	local crux = 0
-	for i=1,GetNumBuffs("player") do
-		local name,_,_,_,stack,_,_,_,_,statusEffectType,abilityId = GetUnitBuffInfo("player", i)
-		if	abilityId == cruxId then
-			crux = stack
-			-- if self.SV.debug.enabled then CombatMetronome.debug:Print("You currently have "..tostring(crux).." Crux")
-		break 
-		end
-	end
-	-- if self.SV.debug.enabled then CombatMetronome.debug:Print(string.format("found %d crux(es); search time %d ms", crux, GetGameTimeMilliseconds() - start))
-	return crux
-end
-
-	---------------------------------
-	---- Bound Armaments Tracker ----
-	---------------------------------
-
-function Stacks:GetCurrentNumBAOnPlayer()
-	--local start = GetGameTimeMilliseconds()
-	local bAStacks = 0
-	for i=1,GetNumBuffs("player") do
-		local _,_,_,_,stack,_,_,_,_,_,abilityId = GetUnitBuffInfo("player", i)
-		if	abilityId == bAId.buff then
-			bAStacks = stack
-			-- if self.SV.debug.enabled then CombatMetronome.debug:Print("You currently have "..tostring(bAStacks).." Stacks of Bound Armaments")
-		break 
-		end
-	end
-	return bAStacks
-end
-
-	-----------------------------
-	---- Molten Whip Tracker ----
-	-----------------------------
-
-function Stacks:GetCurrentNumMWOnPlayer()
-	--local start = GetGameTimeMilliseconds()
-	local mWStacks = 0
-	for i=1,GetNumBuffs("player") do
-		local _,_,_,_,stack,_,_,_,_,_,abilityId = GetUnitBuffInfo("player", i)
-		if	abilityId == mWId.buff then
-			mWStacks = stack
-			-- if self.SV.debug.enabled then CombatMetronome.debug:Print("You currently have "..tostring(mWStacks).." Stacks of Molten Whip")
-		break 
-		end
-	end
-	return mWStacks
-end
-
-	----------------------------------------------------------------
-	---- Grimm Focus/Merciless Resolve/Relentless Focus Tracker ----
-	----------------------------------------------------------------
-	
-function Stacks:CheckForGFMorph()
-	local morph = ""
-	local morphId = GetProgressionSkillCurrentMorphSlot(GetProgressionSkillProgressionId(1, 1, 6))
-		if morphId == 0 then morph = "GF"
-		elseif morphId == 1 then morph = "RF"
-		elseif morphId == 2 then morph = "MR"
-		end
-	if morph ~= self.oldMorph and morph ~= "" then self.morphChanged = true end --self.stackTracker.indicator.ApplyIcon() end
-	-- if morphChanged then if self.SV.debug.enabled then CombatMetronome.debug:Print("How dare you change morphs midgame??") end end
-	self.oldMorph = morph
-	return morph
-end
-
-function Stacks:GetCurrentNumGFOnPlayer()
-	local morph = Stacks:CheckForGFMorph()
-	local gFStacks = 0
-	for i=1,GetNumBuffs("player") do
-		local _,_,_,_,stack,_,_,_,_,_,abilityId = GetUnitBuffInfo("player", i)
-		if	abilityId == gFId[morph].buff then
-			gFStacks = stack
-			-- if self.SV.debug.enabled then CombatMetronome.debug:Print("You currently have "..tostring(gFStacks).." Stacks of Grimm Focus")
-		break 
-		end
-	end
-	return gFStacks
-end
-
-	-----------------------------
-	---- Necro skull Tracker ----
-	-----------------------------
-	
-function Stacks:CheckForFSMorph()
-	local morph = ""
-	local morphId = GetProgressionSkillCurrentMorphSlot(GetProgressionSkillProgressionId(1, 1, 2))
-		if morphId == 0 then morph = "FS"
-		elseif morphId == 1 then morph = "VS"
-		elseif morphId == 2 then morph = "RS"
-		end
-	if morph ~= self.oldMorph and morph ~= "" then self.morphChanged = true end -- CombatMetronome.stackTracker.indicator.ApplyIcon() end
-	self.oldMorph = morph
-	return morph
-end
-
-function Stacks:GetCurrentNumFSOnPlayer()
-	local morph = Stacks:CheckForFSMorph()
-	local fSStacks = 0
-	local ability
-	for i=2,3 do
-		ability = fSId[morph].ability[i]
-		for j=1,#CombatMetronome.StackTracker.actionSlotCache do
-			if CombatMetronome.StackTracker.actionSlotCache[j].id == ability then
-				fSStacks = i-1
+function Stacks:GetCurrentNumStacksOnPlayer(skill)
+	local stacks = {
+		["Crux"] = 0,
+		["BA"] = 0,
+		["MW"] = 0,
+		["GF"] = 0,
+		["FS"] = 0,
+	}
+	if skill == "FS" and self.morphs.FS and self.morphs.FS.new then
+		local ability
+		for i=2,3 do
+			ability = IDS.FS[morph][i]
+			for j=1,#CombatMetronome.StackTracker.actionSlotCache do
+				if CombatMetronome.StackTracker.actionSlotCache[j].id == ability then
+					stacks.FS = i-1
+					break
+				end
+			end
+			if stacks.FS ~= 0 then
 				break
 			end
 		end
-		if fSStacks ~= 0 then break	end
+	else
+		local abilityToCheck
+		if skill == "GF" and Stacks.morphs.GF and Stacks.morphs.GF.new then
+			abilityToCheck = IDS.GF[Stacks.morphs.GF.new]
+		elseif skill ~= "GF" then
+			abilityToCheck = IDS[skill]
+		else
+			return 0
+		end
+		if abilityToCheck then
+			for i=1,GetNumBuffs("player") do
+				local name,_,_,_,stack,_,_,_,_,statusEffectType,abilityId = GetUnitBuffInfo("player", i)
+				if abilityId == abilityToCheck then
+					stacks[skill] = stack
+				break 
+				end
+			end
+		end
 	end
-	return fSStacks
+	return stacks[skill]
 end

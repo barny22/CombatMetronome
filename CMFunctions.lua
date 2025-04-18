@@ -297,18 +297,36 @@ end
 	-------------------------------------------
 	---- Check if Stack  Tracker is active ----
 	-------------------------------------------
+function StackTracker:MorphCheck()
+	if CombatMetronome.API < 101046 then
+		if self.class == "NB" then
+			Util.Stacks.morphs.GF = Util.Stacks:CheckMorph("NB")
+		elseif self.class == "CRO" then
+			Util.Stacks.morphs.FS = Util.Stacks:CheckMorph("CRO")
+		end
+	else
+		
+	end
+end
 
-function StackTracker:TrackerIsActive()
-	for skill, _ in pairs(self.SKILL_ATTRIBUTES) do
+function StackTracker:TrackerIsActive(skill)
+	if skill then
 		if self:IsTrackingAvailable(skill) and CombatMetronome.SV.StackTracker[skill].tracked then
 			return true
 		end
+		return false
+	else
+		for skill, _ in pairs(self.SKILL_ATTRIBUTES) do
+			if self:IsTrackingAvailable(skill) and CombatMetronome.SV.StackTracker[skill].tracked then
+				return true
+			end
+		end
+		return false
 	end
-	return false
 end
 
 function StackTracker:EffectChangedShouldBeActive()
-	if self:TrackerIsActive() and not self:IsTrackingAvailable("FS") then
+	if self:TrackerIsActive("FS") and not self:IsTrackingAvailable("FS") then
 		return true
 	end
 	return false
@@ -353,7 +371,7 @@ function StackTracker:CheckIfSlotted(skill)
 	local abilitySlotted = false
 	if skill == "BA" then ability = attributes.id.ability
 	elseif skill == "GF" then 
-		local morph = Util.Stacks:CheckForGFMorph()
+		local morph = Util.Stacks.morphs.GF
 		ability = attributes.id[morph].ability
 	elseif skill == "MW" then ability = attributes.id.ability
 	end
@@ -366,7 +384,7 @@ function StackTracker:CheckIfSlotted(skill)
 		end
 	elseif self.class == "ARC" then abilitySlotted = true
 	elseif skill == "FS" then
-		local morph = Util.Stacks:CheckForFSMorph()
+		local morph = Util.Stacks.morphs.FS
 		for i=1,3 do
 			ability = attributes.id[morph].ability[i]
 			for j=1,#self.actionSlotCache do
@@ -386,19 +404,14 @@ end
 function StackTracker:GetCurrentStacks(skill)
 	local stacks
 	if self:CheckIfSlotted(skill) then
-		if skill == "BA" then stacks = Util.Stacks:GetCurrentNumBAOnPlayer()
-		elseif skill == "MW" then stacks = Util.Stacks:GetCurrentNumMWOnPlayer()
-		elseif skill == "GF" then stacks = Util.Stacks:GetCurrentNumGFOnPlayer()
-		elseif skill == "FS" then stacks = Util.Stacks:GetCurrentNumFSOnPlayer()
-		elseif skill == "Crux" then stacks = Util.Stacks:GetCurrentNumCruxOnPlayer()
-		end
+		stacks = Util.Stacks:GetCurrentNumStacksOnPlayer(skill)
 		return stacks
 	end
 	return 0
 end
 
 function StackTracker:IsTrackingAvailable(skill)
-	if GetAPIVersion() < 101046 then
+	if CombatMetronome.API < 101046 then
 		if skill == "MW" then
 			return self.class == "DK"
 		elseif skill == "BA" then
@@ -411,6 +424,26 @@ function StackTracker:IsTrackingAvailable(skill)
 			return self.class == "CRO"
 		end
 	else
+	end
+end
+
+function StackTracker:InitializeUI(skill)
+	if not StackTracker.UI[skill] then
+		StackTracker.UI[skill] = self:BuildUI(skill)
+		StackTracker.UI[skill].indicator.ApplyDistance(CombatMetronome.SV.StackTracker[skill].indicatorSize/5, CombatMetronome.SV.StackTracker[skill].indicatorSize)
+		StackTracker.UI[skill].indicator.ApplySize(CombatMetronome.SV.StackTracker[skill].indicatorSize)
+		StackTracker.UI[skill].indicator.ApplyIcon()
+	end
+	self:HandleUIVisibility(skill, "UI")
+end
+
+function StackTracker:HandleUIVisibility(skill, scene)
+	if StackTracker.UI[skill] then
+		StackTracker.UI[skill].FadeScenes(scene)
+		StackTracker.UI[skill].stacksWindow:SetHidden(false)
+		if scene == "NoUI" or scene == "NoSample" then
+			StackTracker.UI[skill].stacksWindow:SetHidden(true)
+		end
 	end
 end
 
@@ -477,23 +510,26 @@ function CombatMetronome:ResourcesPVPSwitch()
 	-- return hideResources
 end
 
-function StackTracker:PVPSwitch()
-	if self:TrackerIsActive() then
-		if CombatMetronome.SV.StackTracker.hideInPVP and CombatMetronome.inPVPZone then
-			if self.registered then
-				self:Unregister()
-				self.UI.FadeScenes("NoUI")
+function StackTracker:PVPSwitch(skill)
+	if self:TrackerIsActive(skill) and self:CheckIfSlotted(skill) and self.UI[skill] then
+		if CombatMetronome.SV.StackTracker[skill].hideInPVP and CombatMetronome.inPVPZone then
+			if (skill == "FS" and self.registered.hotbarUpdate) or self.registered.effectChanged[skill] then
+				self:Unregister(skill)
+				self.UI[skill].FadeScenes("NoUI")
 				-- if self.SV.debug.enabled then CombatMetronome.debug:Print("registered tracker scenario 1") end
-			elseif not self.registered then
-				self.UI.FadeScenes("NoUi")
+			else
+				self.UI[skill].FadeScenes("NoUi")
 				-- if self.SV.debug.enabled then CombatMetronome.debug:Print("registered tracker scenario 2") end
 			end
 		else
-			if not self.registered then
-				self:Register()
+			if not (skill == "FS" and self.registered.hotbarUpdate) or self.registered.effectChanged[skill] then
+				self:Register(skill)
 				-- if self.SV.debug.enabled then CombatMetronome.debug:Print("registered tracker scenario 3") end
 			end
 		end
+	elseif self:TrackerIsActive(skill) and self:CheckIfSlotted(skill) and not self.UI[skill] and not CombatMetronome.inPVPZone then
+		self:InitializeUI(skill)
+		self:Register(skill)
 	end
 end
 
