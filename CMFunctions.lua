@@ -425,6 +425,22 @@ function StackTracker:IsTrackingAvailable(skill)
 			return self.class == "DEN"
 		end
 	else
+		return self.activeSkills[skill]
+	end
+end
+
+function StackTracker:GetRelevantActiveSkillLines()
+	for skill, entry in pairs(self.SKILL_ATTRIBUTES) do
+		if type(entry.skillLineIndex == "table" then
+			for _, id in ipairs(entry.skillLineIndex) do
+				local _,_,isActive,_,_,_ = GetSkillLineDynamicInfo(SKILL_TYPE_CLASS, id)
+				self.activeSkills[skill] = isActive
+				if isActive then break end
+			end
+		else
+			local _,_,isActive,_,_,_ = GetSkillLineDynamicInfo(SKILL_TYPE_CLASS, entry.skillLineIndex)
+			self.activeSkills[skill] = isActive
+		end
 	end
 end
 

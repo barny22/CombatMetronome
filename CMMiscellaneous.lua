@@ -195,6 +195,8 @@ CombatMetronome.StackTracker.SKILL_ATTRIBUTES = {
 		["highlight"] = {0,1,0,0.2},
 		["highlightAnimation"] = {0.8,1,0.8,0.8},
 		["id"] = 184220,
+		-- ["skilllineId"] = {218,219,220},
+		["skillLineIndex"] = {19,20,21},
 	},
 	["MW"] = {
 		["iMax"] = 3,
@@ -202,6 +204,8 @@ CombatMetronome.StackTracker.SKILL_ATTRIBUTES = {
 		["highlight"] = {1,0,0,0.2},
 		["highlightAnimation"] = {1,0.8,0.8,0.8},
 		["id"] = { ["buff"] = 122658, ["ability"] = 20805,}, -- 122729
+		-- ["skilllineId"] = 35,
+		["skillLineIndex"] = 7,
 	},
 	["BA"] = {
 		["iMax"] = 4,
@@ -209,6 +213,8 @@ CombatMetronome.StackTracker.SKILL_ATTRIBUTES = {
 		["highlight"] = {0,0,1,0.2},
 		["highlightAnimation"] = {0.8,0.8,1,0.8},
 		["id"] = { ["buff"] = 203447, ["ability"] = 24165,},
+		-- ["skilllineId"] = 42,
+		["skillLineIndex"] = 2,
 	},
 	["GF"] = {
 		["iMax"] = 5,
@@ -225,6 +231,8 @@ CombatMetronome.StackTracker.SKILL_ATTRIBUTES = {
 			["MR"] = { ["buff"] = 122586, ["ability"] = 61919,},
 			["RF"] = { ["buff"] = 122587, ["ability"] = 61927,},
 		},
+		-- ["skilllineId"] = 38,
+		["skillLineIndex"] = 10,
 	},
 	["FS"] = {
 		["iMax"] = 2,
@@ -247,6 +255,8 @@ CombatMetronome.StackTracker.SKILL_ATTRIBUTES = {
 			[1] = 117624, [2] = 123699, [3] = 123704
 			}},
 		},
+		-- ["skilllineId"] = 131,
+		["skillLineIndex"] = 16,
 	},
 	["FI"] = {
 		["iMax"] = 1,
@@ -254,6 +264,8 @@ CombatMetronome.StackTracker.SKILL_ATTRIBUTES = {
 		["highlight"] = {0,1,0,0.2},
 		["highlightAnimation"] = {0.8,1,0.8,0.8},
 		["id"] = { ["buff"] = 91416, ["ability"] = 86027,}
+		-- ["skilllineId"] = 127,
+		["skillLineIndex"] = 13,
 	},
 }
 

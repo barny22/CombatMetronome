@@ -99,6 +99,7 @@ function CombatMetronome:Init()
 	-----------------------
 	---- Stack Tracker ----
 	-----------------------
+	StackTracker.activeSkills = {}
 	StackTracker.registered = {}
 	StackTracker.trackedIds = {}
 	StackTracker.stacks = {}
