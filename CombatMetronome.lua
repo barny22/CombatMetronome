@@ -100,6 +100,7 @@ function CombatMetronome:Init()
 	---- Stack Tracker ----
 	-----------------------
 	StackTracker.activeSkills = {}
+	StackTracker:GetRelevantActiveSkillLines()
 	StackTracker.registered = {}
 	StackTracker.trackedIds = {}
 	StackTracker.stacks = {}
