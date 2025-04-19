@@ -49,6 +49,10 @@ function CombatMetronome:Init()
 	CombatMetronome.debug = LibChatMessage("|ce11212C|rombat |ce11212M|retronome", "|ce11212C|r|ce11212M|r")
 	CombatMetronome.debug:SetEnabled(true)
 	
+	if CombatMetronome.SV.automaticSVCleanup.enabled then
+		self:AutomaticSVCleanup()
+	end
+		
 	if LibSetDetection and LibSetDetection.RegisterEvent then
 		CombatMetronome.LSD = LibSetDetection
 	else
@@ -402,7 +406,7 @@ function CombatMetronome:RegisterCoralBahsei()
 end
 
 function StackTracker:Register(skill)
-	if (skill == "FS" and self.registered.hotbarUpdate) or (skill ~= "FS" and self.registered.effectChanged[skill]) then
+	if (skill == "FS" and self.registered.hotbarUpdate) or (skill ~= "FS" and self.registered.effectChanged and self.registered.effectChanged[skill]) then
 		return
 	end
 	self.stacks[skill] = self:GetCurrentStacks(skill)

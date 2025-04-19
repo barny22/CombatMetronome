@@ -83,10 +83,12 @@ function CombatMetronome:BuildMenu()
 		end
 		local sortedControls = {}
 		for skill, entry in pairs(self.menu.CONTROLS.stackTracker) do
-			sortedControls[entry.order] = {skill = skill, entry = entry}
+			table.insert(sortedControls, skill)
+			table.sort(sortedControls)
 		end
 		for i = 1, #sortedControls do
-			local skill, entry = sortedControls[i].skill, sortedControls[i].entry
+			local skill = sortedControls[i]
+			local entry = self.menu.CONTROLS.stackTracker[skill]
 			local submenu = {
 				{
 					type = "submenu",
@@ -147,7 +149,12 @@ function CombatMetronome:BuildMenu()
 							name = "Play sound cue at max stacks",
 							tooltip = "Plays a sound when you are at max stacks, so you don't miss to cast your ability",
 							getFunc = function() return CombatMetronome.SV.StackTracker[skill].playSound end,
-							setFunc = function(value) CombatMetronome.SV.StackTracker[skill].playSound = value end,
+							setFunc = function(value)
+								CombatMetronome.SV.StackTracker[skill].playSound = value
+								if value and StackTracker.stacks[skill] and StackTracker.stacks[skill] >= StackTracker.SKILL_ATTRIBUTES[skill].iMax and CombatMetronome.SV.StackTracker[skill].sound then
+									PlaySound(SOUNDS[CombatMetronome.SV.StackTracker[skill].sound])
+								end
+							end,
 						},
 						{
 							type = "slider",
@@ -179,12 +186,26 @@ function CombatMetronome:BuildMenu()
 							getFunc = function() return CombatMetronome.SV.StackTracker[skill].hightlightOnFullStacks end,
 							setFunc = function(value)
 								CombatMetronome.SV.StackTracker[skill].hightlightOnFullStacks = value
+								if value and StackTracker.stacks[skill] and StackTracker.stacks[skill] >= StackTracker.SKILL_ATTRIBUTES[skill].iMax and StackTracker.UI[skill].indicator[StackTracker.SKILL_ATTRIBUTES[skill].iMax].controls.highlightAnimation:IsControlHidden() then
+									for i=1,#StackTracker.UI[skill].indicator do
+										StackTracker.UI[skill].indicator[i].Animate()
+										StackTracker.UI[skill].indicator[i].controls.highlightAnimation:SetHidden(true)
+									end
+									for i=1,StackTracker.stacks[skill] do
+										StackTracker.UI[skill].indicator[i].controls.highlightAnimation:SetHidden(false)
+									end
+								elseif not value and not StackTracker.UI[skill].indicator[StackTracker.SKILL_ATTRIBUTES[skill].iMax].controls.highlightAnimation:IsControlHidden() then
+									for i=1,#StackTracker.UI[skill].indicator do
+										StackTracker.UI[skill].indicator[i].StopAnimation()
+										StackTracker.UI[skill].indicator[i].controls.highlightAnimation:SetHidden(true)
+									end
+								end
 							end,
 						},
 					},
 				},
 			}
-			table.insert(self.menu.options.stackTracker, position+i, unpack(submenu))
+			table.insert(self.menu.options.stackTracker, position+i, submenu[1])
 			-- for i=#self.menu.options.stackTracker, 1, -1 do
 				-- if not self.menu.options.stackTracker[i] then
 					-- table.remove(self.menu.options.stackTracker, i)
@@ -324,6 +345,17 @@ function CombatMetronome:BuildMenu()
 					self:UpdateAdjustChoices()
 					self:BuildUI()
 				end,
+			},
+			{	
+				type = "checkbox",
+				name = "Automatic SV cleanup",
+				getFunc = function() return CombatMetronome.SV.automaticSVCleanup.enabled end,
+				setFunc = function(value)
+					CombatMetronome.SV.automaticSVCleanup.enabled = value
+					if value then
+						CombatMetronome:AutomaticSVCleanup()
+					end
+				end
 			},
 			-- end
 			---------------

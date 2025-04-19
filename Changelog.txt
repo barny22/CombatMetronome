@@ -5,7 +5,9 @@
 +  Added option to automatically expand castbar for abilities with channel-/casttime > 1
 
 !  Fully revamped the settings to split into four different panels in preparation for U46
-!  Fully rewrote the StackTracker functionality in preparation for U46 and massive performance improvements
+!  Fully rewrote the StackTracker functionality in preparation for U46 and for massive performance improvements
++  Added fetcher infection to trackable abilities
++  Added cleanup functionality for saved vars
   
 2025-02-17 v1.6.14
 !  Fixed cancelling of channeled abilities when target is ST and target is dead  

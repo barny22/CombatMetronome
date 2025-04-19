@@ -76,6 +76,7 @@ local IDS = {
 		["RS"] = {[1] = 117637, [2] = 123718, [3] = 123719},
 		["VS"] = {[1] = 117624, [2] = 123699, [3] = 123704},
 	},
+	["FI"] = 91416,
 }
 -- local cruxId = 184220
 -- local bAId = { ["buff"] = 203447, ["ability"] = 24165,}
@@ -148,8 +149,9 @@ function Stacks:GetCurrentNumStacksOnPlayer(skill)
 		["MW"] = 0,
 		["GF"] = 0,
 		["FS"] = 0,
+		["FI"] = 0,
 	}
-	if skill == "FS" and self.morphs.FS and self.morphs.FS.new then
+	if skill == "FS" and self.morphs.FS then
 		local ability
 		for i=2,3 do
 			ability = IDS.FS[morph][i]
@@ -165,8 +167,8 @@ function Stacks:GetCurrentNumStacksOnPlayer(skill)
 		end
 	else
 		local abilityToCheck
-		if skill == "GF" and Stacks.morphs.GF and Stacks.morphs.GF.new then
-			abilityToCheck = IDS.GF[Stacks.morphs.GF.new]
+		if skill == "GF" and Stacks.morphs.GF then
+			abilityToCheck = IDS.GF[Stacks.morphs.GF]
 		elseif skill ~= "GF" then
 			abilityToCheck = IDS[skill]
 		else
@@ -176,6 +178,10 @@ function Stacks:GetCurrentNumStacksOnPlayer(skill)
 			for i=1,GetNumBuffs("player") do
 				local name,_,_,_,stack,_,_,_,_,statusEffectType,abilityId = GetUnitBuffInfo("player", i)
 				if abilityId == abilityToCheck then
+					if skill == "FI" then
+						stacks[skill] = 1
+						break
+					end
 					stacks[skill] = stack
 				break 
 				end

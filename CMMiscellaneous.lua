@@ -3,6 +3,14 @@ CombatMetronome.menu = CombatMetronome.menu or {}
 
 CombatMetronome.DEFAULT_SAVED_VARS = {
 	["version"] = 2,
+	["automaticSVCleanup"] = {
+		["enabled"] = false,
+		["lastCleanup"] = {
+			["year"] = 0,
+			["month"] = 0,
+			["day"] = 0,
+		},
+	},
 	["global"] = true,
 	["Progressbar"] = {
 		["hideProgressbar"] = false,
@@ -76,61 +84,6 @@ CombatMetronome.DEFAULT_SAVED_VARS = {
 	},
 	["StackTracker"] = {
 		["isUnlocked"] = false,
-		["MW"] = {
-			["tracked"] = false,
-			["xOffset"] = 0,
-			["yOffset"] = 0,
-			["indicatorSize"] = 30,
-			["hideInPVP"] = false,
-			["playSound"] = false,
-			["sound"] = "Ability_Companion_Ultimate_Ready",
-			["hightlightOnFullStacks"] = false,
-			["volume"] = 100,
-		},
-		["BA"] = {
-			["tracked"] = false,
-			["xOffset"] = 0,
-			["yOffset"] = 0,
-			["indicatorSize"] = 30,
-			["hideInPVP"] = false,
-			["playSound"] = false,
-			["sound"] = "Ability_Companion_Ultimate_Ready",
-			["hightlightOnFullStacks"] = false,
-			["volume"] = 100,
-		},
-		["GF"] = {
-			["tracked"] = false,
-			["xOffset"] = 0,
-			["yOffset"] = 0,
-			["indicatorSize"] = 30,
-			["hideInPVP"] = false,
-			["playSound"] = false,
-			["sound"] = "Ability_Companion_Ultimate_Ready",
-			["hightlightOnFullStacks"] = false,
-			["volume"] = 100,
-		},
-		["Crux"] = {
-			["tracked"] = false,
-			["xOffset"] = 0,
-			["yOffset"] = 0,
-			["indicatorSize"] = 30,
-			["hideInPVP"] = false,
-			["playSound"] = false,
-			["sound"] = "Ability_Companion_Ultimate_Ready",
-			["hightlightOnFullStacks"] = false,
-			["volume"] = 100,
-		},
-		["FS"] = {
-			["tracked"] = false,
-			["xOffset"] = 0,
-			["yOffset"] = 0,
-			["indicatorSize"] = 30,
-			["hideInPVP"] = false,
-			["playSound"] = false,
-			["sound"] = "Ability_Companion_Ultimate_Ready",
-			["hightlightOnFullStacks"] = false,
-			["volume"] = 100,
-		},
 	},
 	["LATracker"] = {
 		["xOffset"] = GuiRoot:GetWidth()/2,
@@ -197,39 +150,40 @@ CombatMetronome.menu.CONTROLS = {
 	},
 	["stackTracker"] = {
 		["MW"] = {
-			["Name"] = "Track Molten Whip Stacks",
+			["Name"] = "Track molten whip stacks",
 			["subName"] = "Molten whip",
 			-- ["frame"] = frameTexture,
 			["icon"] = "/esoui/art/icons/ability_dragonknight_001_b.dds",
-			["order"] = 5,
 		},
 		["BA"] = {
-			["Name"] = "Track Bound Armaments Stacks",
+			["Name"] = "Track bound armaments stacks",
 			["subName"] = "Bound armaments",
 			-- ["frame"] = frameTexture,
 			["icon"] = "/esoui/art/icons/ability_sorcerer_bound_armaments.dds",
-			["order"] = 1,
 		},
 		["GF"] = {
-			["Name"] = "Track Stacks of Grimm Focus and its Morphs",
+			["Name"] = "Track stacks of grimm focus and its morphs",
 			["subName"] = "Grimm focus (and morphs)",
 			-- ["frame"] = frameTexture,
 			["icon"] = "/esoui/art/icons/ability_nightblade_005.dds",
-			["order"] = 4,
 		},
 		["Crux"] = {
-			["Name"] = "Track Crux Stacks",
+			["Name"] = "Track crux stacks",
 			["subName"] = "Crux",
 			-- ["frame"] = frameTexture,
 			["icon"] = "/esoui/art/icons/class_buff_arcanist_crux.dds",
-			["order"] = 2,
 		},
 		["FS"] = {
-			["Name"] = "Track Stacks of flame skull and its Morphs",
+			["Name"] = "Track stacks of flame skull and its morphs",
 			["subName"] = "Flame skull (and morphs)",
 			-- ["frame"] = frameTexture,
 			["icon"] = "/esoui/art/icons/ability_necromancer_001.dds",
-			["order"] = 3,
+		},
+		["FI"] = {
+			["Name"] = "Track fetcher infection stack",
+			["subName"] = "Fetcher infection",
+			-- ["frame"] = frameTexture,
+			["icon"] = "/esoui/art/icons/ability_warden_014.dds",
 		},
 	},
 }
@@ -294,6 +248,13 @@ CombatMetronome.StackTracker.SKILL_ATTRIBUTES = {
 			}},
 		},
 	},
+	["FI"] = {
+		["iMax"] = 1,
+		["graphic"] = "/esoui/art/icons/ability_warden_014_a.dds",
+		["highlight"] = {0,1,0,0.2},
+		["highlightAnimation"] = {0.8,1,0.8,0.8},
+		["id"] = { ["buff"] = 91416, ["ability"] = 86027,}
+	},
 }
 
 CombatMetronome.StackTracker.CLASS = {
@@ -305,3 +266,22 @@ CombatMetronome.StackTracker.CLASS = {
 	[6] = "PLAR",
 	[117] = "ARC",
 }
+
+local function InsertSkillOptionsForStackTracker()
+	for skill, _ in pairs(CombatMetronome.StackTracker.SKILL_ATTRIBUTES) do
+		local skillOptions = {}
+		skillOptions[skill] = {
+			["tracked"] = false,
+			["xOffset"] = 0,
+			["yOffset"] = 0,
+			["indicatorSize"] = 25,
+			["hideInPVP"] = false,
+			["playSound"] = false,
+			["sound"] = "ABILITY_COMPANION_ULTIMATE_READY",
+			["hightlightOnFullStacks"] = false,
+			["volume"] = 100,
+		}
+		CombatMetronome.DEFAULT_SAVED_VARS.StackTracker[skill] = skillOptions[skill]
+	end
+end
+InsertSkillOptionsForStackTracker()

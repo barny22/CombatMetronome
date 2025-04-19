@@ -18,6 +18,7 @@ function StackTracker:HandleEffectChanged(_,changeType, _, _, unitTag, _, _, sta
 		return
 	else
 		local iMax = self.SKILL_ATTRIBUTES[self.trackedIds[aId]].iMax
+		if self.trackedIds[aId] == "FI" then stackCount = 1 end
 		-- if CombatMetronome.SV.debug.enabled then CombatMetronome.debug:Print("Found matching id, initiating stackCount change") end
 		if changeType == EFFECT_RESULT_FADED then stackCount = stackCount-iMax end
 		self:ChangeStackCount(self.trackedIds[aId], stackCount)
@@ -41,24 +42,23 @@ function StackTracker:ChangeStackCount(skill, stackCount)
 	end
 	local attributes = self.SKILL_ATTRIBUTES[skill]
 	local oneOff = attributes.iMax - 1
-	local multiplier = (CombatMetronome.API >= 101046 and (skill == "BA" or skill == "GF")) and 2 or 1
 	local animStart = not self.UI[skill].indicator[attributes.iMax].controls.highlightAnimation:IsControlHidden()
 	previousStack = self.stacks[skill]
 	self.stacks[skill] = stackCount
 	
 	
-	for i=1,attributes.iMax*multiplier do 
+	for i=1,#self.UI[skill].indicator do 
 		self.UI[skill].indicator[i].Deactivate()
 		self.UI[skill].indicator[i].SetAnimationHidden(true)
 	end
 	if CombatMetronome.SV.StackTracker[skill].hightlightOnFullStacks then											--Animation when stacks are full
 		if stackCount >= attributes.iMax and not animStart then
-			for i=1,attributes.iMax*multiplier do
+			for i=1,#self.UI[skill].indicator do
 				self.UI[skill].indicator[i].Animate()
 			end
 			animStart = true
 		elseif animStart == true and stackCount <= attributes.iMax then
-			for i=1,attributes.iMax*multiplier do
+			for i=1,#self.UI[skill].indicator do
 				self.UI[skill].indicator[i].StopAnimation()
 			end
 			animStart = false

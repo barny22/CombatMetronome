@@ -369,11 +369,10 @@ function StackTracker:CheckIfSlotted(skill)
 	local ability = ""
 	local attributes = StackTracker.SKILL_ATTRIBUTES[skill]
 	local abilitySlotted = false
-	if skill == "BA" then ability = attributes.id.ability
+	if skill == "BA" or skill == "MW" or skill == "FI" then ability = attributes.id.ability
 	elseif skill == "GF" then 
 		local morph = Util.Stacks.morphs.GF
 		ability = attributes.id[morph].ability
-	elseif skill == "MW" then ability = attributes.id.ability
 	end
 	if ability ~= "" then
 		for i=1,#self.actionSlotCache do
@@ -422,17 +421,21 @@ function StackTracker:IsTrackingAvailable(skill)
 			return self.class == "ARC"
 		elseif skill == "FS" then
 			return self.class == "CRO"
+		elseif skill == "FI" then
+			return self.class == "DEN"
 		end
 	else
 	end
 end
 
 function StackTracker:InitializeUI(skill)
-	if not StackTracker.UI[skill] then
-		StackTracker.UI[skill] = self:BuildUI(skill)
-		StackTracker.UI[skill].indicator.ApplyDistance(CombatMetronome.SV.StackTracker[skill].indicatorSize/5, CombatMetronome.SV.StackTracker[skill].indicatorSize)
-		StackTracker.UI[skill].indicator.ApplySize(CombatMetronome.SV.StackTracker[skill].indicatorSize)
-		StackTracker.UI[skill].indicator.ApplyIcon()
+	if not self.UI[skill] then
+		self.UI[skill] = self:BuildUI(skill)
+		self.UI[skill].indicator.ApplyDistance(CombatMetronome.SV.StackTracker[skill].indicatorSize/5, CombatMetronome.SV.StackTracker[skill].indicatorSize)
+		self.UI[skill].indicator.ApplySize(CombatMetronome.SV.StackTracker[skill].indicatorSize)
+		self.UI[skill].indicator.ApplyIcon()
+		self.UI[skill].stacksWindow:SetMovable(CombatMetronome.SV.StackTracker.isUnlocked)
+		if CombatMetronome.SV.StackTracker.isUnlocked then self:HandleUIVisibility(skill, "Sample") end
 	end
 	self:HandleUIVisibility(skill, "UI")
 end
@@ -607,4 +610,50 @@ function CombatMetronome:SetAllDebugFalse()
 		CombatMetronome.SV.debug[entry] = false
 	end
 	CombatMetronome.SV.debug.triggerTimer = 170
+end
+
+function CombatMetronome:AutomaticSVCleanup()
+	local year, month, day = GetDateElementsFromTimestamp(GetTimeStamp())
+	if self.SV.automaticSVCleanup.lastCleanup.year == year or (self.SV.automaticSVCleanup.lastCleanup.year == year - 1 and self.SV.automaticSVCleanup.lastCleanup.month < month) then
+		CombatMetronome.debug:Print("No SV cleanup necessary. Last SV cleanup has taken place less than a year ago on "..self.SV.lastSVCleanup.lastCleanup.day.."-"..self.SV.lastSVCleanup.lastCleanup.month.."-"..self.SV.lastSVCleanup.lastCleanup.year)
+	elseif self.SV.automaticSVCleanup.lastCleanup.year == 0 then
+		CombatMetronome.debug:Print("No SV cleanup has taken place yet. Starting automatic cleanup.")
+		self:CleanupSVEnstries()
+	elseif year > self.SV.automaticSVCleanup.lastCleanup.year and month >= self.SV.lastSVCleanup.lastCleanup.month then
+		self.SV.lastSVCleanup = {["year"] = year, ["month"] = month, ["day"] = day}
+		CombatMetronome.debug:Print("Last SV cleanup was about a year ago. Starting automatic cleanup.")
+		self:CleanupSVEntries()
+	end
+end
+
+function CombatMetronome:CleanupSVEntries()
+	for _, vars in pairs(CombatMetronomeSavedVars.Default[GetDisplayName()]) do
+		for section, subsection in pairs(vars) do
+			local sectionNeedsClearing = true
+			for entry, _ in pairs(CombatMetronome.DEFAULT_SAVED_VARS) do
+				if entry == section then
+					sectionNeedsClearing = false
+					break
+				end
+			end
+			if sectionNeedsClearing then
+				-- vars[section] = nil
+				CombatMetronome.debug:Print("saved vars cleanup - cleaning section: |c2a52be"..section.."|r")
+			elseif type(subsection) == "table" then
+				for name, _ in pairs(subsection) do
+					local needsToBeCleaned = true
+					for entry, _ in pairs(CombatMetronome.DEFAULT_SAVED_VARS[section]) do
+						if name == entry then
+							needsToBeCleaned = false
+							break
+						end
+					end
+					if needsToBeCleaned then
+						-- subsection[name] = nil
+						CombatMetronome.debug:Print("saved vars cleanup - cleaning option/table: |c2a52be"..section.."|r - |ce11212"..name.."|r")
+					end
+				end
+			end
+		end
+	end
 end
