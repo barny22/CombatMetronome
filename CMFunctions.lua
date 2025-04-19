@@ -174,7 +174,7 @@ function CombatMetronome:UpdateAdjustChoices()
         end
     end
 
-	local panelControls = self.menu.panel.controlsToRefresh
+	local panelControls = self.menu.panels.progressbar.controlsToRefresh
 	for i = 1, #panelControls do
 		local control = panelControls[i]
 		if (control.data and control.data.name == "Select skill adjust") then
@@ -242,8 +242,8 @@ function CombatMetronome:BuildListOfCurrentlyEquippedAbilities()
 	end
 	
 	-- refresh equipped ability list
-	if self.menu.panel then
-		local panelControls = self.menu.panel.controlsToRefresh
+	if self.menu.panels and self.menu.panels.progressbar then
+		local panelControls = self.menu.panels.progressbar.controlsToRefresh
 		for i = 1, #panelControls do
 			local control = panelControls[i]
 			if (control.data and control.data.name == "Currently equipped abilities:") then
