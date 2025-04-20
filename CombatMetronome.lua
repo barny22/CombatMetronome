@@ -184,9 +184,10 @@ function CombatMetronome:RegisterMetadata()
     )
 	
 	EVENT_MANAGER:RegisterForEvent(
-        self.name.."AbilityListUpdated",
-        EVENT_ABILITY_LIST_CHANGED,
-        function() 
+        self.name.."RespecResult",
+        EVENT_SKILL_RESPEC_RESULT,
+        function(_, result)
+			if result ~= RESPEC_RESULT_SUCCESS then return end
             if StackTracker.activeSkills["FS"] and StackTracker.activeSkills["GF"] then
 				StackTracker:MorphCheck("FS")
 				StackTracker:MorphCheck("GF")
@@ -466,8 +467,7 @@ function StackTracker:Register(skill)
 	if (skill == "FS" and self.registered.hotbarUpdate) or (skill ~= "FS" and self.registered.effectChanged and self.registered.effectChanged[skill]) then
 		return
 	end
-	self.stacks[skill] = self:GetCurrentStacks(skill)
-	StackTracker:ChangeStackCount(skill, self.stacks[skill])
+	local registeredAbility = false
 	if skill == "FS" and not self.registered.hotbarUpdate then
 		EVENT_MANAGER:RegisterForEvent(
 			self.name.."HotbarUpdateUpdate",
@@ -475,6 +475,7 @@ function StackTracker:Register(skill)
 			function(...) self:HandleHotbarChangeRequested(...) end
 		)
 		self.registered.hotbarUpdate = true
+		registeredAbility = true
 		if CombatMetronome.SV.debug.enabled then CombatMetronome.debug:Print("hotbarUpdate is registered") end
 	elseif skill ~= "FS" then
 		if not self.registered.effectChanged then
@@ -484,22 +485,28 @@ function StackTracker:Register(skill)
 				function(...) self:HandleEffectChanged(...) end
 			)
 			self.registered.effectChanged = {}
+			if CombatMetronome.SV.debug.enabled then CombatMetronome.debug:Print("effectChanged is registered") end
 		end
-		self.registered.effectChanged[skill] = true
-		
-		local aId
-		if type(self.SKILL_ATTRIBUTES[skill].id) == "number" then
-			aId = self.SKILL_ATTRIBUTES[skill].id
-		elseif self.SKILL_ATTRIBUTES[skill].id.buff then
-			aId = self.SKILL_ATTRIBUTES[skill].id.buff
-		else
-			aId = self.SKILL_ATTRIBUTES[skill].id[Util.Stacks.morphs[skill]].buff
+		if not self.registered.effectChanged[skill] then
+			self.registered.effectChanged[skill] = true
+			
+			local aId
+			if type(self.SKILL_ATTRIBUTES[skill].id) == "number" then
+				aId = self.SKILL_ATTRIBUTES[skill].id
+			elseif self.SKILL_ATTRIBUTES[skill].id.buff then
+				aId = self.SKILL_ATTRIBUTES[skill].id.buff
+			else
+				aId = self.SKILL_ATTRIBUTES[skill].id[Util.Stacks.morphs[skill]].buff
+			end
+			self.trackedIds[aId] = skill
+			registeredAbility = true
 		end
-		self.trackedIds[aId] = skill
-		
-		if CombatMetronome.SV.debug.enabled then CombatMetronome.debug:Print("effectChanged is registered") end
 	end
-	if CombatMetronome.SV.debug.enabled then CombatMetronome.debug:Print(skill.." tracker is registered") end
+	if registeredAbility then
+		self.stacks[skill] = self:GetCurrentStacks(skill)
+		StackTracker:ChangeStackCount(skill, self.stacks[skill])
+		if CombatMetronome.SV.debug.enabled then CombatMetronome.debug:Print(skill.." tracker is registered") end
+	end
 end
 
 function CombatMetronome:UnregisterCM()
@@ -555,37 +562,44 @@ function CombatMetronome:UnregisterCoralBahsei()
 end
 
 function StackTracker:Unregister(skill)
-	self.stacks[skill] = nil
+	local unregisteredAbility = false
 	if skill == "FS" and self.registered.hotbarUpdate then
 		EVENT_MANAGER:UnregisterForEvent(
 			self.name.."HotbarUpdate")
 		
 		self.registered.hotbarUpdate = false
 		if CombatMetronome.SV.debug.enabled then CombatMetronome.debug:Print("hotbarUpdate is unregistered") end
+		unregisteredAbility = true
 	elseif skill ~= "FS" and self.registered.effectChanged then
-		self.registered.effectChanged[skill] = nil
-		
-		local aId
-		if type(self.SKILL_ATTRIBUTES[skill].id) == "number" then
-			aId = self.SKILL_ATTRIBUTES[skill].id
-		elseif self.SKILL_ATTRIBUTES[skill].id.buff then
-			aId = self.SKILL_ATTRIBUTES[skill].id.buff
-		else
-			aId = self.SKILL_ATTRIBUTES[skill].id[Util.Stacks.morphs[skill]].buff
+		if self.registered.effectChanged[skill] then
+			self.registered.effectChanged[skill] = nil
+			
+			local aId
+			if type(self.SKILL_ATTRIBUTES[skill].id) == "number" then
+				aId = self.SKILL_ATTRIBUTES[skill].id
+			elseif self.SKILL_ATTRIBUTES[skill].id.buff then
+				aId = self.SKILL_ATTRIBUTES[skill].id.buff
+			else
+				aId = self.SKILL_ATTRIBUTES[skill].id[Util.Stacks.morphs[skill]].buff
+			end
+			if self.trackedIds[aId] then self.trackedIds[aId] = nil end
 		end
-		if self.trackedIds[aId] then self.trackedIds[aId] = nil end
 		
 		if not self:EffectChangedShouldBeActive() then
 			EVENT_MANAGER:UnregisterForEvent(
 				self.name.."EffectChanged")
 			
 			self.registered.effectChanged = nil
+			unregisteredAbility = true
+			if CombatMetronome.SV.debug.enabled then CombatMetronome.debug:Print("effectChanged is unregistered") end
 		end
-		if CombatMetronome.SV.debug.enabled then CombatMetronome.debug:Print("effectChanged is unregistered") end
 	end
-	self:HandleUIVisibility(skill, "NoUI")
-	self:HandleUIVisibility(skill, "NoSample")
-	if CombatMetronome.SV.debug.enabled then CombatMetronome.debug:Print(skill.." tracker is unregistered") end
+	if unregisteredAbility then
+		self.stacks[skill] = nil
+		self:HandleUIVisibility(skill, "NoUI")
+		self:HandleUIVisibility(skill, "NoSample")
+		if CombatMetronome.SV.debug.enabled then CombatMetronome.debug:Print(skill.." tracker is unregistered") end
+	end
 end
 
 function CombatMetronome:UnregisterCollectiblesTracker()
