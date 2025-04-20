@@ -297,15 +297,11 @@ end
 	-------------------------------------------
 	---- Check if Stack  Tracker is active ----
 	-------------------------------------------
-function StackTracker:MorphCheck()
-	if CombatMetronome.API < 101046 then
-		if self.class == "NB" then
-			Util.Stacks.morphs.GF = Util.Stacks:CheckMorph("NB")
-		elseif self.class == "CRO" then
-			Util.Stacks.morphs.FS = Util.Stacks:CheckMorph("CRO")
-		end
-	else
-		
+function StackTracker:MorphCheck(skill)
+	if skill == "GF" then
+		Util.Stacks.morphs.GF = Util.Stacks:CheckMorph("GF")
+	elseif skill == "FS" then
+		Util.Stacks.morphs.FS = Util.Stacks:CheckMorph("FS")
 	end
 end
 
@@ -326,7 +322,7 @@ function StackTracker:TrackerIsActive(skill)
 end
 
 function StackTracker:EffectChangedShouldBeActive()
-	if self:TrackerIsActive("FS") and not self:IsTrackingAvailable("FS") then
+	if self:TrackerIsActive() and not self:IsTrackingAvailable("FS") then
 		return true
 	end
 	return false
@@ -381,7 +377,7 @@ function StackTracker:CheckIfSlotted(skill)
 				break
 			end
 		end
-	elseif self.class == "ARC" then abilitySlotted = true
+	elseif skill == "Crux" and self.activeSkills[skill] then abilitySlotted = true
 	elseif skill == "FS" then
 		local morph = Util.Stacks.morphs.FS
 		for i=1,3 do
@@ -431,7 +427,7 @@ end
 
 function StackTracker:GetRelevantActiveSkillLines()
 	for skill, entry in pairs(self.SKILL_ATTRIBUTES) do
-		if type(entry.skillLineIndex == "table" then
+		if type(entry.skillLineIndex) == "table" then
 			for _, id in ipairs(entry.skillLineIndex) do
 				local _,_,isActive,_,_,_ = GetSkillLineDynamicInfo(SKILL_TYPE_CLASS, id)
 				self.activeSkills[skill] = isActive

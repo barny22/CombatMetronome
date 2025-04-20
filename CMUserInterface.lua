@@ -477,11 +477,11 @@ function StackTracker:BuildUI(skill)
 	
 	local function ApplyIcon()
 		if skill == "GF" then
-			attributes.graphic = attributes.icon[Util.Stacks.morphs.GF.new]
+			attributes.graphic = attributes.icon[Util.Stacks.morphs.GF]
 		elseif skill == "FS" then
-			attributes.graphic = attributes.icon[Util.Stacks.morphs.FS.new]
+			attributes.graphic = attributes.icon[Util.Stacks.morphs.FS]
 		end
-		for i=1,attributes.iMax do
+		for i=1,attributes.iMax*multiplier do
 			indicator[i].controls.icon:SetTexture(attributes.graphic)
 		end
 	end

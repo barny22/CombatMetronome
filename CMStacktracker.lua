@@ -20,7 +20,7 @@ function StackTracker:HandleEffectChanged(_,changeType, _, _, unitTag, _, _, sta
 		local iMax = self.SKILL_ATTRIBUTES[self.trackedIds[aId]].iMax
 		if self.trackedIds[aId] == "FI" then stackCount = 1 end
 		-- if CombatMetronome.SV.debug.enabled then CombatMetronome.debug:Print("Found matching id, initiating stackCount change") end
-		if changeType == EFFECT_RESULT_FADED then stackCount = stackCount-iMax end
+		if changeType == EFFECT_RESULT_FADED then stackCount = 0 end
 		self:ChangeStackCount(self.trackedIds[aId], stackCount)
 	end
 end
@@ -57,7 +57,7 @@ function StackTracker:ChangeStackCount(skill, stackCount)
 				self.UI[skill].indicator[i].Animate()
 			end
 			animStart = true
-		elseif animStart == true and stackCount <= attributes.iMax then
+		elseif animStart == true and stackCount < attributes.iMax then
 			for i=1,#self.UI[skill].indicator do
 				self.UI[skill].indicator[i].StopAnimation()
 			end

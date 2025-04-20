@@ -263,7 +263,7 @@ CombatMetronome.StackTracker.SKILL_ATTRIBUTES = {
 		["graphic"] = "/esoui/art/icons/ability_warden_014_a.dds",
 		["highlight"] = {0,1,0,0.2},
 		["highlightAnimation"] = {0.8,1,0.8,0.8},
-		["id"] = { ["buff"] = 91416, ["ability"] = 86027,}
+		["id"] = { ["buff"] = 91416, ["ability"] = 86027,},
 		-- ["skilllineId"] = 127,
 		["skillLineIndex"] = 13,
 	},

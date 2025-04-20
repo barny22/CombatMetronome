@@ -65,8 +65,6 @@ function CombatMetronome:Init()
 		
 	StackTracker.classId = GetUnitClassId("player")
 	StackTracker.class = StackTracker.CLASS[StackTracker.classId]
-	Util.Stacks:HandleMorphRegister(StackTracker.class)
-	StackTracker:MorphCheck()
 
     -- self.log = CombatMetronome.SV.debug
 
@@ -101,6 +99,31 @@ function CombatMetronome:Init()
 	-----------------------
 	StackTracker.activeSkills = {}
 	StackTracker:GetRelevantActiveSkillLines()
+	
+	if self.API < 101046 then
+		if StackTracker.class == "CRO" then
+			local skill = "FS"
+			StackTracker:MorphCheck(skill)
+			Util.Stacks:HandleMorphRegister(true)
+		elseif StackTracker.class == "NB" then
+			local skill = "GF"
+			StackTracker:MorphCheck(skill)
+			Util.Stacks:HandleMorphRegister(true)
+		end
+	else
+		if StackTracker.activeSkills["FS"] and StackTracker.activeSkills["GF"] then
+			StackTracker:MorphCheck("FS")
+			StackTracker:MorphCheck("GF")
+			Util.Stacks:HandleMorphRegister(true)
+		elseif StackTracker.activeSkills["FS"] then
+			StackTracker:MorphCheck("FS")
+			Util.Stacks:HandleMorphRegister(true)
+		elseif StackTracker.activeSkills["GF"] then
+			StackTracker:MorphCheck("GF")
+			Util.Stacks:HandleMorphRegister(true)
+		end
+	end
+	
 	StackTracker.registered = {}
 	StackTracker.trackedIds = {}
 	StackTracker.stacks = {}
@@ -155,6 +178,38 @@ function CombatMetronome:RegisterMetadata()
 						StackTracker:HandleUIVisibility(skill, "NoUI")
 						StackTracker:HandleUIVisibility(skill, "NoSample")
 					end
+				end
+			end
+        end
+    )
+	
+	EVENT_MANAGER:RegisterForEvent(
+        self.name.."AbilityListUpdated",
+        EVENT_ABILITY_LIST_CHANGED,
+        function() 
+            if StackTracker.activeSkills["FS"] and StackTracker.activeSkills["GF"] then
+				StackTracker:MorphCheck("FS")
+				StackTracker:MorphCheck("GF")
+				Util.Stacks:HandleMorphRegister(true)
+			elseif StackTracker.activeSkills["FS"] then
+				StackTracker:MorphCheck("FS")
+				if Util.Stacks.morphs["GF"] then Util.Stacks.morphs["GF"] = nil end
+				Util.Stacks:HandleMorphRegister(true)
+			elseif StackTracker.activeSkills["GF"] then
+				StackTracker:MorphCheck("GF")
+				if Util.Stacks.morphs["FS"] then Util.Stacks.morphs["FS"] = nil end
+				Util.Stacks:HandleMorphRegister(true)
+			else
+				if Util.Stacks.morphs["GF"] then Util.Stacks.morphs["GF"] = nil end
+				if Util.Stacks.morphs["FS"] then Util.Stacks.morphs["FS"] = nil end
+				Util.Stacks:HandleMorphRegister(false)
+			end
+			StackTracker:GetRelevantActiveSkillLines()
+			for skill, value in pairs(StackTracker.activeSkills) do
+				if value then
+					StackTracker:Register(skill)
+				else
+					StackTracker:Unregister(skill)
 				end
 			end
         end

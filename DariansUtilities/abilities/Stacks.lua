@@ -5,35 +5,33 @@ local Stacks = Util.Stacks
 Stacks.morphs = {}
 
 function Stacks:HandleMorphRegister(value)
-	local needToRegister = false
-	if value == "CRO" or value == "NB" then
-		needToRegister = true
-	end
-	if needToRegister and not Stacks.morphCheckRegistered then
+	if value and not Stacks.morphCheckRegistered then
 		EVENT_MANAGER:RegisterForEvent(
 			"StacksMorphCheck",
 			EVENT_ABILITY_LIST_CHANGED,
 			function()
-				local morph = self:CheckMorph(value)
-				local morphUpdated = false
-				if value == "CRO" then
-					if not Stacks.morphs.FS or Stacks.morphs.FS ~= morph then
-						Stacks.morphs.FS = morph
-						morphUpdated = true
+				for ability, morph in pairs(Stacks.morphs) do
+					local morphUpdated = false
+					local newMorph = self:CheckMorph(ability)
+					if value == "FS" then
+						if not Stacks.morphs.FS or Stacks.morphs.FS ~= morph then
+							Stacks.morphs.FS = morph
+							morphUpdated = true
+						end
+						if morphUpdated and CombatMetronome and CombatMetronome.StackTracker and CombatMetronome.StackTracker.UI and CombatMetronome.StackTracker.UI.FS then CombatMetronome.StackTracker.UI.FS.indicator.ApplyIcon() end
+					elseif value == "GF" then
+						if not Stacks.morphs.GF or Stacks.morphs.GF ~= morph then
+							Stacks.morphs.GF = morph
+							morphUpdated = true
+						end
+						if morphUpdated and CombatMetronome and CombatMetronome.StackTracker and CombatMetronome.StackTracker.UI and CombatMetronome.StackTracker.UI.GF then CombatMetronome.StackTracker.UI.GF.indicator.ApplyIcon() end
 					end
-					if morphUpdated and CombatMetronome and CombatMetronome.StackTracker and CombatMetronome.StackTracker.UI and CombatMetronome.StackTracker.UI.FS then CombatMetronome.StackTracker.UI.FS.indicator.ApplyIcon() end
-				elseif value == "NB" then
-					if not Stacks.morphs.GF or Stacks.morphs.GF ~= morph then
-						Stacks.morphs.GF = morph
-						morphUpdated = true
-					end
-					if morphUpdated and CombatMetronome and CombatMetronome.StackTracker and CombatMetronome.StackTracker.UI and CombatMetronome.StackTracker.UI.GF then CombatMetronome.StackTracker.UI.GF.indicator.ApplyIcon() end
 				end
 			end
 		)
 		
 		Stacks.morphCheckRegistered = true
-	elseif not needToRegister and Stacks.morphCheckRegistered then
+	elseif not value and Stacks.morphs ~= {} and Stacks.morphCheckRegistered then
 		EVENT_MANAGER:UnregisterForEvent(
 			"StacksMorphCheck")
 			
@@ -41,17 +39,22 @@ function Stacks:HandleMorphRegister(value)
 	end
 end
 
+local MORPH_IDS = {
+	["FS"] = 114108,
+	["GF"] = 61902,
+}
+
 function Stacks:CheckMorph(value)
 	local morph = ""
 	local morphId
-	if value == "CRO" then
-		morphId = GetProgressionSkillCurrentMorphSlot(GetProgressionSkillProgressionId(1, 1, 2))
+	local _,index,_,_,_,_ = GetAbilityProgressionXPInfoFromAbilityId(MORPH_IDS[value])
+	morphId = GetSkillAbilityIndicesFromProgressionIndex(index)
+	if value == "FS" then
 		if morphId == 0 then morph = "FS"
 		elseif morphId == 1 then morph = "VS"
 		elseif morphId == 2 then morph = "RS"
 		end
-	elseif value == "NB" then
-		morphId = GetProgressionSkillCurrentMorphSlot(GetProgressionSkillProgressionId(1, 1, 2))
+	elseif value == "GF" then
 		if morphId == 0 then morph = "GF"
 		elseif morphId == 1 then morph = "RF"
 		elseif morphId == 2 then morph = "MR"
