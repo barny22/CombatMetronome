@@ -427,15 +427,19 @@ end
 
 function StackTracker:GetRelevantActiveSkillLines()
 	for skill, entry in pairs(self.SKILL_ATTRIBUTES) do
-		if type(entry.skillLineIndex) == "table" then
-			for _, id in ipairs(entry.skillLineIndex) do
-				local _,_,isActive,_,_,_ = GetSkillLineDynamicInfo(SKILL_TYPE_CLASS, id)
-				self.activeSkills[skill] = isActive
-				if isActive then break end
-			end
+		if CombatMetronome.API < 101046 then
+			self.activeSkills[skill] = self:IsTrackingAvailable(skill)
 		else
-			local _,_,isActive,_,_,_ = GetSkillLineDynamicInfo(SKILL_TYPE_CLASS, entry.skillLineIndex)
-			self.activeSkills[skill] = isActive
+			if type(entry.skillLineIndex) == "table" then
+				for _, id in ipairs(entry.skillLineIndex) do
+					local _,_,isActive,_,_,_ = GetSkillLineDynamicInfo(SKILL_TYPE_CLASS, id)
+					self.activeSkills[skill] = isActive
+					if isActive then break end
+				end
+			else
+				local _,_,isActive,_,_,_ = GetSkillLineDynamicInfo(SKILL_TYPE_CLASS, entry.skillLineIndex)
+				self.activeSkills[skill] = isActive
+			end
 		end
 	end
 end
