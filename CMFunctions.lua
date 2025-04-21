@@ -307,13 +307,13 @@ end
 
 function StackTracker:TrackerIsActive(skill)
 	if skill then
-		if self:IsTrackingAvailable(skill) and CombatMetronome.SV.StackTracker[skill].tracked then
+		if self.activeSkills[skill] and CombatMetronome.SV.StackTracker[skill].tracked then
 			return true
 		end
 		return false
 	else
 		for skill, _ in pairs(self.SKILL_ATTRIBUTES) do
-			if self:IsTrackingAvailable(skill) and CombatMetronome.SV.StackTracker[skill].tracked then
+			if self.activeSkills[skill] and CombatMetronome.SV.StackTracker[skill].tracked then
 				return true
 			end
 		end
@@ -405,41 +405,12 @@ function StackTracker:GetCurrentStacks(skill)
 	return 0
 end
 
-function StackTracker:IsTrackingAvailable(skill)
-	if CombatMetronome.API < 101046 then
-		if skill == "MW" then
-			return self.class == "DK"
-		elseif skill == "BA" then
-			return self.class == "SORC"
-		elseif skill == "GF" then
-			return self.class == "NB"
-		elseif skill == "Crux" then
-			return self.class == "ARC"
-		elseif skill == "FS" then
-			return self.class == "CRO"
-		elseif skill == "FI" then
-			return self.class == "DEN"
-		end
-	else
-		return self.activeSkills[skill]
-	end
-end
-
-function StackTracker:GetRelevantActiveSkillLines()
+function StackTracker:IsTrackingAvailable()
 	for skill, entry in pairs(self.SKILL_ATTRIBUTES) do
-		if CombatMetronome.API < 101046 then
-			self.activeSkills[skill] = self:IsTrackingAvailable(skill)
-		else
-			if type(entry.skillLineIndex) == "table" then
-				for _, id in ipairs(entry.skillLineIndex) do
-					local _,_,isActive,_,_,_ = GetSkillLineDynamicInfo(SKILL_TYPE_CLASS, id)
-					self.activeSkills[skill] = isActive
-					if isActive then break end
-				end
-			else
-				local _,_,isActive,_,_,_ = GetSkillLineDynamicInfo(SKILL_TYPE_CLASS, entry.skillLineIndex)
-				self.activeSkills[skill] = isActive
-			end
+		for _, id in ipairs(entry.skillLineId) do
+			local _,_,isActive,_,_,_ = GetSkillLineDynamicInfo(GetSkillLineIndicesFromSkillLineId(id))
+			self.activeSkills[skill] = isActive
+			if isActive then break end
 		end
 	end
 end

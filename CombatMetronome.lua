@@ -98,7 +98,7 @@ function CombatMetronome:Init()
 	---- Stack Tracker ----
 	-----------------------
 	StackTracker.activeSkills = {}
-	StackTracker:GetRelevantActiveSkillLines()
+	StackTracker:IsTrackingAvailable()
 	
 	if self.API < 101046 then
 		if StackTracker.class == "CRO" then
@@ -129,7 +129,7 @@ function CombatMetronome:Init()
 	StackTracker.stacks = {}
 	StackTracker.UI = {}
 	for skill, _ in pairs(StackTracker.SKILL_ATTRIBUTES) do
-		if CombatMetronome.SV.StackTracker[skill].tracked and StackTracker:IsTrackingAvailable(skill) and StackTracker:CheckIfSlotted(skill) then
+		if CombatMetronome.SV.StackTracker[skill].tracked and StackTracker.activeSkills[skill] and StackTracker:CheckIfSlotted(skill) then
 			StackTracker:InitializeUI(skill)
 		end
 	end
@@ -169,7 +169,7 @@ function CombatMetronome:RegisterMetadata()
 			CombatMetronome:BuildListOfCurrentlyEquippedAbilities()
 			StackTracker.actionSlotCache = self.currentlyEquippedAbilities.data
 			for skill, _ in pairs(StackTracker.SKILL_ATTRIBUTES) do
-				if StackTracker:IsTrackingAvailable(skill) and self.SV.StackTracker[skill].tracked then
+				if StackTracker.activeSkills[skill] and self.SV.StackTracker[skill].tracked then
 					if StackTracker:CheckIfSlotted(skill) then
 						StackTracker:InitializeUI(skill)
 						StackTracker:Register(skill)
@@ -205,7 +205,7 @@ function CombatMetronome:RegisterMetadata()
 				if Util.Stacks.morphs["FS"] then Util.Stacks.morphs["FS"] = nil end
 				Util.Stacks:HandleMorphRegister(false)
 			end
-			StackTracker:GetRelevantActiveSkillLines()
+			StackTracker:IsTrackingAvailable()
 			for skill, value in pairs(StackTracker.activeSkills) do
 				if value then
 					StackTracker:Register(skill)
