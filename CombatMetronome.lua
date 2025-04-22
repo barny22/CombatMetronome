@@ -188,6 +188,7 @@ function CombatMetronome:RegisterMetadata()
         EVENT_SKILL_RESPEC_RESULT,
         function(_, result)
 			if result ~= RESPEC_RESULT_SUCCESS then return end
+			StackTracker:IsTrackingAvailable()
             if StackTracker.activeSkills["FS"] and StackTracker.activeSkills["GF"] then
 				StackTracker:MorphCheck("FS")
 				StackTracker:MorphCheck("GF")
@@ -205,9 +206,9 @@ function CombatMetronome:RegisterMetadata()
 				if Util.Stacks.morphs["FS"] then Util.Stacks.morphs["FS"] = nil end
 				Util.Stacks:HandleMorphRegister(false)
 			end
-			StackTracker:IsTrackingAvailable()
 			for skill, value in pairs(StackTracker.activeSkills) do
 				if value then
+					StackTracker:GetCurrentStacks(skill)
 					StackTracker:Register(skill)
 				else
 					StackTracker:Unregister(skill)
