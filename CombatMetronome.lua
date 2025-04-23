@@ -3,6 +3,8 @@
 --     onLoad = function(self) self:Init() end,
 -- })
 
+local beta = true
+
 CombatMetronome = {
     name = "CombatMetronome",
     version = {
@@ -10,7 +12,8 @@ CombatMetronome = {
 		["major"] = 6,
 		["minor"] = 15,
 	},
-	API = GetAPIVersion()
+	API = GetAPIVersion(),
+	beta = beta,
 }
 
 -- local LAM = LibAddonMenu2
@@ -40,10 +43,10 @@ function CombatMetronome:Init()
 
 	self:CheckSavedVariables()
 	
-	self.SV = ZO_SavedVars:NewCharacterIdSettings("CombatMetronomeSavedVars", 2, nil, self.DEFAULT_SAVED_VARS)
-	if self.SV.global then
-		self.SV = ZO_SavedVars:NewAccountWide("CombatMetronomeSavedVars", 2, nil, self.DEFAULT_SAVED_VARS)
-		self.SV.global = true
+	CombatMetronome.SV = ZO_SavedVars:NewCharacterIdSettings("CombatMetronomeSavedVars", 2, nil, self.DEFAULT_SAVED_VARS)
+	if CombatMetronome.SV.global then
+		CombatMetronome.SV = ZO_SavedVars:NewAccountWide("CombatMetronomeSavedVars", 2, nil, self.DEFAULT_SAVED_VARS)
+		CombatMetronome.SV.global = true
 	end
 	
 	CombatMetronome.debug = LibChatMessage("|ce11212C|rombat |ce11212M|retronome", "|ce11212C|r|ce11212M|r")
@@ -169,7 +172,7 @@ function CombatMetronome:RegisterMetadata()
 			CombatMetronome:BuildListOfCurrentlyEquippedAbilities()
 			StackTracker.actionSlotCache = self.currentlyEquippedAbilities.data
 			for skill, _ in pairs(StackTracker.SKILL_ATTRIBUTES) do
-				if StackTracker.activeSkills[skill] and self.SV.StackTracker[skill].tracked then
+				if StackTracker.activeSkills[skill] and CombatMetronome.SV.StackTracker[skill].tracked then
 					if StackTracker:CheckIfSlotted(skill) then
 						StackTracker:InitializeUI(skill)
 						StackTracker:Register(skill)
@@ -252,19 +255,19 @@ function CombatMetronome:RegisterCM()
         -- self.name.."SlotUsed",
         -- EVENT_ACTION_SLOT_ABILITY_USED,
         -- function(e, slot)
-			-- if self.SV.debug.enabled then CombatMetronome.debug:Print(slot) end
+			-- if CombatMetronome.SV.debug.enabled then CombatMetronome.debug:Print(slot) end
 			-- local ability = {}
             -- local actionType = GetSlotType(slot)
-			-- if self.SV.debug.enabled then CombatMetronome.debug:Print(actionType) end
+			-- if CombatMetronome.SV.debug.enabled then CombatMetronome.debug:Print(actionType) end
 			-- if actionType == ACTION_TYPE_CRAFTED_ABILITY then --3 then
-				-- if self.SV.debug.enabled then CombatMetronome.debug:Print("Crafted ability executed") end
+				-- if CombatMetronome.SV.debug.enabled then CombatMetronome.debug:Print("Crafted ability executed") end
 				-- ability = Util.Ability:ForId(GetAbilityIdForCraftedAbilityId(GetSlotBoundId(slot)))
-				-- if self.SV.debug.enabled then CombatMetronome.debug:Print("Ability used - "..ability.name..", ID: "..ability.id) end
+				-- if CombatMetronome.SV.debug.enabled then CombatMetronome.debug:Print("Ability used - "..ability.name..", ID: "..ability.id) end
 			-- else
 				-- ability = Util.Ability:ForId(GetSlotBoundId(slot))
 			-- end
 						
-			-- if self.SV.debug.enabled then CombatMetronome.debug:Print("Slot used - Target: "..GetAbilityTargetDescription(GetSlotBoundId(slot)).." - "..ability.name) end
+			-- if CombatMetronome.SV.debug.enabled then CombatMetronome.debug:Print("Slot used - Target: "..GetAbilityTargetDescription(GetSlotBoundId(slot)).." - "..ability.name) end
             -- log("Abilty used - ", ability.name)
             -- if slot == 2 then
                 -- log("Cancelling heavy")
@@ -290,7 +293,7 @@ function CombatMetronome:RegisterCM()
 	if CombatMetronome.SV.Progressbar.trackSynergies then
 		CombatMetronome:RegisterSynergyChanged()
 	end
-	-- if self.SV.debug.enabled then CombatMetronome.debug:Print("cm is registered") end
+	-- if CombatMetronome.SV.debug.enabled then CombatMetronome.debug:Print("cm is registered") end
 end
 
 function CombatMetronome:RegisterCollectiblesTracker()
@@ -423,12 +426,12 @@ function CombatMetronome:RegisterSynergyChanged()
 		function()
 			local hasSynergy, name, icon, _, _ = GetCurrentSynergyInfo()
 			if hasSynergy then
-				-- if self.SV.debug.enabled then self.debug:Print("Found synergy: "..Util.Text.CropZOSString(name, "synergy")) end
+				-- if CombatMetronome.SV.debug.enabled then self.debug:Print("Found synergy: "..Util.Text.CropZOSString(name, "synergy")) end
 				self.Progressbar.synergy.name = Util.Text.CropZOSString(name, "synergy")
 				self.Progressbar.synergy.icon = icon
 			-- else
 				-- self.Progressbar.synergy = nil
-				-- if self.SV.debug.enabled then self.debug:Print("Synergy deleted") end
+				-- if CombatMetronome.SV.debug.enabled then self.debug:Print("Synergy deleted") end
 			end
 		end
 	)
@@ -441,7 +444,7 @@ function CombatMetronome:RegisterResourceTracker()
         function(...) self:UpdateLabels() end
     )
 	
-	if self.SV.Resources.coralBahsei and self.LSD then
+	if CombatMetronome.SV.Resources.coralBahsei and self.LSD then
 		CombatMetronome:RegisterCoralBahsei()
 	end
 	
@@ -518,7 +521,7 @@ function CombatMetronome:UnregisterCM()
         -- self.name.."SlotUsed")
 	
 	self.cmRegistered = false
-	-- if self.SV.debug.enabled then CombatMetronome.debug:Print("cm is unregistered") end
+	-- if CombatMetronome.SV.debug.enabled then CombatMetronome.debug:Print("cm is unregistered") end
 	
 	-- EVENT_MANAGER:UnregisterForEvent(
 		-- self.name.."BarSwap")

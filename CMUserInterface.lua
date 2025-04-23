@@ -95,6 +95,37 @@ function CombatMetronome:BuildUI()
 
 		self.Resources.hpLabel = self.Resources.hpLabel or WINDOW_MANAGER:CreateControl(self.name.."HPLabel", self.Resources.frame, CT_LABEL)
 		self.Resources.hpLabel:SetText("")
+		
+		--------------------------
+		---- Execute Reminder ----
+		--------------------------
+		
+		self.Resources.executeFrame = self.Resources.executeFrame or Util.Controls:NewFrame(self.name.."ExecuteFrame", "")
+		self.Resources.executeFrame:ClearAnchors()
+		self.Resources.executeFrame:SetAnchor(TOPLEFT, GuiRoot, TOPLEFT, CombatMetronome.SV.Resources.executeX, CombatMetronome.SV.Resources.executeY)
+		self.Resources.executeFrame:SetUnlocked(CombatMetronome.SV.Resources.unlockExecuteReminder)
+		self.Resources.executeFrame:SetHidden(not CombatMetronome.SV.Resources.unlockExecuteReminder)
+		self.Resources.executeFrame:SetDimensionConstraints(MIN_WIDTH, MIN_HEIGHT, MAX_WIDTH, MAX_HEIGHT)
+		self.Resources.executeFrame:SetDimensions(CombatMetronome.SV.Resources.executeWidth, CombatMetronome.SV.Resources.executeHeight)
+		self.Resources.executeFrame:SetHandler("OnMoveStop", function(...)
+			CombatMetronome.SV.Resources.executeX = self.Resources.executeFrame:GetLeft()
+			CombatMetronome.SV.Resources.executeY = self.Resources.executeFrame:GetTop()
+		end)
+		self.Resources.executeFrame:SetHandler("OnResizeStop", function(...)
+			CombatMetronome.SV.Resources.executeHeight = self.Resources.executeFrame:GetHeight()
+			self.Resources.executeLabel:SetFont(Util.Text.getFontString(tostring("$("..CombatMetronome.SV.Progressbar.labelFont..")"), CombatMetronome.SV.Resources.executeHeight, CombatMetronome.SV.Progressbar.fontStyle))
+			CombatMetronome.SV.Resources.executeWidth = self.Resources.executeLabel:GetWidth()
+			self.Resources.executeFrame:SetWidth(CombatMetronome.SV.Resources.executeWidth)
+			self.Resources.executeLabel:ClearAnchors()
+			self.Resources.executeLabel:SetAnchor(TOPLEFT, self.Resources.executeFrame, TOPLEFT, 0, -CombatMetronome.SV.Resources.executeHeight/10)
+		end)
+		self.Resources.executeLabel = self.Resources.executeLabel or WINDOW_MANAGER:CreateControl(self.name.."ExecuteLabel", self.Resources.executeFrame, CT_LABEL)
+		self.Resources.executeLabel:SetText("EXECUTE!")
+		self.Resources.executeLabel:SetColor(unpack(CombatMetronome.SV.Resources.executeColor))
+		self.Resources.executeLabel:SetFont(Util.Text.getFontString(tostring("$("..CombatMetronome.SV.Progressbar.labelFont..")"), CombatMetronome.SV.Resources.executeHeight, CombatMetronome.SV.Progressbar.fontStyle))
+		self.Resources.executeLabel:ClearAnchors()
+		self.Resources.executeLabel:SetAnchor(TOPLEFT, self.Resources.executeFrame, TOPLEFT, 0, -CombatMetronome.SV.Resources.executeHeight/10)
+		self.Resources.executeLabel:SetHidden(not CombatMetronome.SV.Resources.unlockExecuteReminder)
 	end
 	
 	local function Position(value)
@@ -118,7 +149,7 @@ function CombatMetronome:BuildUI()
 			self.Resources.frame:SetAnchor(RIGHT, GuiRoot, RIGHT, -GuiRoot:GetWidth()/8, -GuiRoot:GetHeight()/6 - CombatMetronome.SV.Progressbar.height - CombatMetronome.SV.Resources.height/2)
 		end
 	end
-	
+		
 	local function Fonts()
 		self.Resources.hpLabel:SetFont(Util.Text.getFontString(tostring("$("..CombatMetronome.SV.Progressbar.labelFont..")"), CombatMetronome.SV.Resources.healthSize, CombatMetronome.SV.Progressbar.fontStyle))
 		self.Resources.magLabel:SetFont(Util.Text.getFontString(tostring("$("..CombatMetronome.SV.Progressbar.labelFont..")"), CombatMetronome.SV.Resources.magSize, CombatMetronome.SV.Progressbar.fontStyle))
@@ -255,7 +286,7 @@ function CombatMetronome:BuildUI()
 	SCENE_MANAGER:RegisterCallback("SceneStateChanged", function(scene, newState)
 		if scene:GetName() == "gameMenuInGame" and newState == "hiding" then
 			if self.Progressbar.showSample then
-				--if self.SV.debug.enabled then CombatMetronome.debug:Print("should've changed visibility on sampleBar") end
+				--if CombatMetronome.SV.debug.enabled then CombatMetronome.debug:Print("should've changed visibility on sampleBar") end
 				self.Progressbar.showSample = false
 				Position("UI")
 				HiddenStates()
@@ -406,16 +437,16 @@ function StackTracker:BuildUI(skill)
 		end
 		
 		local function Animate()
-			--if self.SV.debug.enabled then CombatMetronome.debug:Print(tostring(highlightAnimationTimeline:GetDuration())) end
+			--if CombatMetronome.SV.debug.enabled then CombatMetronome.debug:Print(tostring(highlightAnimationTimeline:GetDuration())) end
 			-- highlightAnimation:SetHidden(false)
 			highlightAnimationTimeline:PlayFromStart()
-			--if self.SV.debug.enabled then CombatMetronome.debug:Print("Animation should've started") end
+			--if CombatMetronome.SV.debug.enabled then CombatMetronome.debug:Print("Animation should've started") end
 		end
 		
 		local function StopAnimation()
 			highlightAnimationTimeline:Stop()
 			-- highlightAnimation:SetHidden(true)
-			--if self.SV.debug.enabled then CombatMetronome.debug:Print("Animation should've stopped") end
+			--if CombatMetronome.SV.debug.enabled then CombatMetronome.debug:Print("Animation should've stopped") end
 		end
 		
 		local function SetAnimationHidden(value)

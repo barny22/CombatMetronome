@@ -327,7 +327,7 @@ function CombatMetronome:BuildMenu()
 						)
 						if not CombatMetronome.SV.migrated then
 							self:ConvertSavedVariables()
-							if self.SV.debug.enabled then CombatMetronome.debug:Print("Migrating saved variables") end
+							if CombatMetronome.SV.debug.enabled then CombatMetronome.debug:Print("Migrating saved variables") end
 						end
 						CombatMetronome.SV.global = true
 					else
@@ -336,7 +336,7 @@ function CombatMetronome:BuildMenu()
 						)
 						if not CombatMetronome.SV.migrated then
 							self:ConvertSavedVariables()
-							if self.SV.debug.enabled then CombatMetronome.debug:Print("Migrating saved variables") end
+							if CombatMetronome.SV.debug.enabled then CombatMetronome.debug:Print("Migrating saved variables") end
 						end
 						CombatMetronome.SV.global = false
 					end
@@ -502,11 +502,11 @@ function CombatMetronome:BuildMenu()
 					-- local skillType2,skillLineIndex2,skillIndex2,morphChoice2,rank2 = GetSpecificSkillAbilityKeysByAbilityId(61919)
 					-- local skillType3,skillLineIndex3,skillIndex3,morphChoice3,rank3 = GetSpecificSkillAbilityKeysByAbilityId(61927)
 					-- local ProgressionRank = GetAbilityProgressionRankFromAbilityId(self.actionSlotCache[slotInQuestion].id)
-					-- if self.SV.debug.enabled then CombatMetronome.debug:Print(ProgressionSkill) end
-					-- if self.SV.debug.enabled then CombatMetronome.debug:Print(skillType..","..skillLineIndex..","..skillIndex..","..morphChoice..","..rank) end
-					-- if self.SV.debug.enabled then CombatMetronome.debug:Print(skillType2..","..skillLineIndex2..","..skillIndex2..","..morphChoice2..","..rank2) end
-					-- if self.SV.debug.enabled then CombatMetronome.debug:Print(skillType3..","..skillLineIndex3..","..skillIndex3..","..morphChoice3..","..rank3) end
-					-- if self.SV.debug.enabled then CombatMetronome.debug:Print(ProgressionRank) end
+					-- if CombatMetronome.SV.debug.enabled then CombatMetronome.debug:Print(ProgressionSkill) end
+					-- if CombatMetronome.SV.debug.enabled then CombatMetronome.debug:Print(skillType..","..skillLineIndex..","..skillIndex..","..morphChoice..","..rank) end
+					-- if CombatMetronome.SV.debug.enabled then CombatMetronome.debug:Print(skillType2..","..skillLineIndex2..","..skillIndex2..","..morphChoice2..","..rank2) end
+					-- if CombatMetronome.SV.debug.enabled then CombatMetronome.debug:Print(skillType3..","..skillLineIndex3..","..skillIndex3..","..morphChoice3..","..rank3) end
+					-- if CombatMetronome.SV.debug.enabled then CombatMetronome.debug:Print(ProgressionRank) end
 				-- end,
 			-- },
 			-- {
@@ -834,6 +834,7 @@ function CombatMetronome:BuildMenu()
 							CombatMetronome.SV.Progressbar.labelFont = value
 							self.Progressbar.UI.Fonts()
 							LATrackerSettings.LabelSettings()
+							self.Resources.executeLabel:SetFont(Util.Text.getFontString(tostring("$("..CombatMetronome.SV.Progressbar.labelFont..")"), CombatMetronome.SV.Resources.executeHeight, CombatMetronome.SV.Progressbar.fontStyle))
 							-- self:BuildUI()
 						end,
 					},
@@ -848,6 +849,7 @@ function CombatMetronome:BuildMenu()
 							CombatMetronome.SV.Progressbar.fontStyle = value
 							self.Progressbar.UI.Fonts()
 							LATrackerSettings.LabelSettings()
+							self.Resources.executeLabel:SetFont(Util.Text.getFontString(tostring("$("..CombatMetronome.SV.Progressbar.labelFont..")"), CombatMetronome.SV.Resources.executeHeight, CombatMetronome.SV.Progressbar.fontStyle))
 							-- self:BuildUI()
 						end,
 					},
@@ -1525,18 +1527,54 @@ function CombatMetronome:BuildMenu()
 				end,
 			},
 			{
+				type = "checkbox",
+				name = "Unlock execute reminder",
+				tooltip = "Sets the execute reminder movable and resizeable",
+				default = false,
+				disabled = function()
+					return not CombatMetronome.SV.Resources.showExecuteReminder
+				end,
+				getFunc = function() return CombatMetronome.SV.Resources.unlockExecuteReminder end,
+				setFunc = function(value)
+					CombatMetronome.SV.Resources.unlockExecuteReminder = value
+					self.Resources.executeFrame:SetUnlocked(value)
+					self.Resources.executeFrame:SetHidden(not value)
+					self.Resources.executeLabel:SetHidden(not value)
+				end,
+			},
+			{
 				type = "header",
 				name = "Configuration",
 			},
 			{
 				type = "checkbox",
 				name = "Always show own resources",
-				tooltip = "Toggle show own resources. If this is off, your resources will only be shown, when targeting units",
+				tooltip = "Toggle show own resources. If this is off, your resources will only be shown, when targeting units or being in combat",
 				disabled = function()
 					return not (CombatMetronome.SV.Resources.showUltimate or CombatMetronome.SV.Resources.showStamina or CombatMetronome.SV.Resources.showMagicka or CombatMetronome.SV.Resources.showHealth)
 				end,
 				getFunc = function() return CombatMetronome.SV.Resources.showResources end,
 				setFunc = function(value) CombatMetronome.SV.Resources.showResources = value end,
+			},
+			{
+				type = "checkbox",
+				name = "Automatically show execute reminder",
+				tooltip = "Shows a little reminder on screen, when using health highlighting or equipping an execute ability and hitting the targets corresponding execute threshold",
+				getFunc = function() return CombatMetronome.SV.Resources.showExecuteReminder end,
+				setFunc = function(value) CombatMetronome.SV.Resources.showExecuteReminder = value end,
+			},
+			{
+				type = "colorpicker",
+				name = "Exectute reminder Color",
+				tooltip = "Color of your ultimate label",
+				disabled = function()
+					return (not CombatMetronome.SV.Resources.showExecuteReminder)
+				end,
+				getFunc = function() return unpack(CombatMetronome.SV.Resources.executeColor) end,
+				setFunc = function(r, g, b, a)
+					CombatMetronome.SV.Resources.executeColor = {r, g, b, a}
+					CombatMetronome.Resources.executeLabel:SetColor(r,g,b,a)
+				end,
 			},
 			{
 				type = "checkbox",

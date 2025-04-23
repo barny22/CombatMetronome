@@ -34,6 +34,11 @@ function CombatMetronome:UpdateLabels()
         else
             self.Resources.hpLabel:SetHidden(true)
         end
+        if not CombatMetronome.SV.Resources.unlockExecuteReminder then
+            self.Resources.executeLabel:SetHidden(false)
+        else
+            self.Resources.executeLabel:SetHidden(true)
+        end
         
 	-------------------------
 	---- Actual Updating ----
@@ -101,6 +106,13 @@ function CombatMetronome:UpdateLabels()
             self.Resources.hpLabel:SetHidden(false)
         else
             self.Resources.hpLabel:SetHidden(true)
+        end
+        if not CombatMetronome.SV.Resources.unlockExecuteReminder then
+            if showResources and CombatMetronome.SV.Resources.showExecuteReminder and 100 * (hp / maxHp) <= CombatMetronome.Resources.executeThreshold then
+                self.Resources.executeLabel:SetHidden(false)
+            else
+                self.Resources.executeLabel:SetHidden(true)
+            end
         end
     end
 end

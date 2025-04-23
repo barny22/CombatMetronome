@@ -1,8 +1,10 @@
 CombatMetronome.StackTracker = CombatMetronome.StackTracker or {}
+CombatMetronome.Resources = CombatMetronome.Resources or {}
 CombatMetronome.menu = CombatMetronome.menu or {}
 
 CombatMetronome.DEFAULT_SAVED_VARS = {
 	["version"] = 2,
+	["showBetaMessage"] = true,
 	["automaticSVCleanup"] = {
 		["enabled"] = false,
 		["lastCleanup"] = {
@@ -59,10 +61,10 @@ CombatMetronome.DEFAULT_SAVED_VARS = {
 	["Resources"] = {
 		["anchorResourcesToProgressbar"] = true,
 		["hideResourcesInPVP"] = false,
-		["labelFrameXOffset"] = (GuiRoot:GetWidth() - 303) / 2,
-		["labelFrameYOffset"] = (GuiRoot:GetHeight() - 80) / 2,
-		["labelFrameWidth"] = 303,
-		["labelFrameHeight"] = 50,
+		["xOffset"] = (GuiRoot:GetWidth() - 303) / 2,
+		["yOffset"] = (GuiRoot:GetHeight() - 80) / 2,
+		["width"] = 303,
+		["height"] = 50,
 		["showResources"] = false,
 		["coralBahsei"] = false,
 		["showUltimate"] = true,
@@ -81,6 +83,13 @@ CombatMetronome.DEFAULT_SAVED_VARS = {
 		["showResourcesForGuard"] = false,
 		["hpHighlightThreshold"] = 25,
 		["reticleHp"] = false,
+		["unlockExecuteReminder"] = false,
+		["showExecuteReminder"] = false,
+		["executeColor"] = {0.8, 0, 0, 1},
+		["executeX"] = (GuiRoot:GetWidth() - 250) / 2,
+		["executeY"] = (GuiRoot:GetHeight() - 50) / 2,
+		["executeWidth"] = 303,
+		["executeHeight"] = 50,
 	},
 	["StackTracker"] = {
 		["isUnlocked"] = false,
@@ -277,6 +286,10 @@ CombatMetronome.StackTracker.CLASS = {
 	[5] = "CRO",
 	[6] = "PLAR",
 	[117] = "ARC",
+}
+
+CombatMetronome.Resources.EXECUTE_ABILITIES = {
+	[0] = 20,
 }
 
 local function InsertSkillOptionsForStackTracker()

@@ -239,6 +239,11 @@ function CombatMetronome:BuildListOfCurrentlyEquippedAbilities()
 	
 	for i, skill in ipairs(self.currentlyEquippedAbilities.data) do
 		self.currentlyEquippedAbilities.list[i] = tostring("|t20:20:"..skill.icon.."|t "..skill.name)
+		if self.Resources.EXECUTE_ABILITIES[skill.id] then
+			self.Resources.executeThreshold = self.Resources.EXECUTE_ABILITIES[skill.id]
+		else
+			self.Resources.executeThreshold = CombatMetronome.SV.Resources.showHealth and CombatMetronome.SV.Resources.hpHighlightThreshold or 0
+		end
 	end
 	
 	-- refresh equipped ability list
@@ -287,7 +292,7 @@ function CombatMetronome:HandleAbilityUsed(event)
 		return
 	else
 		self.currentEvent = event
-		-- if self.SV.debug.enabled then CombatMetronome.debug:Print("Got new Event "..event.ability.name) end
+		-- if CombatMetronome.SV.debug.enabled then CombatMetronome.debug:Print("Got new Event "..event.ability.name) end
 	end
 	self.lastAbilityFinished = self.abilityFinished
 	self.abilityFinished = event.start + math.max(ability.delay, 1000)
@@ -447,7 +452,7 @@ function CombatMetronome:IsInPvPZone()
 	else
 		self.inPVPZone = false
 	end
-	-- if self.SV.debug.enabled then CombatMetronome.debug:Print(self.inPVPZone) end
+	-- if CombatMetronome.SV.debug.enabled then CombatMetronome.debug:Print(self.inPVPZone) end
 	return self.inPVPZone
 end
 
@@ -457,19 +462,19 @@ function CombatMetronome:CMPVPSwitch()
 			if self.cmRegistered then
 				self:UnregisterCM()
 				self:HideBar(true)
-				-- if self.SV.debug.enabled then CombatMetronome.debug:Print("registered cm scenario 1") end
+				-- if CombatMetronome.SV.debug.enabled then CombatMetronome.debug:Print("registered cm scenario 1") end
 			elseif not self.cmRegistered then
 				self:HideBar(true)
-				-- if self.SV.debug.enabled then CombatMetronome.debug:Print("registered cm scenario 2") end
+				-- if CombatMetronome.SV.debug.enabled then CombatMetronome.debug:Print("registered cm scenario 2") end
 			end
 		else 
 			if not self.cmRegistered then
 				self:RegisterCM()
 				self:HideBar(not CombatMetronome.SV.Progressbar.dontHide)
-				-- if self.SV.debug.enabled then CombatMetronome.debug:Print("registered cm scenario 3") end
+				-- if CombatMetronome.SV.debug.enabled then CombatMetronome.debug:Print("registered cm scenario 3") end
 			else
 				self:HideBar(not CombatMetronome.SV.Progressbar.dontHide)
-				-- if self.SV.debug.enabled then CombatMetronome.debug:Print("registered cm scenario 4") end
+				-- if CombatMetronome.SV.debug.enabled then CombatMetronome.debug:Print("registered cm scenario 4") end
 			end
 		end
 	end
@@ -506,15 +511,15 @@ function StackTracker:PVPSwitch(skill)
 			if (skill == "FS" and self.registered.hotbarUpdate) or self.registered.effectChanged[skill] then
 				self:Unregister(skill)
 				self.UI[skill].FadeScenes("NoUI")
-				-- if self.SV.debug.enabled then CombatMetronome.debug:Print("registered tracker scenario 1") end
+				-- if CombatMetronome.SV.debug.enabled then CombatMetronome.debug:Print("registered tracker scenario 1") end
 			else
 				self.UI[skill].FadeScenes("NoUi")
-				-- if self.SV.debug.enabled then CombatMetronome.debug:Print("registered tracker scenario 2") end
+				-- if CombatMetronome.SV.debug.enabled then CombatMetronome.debug:Print("registered tracker scenario 2") end
 			end
 		else
 			if not (skill == "FS" and self.registered.hotbarUpdate) or self.registered.effectChanged[skill] then
 				self:Register(skill)
-				-- if self.SV.debug.enabled then CombatMetronome.debug:Print("registered tracker scenario 3") end
+				-- if CombatMetronome.SV.debug.enabled then CombatMetronome.debug:Print("registered tracker scenario 3") end
 			end
 		end
 	elseif self:TrackerIsActive(skill) and self:CheckIfSlotted(skill) and not self.UI[skill] and not CombatMetronome.inPVPZone then
@@ -601,13 +606,13 @@ end
 
 function CombatMetronome:AutomaticSVCleanup()
 	local year, month, day = GetDateElementsFromTimestamp(GetTimeStamp())
-	if self.SV.automaticSVCleanup.lastCleanup.year == year or (self.SV.automaticSVCleanup.lastCleanup.year == year - 1 and self.SV.automaticSVCleanup.lastCleanup.month < month) then
-		CombatMetronome.debug:Print("No SV cleanup necessary. Last SV cleanup has taken place less than a year ago on "..self.SV.lastSVCleanup.lastCleanup.day.."-"..self.SV.lastSVCleanup.lastCleanup.month.."-"..self.SV.lastSVCleanup.lastCleanup.year)
-	elseif self.SV.automaticSVCleanup.lastCleanup.year == 0 then
+	if CombatMetronome.SV.automaticSVCleanup.lastCleanup.year == year or (CombatMetronome.SV.automaticSVCleanup.lastCleanup.year == year - 1 and CombatMetronome.SV.automaticSVCleanup.lastCleanup.month < month) then
+		CombatMetronome.debug:Print("No SV cleanup necessary. Last SV cleanup has taken place less than a year ago on "..CombatMetronome.SV.lastSVCleanup.lastCleanup.day.."-"..CombatMetronome.SV.lastSVCleanup.lastCleanup.month.."-"..CombatMetronome.SV.lastSVCleanup.lastCleanup.year)
+	elseif CombatMetronome.SV.automaticSVCleanup.lastCleanup.year == 0 then
 		CombatMetronome.debug:Print("No SV cleanup has taken place yet. Starting automatic cleanup.")
 		self:CleanupSVEnstries()
-	elseif year > self.SV.automaticSVCleanup.lastCleanup.year and month >= self.SV.lastSVCleanup.lastCleanup.month then
-		self.SV.lastSVCleanup = {["year"] = year, ["month"] = month, ["day"] = day}
+	elseif year > CombatMetronome.SV.automaticSVCleanup.lastCleanup.year and month >= CombatMetronome.SV.lastSVCleanup.lastCleanup.month then
+		CombatMetronome.SV.lastSVCleanup = {["year"] = year, ["month"] = month, ["day"] = day}
 		CombatMetronome.debug:Print("Last SV cleanup was about a year ago. Starting automatic cleanup.")
 		self:CleanupSVEntries()
 	end
