@@ -289,7 +289,22 @@ CombatMetronome.StackTracker.CLASS = {
 }
 
 CombatMetronome.Resources.EXECUTE_ABILITIES = {
-	[0] = 20,
+	[85990] = 25, --wild guardian
+	[238043] = 25, --wild guardian (vengeance)
+	[85982] = 25, --feral guardian
+	[85986] = 25, --eternal guardian
+	[34851] = 25, --impale
+	[34843] = 50, --killer's blade
+	[33386] = 25, --assassin's blade
+	[237603] = 25, --assassin's blade (vengeance)
+	[63029] = 50, --radiant destrucion
+	[237974] = 33, --radiant destrucion (vengeance)
+	[63046] = 50, --radiant oppression
+	[63044] = 50, --radiant glory
+	[19123] = 20, --mages' wrath
+	[18718] = 20, --mages' fury
+	[237948] = 20, --mages' fury (vengeance)
+	[19109] = 20, --endless fury
 }
 
 local function InsertSkillOptionsForStackTracker()

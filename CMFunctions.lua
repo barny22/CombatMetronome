@@ -237,11 +237,15 @@ function CombatMetronome:BuildListOfCurrentlyEquippedAbilities()
 	
 	if not self.currentlyEquippedAbilities.list then self.currentlyEquippedAbilities.list = {} end
 	
+	local executeAbilityFound = false
 	for i, skill in ipairs(self.currentlyEquippedAbilities.data) do
 		self.currentlyEquippedAbilities.list[i] = tostring("|t20:20:"..skill.icon.."|t "..skill.name)
 		if self.Resources.EXECUTE_ABILITIES[skill.id] then
-			self.Resources.executeThreshold = self.Resources.EXECUTE_ABILITIES[skill.id]
-		else
+			-- CombatMetronome.debug:Print("Execute ability found, adjusting execute threshold")
+			self.Resources.executeThreshold = math.max(self.Resources.EXECUTE_ABILITIES[skill.id], self.Resources.executeThreshold or 0)
+			executeAbilityFound = true
+		elseif not executeAbilityFound then
+			-- CombatMetronome.debug:Print("No execute ability found")
 			self.Resources.executeThreshold = CombatMetronome.SV.Resources.showHealth and CombatMetronome.SV.Resources.hpHighlightThreshold or 0
 		end
 	end
@@ -312,13 +316,13 @@ end
 
 function StackTracker:TrackerIsActive(skill)
 	if skill then
-		if self.activeSkills[skill] and CombatMetronome.SV.StackTracker[skill].tracked then
+		if self.activeSkills[skill] and self:CheckIfSlotted(skill) and CombatMetronome.SV.StackTracker[skill].tracked then
 			return true
 		end
 		return false
 	else
 		for skill, _ in pairs(self.SKILL_ATTRIBUTES) do
-			if self.activeSkills[skill] and CombatMetronome.SV.StackTracker[skill].tracked then
+			if self.activeSkills[skill] and self:CheckIfSlotted(skill) and CombatMetronome.SV.StackTracker[skill].tracked then
 				return true
 			end
 		end
