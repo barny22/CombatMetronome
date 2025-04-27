@@ -384,7 +384,7 @@ function StackTracker:CheckIfSlotted(skill)
 				return true
 			end
 		end
-	elseif skill == "Crux" and self.activeSkills[skill] then abilitySlotted = true
+	elseif skill == "Crux" and self.activeSkills[skill] then return = true
 	elseif skill == "FS" then
 		local morph = Util.Stacks.morphs.FS
 		for i=1,3 do
