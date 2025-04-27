@@ -373,7 +373,6 @@ end
 function StackTracker:CheckIfSlotted(skill)
 	local ability = ""
 	local attributes = StackTracker.SKILL_ATTRIBUTES[skill]
-	local abilitySlotted = false
 	if skill == "BA" or skill == "MW" or skill == "FI" then ability = attributes.id.ability
 	elseif skill == "GF" then 
 		local morph = Util.Stacks.morphs.GF
@@ -382,8 +381,7 @@ function StackTracker:CheckIfSlotted(skill)
 	if ability ~= "" then
 		for i=1,#self.actionSlotCache do
 			if self.actionSlotCache[i].id == ability then
-				abilitySlotted = true
-				break
+				return true
 			end
 		end
 	elseif skill == "Crux" and self.activeSkills[skill] then abilitySlotted = true
@@ -393,16 +391,12 @@ function StackTracker:CheckIfSlotted(skill)
 			ability = attributes.id[morph].ability[i]
 			for j=1,#self.actionSlotCache do
 				if self.actionSlotCache[j].id == ability then
-					abilitySlotted = true
-					break
+					return true
 				end
-			end
-			if ablilitySlotted then
-				break
 			end
 		end
 	end
-	return abilitySlotted
+	return false
 end
 
 function StackTracker:GetCurrentStacks(skill)
@@ -439,10 +433,11 @@ end
 function StackTracker:HandleUIVisibility(skill, scene)
 	if StackTracker.UI[skill] then
 		StackTracker.UI[skill].FadeScenes(scene)
-		StackTracker.UI[skill].stacksWindow:SetHidden(false)
-		if scene == "NoUI" or scene == "NoSample" then
-			StackTracker.UI[skill].stacksWindow:SetHidden(true)
-		end
+		-- if scene == "NoUI" or scene == "NoSample" then
+			-- StackTracker.UI[skill].stacksWindow:SetHidden(true)
+		-- elseif scene == "Sample" or scene == "UI" then
+			-- StackTracker.UI[skill].stacksWindow:SetHidden(false)
+		-- end
 	end
 end
 
