@@ -165,33 +165,33 @@ end
 	-----------------------------
 
 function CombatMetronome:RegisterMetadata()
-	EVENT_MANAGER:RegisterForEvent(
-        self.name.."CurrentActionslotsOnHotbar",
-        EVENT_ACTION_SLOTS_ALL_HOTBARS_UPDATED,
-        function()
-			CombatMetronome:BuildListOfCurrentlyEquippedAbilities()
-			StackTracker.actionSlotCache = self.currentlyEquippedAbilities.data
-			for skill, _ in pairs(StackTracker.SKILL_ATTRIBUTES) do
-				if StackTracker.activeSkills[skill] and CombatMetronome.SV.StackTracker[skill].tracked then
-					if StackTracker:CheckIfSlotted(skill) then
-						StackTracker:InitializeUI(skill)
-						StackTracker:GetCurrentStacks(skill)
-						StackTracker:Register(skill)
-					elseif (skill == "FS" and StackTracker.registered.hotbarUpdate) or (skill ~= "FS" and StackTracker.registered.effectChanged and StackTracker.registered.effectChanged[skill]) and not StackTracker:CheckIfSlotted(skill) then
-						StackTracker:Unregister(skill)
-						StackTracker:HandleUIVisibility(skill, "NoUI")
-						StackTracker:HandleUIVisibility(skill, "NoSample")
-					end
-				end
-			end
-        end
-    )
+	-- EVENT_MANAGER:RegisterForEvent(
+        -- self.name.."CurrentActionslotsOnHotbar",
+        -- EVENT_ACTION_SLOTS_ALL_HOTBARS_UPDATED,
+        -- function()
+			-- CombatMetronome:BuildListOfCurrentlyEquippedAbilities()
+			-- StackTracker.actionSlotCache = self.currentlyEquippedAbilities.data
+			-- for skill, _ in pairs(StackTracker.SKILL_ATTRIBUTES) do
+				-- if StackTracker.activeSkills[skill] and CombatMetronome.SV.StackTracker[skill].tracked then
+					-- if StackTracker:CheckIfSlotted(skill) then
+						-- StackTracker:InitializeUI(skill)
+						-- StackTracker:GetCurrentStacks(skill)
+						-- StackTracker:Register(skill)
+					-- elseif (skill == "FS" and StackTracker.registered.hotbarUpdate) or (skill ~= "FS" and StackTracker.registered.effectChanged and StackTracker.registered.effectChanged[skill]) and not StackTracker:CheckIfSlotted(skill) then
+						-- StackTracker:Unregister(skill)
+					-- end
+				-- end
+			-- end
+        -- end
+    -- )
 	
 	EVENT_MANAGER:RegisterForEvent(
         self.name.."RespecResult",
         EVENT_SKILL_RESPEC_RESULT,
         function(_, result)
 			if result ~= RESPEC_RESULT_SUCCESS then return end
+			CombatMetronome:BuildListOfCurrentlyEquippedAbilities()
+			StackTracker.actionSlotCache = self.currentlyEquippedAbilities.data
 			StackTracker:IsTrackingAvailable()
             if StackTracker.activeSkills["FS"] and StackTracker.activeSkills["GF"] then
 				StackTracker:MorphCheck("FS")
