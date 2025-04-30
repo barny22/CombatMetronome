@@ -65,14 +65,18 @@ local function IconDesaturation(icon, value)
 	end
 end
 
-local function GenerateDependencyVersionsList()
-	local versionList
+local function InsertDependencyVersions()
 	for name, version in pairs(CombatMetronome.DependencyVersions) do
-		versionList = name..": "..version.."\n"
+		local control = {
+			type = "editbox",
+			name = name,
+			getFunc = function() return version end,
+			setFunc = function() end,
+			disabled = true,
+		}
+		table.insert(CombatMetronome.menu.options.General, control)
 	end
-	return versionList
 end
-
 
 function CombatMetronome:BuildMenu()
     self.menu = self.menu or { }
@@ -86,7 +90,7 @@ function CombatMetronome:BuildMenu()
 	local LATrackerSettings = LATracker:BuildUI()
 	local function CreateStacksSettings()
 		local position
-		for i, entry in ipairs(self.menu.options.stackTracker) do
+		for i, entry in ipairs(self.menu.options.StackTracker) do
 			if entry.name == "Stacks to track" then position = i break end
 		end
 		local sortedControls = {}
@@ -213,17 +217,17 @@ function CombatMetronome:BuildMenu()
 					},
 				},
 			}
-			table.insert(self.menu.options.stackTracker, position+i, submenu[1])
-			-- for i=#self.menu.options.stackTracker, 1, -1 do
-				-- if not self.menu.options.stackTracker[i] then
-					-- table.remove(self.menu.options.stackTracker, i)
+			table.insert(self.menu.options.StackTracker, position+i, submenu[1])
+			-- for i=#self.menu.options.StackTracker, 1, -1 do
+				-- if not self.menu.options.StackTracker[i] then
+					-- table.remove(self.menu.options.StackTracker, i)
 				-- end
 			-- end
 		end
 	end
 	local CreateIcons
 	CreateIcons = function(panel)
-		if panel == CombatMetronomeprogressbarOptions then
+		if panel == CombatMetronomeProgressbarOptions then
 			for i = 1, #self.menu.CONTROLS.progressbar do
 				if not self.menu.icons.progressbar[i] then
 					local number = CombatMetronome:CreateMenuIconsPath(self.menu.CONTROLS.progressbar[i].Name, panel)
@@ -247,9 +251,9 @@ function CombatMetronome:BuildMenu()
     self.menu.abilityAdjustChoices = self:CreateAdjustList()
     self.menu.curSkillName = ABILITY_ADJUST_PLACEHOLDER
     self.menu.curSkillId = -1
-	self.menu.ADDON_DEPENDENCY_VERSIONS = GenerateDependencyVersionsList()
+	-- self.menu.ADDON_DEPENDENCY_VERSIONS = GenerateDependencyVersionsList()
 	self.menu.metadata = {
-		["general"] = {
+		["General"] = {
 			type = "panel",
 			name = "Combat Metronome - General",
 			displayName = "|ce11212C|rombat |ce11212M|retronome - General",
@@ -262,7 +266,7 @@ function CombatMetronome:BuildMenu()
 			registerForRefresh = true,
 			registerForDefaults = true,
 		},
-		["progressbar"] = {
+		["Progressbar"] = {
 			type = "panel",
 			name = "Combat Metronome - Progressbar",
 			displayName = "|ce11212C|rombat |ce11212M|retronome - Progressbar",
@@ -275,7 +279,7 @@ function CombatMetronome:BuildMenu()
 			registerForRefresh = true,
 			registerForDefaults = true,
 		},
-		["resources"] = {
+		["Resources"] = {
 			type = "panel",
 			name = "Combat Metronome - Resources",
 			displayName = "|ce11212C|rombat |ce11212M|retronome - Resources",
@@ -288,7 +292,7 @@ function CombatMetronome:BuildMenu()
 			registerForRefresh = true,
 			registerForDefaults = true,
 		},
-		["stackTracker"] = {
+		["StackTracker"] = {
 			type = "panel",
 			name = "Combat Metronome - StackTracker",
 			displayName = "|ce11212C|rombat |ce11212M|retronome - StackTracker",
@@ -301,7 +305,7 @@ function CombatMetronome:BuildMenu()
 			registerForRefresh = true,
 			registerForDefaults = true,
 		},
-		["laTracker"] = {
+		["LATracker"] = {
 			type = "panel",
 			name = "Combat Metronome - LA Tracker",
 			displayName = "|ce11212C|rombat |ce11212M|retronome - LA Tracker",
@@ -316,7 +320,7 @@ function CombatMetronome:BuildMenu()
 		},
 	}
 	self.menu.options = {
-		["general"] = {
+		["General"] = {
 			{
 				type = "header",
 				name = "General settings"
@@ -443,13 +447,17 @@ function CombatMetronome:BuildMenu()
 				},
 			},
 			{
-				type = "editbox",
-				name = "AddOn dependency versions:",
-				isMultiline = true,
-				getFunc = function() return self.menu.ADDON_DEPENDENCY_VERSIONS end,
-				setFunc = function() end,
-				disabled = true,
+				type = "header",
+				name = "AddOn dependency versions:"
 			},
+			
+			-- {
+				-- type = "editbox",
+				-- name = "AddOn dependency versions:",
+				-- isMultiline = true,
+				-- getFunc = function() return self.menu.ADDON_DEPENDENCY_VERSIONS end,
+				-- setFunc = function() end,
+			-- },
 			---------------------------
 			---- Get Ability Infos ----
 			---------------------------
@@ -1467,7 +1475,7 @@ function CombatMetronome:BuildMenu()
 				},
 			},
 		},
-		["resources"] = {
+		["Resources"] = {
 			-------------------
 			---- Resources ----
 			-------------------
@@ -1838,7 +1846,7 @@ function CombatMetronome:BuildMenu()
 				setFunc = function(value) CombatMetronome.SV.Resources.showResourcesForGuard = value end,
 			},
 		},
-		["stackTracker"] = {
+		["StackTracker"] = {
 			-----------------------
 			---- Stack Tracker ----
 			-----------------------
@@ -1877,7 +1885,7 @@ function CombatMetronome:BuildMenu()
 				name = "Stacks to track",
 			},
 		},
-		["laTracker"] = {
+		["LATracker"] = {
 			------------------------------
 			---- Light Attack Tracker ----
 			------------------------------
@@ -1953,6 +1961,7 @@ function CombatMetronome:BuildMenu()
 			},
 		},
     }
+	if CombatMetronome.dev then InsertDependencyVersions() end
 	CreateStacksSettings()
     self.menu.panels = {}
 	for panelName, panelOptions in pairs(self.menu.metadata) do

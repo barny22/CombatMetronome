@@ -4,7 +4,7 @@
 -- })
 
 local beta = true
--- local dev = true
+local dev = true
 
 CombatMetronome = {
     name = "CombatMetronome",
@@ -15,7 +15,7 @@ CombatMetronome = {
 	},
 	API = GetAPIVersion(),
 	beta = beta,
-	-- dev = dev,
+	dev = dev,
 }
 
 -- local LAM = LibAddonMenu2
