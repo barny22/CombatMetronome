@@ -510,7 +510,7 @@ function StackTracker:Register(skill)
 				aId = self.SKILL_ATTRIBUTES[skill].id
 			elseif self.SKILL_ATTRIBUTES[skill].id.buff then
 				aId = self.SKILL_ATTRIBUTES[skill].id.buff
-			else
+			elseif skill == "GF" then
 				aId = self.SKILL_ATTRIBUTES[skill].id[Util.Stacks.morphs[skill]].buff
 			end
 			self.trackedIds[aId] = skill
@@ -594,19 +594,21 @@ function StackTracker:Unregister(skill)
 				aId = self.SKILL_ATTRIBUTES[skill].id
 			elseif self.SKILL_ATTRIBUTES[skill].id.buff then
 				aId = self.SKILL_ATTRIBUTES[skill].id.buff
-			else
+			elseif skill == "GF" then
 				aId = self.SKILL_ATTRIBUTES[skill].id[Util.Stacks.morphs[skill]].buff
 			end
-			if self.trackedIds[aId] then self.trackedIds[aId] = nil end
+			if self.trackedIds[aId] then 
+				self.trackedIds[aId] = nil
+			end
 			unregisteredAbility = true
-		end
 		
-		if not self:EffectChangedShouldBeActive() then
-			EVENT_MANAGER:UnregisterForEvent(
-				self.name.."EffectChanged")
-			
-			self.registered.effectChanged = nil
-			if CombatMetronome.SV.debug.enabled then CombatMetronome.debug:Print("effectChanged is unregistered") end
+			if not self:EffectChangedShouldBeActive() then
+				EVENT_MANAGER:UnregisterForEvent(
+					self.name.."EffectChanged")
+				
+				self.registered.effectChanged = nil
+				if CombatMetronome.SV.debug.enabled then CombatMetronome.debug:Print("effectChanged is unregistered") end
+			end
 		end
 	end
 	if unregisteredAbility then
