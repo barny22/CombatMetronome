@@ -65,6 +65,14 @@ local function IconDesaturation(icon, value)
 	end
 end
 
+local function GenerateDependencyVersionsList()
+	local versionList
+	for name, version in pairs(CombatMetronome.DependencyVersions) do
+		versionList = name..": "..version.."\n"
+	end
+	return versionList
+end
+
 
 function CombatMetronome:BuildMenu()
     self.menu = self.menu or { }
@@ -239,6 +247,7 @@ function CombatMetronome:BuildMenu()
     self.menu.abilityAdjustChoices = self:CreateAdjustList()
     self.menu.curSkillName = ABILITY_ADJUST_PLACEHOLDER
     self.menu.curSkillId = -1
+	self.menu.ADDON_DEPENDENCY_VERSIONS = GenerateDependencyVersionsList()
 	self.menu.metadata = {
 		["general"] = {
 			type = "panel",
@@ -432,6 +441,14 @@ function CombatMetronome:BuildMenu()
 						width = "half",
 					},
 				},
+			},
+			{
+				type = "editbox",
+				name = "AddOn dependency versions:",
+				isMultiline = true,
+				getFunc = function() return self.menu.ADDON_DEPENDENCY_VERSIONS end,
+				setFunc = function() end,
+				disabled = true,
 			},
 			---------------------------
 			---- Get Ability Infos ----

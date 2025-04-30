@@ -25,9 +25,10 @@ jobs:
       run: |
         echo "TEST_ONLY=false" >> $GITHUB_ENV
         
-    - name: Set beta = false in CombatMetronome.lua
+    - name: Set beta = false and dev = false in CombatMetronome.lua
       run: |
         sed -i 's/local beta = true/local beta = false/' CombatMetronome/CombatMetronome.lua
+        sed -i 's/local dev = true/local dev = false/' CombatMetronome/CombatMetronome.lua
 
     - name: Extract API Version and Addon Version
       id: version_info

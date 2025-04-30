@@ -4,6 +4,7 @@
 -- })
 
 local beta = true
+-- local dev = true
 
 CombatMetronome = {
     name = "CombatMetronome",
@@ -14,6 +15,7 @@ CombatMetronome = {
 	},
 	API = GetAPIVersion(),
 	beta = beta,
+	-- dev = dev,
 }
 
 -- local LAM = LibAddonMenu2
@@ -65,6 +67,7 @@ function CombatMetronome:Init()
 	self.currentCharacterName = Util.Text.CropZOSString(GetUnitName("player"), "name")
 	self.currentlyEquippedAbilities = {}
 	CombatMetronome:BuildListOfCurrentlyEquippedAbilities()
+	CombatMetronome:GetDependencyVersions()
 		
 	StackTracker.classId = GetUnitClassId("player")
 	StackTracker.class = StackTracker.CLASS[StackTracker.classId]
