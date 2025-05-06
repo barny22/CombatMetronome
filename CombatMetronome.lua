@@ -413,7 +413,7 @@ function CombatMetronome:RegisterCombatEvents()
 					-- self.otherSynergies = {}
 					-- self.otherSynergies.icon = aGraphic
 					-- self.otherSynergies.name = Util.Text.CropZOSString(aName)
-				elseif self.Progressbar.synergy and self.Progressbar.synergy.name == Util.Text.CropZOSString(aName, "ability") then
+				elseif self.Progressbar.synergy and self.Progressbar.synergy.name == Util.Text.CropZOSString(aName, "synergy") then
 					-- self.debug:Print("Synergy "..Util.Text.CropZOSString(aName, "ability").." was used")
 					self.Progressbar.synergy.wasUsed = true
 				end

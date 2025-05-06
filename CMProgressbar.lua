@@ -140,14 +140,14 @@ function CombatMetronome:Update()
 			elseif self.Progressbar.collectibleInUse and CombatMetronome.SV.Progressbar.trackCollectibles then
 				CombatMetronome:GCDSpecifics(self.Progressbar.collectibleInUse.name, self.Progressbar.collectibleInUse.icon, gcdProgress, false)
 				-- self.Progressbar.nonAbilityGCDRunning = true
+			elseif self.Progressbar.synergy and CombatMetronome.SV.Progressbar.trackSynergies and self.Progressbar.synergy.wasUsed then
+				CombatMetronome:GCDSpecifics(self.Progressbar.synergy.name, self.Progressbar.synergy.icon, gcdProgress, true)
+				-- self.Progressbar.nonAbilityGCDRunning = true
 			elseif self.Progressbar.itemUsed and CombatMetronome.SV.Progressbar.trackItems then
 				CombatMetronome:GCDSpecifics(self.Progressbar.itemUsed.name, self.Progressbar.itemUsed.icon, gcdProgress, false)
 				-- self.Progressbar.nonAbilityGCDRunning = true
 			elseif self.Progressbar.breakingFree and CombatMetronome.SV.Progressbar.trackBreakingFree then
 				CombatMetronome:GCDSpecifics(self.Progressbar.breakingFree.name, self.Progressbar.breakingFree.icon, gcdProgress, false)
-				-- self.Progressbar.nonAbilityGCDRunning = true
-			elseif self.Progressbar.synergy and CombatMetronome.SV.Progressbar.trackSynergies and self.Progressbar.synergy.wasUsed then
-				CombatMetronome:GCDSpecifics(self.Progressbar.synergy.name, self.Progressbar.synergy.icon, gcdProgress, true)
 				-- self.Progressbar.nonAbilityGCDRunning = true
 			elseif self.Progressbar.jesterFestivalCherryBlossom then
 				CombatMetronome:GCDSpecifics(CherryBlossom.name, CherryBlossom.icon, gcdProgress, false)
