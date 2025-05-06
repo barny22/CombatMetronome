@@ -552,6 +552,7 @@ function LATracker:BuildUI()
 	end
 	
 	LATracker.label = LATracker.label or WINDOW_MANAGER:CreateControl(self.name.."Label", LATracker.frame, CT_LABEL)
+	LATracker.label:SetHidden(true)
 	LATracker.label:SetText("")
 	LATracker.label:ClearAnchors()
 	LATracker.label:SetAnchor(CENTER, LATracker.frame, CENTER, 0, 0)
