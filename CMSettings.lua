@@ -82,10 +82,10 @@ function CombatMetronome:BuildMenu()
     self.menu = self.menu or { }
 	self.menu.icons = {
 		["progressbar"] = {},
-		["stackTracker"] = {
-			["frame"] = {},
-			["icon"] = {},
-		},
+		-- ["stackTracker"] = {
+			-- ["frame"] = {},
+			-- ["icon"] = {},
+		-- },
 	}
 	local LATrackerSettings = LATracker:BuildUI()
 	local function CreateStacksSettings()
@@ -544,7 +544,7 @@ function CombatMetronome:BuildMenu()
 				-- end,
 			-- },
 		},
-		["progressbar"] = {
+		["Progressbar"] = {
 			{	
 				type = "header",
 				name = "Progressbar aka. GCD Tracker",
