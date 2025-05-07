@@ -648,20 +648,3 @@ function CombatMetronome:CleanupSVEntries()
 		end
 	end
 end
-
-local ADDON_DEPENDENCIES = {
-	"libAddonKeybinds", "LibAddonMenu-2.0", "LibChatMessage", "LibSetDetection"
-}
-
-function CombatMetronome:GetDependencyVersions()
-	local AM = GetAddOnManager()
-	for j = 1, #ADDON_DEPENDENCIES do
-		for i = 1, AM:GetNumAddOns() do
-			local name = AM:GetAddOnInfo(i)
-			if name == ADDON_DEPENDENCIES[j] then
-				if not CombatMetronome.DependencyVersions then CombatMetronome.DependencyVersions = {} end
-				CombatMetronome.DependencyVersions[ADDON_DEPENDENCIES[j]] = AM:GetAddOnVersion(i)
-			end
-		end
-	end
-end

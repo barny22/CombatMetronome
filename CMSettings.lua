@@ -65,18 +65,18 @@ local function IconDesaturation(icon, value)
 	end
 end
 
-local function InsertDependencyVersions()
-	for name, version in pairs(CombatMetronome.DependencyVersions) do
-		local control = {
-			type = "editbox",
-			name = name,
-			getFunc = function() return version end,
-			setFunc = function() end,
-			disabled = true,
-		}
-		table.insert(CombatMetronome.menu.options.General, control)
-	end
-end
+-- local function InsertDependencyVersions()
+	-- for name, version in pairs(CombatMetronome.DependencyVersions) do
+		-- local control = {
+			-- type = "editbox",
+			-- name = name,
+			-- getFunc = function() return version end,
+			-- setFunc = function() end,
+			-- disabled = true,
+		-- }
+		-- table.insert(CombatMetronome.menu.options.General, control)
+	-- end
+-- end
 
 function CombatMetronome:BuildMenu()
     self.menu = self.menu or { }
@@ -446,10 +446,10 @@ function CombatMetronome:BuildMenu()
 					},
 				},
 			},
-			{
-				type = "header",
-				name = "AddOn dependency versions:"
-			},
+			-- {
+				-- type = "header",
+				-- name = "AddOn dependency versions:"
+			-- },
 			
 			-- {
 				-- type = "editbox",
@@ -1961,7 +1961,7 @@ function CombatMetronome:BuildMenu()
 			},
 		},
     }
-	if CombatMetronome.dev then InsertDependencyVersions() end
+	-- if CombatMetronome.dev then InsertDependencyVersions() end
 	CreateStacksSettings()
     self.menu.panels = {}
 	for panelName, panelOptions in pairs(self.menu.metadata) do
