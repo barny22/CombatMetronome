@@ -193,8 +193,8 @@ function CombatMetronome:BuildMenu()
 							end
 						},
 						{	type = "checkbox",
-							name = "Play animation when reaching full stacks/stacks needed to fire ability",
-							tooltip = "Gives you a more intense visual cue",
+							name = "Animation cue to fire stacks",
+							tooltip = "Gives you a more intense visual cue, if you reach an amount of stacks needed to fire an ability, or at max stacks",
 							getFunc = function() return CombatMetronome.SV.StackTracker[skill].hightlightOnFullStacks end,
 							setFunc = function(value)
 								CombatMetronome.SV.StackTracker[skill].hightlightOnFullStacks = value
@@ -243,8 +243,9 @@ function CombatMetronome:BuildMenu()
 				end
 			end
 			self.menu.icons.progressbar[2]:SetTexture(self.Progressbar.activeMount.icon)
+			
+			CALLBACK_MANAGER:UnregisterCallback("LAM-PanelControlsCreated", CreateIcons)
 		end
-		CALLBACK_MANAGER:UnregisterCallback("LAM-PanelControlsCreated", CreateIcons)
 	end
 	CALLBACK_MANAGER:RegisterCallback("LAM-PanelControlsCreated", CreateIcons)
 

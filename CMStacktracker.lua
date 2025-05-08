@@ -14,6 +14,8 @@ local sampleAnimationStarted = false
 local previousStack
 
 function StackTracker:HandleEffectChanged(_,changeType, _, _, unitTag, _, _, stackCount, _, _, _, _, _, uName, uId, aId, _)	
+	if not self.trackedIds[aId] then return end
+	
 	local iMax = self.SKILL_ATTRIBUTES[self.trackedIds[aId]].iMax
 	if self.trackedIds[aId] == "FI" then stackCount = 1 end
 	-- if CombatMetronome.SV.debug.enabled then CombatMetronome.debug:Print("Found matching id, initiating stackCount change") end
