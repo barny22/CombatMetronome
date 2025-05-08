@@ -399,6 +399,19 @@ function StackTracker:CheckIfSlotted(skill)
 	return false
 end
 
+function StackTracker:CheckIfRegistered(skill)
+	if skill == "FS" and self.hotbarUpdateRegistered then
+		return true
+	else
+		for _, aName in pairs(self.trackedIds) do
+			if skill == aName then
+				return true
+			end
+		end
+	end
+	return false
+end
+
 function StackTracker:GetCurrentStacks(skill)
 	local stacks
 	if self:CheckIfSlotted(skill) then
@@ -506,8 +519,9 @@ end
 
 function StackTracker:PVPSwitch(skill)
 	if self:TrackerIsActive(skill) and self:CheckIfSlotted(skill) and self.UI[skill] then
+		local registered = self:CheckIfRegistered(skill)
 		if CombatMetronome.SV.StackTracker[skill].hideInPVP and CombatMetronome.inPVPZone then
-			if (skill == "FS" and self.registered.hotbarUpdate) or self.registered.effectChanged[skill] then
+			if registered then
 				self:Unregister(skill)
 				self.UI[skill].FadeScenes("NoUI")
 				-- if CombatMetronome.SV.debug.enabled then CombatMetronome.debug:Print("registered tracker scenario 1") end
@@ -516,7 +530,7 @@ function StackTracker:PVPSwitch(skill)
 				-- if CombatMetronome.SV.debug.enabled then CombatMetronome.debug:Print("registered tracker scenario 2") end
 			end
 		else
-			if not (skill == "FS" and self.registered.hotbarUpdate) or self.registered.effectChanged[skill] then
+			if not registered then
 				self:Register(skill)
 				-- if CombatMetronome.SV.debug.enabled then CombatMetronome.debug:Print("registered tracker scenario 3") end
 			end

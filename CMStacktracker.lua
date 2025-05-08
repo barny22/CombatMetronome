@@ -13,16 +13,12 @@ local trackerShouldBeVisible = false
 local sampleAnimationStarted = false
 local previousStack
 
-function StackTracker:HandleEffectChanged(_,changeType, _, _, unitTag, _, _, stackCount, _, _, _, _, _, uName, uId, aId, _)
-	if unitTag ~= "player" or not self.trackedIds[aId] then
-		return
-	else
-		local iMax = self.SKILL_ATTRIBUTES[self.trackedIds[aId]].iMax
-		if self.trackedIds[aId] == "FI" then stackCount = 1 end
-		-- if CombatMetronome.SV.debug.enabled then CombatMetronome.debug:Print("Found matching id, initiating stackCount change") end
-		if changeType == EFFECT_RESULT_FADED then stackCount = 0 end
-		self:ChangeStackCount(self.trackedIds[aId], stackCount)
-	end
+function StackTracker:HandleEffectChanged(_,changeType, _, _, unitTag, _, _, stackCount, _, _, _, _, _, uName, uId, aId, _)	
+	local iMax = self.SKILL_ATTRIBUTES[self.trackedIds[aId]].iMax
+	if self.trackedIds[aId] == "FI" then stackCount = 1 end
+	-- if CombatMetronome.SV.debug.enabled then CombatMetronome.debug:Print("Found matching id, initiating stackCount change") end
+	if changeType == EFFECT_RESULT_FADED then stackCount = 0 end
+	self:ChangeStackCount(self.trackedIds[aId], stackCount)
 end
 
 function StackTracker:HandleHotbarChangeRequested(_,aId,_,_)
