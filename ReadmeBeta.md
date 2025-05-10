@@ -31,4 +31,5 @@ If you like my work and want to support what I'm doing, consider supporting me o
 [*] Added fetcher infection to trackable abilities
 [*] Added cleanup functionality for saved vars
 [*] [b]New dependency: [color=#FF0000]LibNotification[/color][/b]
+[*] Added beta version notification and notification for version changes
 [/list]
