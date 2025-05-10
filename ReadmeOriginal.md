@@ -62,5 +62,5 @@ Thanks to [b]Seltiix[/b] for prototyping the initial sound cue system.
 
 [size=4][b][color=red]Known Issues:[/color][/b][/size]
 [list]
-[*] Some types of cast cancels are not tracked.
+[*] None. Let me know if you find some undesired 'features' on my [url="https://www.esoui.com/portal.php?id=386&a=listbugs"]ESOUI Portal[/url].
 [/list]
