@@ -10,8 +10,8 @@ CombatMetronome = {
     name = "CombatMetronome",
     version = {
 		["patch"] = 1,
-		["major"] = 6,
-		["minor"] = 15,
+		["major"] = 7,
+		["minor"] = 0,
 	},
 	API = GetAPIVersion(),
 	beta = beta,
@@ -678,7 +678,7 @@ end
 function CombatMetronome:DevTools()
 
 	local ADDON_DEPENDENCY_VERSIONS = {
-		["libAddonKeybinds"] = -1, ["LibAddonMenu-2.0"] = -1, ["LibChatMessage"] = -1, ["LibSetDetection"] = -1
+		["libAddonKeybinds"] = -1, ["LibAddonMenu-2.0"] = -1, ["LibChatMessage"] = -1, ["LibSetDetection"] = -1, ["LibNotification"] = -1,
 	}
 
 	local function GetDependencyVersions()
