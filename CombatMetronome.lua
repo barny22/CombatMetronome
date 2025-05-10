@@ -17,7 +17,7 @@ CombatMetronome = {
 	beta = beta,
 }
 
-CombatMetronome.versionString = tostring(CombatMetronome.version.patch.."."..CombatMetronome.version.major.."."..CombatMetronome.version.minor)
+CombatMetronome.versionString = string.format("%s.%s.%s", CombatMetronome.version.patch, CombatMetronome.version.major, CombatMetronome.version.minor)
 CombatMetronome.versionCheck = tonumber(string.format("%s%02d%02d", CombatMetronome.version.patch, CombatMetronome.version.major, CombatMetronome.version.minor))
 
 -- local LAM = LibAddonMenu2
