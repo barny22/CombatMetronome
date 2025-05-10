@@ -30,4 +30,5 @@ If you like my work and want to support what I'm doing, consider supporting me o
 [*] Fully rewrote the StackTracker functionality in preparation for U46 and for massive performance improvements
 [*] Added fetcher infection to trackable abilities
 [*] Added cleanup functionality for saved vars
+[*] [b]New dependency: [color=#FF0000]LibNotification[/color][/b]
 [/list]

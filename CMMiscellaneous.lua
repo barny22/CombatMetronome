@@ -4,6 +4,7 @@ CombatMetronome.menu = CombatMetronome.menu or {}
 
 CombatMetronome.DEFAULT_SAVED_VARS = {
 	["version"] = 2,
+	["lastAddOnVersion"] = 0,
 	["showBetaMessage"] = true,
 	["automaticSVCleanup"] = {
 		["enabled"] = false,

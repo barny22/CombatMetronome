@@ -17,6 +17,9 @@ CombatMetronome = {
 	beta = beta,
 }
 
+CombatMetronome.versionString = tostring(CombatMetronome.version.patch.."."..CombatMetronome.version.major.."."..CombatMetronome.version.minor)
+CombatMetronome.versionCheck = tonumber(string.format("%s%02d%02d", CombatMetronome.version.patch, CombatMetronome.version.major, CombatMetronome.version.minor))
+
 -- local LAM = LibAddonMenu2
 local Util = DariansUtilities
 Util.Ability = Util.Ability or {}
@@ -52,6 +55,8 @@ function CombatMetronome:Init()
 	
 	CombatMetronome.debug = LibChatMessage("|ce11212C|rombat |ce11212M|retronome", "|ce11212C|r|ce11212M|r")
 	CombatMetronome.debug:SetEnabled(true)
+	
+	CombatMetronome.msg = LibNotification
 	
 	if CombatMetronome.SV.automaticSVCleanup.enabled then
 		self:AutomaticSVCleanup()
@@ -152,6 +157,8 @@ function CombatMetronome:Init()
 	self:RegisterMetadata()
 	
 	if dev then self.DevTools = self:DevTools() end
+	
+	CombatMetronome:CreateNotifications()
 end
 
 -- LOAD HOOK

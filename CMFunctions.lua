@@ -662,3 +662,91 @@ function CombatMetronome:CleanupSVEntries()
 		end
 	end
 end
+
+	-----------------------
+	---- Notifications ----
+	-----------------------
+
+local function RemoveNotification(provider, identifier)
+	local notifications = provider.notifications
+	for i = #notifications, 1, -1 do
+		if notifications[i].heading == identifier then
+			table.remove(notifications, i)
+			provider:UpdateNotifications()
+			break
+		end
+	end
+end
+
+local function BetaNotification(provider)
+	local identifier = "CombatMetronome Beta User"
+	local function accept()
+		CombatMetronome.SV.showBetaMessage = false
+		RemoveNotification(provider, identifier) 
+	end
+
+	local msg = {
+	dataType = NOTIFICATIONS_REQUEST_DATA,
+	secsSinceRequest = ZO_NormalizeSecondsSince(0),
+	note = "If you encounter any unwanted 'features' pls report them in the ESOUI 'Comment' section (You can find the link in the menu metadata).\nAccepting this message will disable it.",
+	message = "You are currently using CombatMetronome's beta version",
+	heading = identifier,
+	texture = "/esoui/art/miscellaneous/eso_icon_warning.dds",
+	shortDisplayText = "CombatMetronome beta warning",
+	controlsOwnSounds = false,
+	keyboardAcceptCallback = accept,
+    keyboardDeclineCallback = function() RemoveNotification(provider, identifier) end,
+    gamepadAcceptCallback = accept,
+    gamepadDeclineCallback = function() RemoveNotification(provider, identifier) end,
+	data = {}, -- Place any custom data you want to store here
+    }
+	
+	-- CombatMetronome.debug:Print("You're currently using CombatMetronome's beta version")
+	
+	return msg
+end
+
+local function NewVersionAlert(provider)
+	local identifier = "CombatMetronome version update"
+	local function decline()
+		CombatMetronome.SV.lastAddOnVersion = CombatMetronome.versionCheck
+		RemoveNotification(provider, identifier)
+	end
+
+	local msg = {
+	dataType = NOTIFICATIONS_ALERT_DATA,
+	secsSinceRequest = ZO_NormalizeSecondsSince(0),
+	note = "Your new version is: "..CombatMetronome.versionCheck.."\nSometimes due to updates some values in your saved vars have been reset and you need to adjust your options. I apologize for the inconvenience.",
+	message = "You are now using CombatMetronome version "..CombatMetronome.versionCheck.."\nCheck the changelog for new features. Dismiss to disable this message.",
+	heading = identifier,
+	texture = "/esoui/art/journal/u26_progress_digsite_checked_complete.dds",
+	shortDisplayText = "CombatMetronome updated",
+	controlsOwnSounds = false,
+	keyboardAcceptCallback = function() RemoveNotification(provider, identifier) end,
+	keyboardDeclineCallback = decline,
+	gamepadAcceptCallback = function() RemoveNotification(provider, identifier) end,
+	gamepadDeclineCallback = decline,
+	data = {}, -- Place any custom data you want to store here
+    }
+	
+	-- CombatMetronome.debug:Print("New Version was detected. Current version: "..tostring(CombatMetronome.versionCheck))
+	
+	return msg
+end
+
+function CombatMetronome:CreateNotifications()
+	local provider = self.msg:CreateProvider()
+	local msg
+	
+	if self.beta and self.SV.showBetaMessage then
+		msg = BetaNotification(provider)
+		table.insert(provider.notifications, msg)
+	end
+	
+	if self.versionCheck ~= self.SV.lastAddOnVersion then
+		msg = NewVersionAlert(provider)
+		table.insert(provider.notifications, msg)
+	end
+	
+	provider:UpdateNotifications()
+end
