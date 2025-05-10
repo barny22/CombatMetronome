@@ -253,14 +253,22 @@ function CombatMetronome:BuildMenu()
     self.menu.curSkillName = ABILITY_ADJUST_PLACEHOLDER
     self.menu.curSkillId = -1
 	-- self.menu.ADDON_DEPENDENCY_VERSIONS = GenerateDependencyVersionsList()
+	
+	local websiteString 
+	if CombatMetronome.beta then
+		websiteString = "https://www.esoui.com/downloads/info3987-CombatMetronomeGCDTracker-beta.html"
+	else
+		websiteString = "https://www.esoui.com/downloads/info2373-CombatMetronomeGCDTracker.html"
+	end
+		
 	self.menu.metadata = {
 		["General"] = {
 			type = "panel",
 			name = "Combat Metronome - General",
 			displayName = "|ce11212C|rombat |ce11212M|retronome - General",
 			author = "Darianopolis, |c2a52beb|rarny",
-			version = self.version.patch.."."..self.version.major.."."..self.version.minor,
-			website = "https://www.esoui.com/downloads/info2373-CombatMetronomeGCDTracker.html",
+			version = self.versionString,
+			website = websiteString,
 			feedback = "https://www.esoui.com/portal.php?&id=386",
 			donation = "https://buymeacoffee.com/barnyteso",
 			slashCommand = "/cm",
@@ -272,8 +280,8 @@ function CombatMetronome:BuildMenu()
 			name = "Combat Metronome - Progressbar",
 			displayName = "|ce11212C|rombat |ce11212M|retronome - Progressbar",
 			author = "Darianopolis, |c2a52beb|rarny",
-			version = self.version.patch.."."..self.version.major.."."..self.version.minor,
-			website = "https://www.esoui.com/downloads/info2373-CombatMetronomeGCDTracker.html",
+			version = self.versionString,
+			website = websiteString,
 			feedback = "https://www.esoui.com/portal.php?&id=386",
 			donation = "https://buymeacoffee.com/barnyteso",
 			slashCommand = "/cmp",
@@ -285,8 +293,8 @@ function CombatMetronome:BuildMenu()
 			name = "Combat Metronome - Resources",
 			displayName = "|ce11212C|rombat |ce11212M|retronome - Resources",
 			author = "Darianopolis, |c2a52beb|rarny",
-			version = self.version.patch.."."..self.version.major.."."..self.version.minor,
-			website = "https://www.esoui.com/downloads/info2373-CombatMetronomeGCDTracker.html",
+			version = self.versionString,
+			website = websiteString,
 			feedback = "https://www.esoui.com/portal.php?&id=386",
 			donation = "https://buymeacoffee.com/barnyteso",
 			slashCommand = "/cmr",
@@ -298,8 +306,8 @@ function CombatMetronome:BuildMenu()
 			name = "Combat Metronome - StackTracker",
 			displayName = "|ce11212C|rombat |ce11212M|retronome - StackTracker",
 			author = "|c2a52beb|rarny",
-			version = self.version.patch.."."..self.version.major.."."..self.version.minor,
-			website = "https://www.esoui.com/downloads/info2373-CombatMetronomeGCDTracker.html",
+			version = self.versionString,
+			website = websiteString,
 			feedback = "https://www.esoui.com/portal.php?&id=386",
 			donation = "https://buymeacoffee.com/barnyteso",
 			slashCommand = "/cmstacks",
@@ -311,8 +319,8 @@ function CombatMetronome:BuildMenu()
 			name = "Combat Metronome - LA Tracker",
 			displayName = "|ce11212C|rombat |ce11212M|retronome - LA Tracker",
 			author = "|c2a52beb|rarny",
-			version = self.version.patch.."."..self.version.major.."."..self.version.minor,
-			website = "https://www.esoui.com/downloads/info2373-CombatMetronomeGCDTracker.html",
+			version = self.versionString,
+			website = websiteString,
 			feedback = "https://www.esoui.com/portal.php?&id=386",
 			donation = "https://buymeacoffee.com/barnyteso",
 			slashCommand = "/cmla",
