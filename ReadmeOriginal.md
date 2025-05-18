@@ -28,7 +28,7 @@ Track your [b]heavy swings[/b], [b]ability cooldowns[/b], and [b]cast/channels[/
 [*] Keybind to force display + show absolute health.
 [*] '[b]Tick Tock[/b]' sound cues for audio feedback.
 [*] New UI customization options for a personalized experience.
-[*] [b]Track stacks[/b] for class-specific skills: Bound Armaments, Crux, Flame Skull, Molten Whip, and Grim Focus (+ its morphs).
+[*] [b]Track stacks[/b] for class-specific skills: Bound Armaments, Crux, Fetcher Infection, Flame Skull, Molten Whip and Grim Focus (+ its morphs).
 [/list]
 
 To access the addon settings quickly, enter the command: [b]/cm[/b]
@@ -50,9 +50,10 @@ Thanks to [b]Seltiix[/b] for prototyping the initial sound cue system.
 [size=4][b][color=orange]Dependencies:[/color][/b][/size]
 [list]
 [*]LibAddonMenu-2.0
-[*]LibAddonKeybinds
+[*]libAddonKeybinds
 [*][b]LibChatMessage[/b] [b](!!new!!)[/b]
 [*][b]LibNotification[/b] [b](!!new!!)[/b]
+[*][b]LibSetDetection[/b] [b](optional)[/b]
 [/list]
 
 [size=4][b][color=yellow]Future Features (No guarantee or time frame):[/color][/b][/size]
