@@ -642,7 +642,7 @@ function CombatMetronome:CleanupSVEntries()
 				end
 			end
 			if sectionNeedsClearing then
-				-- vars[section] = nil
+				vars[section] = nil
 				CombatMetronome.debug:Print("saved vars cleanup - cleaning section: |c2a52be"..section.."|r")
 			elseif type(subsection) == "table" then
 				for name, _ in pairs(subsection) do
@@ -654,7 +654,7 @@ function CombatMetronome:CleanupSVEntries()
 						end
 					end
 					if needsToBeCleaned then
-						-- subsection[name] = nil
+						subsection[name] = nil
 						CombatMetronome.debug:Print("saved vars cleanup - cleaning option/table: |c2a52be"..section.."|r - |ce11212"..name.."|r")
 					end
 				end
