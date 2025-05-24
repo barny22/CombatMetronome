@@ -678,7 +678,7 @@ end
 function CombatMetronome:DevTools()
 
 	local ADDON_DEPENDENCY_VERSIONS = {
-		["libAddonKeybinds"] = -1, ["LibAddonMenu-2.0"] = -1, ["LibChatMessage"] = -1, ["LibSetDetection"] = -1, ["LibNotification"] = -1,
+		["libAddonKeybinds"] = -1, ["LibAddonMenu-2.0"] = -1, ["LibChatMessage"] = -1, ["LibSetDetection"] = -1, ["LibNotification"] = -1, ["LibGroupBroadcast"] = -1,
 	}
 
 	local function GetDependencyVersions()
