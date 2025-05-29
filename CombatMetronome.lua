@@ -53,7 +53,7 @@ function CombatMetronome:Init()
 		CombatMetronome.SV.global = true
 	end
 	
-	CombatMetronome.debug = LibChatMessage("|ce11212C|rombat |ce11212M|retronome", "|ce11212C|r|ce11212M|r")
+	CombatMetronome.debug = LibChatMessage("|ce11212C|rombat |ce11212M|retronome", "|ce11212CM|r")
 	CombatMetronome.debug:SetEnabled(true)
 	
 	CombatMetronome.msg = LibNotification
