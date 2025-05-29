@@ -242,6 +242,17 @@ function CombatMetronome:RegisterMetadata()
 			for skill, _ in pairs(CombatMetronome.StackTracker.SKILL_ATTRIBUTES) do	
 				StackTracker:PVPSwitch(skill)
 			end
+			
+			-- Get current stack count if you left an instance
+			for skill, value in pairs(StackTracker.activeSkills) do
+				if value and StackTracker:CheckIfSlotted(skill) then
+					StackTracker:InitializeUI(skill)
+					StackTracker:GetCurrentStacks(skill)
+					StackTracker:Register(skill)
+				else
+					StackTracker:Unregister(skill)
+				end
+			end
 		end
 	)
 
