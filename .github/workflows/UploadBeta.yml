@@ -29,22 +29,61 @@ jobs:
       run: |
         sed -i 's/local dev = true/local dev = false/' CombatMetronome/CombatMetronome.lua
 
-    - name: Extract API Version and Addon Version
+    - name: Detect Manifest File
+      id: detect_manifest
+      run: |
+        if [ -f CombatMetronome/CombatMetronome.addon ]; then
+          echo "MANIFEST=CombatMetronome/CombatMetronome.addon" >> $GITHUB_ENV
+        elif [ -f CombatMetronome/CombatMetronome.txt ]; then
+          echo "MANIFEST=CombatMetronome/CombatMetronome.txt" >> $GITHUB_ENV
+        else
+          echo "❌ Keine Manifest-Datei gefunden!" >&2
+          exit 1
+        fi
+    
+    - name: Extract API Versions and Addon Version
       id: version_info
       run: |
-        APIVersion=$(grep -Po '(?<=## APIVersion: )\d+' CombatMetronome/CombatMetronome.addon)
-        AddonVersion=$(grep -Po '(?<=## Version: )[\d.]+' CombatMetronome/CombatMetronome.addon)
-        echo "API_VERSION=$APIVersion" >> $GITHUB_ENV
-        echo "ADDON_VERSION=$AddonVersion" >> $GITHUB_ENV
+        MANIFEST_FILE=$MANIFEST
+    
+        # Alle API-Versionen extrahieren
+        APIVersions=$(grep -Po '(?<=## APIVersion: )[\d\s]+' "$MANIFEST_FILE" | tr -s ' ' | sed 's/ *$//')
         
-    - name: Get Compatible Patch ID
-      id: get_patch_id
+        # Addon-Version extrahieren
+        AddonVersion=$(grep -Po '(?<=## Version: )[\d.]+' "$MANIFEST_FILE")
+    
+        echo "API_VERSION=$APIVersions" >> $GITHUB_ENV
+        echo "ADDON_VERSION=$AddonVersion" >> $GITHUB_ENV
+    
+        echo "Gefundene API-Versionen: $APIVersions"
+        echo "Addon-Version: $AddonVersion"
+    
+    - name: Get Compatible Patch IDs
+      id: get_patch_ids
       run: |
-        # Hole die aktuelle Patchnummer
-        PatchVersion=$(grep -Po '(?<=## APIVersion: )\d+' CombatMetronome/CombatMetronome.addon)
-        # Anfrage an die ESOUI API, um die ID für die Patch-Version zu erhalten
-        PatchID=$(curl -s -H "x-api-token: ${{ secrets.ESOUI_API_TOKEN }}" "https://api.esoui.com/addons/compatible.json" | jq -r ".[] | select(.interface == \"$PatchVersion\") | .id")
-        echo "PATCH_ID=$PatchID" >> $GITHUB_ENV
+        echo "Hole Patch-IDs für API-Versionen: $API_VERSION"
+        APIList=$(echo "$API_VERSION" | tr ' ' '\n')
+    
+        # Hole alle Patch-IDs von ESOUI
+        CompatibleList=$(curl -s -H "x-api-token: ${{ secrets.ESOUI_API_TOKEN }}" "https://api.esoui.com/addons/compatible.json")
+    
+        PatchIDs=""
+        for api in $APIList; do
+          PatchID=$(echo "$CompatibleList" | jq -r ".[] | select(.interface == \"$api\") | .id")
+          if [ -z "$PatchID" ]; then
+            echo "❌ Keine Patch-ID für API-Version $api gefunden!" >&2
+            exit 1
+          fi
+          if [ -z "$PatchIDs" ]; then
+            PatchIDs="$PatchID"
+          else
+            PatchIDs="$PatchIDs,$PatchID"
+          fi
+        done
+    
+        echo "PATCH_IDS=$PatchIDs" >> $GITHUB_ENV
+        echo "Gefundene Patch-IDs: $PatchIDs"
+
         
     - name: Extract Changelog
       id: changelog
@@ -74,7 +113,7 @@ jobs:
           -Version "${{ env.ADDON_VERSION }} - beta" `
           -FilePath "./CombatMetronome/CombatMetronome_${{ env.ADDON_VERSION }}_beta.zip" `
           -ChangelogFilePath "$changelogPath" `
-          -Compatible "${{ env.PATCH_ID }}" `
+          -Compatible "${{ env.PATCH_IDS }}" `
           -ReadmeFilePath "$readmePath" `
           -Archive "No" `
           -TestOnly "${{ env.TEST_ONLY }}"
