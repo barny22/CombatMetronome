@@ -3,9 +3,9 @@
 ## Author: Darianopolis, |c2a52beb|rarny
 ## Version: 1.7.0
 ## AddOnVersion: 010700
-## APIVersion: 101046
+## APIVersion: 101045 101046
 ## SavedVariables: CombatMetronomeSavedVars
-## DependsOn: LibAddonMenu-2.0>=39 libAddonKeybinds>=5 DariansUtilities>=10800 LibChatMessage>=113 LibNotification>=15
+## DependsOn: LibAddonMenu-2.0>=40 libAddonKeybinds>=5 DariansUtilities>=10800 LibChatMessage>=113 LibNotification>=15
 ## OptionalDependsOn: LibSetDetection>=4
 
 ; This Add-on is not created by, affiliated with or sponsored by ZeniMax
