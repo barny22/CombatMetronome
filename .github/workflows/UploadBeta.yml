@@ -28,8 +28,8 @@ jobs:
     - name: Extract API Version and Addon Version
       id: version_info
       run: |
-        APIVersion=$(grep -Po '(?<=## APIVersion: )\d+' CombatMetronome/CombatMetronome.txt)
-        AddonVersion=$(grep -Po '(?<=## Version: )[\d.]+' CombatMetronome/CombatMetronome.txt)
+        APIVersion=$(grep -Po '(?<=## APIVersion: )\d+' CombatMetronome/CombatMetronome.addon)
+        AddonVersion=$(grep -Po '(?<=## Version: )[\d.]+' CombatMetronome/CombatMetronome.addon)
         echo "API_VERSION=$APIVersion" >> $GITHUB_ENV
         echo "ADDON_VERSION=$AddonVersion" >> $GITHUB_ENV
         
@@ -37,7 +37,7 @@ jobs:
       id: get_patch_id
       run: |
         # Hole die aktuelle Patchnummer
-        PatchVersion=$(grep -Po '(?<=## APIVersion: )\d+' CombatMetronome/CombatMetronome.txt)
+        PatchVersion=$(grep -Po '(?<=## APIVersion: )\d+' CombatMetronome/CombatMetronome.addon)
         # Anfrage an die ESOUI API, um die ID für die Patch-Version zu erhalten
         PatchID=$(curl -s -H "x-api-token: ${{ secrets.ESOUI_API_TOKEN }}" "https://api.esoui.com/addons/compatible.json" | jq -r ".[] | select(.interface == \"$PatchVersion\") | .id")
         echo "PATCH_ID=$PatchID" >> $GITHUB_ENV
