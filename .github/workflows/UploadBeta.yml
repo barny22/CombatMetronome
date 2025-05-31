@@ -109,7 +109,7 @@ jobs:
           -Version "${{ env.ADDON_VERSION }} - beta" `
           -FilePath "./CombatMetronome/CombatMetronome_${{ env.ADDON_VERSION }}_beta.zip" `
           -ChangelogFilePath "$changelogPath" `
-          -Compatible "${{ env.PATCH_ID }}" `
+          -Compatible "${{ env.PATCH_IDS }}" `
           -ReadmeFilePath "$readmePath" `
           -Archive "No" `
           -TestOnly "${{ env.TEST_ONLY }}"
