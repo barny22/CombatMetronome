@@ -51,6 +51,9 @@ jobs:
         # Addon-Version extrahieren
         APIVersions=$(grep -Po '(?<=## APIVersion: )[\d\s]+' "$MANIFEST_FILE" | tr -s ' ' | sed 's/ *$//')
     
+        # Addon-Version extrahieren
+        AddonVersion=$(grep -Po '(?<=## Version: )[\d.]+' "$MANIFEST_FILE")
+        
         echo "API_VERSION=$APIVersions" >> $GITHUB_ENV
         echo "ADDON_VERSION=$AddonVersion" >> $GITHUB_ENV
     
@@ -141,7 +144,7 @@ jobs:
           -Version "${{ env.ADDON_VERSION }}" `
           -FilePath "./CombatMetronome_2373/CombatMetronome_${{ env.ADDON_VERSION }}.zip" `
           -ChangelogFilePath "$changelogPath" `
-          -Compatible "${{ env.PATCH_IDs }}" `
+          -Compatible "${{ env.PATCH_IDS }}" `
           -ReadmeFilePath "$readmePath" `
           -Archive "Yes" `
           -TestOnly "${{ env.TEST_ONLY }}"
@@ -162,7 +165,7 @@ jobs:
           -Version "${{ env.ADDON_VERSION }}" `
           -FilePath "./CombatMetronome_3790/CombatMetronome_${{ env.ADDON_VERSION }}.zip" `
           -ChangelogFilePath "$changelogPath" `
-          -Compatible "${{ env.PATCH_IDs }}" `
+          -Compatible "${{ env.PATCH_IDS }}" `
           -ReadmeFilePath "$readmePath" `
           -Archive "Yes" `
           -TestOnly "${{ env.TEST_ONLY }}"
