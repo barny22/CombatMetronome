@@ -19,3 +19,17 @@ This beta version may contain bugs or incomplete features. Please report any iss
 Thank you for being part of the development process and helping make CombatMetronome better for everyone!
 
 If you like my work and want to support what I'm doing, consider supporting me on [url=https://ko-fi.com/barnyteso][color=green]Ko-Fi[/color][/url] or on [url=https://buymeacoffee.com/barnyteso][color=green]buymeacoffee[/color][/url].
+
+[b]Current changes:[/b]
+[list]
+[*] Updates to string formatting
+[*] Finally adding channeled abilities to abilities that change channel color
+[*] Added option to automatically show stam/mag if coral/MK/bahsei is detected (requires LibSetDetection)
+[*] Added option to automatically expand castbar for abilities with channel-/casttime > 1
+[*] Fully revamped the settings to split into four different panels in preparation for U46
+[*] Fully rewrote the StackTracker functionality in preparation for U46 and for massive performance improvements
+[*] Added fetcher infection to trackable abilities
+[*] Added cleanup functionality for saved vars
+[*] [b]New dependency: [color=#FF0000]LibNotification[/color][/b]
+[*] Added beta version notification and notification for version changes
+[/list]

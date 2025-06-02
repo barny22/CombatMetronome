@@ -5,6 +5,22 @@ Util.Text = Util.Text or {}
 CombatMetronome.SV = CombatMetronome.SV or {}
 
 local INTERVAL = 200
+local CherryBlossom = {
+	["name"] = Util.Text.CropZOSString(GetAbilityName(87474), "ability"),
+	["icon"] = "/esoui/art/icons/event_jestersfestival_2016_cherry_blossom_branch.dds",
+}
+
+local function AnchorSpellIcon(dynamic)
+	if dynamic then
+		CombatMetronome.Progressbar.spellIcon:ClearAnchors()
+		CombatMetronome.Progressbar.spellIcon:SetAnchor(RIGHT, CombatMetronome.Progressbar.bar.segments[2].bars[1], RIGHT, -(CombatMetronome.SV.Progressbar.height/10), 0)
+		CombatMetronome.Progressbar.spellIconAnchoredDynamically = true
+	elseif CombatMetronome.Progressbar.spellIconAnchoredDynamically then
+		CombatMetronome.Progressbar.spellIcon:ClearAnchors()
+		CombatMetronome.Progressbar.spellIcon:SetAnchor(RIGHT, CombatMetronome.Progressbar.frame, LEFT, -(CombatMetronome.SV.Progressbar.height/10), 0)
+		CombatMetronome.Progressbar.spellIconAnchoredDynamically = false
+	end
+end
 
 	--------------------------
 	---- Cast Bar Updater ----
@@ -105,37 +121,36 @@ function CombatMetronome:Update()
 		end
 		
 		if CombatMetronome.SV.Progressbar.trackGCD and not self.currentEvent then
+			
+			--reset spellIcon anchor
+			if self.Progressbar.spellIconAnchoredDynamically then
+				AnchorSpellIcon(false)
+			end
+			
 			self.Progressbar.bar.segments[1].progress = (CombatMetronome.SV.Progressbar.showPingOnGCD and latency/1000) or 0
 			self.Progressbar.bar.segments[2].progress = gcdProgress
 			if not Util.Ability.Tracker.rollDodgeFinished and CombatMetronome.SV.Progressbar.trackRolldodge then
-				CombatMetronome:GCDSpecifics("Dodgeroll", "/esoui/art/icons/ability_rogue_035.dds", gcdProgress, false)
-			end
-			if self.Progressbar.activeMount.action ~= "" and CombatMetronome.SV.Progressbar.trackMounting then
+				CombatMetronome:GCDSpecifics(Util.Text.CropZOSString(GetAbilityName(28549), "ability"), "/esoui/art/icons/ability_rogue_035.dds", gcdProgress, false)
+			elseif self.Progressbar.activeMount.action ~= "" and CombatMetronome.SV.Progressbar.trackMounting then
 				if CombatMetronome.SV.Progressbar.showMountNick then
 					CombatMetronome:GCDSpecifics(tostring(self.Progressbar.activeMount.action.." "..self.Progressbar.activeMount.name), self.Progressbar.activeMount.icon, gcdProgress, false)
 				else
 					CombatMetronome:GCDSpecifics(self.Progressbar.activeMount.action, self.Progressbar.activeMount.icon, gcdProgress, false)
 				end
-			end
-			if self.Progressbar.collectibleInUse and CombatMetronome.SV.Progressbar.trackCollectibles then
+			elseif self.Progressbar.collectibleInUse and CombatMetronome.SV.Progressbar.trackCollectibles then
 				CombatMetronome:GCDSpecifics(self.Progressbar.collectibleInUse.name, self.Progressbar.collectibleInUse.icon, gcdProgress, false)
 				-- self.Progressbar.nonAbilityGCDRunning = true
-			end
-			if self.Progressbar.itemUsed and CombatMetronome.SV.Progressbar.trackItems then
-				CombatMetronome:GCDSpecifics(self.Progressbar.itemUsed.name, self.Progressbar.itemUsed.icon, gcdProgress, false)
-				-- self.Progressbar.nonAbilityGCDRunning = true
-			end
-			-- if self.Progressbar.killingAction and CombatMetronome.SV.Progressbar.trackKillingActions and not self.Progressbar.nonAbilityGCDRunning then
-				-- CombatMetronome:GCDSpecifics(self.Progressbar.killingAction.name, self.Progressbar.killingAction.icon, GCD.progress)
-				-- self.Progressbar.nonAbilityGCDRunning = true
-			-- end
-			if self.Progressbar.breakingFree and CombatMetronome.SV.Progressbar.trackBreakingFree then
-				CombatMetronome:GCDSpecifics(self.Progressbar.breakingFree.name, self.Progressbar.breakingFree.icon, gcdProgress, false)
-				-- self.Progressbar.nonAbilityGCDRunning = true
-			end
-			if self.Progressbar.synergy and CombatMetronome.SV.Progressbar.trackSynergies and self.Progressbar.synergy.wasUsed then
+			elseif self.Progressbar.synergy and CombatMetronome.SV.Progressbar.trackSynergies and self.Progressbar.synergy.wasUsed then
 				CombatMetronome:GCDSpecifics(self.Progressbar.synergy.name, self.Progressbar.synergy.icon, gcdProgress, true)
 				-- self.Progressbar.nonAbilityGCDRunning = true
+			elseif self.Progressbar.itemUsed and CombatMetronome.SV.Progressbar.trackItems then
+				CombatMetronome:GCDSpecifics(self.Progressbar.itemUsed.name, self.Progressbar.itemUsed.icon, gcdProgress, false)
+				-- self.Progressbar.nonAbilityGCDRunning = true
+			elseif self.Progressbar.breakingFree and CombatMetronome.SV.Progressbar.trackBreakingFree then
+				CombatMetronome:GCDSpecifics(self.Progressbar.breakingFree.name, self.Progressbar.breakingFree.icon, gcdProgress, false)
+				-- self.Progressbar.nonAbilityGCDRunning = true
+			elseif self.Progressbar.jesterFestivalCherryBlossom then
+				CombatMetronome:GCDSpecifics(CherryBlossom.name, CherryBlossom.icon, gcdProgress, false)
 			end
 			
 			if gcdProgress <= 0 then
@@ -162,8 +177,14 @@ function CombatMetronome:Update()
 			end
 			
 			local duration = math.max(ability.heavy and 0 or (self.gcd or 1000), ability.delay) + (self.currentEvent.adjust or 0)
-			local channelTime = ability.delay + (self.currentEvent.adjust or 0)
-			local timeRemaining = ((start + channelTime + GetLatency()) - time) / 1000
+			-- local timeRemaining = ((start + duration + latency) - time) / 1000 or ((start + channelTime + latency) - time) < 0 and 0
+			local timeRemaining = (duration - cdTimer) / 1000
+			local castProgress = 1 - (cdTimer/duration)
+			
+			local dynamicProgress = self.SV.Progressbar.expandDynamically and duration > 1000
+			local multiplyerCheck = self.SV.Progressbar.dynamicExpansionMultiplyer*duration/10000 > 1
+			local multiplyer = multiplyerCheck and self.SV.Progressbar.dynamicExpansionMultiplyer*duration/10000 or 1
+			local dynamicAnchor = self.SV.Progressbar.barAlign == "Center" and self.SV.Progressbar.moveIconDynamically and (castProgress*multiplyer > 1)
 						
 			-- local playerDidBlock = (self.lastBlockStatus == false) and IsBlockActive()
 			-- if playerDidBlock and self.SV.debug.enabled then CombatMetronome.debug:Print("Player blocked") end
@@ -204,18 +225,14 @@ function CombatMetronome:Update()
 			---- Switching Color on channeled abilities ----
 			------------------------------------------------
 				if CombatMetronome.SV.Progressbar.changeOnChanneled then
-					if not ability.instant and ability.delay <= 1000 then
+					if (not ability.instant and ability.delay <= 1000) or ability.delay > 1000 then
 						-- self.SV.debug.enabled then CombatMetronome.debug:Print("Ability with cast time < 1s detected") end
-						if timeRemaining >= 0 then
-							if self.Progressbar.bar.segments[2].color == CombatMetronome.SV.Progressbar.progressColor then
-								self.Progressbar.bar.segments[2].color = CombatMetronome.SV.Progressbar.channelColor
-								--if self.SV.debug.enabled then CombatMetronome.debug:Print("Trying to update Channel Color") end
-							end
-						elseif timeRemaining <= 0 then
-							if self.Progressbar.bar.segments[2].color == CombatMetronome.SV.Progressbar.channelColor then
-								self.Progressbar.bar.segments[2].color = CombatMetronome.SV.Progressbar.progressColor
-								--if self.SV.debug.enabled then CombatMetronome.debug:Print("Turning back to Progress Color") end
-							end
+						if timeRemaining >= 0 and self.Progressbar.bar.segments[2].color == CombatMetronome.SV.Progressbar.progressColor then
+							self.Progressbar.bar.segments[2].color = CombatMetronome.SV.Progressbar.channelColor
+							--if self.SV.debug.enabled then CombatMetronome.debug:Print("Trying to update Channel Color") end
+						elseif timeRemaining <= 0  and self.Progressbar.bar.segments[2].color == CombatMetronome.SV.Progressbar.channelColor then
+							self.Progressbar.bar.segments[2].color = CombatMetronome.SV.Progressbar.progressColor
+							--if self.SV.debug.enabled then CombatMetronome.debug:Print("Turning back to Progress Color") end
 						end
 					else
 						if self.Progressbar.bar.segments[2].color == CombatMetronome.SV.Progressbar.channelColor then
@@ -224,8 +241,15 @@ function CombatMetronome:Update()
 					end
 				end
 				
-				self.Progressbar.bar.segments[2].progress = 1 - (cdTimer/duration)
-				self.Progressbar.bar.segments[1].progress = latency / duration
+				if dynamicProgress then
+					self.Progressbar.bar.segments[2].progress = castProgress*multiplyer
+					self.Progressbar.bar.segments[1].progress = (latency / duration)*multiplyer
+					AnchorSpellIcon(dynamicAnchor)
+				else
+					self.Progressbar.bar.segments[2].progress = castProgress
+					self.Progressbar.bar.segments[1].progress = latency / duration
+					AnchorSpellIcon(false)
+				end
 				if cdTimer >= (duration+latency) then
 					self:OnCDStop()
 				else
@@ -238,8 +262,7 @@ function CombatMetronome:Update()
 			---- Spell Label and Icon ----					--Spell Label on Castbar by barny
 			------------------------------
 			if CombatMetronome.SV.Progressbar.showSpell and ((ability.delay > 0 and timeRemaining >= 0) or self.SV.Progressbar.alwaysShowSpell) and not ability.heavy then
-				local spellName = Util.Text.CropZOSString(ability.name)
-				self.Progressbar.spellLabel:SetText(spellName)
+				self.Progressbar.spellLabel:SetText(ability.name)
 				self.Progressbar.spellLabel:SetHidden(false)
 			--Spell Icon next to Castbar
 				self.Progressbar.spellIcon:SetTexture(ability.icon)

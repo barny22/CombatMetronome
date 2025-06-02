@@ -34,6 +34,11 @@ function CombatMetronome:UpdateLabels()
         else
             self.Resources.hpLabel:SetHidden(true)
         end
+        if not CombatMetronome.SV.Resources.unlockExecuteReminder then
+            self.Resources.executeLabel:SetHidden(false)
+        else
+            self.Resources.executeLabel:SetHidden(true)
+        end
         
 	-------------------------
 	---- Actual Updating ----
@@ -56,7 +61,7 @@ function CombatMetronome:UpdateLabels()
             self.Resources.ultLabel:SetHidden(true)
         end
 
-        if showResources and CombatMetronome.SV.Resources.showStamina then
+        if showResources and (CombatMetronome.SV.Resources.showStamina or (CombatMetronome.SV.Resources.coralBahsei and (CombatMetronome.Resources.coralActive or CombatMetronome.Resources.mkActive))) then
             local stam, _, maxStam = GetUnitPower("player", POWERTYPE_STAMINA)
             self.Resources.stamLabel:SetText(stam == maxStam and "100%" or string.format("%i%%", 100 * stam / maxStam))
             self.Resources.stamLabel:SetHidden(false)
@@ -64,7 +69,7 @@ function CombatMetronome:UpdateLabels()
             self.Resources.stamLabel:SetHidden(true)
         end
         
-        if showResources and CombatMetronome.SV.Resources.showMagicka then
+        if showResources and (CombatMetronome.SV.Resources.showMagicka or (CombatMetronome.SV.Resources.coralBahsei and CombatMetronome.Resources.bahseiActive)) then
             local mag, _, maxMag = GetUnitPower("player", POWERTYPE_MAGICKA)
             self.Resources.magLabel:SetText(mag == maxMag and "100%" or string.format("%i%%", 100 * mag / maxMag))
             self.Resources.magLabel:SetHidden(false)
@@ -101,6 +106,13 @@ function CombatMetronome:UpdateLabels()
             self.Resources.hpLabel:SetHidden(false)
         else
             self.Resources.hpLabel:SetHidden(true)
+        end
+        if not CombatMetronome.SV.Resources.unlockExecuteReminder then
+            if not IsUnitDead("reticleover") and showResources and CombatMetronome.SV.Resources.showExecuteReminder and hp~=1 and 100 * (hp / maxHp) <= CombatMetronome.Resources.executeThreshold and CombatMetronome.Resources.executeThreshold ~= 0 then
+                self.Resources.executeLabel:SetHidden(false)
+            else
+                self.Resources.executeLabel:SetHidden(true)
+            end
         end
     end
 end

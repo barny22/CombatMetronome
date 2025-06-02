@@ -38,8 +38,12 @@ function CombatMetronome:BuildUI()
 		self.Progressbar.bar = self.Progressbar.bar or Util.Bar:New(self.name.."TimerBar", self.Progressbar.frame)
 		
 		self.Progressbar.spellIcon = self.Progressbar.spellIcon or WINDOW_MANAGER:CreateControl(self.name.."SpellIcon", self.Progressbar.frame, CT_TEXTURE)
+		self.Progressbar.spellIcon:SetDrawLayer(4)
+		self.Progressbar.spellIcon:SetDrawTier(2)
 		self.Progressbar.spellIconBorder = self.Progressbar.spellIconBorder or WINDOW_MANAGER:CreateControl(self.name.."SpellIconBorder", self.Progressbar.spellIcon, CT_TEXTURE)
 		self.Progressbar.spellIconBorder:SetTexture("/esoui/art/actionbar/abilityframe64_up.dds")
+		self.Progressbar.spellIconBorder:SetDrawLayer(4)
+		self.Progressbar.spellIconBorder:SetDrawTier(2)
 	
 		self.Progressbar.bar.backgroundTexture = self.Progressbar.bar.backgroundTexture or WINDOW_MANAGER:CreateControl(self.name.."BackgroundTexture", self.Progressbar.frame, CT_STATUSBAR)
 		self.Progressbar.bar.backgroundTexture:SetTexture("/esoui/art/unitframes/progressbar_mechanic_fill.dds")
@@ -91,6 +95,37 @@ function CombatMetronome:BuildUI()
 
 		self.Resources.hpLabel = self.Resources.hpLabel or WINDOW_MANAGER:CreateControl(self.name.."HPLabel", self.Resources.frame, CT_LABEL)
 		self.Resources.hpLabel:SetText("")
+		
+		--------------------------
+		---- Execute Reminder ----
+		--------------------------
+		
+		self.Resources.executeFrame = self.Resources.executeFrame or Util.Controls:NewFrame(self.name.."ExecuteFrame", "")
+		self.Resources.executeFrame:ClearAnchors()
+		self.Resources.executeFrame:SetAnchor(TOPLEFT, GuiRoot, TOPLEFT, CombatMetronome.SV.Resources.executeX, CombatMetronome.SV.Resources.executeY)
+		self.Resources.executeFrame:SetUnlocked(CombatMetronome.SV.Resources.unlockExecuteReminder)
+		self.Resources.executeFrame:SetHidden(not CombatMetronome.SV.Resources.unlockExecuteReminder)
+		self.Resources.executeFrame:SetDimensionConstraints(MIN_WIDTH, MIN_HEIGHT, MAX_WIDTH, MAX_HEIGHT)
+		self.Resources.executeFrame:SetDimensions(CombatMetronome.SV.Resources.executeWidth, CombatMetronome.SV.Resources.executeHeight)
+		self.Resources.executeFrame:SetHandler("OnMoveStop", function(...)
+			CombatMetronome.SV.Resources.executeX = self.Resources.executeFrame:GetLeft()
+			CombatMetronome.SV.Resources.executeY = self.Resources.executeFrame:GetTop()
+		end)
+		self.Resources.executeFrame:SetHandler("OnResizeStop", function(...)
+			CombatMetronome.SV.Resources.executeHeight = self.Resources.executeFrame:GetHeight()
+			self.Resources.executeLabel:SetFont(Util.Text.getFontString(tostring("$("..CombatMetronome.SV.Progressbar.labelFont..")"), CombatMetronome.SV.Resources.executeHeight, CombatMetronome.SV.Progressbar.fontStyle))
+			CombatMetronome.SV.Resources.executeWidth = self.Resources.executeLabel:GetWidth()
+			self.Resources.executeFrame:SetWidth(CombatMetronome.SV.Resources.executeWidth)
+			self.Resources.executeLabel:ClearAnchors()
+			self.Resources.executeLabel:SetAnchor(TOPLEFT, self.Resources.executeFrame, TOPLEFT, 0, -CombatMetronome.SV.Resources.executeHeight/10)
+		end)
+		self.Resources.executeLabel = self.Resources.executeLabel or WINDOW_MANAGER:CreateControl(self.name.."ExecuteLabel", self.Resources.executeFrame, CT_LABEL)
+		self.Resources.executeLabel:SetText("EXECUTE!")
+		self.Resources.executeLabel:SetColor(unpack(CombatMetronome.SV.Resources.executeColor))
+		self.Resources.executeLabel:SetFont(Util.Text.getFontString(tostring("$("..CombatMetronome.SV.Progressbar.labelFont..")"), CombatMetronome.SV.Resources.executeHeight, CombatMetronome.SV.Progressbar.fontStyle))
+		self.Resources.executeLabel:ClearAnchors()
+		self.Resources.executeLabel:SetAnchor(TOPLEFT, self.Resources.executeFrame, TOPLEFT, 0, -CombatMetronome.SV.Resources.executeHeight/10)
+		self.Resources.executeLabel:SetHidden(not CombatMetronome.SV.Resources.unlockExecuteReminder)
 	end
 	
 	local function Position(value)
@@ -114,7 +149,7 @@ function CombatMetronome:BuildUI()
 			self.Resources.frame:SetAnchor(RIGHT, GuiRoot, RIGHT, -GuiRoot:GetWidth()/8, -GuiRoot:GetHeight()/6 - CombatMetronome.SV.Progressbar.height - CombatMetronome.SV.Resources.height/2)
 		end
 	end
-	
+		
 	local function Fonts()
 		self.Resources.hpLabel:SetFont(Util.Text.getFontString(tostring("$("..CombatMetronome.SV.Progressbar.labelFont..")"), CombatMetronome.SV.Resources.healthSize, CombatMetronome.SV.Progressbar.fontStyle))
 		self.Resources.magLabel:SetFont(Util.Text.getFontString(tostring("$("..CombatMetronome.SV.Progressbar.labelFont..")"), CombatMetronome.SV.Resources.magSize, CombatMetronome.SV.Progressbar.fontStyle))
@@ -189,19 +224,22 @@ function CombatMetronome:BuildUI()
 		end
 		self.Resources.magLabel:ClearAnchors()
 		self.Resources.stamLabel:ClearAnchors()
+		local magActive, stamActive
+		magActive = CombatMetronome.SV.Resources.showMagicka or (CombatMetronome.SV.Resources.coralBahsei and CombatMetronome.Resources.bahseiActive)
+		stamActive = CombatMetronome.SV.Resources.showStamina or (CombatMetronome.SV.Resources.coralBahsei and CombatMetronome.Resources.coralActive)
 		if CombatMetronome.SV.Resources.reticleMagStam then
-			if CombatMetronome.SV.Resources.showMagicka and (not CombatMetronome.SV.Resources.showStamina) then
+			if magActive and (not stamActive) then
 				self.Resources.magLabel:SetAnchor(RIGHT, GuiRoot, CENTER, -40, 0)
-			elseif CombatMetronome.SV.Resources.showStamina and (not CombatMetronome.SV.Resources.showMagicka) then
+			elseif stamActive and (not magActive) then
 				self.Resources.stamLabel:SetAnchor(RIGHT, GuiRoot, CENTER, -40, 0)
 			else
 				self.Resources.magLabel:SetAnchor(TOPLEFT, GuiRoot, CENTER, -80, 0)
 				self.Resources.stamLabel:SetAnchor(BOTTOMLEFT, GuiRoot, CENTER, -80, 0)
 			end
 		else
-			if CombatMetronome.SV.Resources.showMagicka and (not CombatMetronome.SV.Resources.showStamina) then
+			if magActive and (not stamActive) then
 				self.Resources.magLabel:SetAnchor(LEFT, self.Resources.frame, LEFT, 0, 0)
-			elseif CombatMetronome.SV.Resources.showStamina and (not CombatMetronome.SV.Resources.showMagicka) then
+			elseif stamActive and (not magActive) then
 				self.Resources.stamLabel:SetAnchor(LEFT, self.Resources.frame, LEFT, 0, 0)
 			else
 				self.Resources.magLabel:SetAnchor(TOPLEFT, self.Resources.frame, TOPLEFT, 0, 0)
@@ -248,7 +286,7 @@ function CombatMetronome:BuildUI()
 	SCENE_MANAGER:RegisterCallback("SceneStateChanged", function(scene, newState)
 		if scene:GetName() == "gameMenuInGame" and newState == "hiding" then
 			if self.Progressbar.showSample then
-				--if self.SV.debug.enabled then CombatMetronome.debug:Print("should've changed visibility on sampleBar") end
+				--if CombatMetronome.SV.debug.enabled then CombatMetronome.debug:Print("should've changed visibility on sampleBar") end
 				self.Progressbar.showSample = false
 				Position("UI")
 				HiddenStates()
@@ -294,25 +332,26 @@ end
 CombatMetronome.StackTracker = CombatMetronome.StackTracker or {}
 local StackTracker = CombatMetronome.StackTracker
 
-function StackTracker:BuildUI()
-	local attributes = self.CLASS_ATTRIBUTES[self.class]
-	local size = CombatMetronome.SV.StackTracker.indicatorSize
+function StackTracker:BuildUI(skill)
+	local attributes = self.SKILL_ATTRIBUTES[skill]
+	local size = CombatMetronome.SV.StackTracker[skill].indicatorSize
 	local distance = size/5
+	local multiplier = (CombatMetronome.API >= 101046 and (skill == "BA" or skill == "GF")) and 2 or 1
 	
 	------------------------------
 	---- Build TopLevelWindow ----
 	------------------------------
 	
 	-- if not stacksWindow then
-		-- local stacksWindow = Util.Controls:NewFrame(self.name.."StackTrackerWindow")
-		local stacksWindow = WINDOW_MANAGER:CreateTopLevelWindow(self.name.."StackTrackerWindow")
+		-- local stacksWindow = Util.Controls:NewFrame(self.name..skill.."StackTrackerWindow")
+		local stacksWindow = WINDOW_MANAGER:CreateTopLevelWindow(self.name..skill.."StackTrackerWindow")
 		stacksWindow:SetHandler( "OnMoveStop", function(...)
-			CombatMetronome.SV.StackTracker.xOffset = stacksWindow:GetLeft()
-			CombatMetronome.SV.StackTracker.yOffset = stacksWindow:GetTop()
+			CombatMetronome.SV.StackTracker[skill].xOffset = stacksWindow:GetLeft()
+			CombatMetronome.SV.StackTracker[skill].yOffset = stacksWindow:GetTop()
 		end)
-		stacksWindow:SetDimensions((size*attributes.iMax+distance*(attributes.iMax-1)), size)
+		stacksWindow:SetDimensions((size*attributes.iMax+distance*(attributes.iMax-1)), size*multiplier)
 		stacksWindow:SetMouseEnabled(true)
-		stacksWindow:SetMovable(CombatMetronome.SV.StackTracker.isUnlocked)
+		stacksWindow:SetMovable(CombatMetronome.SV.StackTracker[skill].isUnlocked)
 		stacksWindow:SetClampedToScreen(true)
 		stacksWindow:SetHidden(true)
 		-- stacksWindow:SetDrawTier(DT_HIGH)
@@ -321,7 +360,7 @@ function StackTracker:BuildUI()
 	local function Position(value)
 		stacksWindow:ClearAnchors()
 		if value == "UI" then
-			stacksWindow:SetAnchor(TOPLEFT, GuiRoot, TOPLEFT, CombatMetronome.SV.StackTracker.xOffset, CombatMetronome.SV.StackTracker.yOffset)
+			stacksWindow:SetAnchor(TOPLEFT, GuiRoot, TOPLEFT, CombatMetronome.SV.StackTracker[skill].xOffset, CombatMetronome.SV.StackTracker[skill].yOffset)
 		elseif value == "Sample" then
 			stacksWindow:SetAnchor(RIGHT, GuiRoot, RIGHT, -GuiRoot:GetWidth()/8, GuiRoot:GetHeight()/6)
 		end
@@ -354,27 +393,27 @@ function StackTracker:BuildUI()
 	---- Build new indicator ----
 	-----------------------------
 		
-		local stackIndicator = WINDOW_MANAGER:CreateControl(self.name.."StackIndicator"..tostring(i), stacksWindow, CT_CONTROL)
+		local stackIndicator = WINDOW_MANAGER:CreateControl(self.name..skill.."StackIndicator"..tostring(i), stacksWindow, CT_CONTROL)
 	
-		local icon = WINDOW_MANAGER:CreateControl(self.name.."StackIcon"..tostring(i), stackIndicator, CT_TEXTURE)
+		local icon = WINDOW_MANAGER:CreateControl(self.name..skill.."StackIcon"..tostring(i), stackIndicator, CT_TEXTURE)
 		icon:ClearAnchors() 
 		icon:SetAnchor(TOPLEFT, stackIndicator, TOPLEFT, 0, 0) 
 		icon:SetDesaturation(0.1)
 	
-		local frame = WINDOW_MANAGER:CreateControl(self.name.."StackFrame"..tostring(i), stackIndicator, CT_TEXTURE)
+		local frame = WINDOW_MANAGER:CreateControl(self.name..skill.."StackFrame"..tostring(i), stackIndicator, CT_TEXTURE)
 		frame:ClearAnchors()
 		frame:SetAnchor(TOPLEFT, stackIndicator, TOPLEFT, 0, 0)
 		-- frame:SetTexture("esoui/art/champion/actionbar/champion_bar_slot_frame_disabled.dds")
 		frame:SetTexture("/esoui/art/actionbar/abilityframe64_up.dds")
 	
-		local highlight = WINDOW_MANAGER:CreateControl(self.name.."StackHighlight"..tostring(i), stackIndicator, CT_TEXTURE)
+		local highlight = WINDOW_MANAGER:CreateControl(self.name..skill.."StackHighlight"..tostring(i), stackIndicator, CT_TEXTURE)
 		highlight:ClearAnchors()
 		highlight:SetAnchor(TOPLEFT, stackIndicator, TOPLEFT, 0, 0)
 		highlight:SetDesaturation(0.4)
 		highlight:SetTexture("/esoui/art/actionbar/actionslot_toggledon.dds")
 		highlight:SetColor(unpack(attributes.highlight))
 		
-		local highlightAnimation = WINDOW_MANAGER:CreateControl(self.name.."StackHighlightAnimation"..tostring(i), stackIndicator, CT_TEXTURE)
+		local highlightAnimation = WINDOW_MANAGER:CreateControl(self.name..skill.."StackHighlightAnimation"..tostring(i), stackIndicator, CT_TEXTURE)
 		highlightAnimation:ClearAnchors()
 		highlightAnimation:SetTexture("/esoui/art/actionbar/abilityhighlight_mage_med.dds")
 		highlightAnimation:SetDrawTier(DT_HIGH)
@@ -398,16 +437,20 @@ function StackTracker:BuildUI()
 		end
 		
 		local function Animate()
-			--if self.SV.debug.enabled then CombatMetronome.debug:Print(tostring(highlightAnimationTimeline:GetDuration())) end
-			highlightAnimation:SetHidden(false)
+			--if CombatMetronome.SV.debug.enabled then CombatMetronome.debug:Print(tostring(highlightAnimationTimeline:GetDuration())) end
+			-- highlightAnimation:SetHidden(false)
 			highlightAnimationTimeline:PlayFromStart()
-			--if self.SV.debug.enabled then CombatMetronome.debug:Print("Animation should've started") end
+			--if CombatMetronome.SV.debug.enabled then CombatMetronome.debug:Print("Animation should've started") end
 		end
 		
 		local function StopAnimation()
 			highlightAnimationTimeline:Stop()
-			highlightAnimation:SetHidden(true)
-			--if self.SV.debug.enabled then CombatMetronome.debug:Print("Animation should've stopped") end
+			-- highlightAnimation:SetHidden(true)
+			--if CombatMetronome.SV.debug.enabled then CombatMetronome.debug:Print("Animation should've stopped") end
+		end
+		
+		local function SetAnimationHidden(value)
+			highlightAnimation:SetHidden(value)
 		end
 
 		local controls = {
@@ -425,10 +468,11 @@ function StackTracker:BuildUI()
 		Deactivate = Deactivate,
 		Animate = Animate,
 		StopAnimation = StopAnimation,
+		SetAnimationHidden = SetAnimationHidden,
 		}
 	end
 
-	for i =1,attributes.iMax do 
+	for i =1,attributes.iMax*multiplier do 
 		indicator[i] = GetIndicator(i)
 	end 
 	
@@ -437,7 +481,7 @@ function StackTracker:BuildUI()
 	-----------------------
 	
 	local function ApplySize(size) 
-		for i=1,attributes.iMax do 
+		for i=1,attributes.iMax*multiplier do 
 			indicator[i].controls.frame:SetDimensions(size,size)
 			indicator[i].controls.highlight:SetDimensions(size,size)
 			indicator[i].controls.icon:SetDimensions(size,size)
@@ -448,24 +492,27 @@ function StackTracker:BuildUI()
 	indicator.ApplySize = ApplySize
 	
 	local function ApplyDistance(distance, size) 
-		for i=1,attributes.iMax do
-			-- local xOffset = (i-(attributes.iMax+1)/2)*(size+distance)
-			local xOffset = (i-1)*(size+distance)
-			indicator[i].controls.stackIndicator:ClearAnchors()
-			indicator[i].controls.stackIndicator:SetAnchor(TOPLEFT, stacksWindow, TOPLEFT, xOffset, 0)
+		for i=1,attributes.iMax*multiplier do
+			if i <= attributes.iMax then
+				local xOffset = (i-1)*(size+distance)
+				indicator[i].controls.stackIndicator:ClearAnchors()
+				indicator[i].controls.stackIndicator:SetAnchor(TOPLEFT, stacksWindow, TOPLEFT, xOffset, 0)
+			else
+				local xOffset = (i-attributes.iMax-1)*(size+distance)
+				indicator[i].controls.stackIndicator:ClearAnchors()
+				indicator[i].controls.stackIndicator:SetAnchor(TOPLEFT, stacksWindow, TOPLEFT, xOffset, size+distance)
+			end
 		end
 	end
 	indicator.ApplyDistance = ApplyDistance
 	
 	local function ApplyIcon()
-		if self.class == "NB" then
-			local value = Util.Stacks:CheckForGFMorph()
-			attributes.graphic = attributes.icon[value]
-		elseif self.class == "CRO" then
-			local value = Util.Stacks:CheckForFSMorph()
-			attributes.graphic = attributes.icon[value]
+		if skill == "GF" then
+			attributes.graphic = attributes.icon[Util.Stacks.morphs.GF]
+		elseif skill == "FS" then
+			attributes.graphic = attributes.icon[Util.Stacks.morphs.FS]
 		end
-		for i=1,attributes.iMax do
+		for i=1,attributes.iMax*multiplier do
 			indicator[i].controls.icon:SetTexture(attributes.graphic)
 		end
 	end
@@ -505,6 +552,7 @@ function LATracker:BuildUI()
 	end
 	
 	LATracker.label = LATracker.label or WINDOW_MANAGER:CreateControl(self.name.."Label", LATracker.frame, CT_LABEL)
+	LATracker.label:SetHidden(true)
 	LATracker.label:SetText("")
 	LATracker.label:ClearAnchors()
 	LATracker.label:SetAnchor(CENTER, LATracker.frame, CENTER, 0, 0)

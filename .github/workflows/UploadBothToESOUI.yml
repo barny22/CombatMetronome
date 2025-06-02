@@ -45,10 +45,8 @@ jobs:
     - name: Extract API Versions and Addon Version
       id: version_info
       run: |
+      
         MANIFEST_FILE=$MANIFEST
-    
-        # Alle API-Versionen extrahieren
-        APIVersions=$(grep -Po '(?<=## APIVersion: )[\d\s]+' "$MANIFEST_FILE" | tr -s ' ' | sed 's/ *$//')
         
         # Addon-Version extrahieren
         AddonVersion=$(grep -Po '(?<=## Version: )[\d.]+' "$MANIFEST_FILE")
@@ -62,6 +60,7 @@ jobs:
     - name: Get Compatible Patch IDs
       id: get_patch_ids
       run: |
+      
         echo "Hole Patch-IDs für API-Versionen: $API_VERSION"
         APIList=$(echo "$API_VERSION" | tr ' ' '\n')
     
@@ -84,7 +83,6 @@ jobs:
     
         echo "PATCH_IDS=$PatchIDs" >> $GITHUB_ENV
         echo "Gefundene Patch-IDs: $PatchIDs"
-
         
     - name: Extract Changelog
       id: changelog

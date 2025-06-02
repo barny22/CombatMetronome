@@ -4,25 +4,6 @@ Util.Text = Util.Text or {}
 Util.Stacks = Util.Stacks or {}
 CombatMetronome.StackTracker = CombatMetronome.StackTracker or {}
 local StackTracker = CombatMetronome.StackTracker
-
-local bAId = { ["buff"] = 203447, ["ability"] = 24165,}
-local mWId = { ["buff"] = 122658, ["ability"] = 20805,} -- 122729
-local gFId = {
-	["gF"] = { ["buff"] = 122585, ["ability"] = 61902,},
-	["mR"] = { ["buff"] = 122586, ["ability"] = 61919,},
-	["rF"] = { ["buff"] = 122587, ["ability"] = 61927,},
-	}
-local fSId = {
-	["fS"] = { ["buff"] = 114131, ["ability"] = {
-	[1] = 114108, [2] = 123683, [3] = 123685
-	}},	
-	["rS"] = { ["buff"] = 117638, ["ability"] = {
-	[1] = 117637, [2] = 123718, [3] = 123719
-	}},
-	["vS"] = { ["buff"] = 117625, ["ability"] = {
-	[1] = 117624, [2] = 123699, [3] = 123704
-	}},
-	}
 	
 -- local previousStack = 0
 
@@ -87,9 +68,9 @@ end
 	---- GCD Tracking specifics ----
 	--------------------------------
 	
-function CombatMetronome:CreateMenuIconsPath(ControlName)
+function CombatMetronome:CreateMenuIconsPath(ControlName, panel)
 	local number = 0
-	for i, entry in ipairs(CombatMetronomeOptions.controlsToRefresh) do
+	for i, entry in ipairs(panel.controlsToRefresh) do
 		if ControlName == entry.data.name then
 			number = i
 		end
@@ -98,6 +79,7 @@ function CombatMetronome:CreateMenuIconsPath(ControlName)
 end
 
 function CombatMetronome:GCDSpecifics(text, icon, gcdProgress, wasSynergy)
+	if not (text and icon) then return end
 	if not wasSynergy and self.Progressbar.synergy.wasUsed then self.Progressbar.synergy.wasUsed = false end
 	if CombatMetronome.SV.Progressbar.showSpell then
 		self.Progressbar.spellLabel:SetHidden(false)
@@ -123,6 +105,8 @@ function CombatMetronome:SetIconsAndNamesNil()
 	self.Progressbar.activeMount.action = ""
 	self.Progressbar.collectibleInUse = nil
 	self.Progressbar.itemUsed = nil
+	self.Progressbar.jesterFestivalCherryBlossom = false
+	-- self.itemCache = nil
 	-- self.Progressbar.killingAction = nil
 	self.Progressbar.breakingFree = nil
 	self.Progressbar.synergy.wasUsed = false
@@ -172,7 +156,7 @@ function CombatMetronome:UpdateAdjustChoices()
 	for k in pairs(names) do names[k] = nil end
 
 	for id, adj in pairs(CombatMetronome.SV.Progressbar.abilityAdjusts) do
-		local name = "|t20:20:"..GetAbilityIcon(id).."|t "..Util.Text.CropZOSString(GetAbilityName(id))
+		local name = "|t20:20:"..GetAbilityIcon(id).."|t "..Util.Text.CropZOSString(GetAbilityName(id), "ability")
 		names[#names + 1] = name
 	end
 
@@ -190,7 +174,7 @@ function CombatMetronome:UpdateAdjustChoices()
         end
     end
 
-	local panelControls = self.menu.panel.controlsToRefresh
+	local panelControls = self.menu.panels.Progressbar.controlsToRefresh
 	for i = 1, #panelControls do
 		local control = panelControls[i]
 		if (control.data and control.data.name == "Select skill adjust") then
@@ -204,7 +188,7 @@ end
 function CombatMetronome:CreateAdjustList()
 	local names = {}
 	for id, adj in pairs(CombatMetronome.SV.Progressbar.abilityAdjusts) do
-		local name = "|t20:20:"..GetAbilityIcon(id).."|t "..Util.Text.CropZOSString(GetAbilityName(id))
+		local name = "|t20:20:"..GetAbilityIcon(id).."|t "..Util.Text.CropZOSString(GetAbilityName(id), "ability")
 		names[#names + 1] = name
 	end
 	if #names == 0 then table.insert(names, ABILITY_ADJUST_PLACEHOLDER) end
@@ -253,13 +237,22 @@ function CombatMetronome:BuildListOfCurrentlyEquippedAbilities()
 	
 	if not self.currentlyEquippedAbilities.list then self.currentlyEquippedAbilities.list = {} end
 	
+	local executeAbilityFound = false
 	for i, skill in ipairs(self.currentlyEquippedAbilities.data) do
 		self.currentlyEquippedAbilities.list[i] = tostring("|t20:20:"..skill.icon.."|t "..skill.name)
+		if self.Resources.EXECUTE_ABILITIES[skill.id] then
+			-- CombatMetronome.debug:Print("Execute ability found, adjusting execute threshold")
+			self.Resources.executeThreshold = math.max(self.Resources.EXECUTE_ABILITIES[skill.id], self.Resources.executeThreshold or 0)
+			executeAbilityFound = true
+		elseif not executeAbilityFound then
+			-- CombatMetronome.debug:Print("No execute ability found")
+			self.Resources.executeThreshold = CombatMetronome.SV.Resources.showHealth and CombatMetronome.SV.Resources.hpHighlightThreshold or 0
+		end
 	end
 	
 	-- refresh equipped ability list
-	if self.menu.panel then
-		local panelControls = self.menu.panel.controlsToRefresh
+	if self.menu.panels and self.menu.panels.Progressbar then
+		local panelControls = self.menu.panels.Progressbar.controlsToRefresh
 		for i = 1, #panelControls do
 			local control = panelControls[i]
 			if (control.data and control.data.name == "Currently equipped abilities:") then
@@ -303,7 +296,7 @@ function CombatMetronome:HandleAbilityUsed(event)
 		return
 	else
 		self.currentEvent = event
-		-- if self.SV.debug.enabled then CombatMetronome.debug:Print("Got new Event "..event.ability.name) end
+		-- if CombatMetronome.SV.debug.enabled then CombatMetronome.debug:Print("Got new Event "..event.ability.name) end
 	end
 	self.lastAbilityFinished = self.abilityFinished
 	self.abilityFinished = event.start + math.max(ability.delay, 1000)
@@ -313,21 +306,35 @@ end
 	-------------------------------------------
 	---- Check if Stack  Tracker is active ----
 	-------------------------------------------
-
-function StackTracker:TrackerIsActive()
-	local trackerIsActive = false
-	if self.class == "ARC" and CombatMetronome.SV.StackTracker.trackCrux then
-		trackerIsActive = true
-	elseif self.class == "DK" and CombatMetronome.SV.StackTracker.trackMW then
-		trackerIsActive = true
-	elseif self.class == "SORC" and CombatMetronome.SV.StackTracker.trackBA then
-		trackerIsActive = true
-	elseif self.class == "NB" and CombatMetronome.SV.StackTracker.trackGF then
-		trackerIsActive = true
-	elseif self.class == "CRO" and CombatMetronome.SV.StackTracker.trackFS then
-		trackerIsActive = true
+function StackTracker:MorphCheck(skill)
+	if skill == "GF" then
+		Util.Stacks.morphs.GF = Util.Stacks:CheckMorph("GF")
+	elseif skill == "FS" then
+		Util.Stacks.morphs.FS = Util.Stacks:CheckMorph("FS")
 	end
-	return trackerIsActive
+end
+
+function StackTracker:TrackerIsActive(skill)
+	if skill then
+		if self.activeSkills[skill] and self:CheckIfSlotted(skill) and CombatMetronome.SV.StackTracker[skill].tracked then
+			return true
+		end
+		return false
+	else
+		for skill, _ in pairs(self.SKILL_ATTRIBUTES) do
+			if self.activeSkills[skill] and self:CheckIfSlotted(skill) and CombatMetronome.SV.StackTracker[skill].tracked then
+				return true
+			end
+		end
+		return false
+	end
+end
+
+function StackTracker:EffectChangedShouldBeActive()
+	if self:TrackerIsActive() and not self:IsTrackingAvailable("FS") then
+		return true
+	end
+	return false
 end
 
 		---------------------------------------
@@ -350,7 +357,7 @@ end
 				-- actionSlot.id = GetSlotBoundId(i, j)
 			-- end
             -- actionSlot.icon = GetAbilityIcon(actionSlot.id)
-            -- actionSlot.name = Util.Text.CropZOSString(GetAbilityName(actionSlot.id))
+            -- actionSlot.name = Util.Text.CropZOSString(GetAbilityName(actionSlot.id), "ability")
 
             -- table.insert(actionSlots, actionSlot)  -- Add the current action slot to the table
         -- end
@@ -363,39 +370,89 @@ end
         ---- Tracker check if abilities are slotted ----
         ------------------------------------------------
 		
-function StackTracker:CheckIfSlotted()
+function StackTracker:CheckIfSlotted(skill)
 	local ability = ""
-	local abilitySlotted = false
-	if self.class == "SORC" then ability = bAId.ability
-	elseif self.class == "NB" then 
-		local morph = Util.Stacks:CheckForGFMorph()
-		ability = gFId[morph].ability
-	elseif self.class == "DK" then ability = mWId.ability
+	local attributes = StackTracker.SKILL_ATTRIBUTES[skill]
+	if skill == "BA" or skill == "MW" or skill == "FI" then ability = attributes.id.ability
+	elseif skill == "GF" then 
+		local morph = Util.Stacks.morphs.GF
+		ability = attributes.id[morph].ability
 	end
 	if ability ~= "" then
 		for i=1,#self.actionSlotCache do
 			if self.actionSlotCache[i].id == ability then
-				abilitySlotted = true
-				break
+				return true
 			end
 		end
-	elseif self.class == "ARC" then abilitySlotted = true
-	elseif self.class == "CRO" then
-		local morph = Util.Stacks:CheckForFSMorph()
+	elseif skill == "Crux" and self.activeSkills[skill] then return true
+	elseif skill == "FS" then
+		local morph = Util.Stacks.morphs.FS
+		if not morph then return false end
 		for i=1,3 do
-			ability = fSId[morph].ability[i]
+			ability = attributes.id[morph].ability[i]
 			for j=1,#self.actionSlotCache do
 				if self.actionSlotCache[j].id == ability then
-					abilitySlotted = true
-					break
+					return true
 				end
-			end
-			if ablilitySlotted then
-				break
 			end
 		end
 	end
-	return abilitySlotted
+	return false
+end
+
+function StackTracker:CheckIfRegistered(skill)
+	if skill == "FS" and self.hotbarUpdateRegistered then
+		return true
+	else
+		for _, aName in pairs(self.trackedIds) do
+			if skill == aName then
+				return true
+			end
+		end
+	end
+	return false
+end
+
+function StackTracker:GetCurrentStacks(skill)
+	local stacks
+	if self:CheckIfSlotted(skill) then
+		stacks = Util.Stacks:GetCurrentNumStacksOnPlayer(skill)
+		return stacks
+	end
+	return 0
+end
+
+function StackTracker:IsTrackingAvailable()
+	for skill, entry in pairs(self.SKILL_ATTRIBUTES) do
+		for _, id in ipairs(entry.skillLineId) do
+			local _,_,isActive,_,_,_ = GetSkillLineDynamicInfo(GetSkillLineIndicesFromSkillLineId(id))
+			self.activeSkills[skill] = isActive
+			if isActive then break end
+		end
+	end
+end
+
+function StackTracker:InitializeUI(skill)
+	if not self.UI[skill] then
+		self.UI[skill] = self:BuildUI(skill)
+		self.UI[skill].indicator.ApplyDistance(CombatMetronome.SV.StackTracker[skill].indicatorSize/5, CombatMetronome.SV.StackTracker[skill].indicatorSize)
+		self.UI[skill].indicator.ApplySize(CombatMetronome.SV.StackTracker[skill].indicatorSize)
+		self.UI[skill].indicator.ApplyIcon()
+		self.UI[skill].stacksWindow:SetMovable(CombatMetronome.SV.StackTracker.isUnlocked)
+		if CombatMetronome.SV.StackTracker.isUnlocked then self:HandleUIVisibility(skill, "Sample") end
+	end
+	self:HandleUIVisibility(skill, "UI")
+end
+
+function StackTracker:HandleUIVisibility(skill, scene)
+	if StackTracker.UI[skill] then
+		StackTracker.UI[skill].FadeScenes(scene)
+		-- if scene == "NoUI" or scene == "NoSample" then
+			-- StackTracker.UI[skill].stacksWindow:SetHidden(true)
+		-- elseif scene == "Sample" or scene == "UI" then
+			-- StackTracker.UI[skill].stacksWindow:SetHidden(false)
+		-- end
+	end
 end
 
 		-------------------------------
@@ -408,7 +465,7 @@ function CombatMetronome:IsInPvPZone()
 	else
 		self.inPVPZone = false
 	end
-	-- if self.SV.debug.enabled then CombatMetronome.debug:Print(self.inPVPZone) end
+	-- if CombatMetronome.SV.debug.enabled then CombatMetronome.debug:Print(self.inPVPZone) end
 	return self.inPVPZone
 end
 
@@ -418,19 +475,19 @@ function CombatMetronome:CMPVPSwitch()
 			if self.cmRegistered then
 				self:UnregisterCM()
 				self:HideBar(true)
-				-- if self.SV.debug.enabled then CombatMetronome.debug:Print("registered cm scenario 1") end
+				-- if CombatMetronome.SV.debug.enabled then CombatMetronome.debug:Print("registered cm scenario 1") end
 			elseif not self.cmRegistered then
 				self:HideBar(true)
-				-- if self.SV.debug.enabled then CombatMetronome.debug:Print("registered cm scenario 2") end
+				-- if CombatMetronome.SV.debug.enabled then CombatMetronome.debug:Print("registered cm scenario 2") end
 			end
 		else 
 			if not self.cmRegistered then
 				self:RegisterCM()
 				self:HideBar(not CombatMetronome.SV.Progressbar.dontHide)
-				-- if self.SV.debug.enabled then CombatMetronome.debug:Print("registered cm scenario 3") end
+				-- if CombatMetronome.SV.debug.enabled then CombatMetronome.debug:Print("registered cm scenario 3") end
 			else
 				self:HideBar(not CombatMetronome.SV.Progressbar.dontHide)
-				-- if self.SV.debug.enabled then CombatMetronome.debug:Print("registered cm scenario 4") end
+				-- if CombatMetronome.SV.debug.enabled then CombatMetronome.debug:Print("registered cm scenario 4") end
 			end
 		end
 	end
@@ -461,23 +518,27 @@ function CombatMetronome:ResourcesPVPSwitch()
 	-- return hideResources
 end
 
-function StackTracker:PVPSwitch()
-	if self:TrackerIsActive() then
-		if CombatMetronome.SV.StackTracker.hideInPVP and CombatMetronome.inPVPZone then
-			if self.registered then
-				self:Unregister()
-				self.UI.FadeScenes("NoUI")
-				-- if self.SV.debug.enabled then CombatMetronome.debug:Print("registered tracker scenario 1") end
-			elseif not self.registered then
-				self.UI.FadeScenes("NoUi")
-				-- if self.SV.debug.enabled then CombatMetronome.debug:Print("registered tracker scenario 2") end
+function StackTracker:PVPSwitch(skill)
+	if self:TrackerIsActive(skill) and self:CheckIfSlotted(skill) and self.UI[skill] then
+		local registered = self:CheckIfRegistered(skill)
+		if CombatMetronome.SV.StackTracker[skill].hideInPVP and CombatMetronome.inPVPZone then
+			if registered then
+				self:Unregister(skill)
+				self.UI[skill].FadeScenes("NoUI")
+				-- if CombatMetronome.SV.debug.enabled then CombatMetronome.debug:Print("registered tracker scenario 1") end
+			else
+				self.UI[skill].FadeScenes("NoUi")
+				-- if CombatMetronome.SV.debug.enabled then CombatMetronome.debug:Print("registered tracker scenario 2") end
 			end
 		else
-			if not self.registered then
-				self:Register()
-				-- if self.SV.debug.enabled then CombatMetronome.debug:Print("registered tracker scenario 3") end
+			if not registered then
+				self:Register(skill)
+				-- if CombatMetronome.SV.debug.enabled then CombatMetronome.debug:Print("registered tracker scenario 3") end
 			end
 		end
+	elseif self:TrackerIsActive(skill) and self:CheckIfSlotted(skill) and not self.UI[skill] and not CombatMetronome.inPVPZone then
+		self:InitializeUI(skill)
+		self:Register(skill)
 	end
 end
 
@@ -527,6 +588,25 @@ function CombatMetronome:RefreshSoundControls()
 	end
 end
 
+		-----------------------------
+        ---- CoralBahseiTracking ----
+        -----------------------------
+
+function CombatMetronome:UpdateCoralBahsei(setId, changeType, unitTag, localPlayer, activeType)
+	if setId == 647 then
+		self.Resources.coralActive = self.LSD.ConvertActiveType(activeType)
+	elseif setId == 147 then
+		self.Resources.mkActive = self.LSD.ConvertActiveType(activeType)
+	elseif setId == 587 then
+		self.Resources.bahseiActive = self.LSD.ConvertActiveType(activeType)
+	elseif not setId then
+		self.Resources.mkActive = self.LSD.ConvertActiveType(self.LSD.GetUnitSetActiveType("player", 147))
+		self.Resources.coralActive = self.LSD.ConvertActiveType(self.LSD.GetUnitSetActiveType("player", 647))
+		self.Resources.bahseiActive = self.LSD.ConvertActiveType(self.LSD.GetUnitSetActiveType("player", 587))
+	end
+	self.Progressbar.UI.Anchors()
+end
+
 		---------------
         ---- Debug ----
         ---------------
@@ -536,4 +616,138 @@ function CombatMetronome:SetAllDebugFalse()
 		CombatMetronome.SV.debug[entry] = false
 	end
 	CombatMetronome.SV.debug.triggerTimer = 170
+end
+
+function CombatMetronome:AutomaticSVCleanup()
+	local year, month, day = GetDateElementsFromTimestamp(GetTimeStamp())
+	if CombatMetronome.SV.automaticSVCleanup.lastCleanup.year == year or (CombatMetronome.SV.automaticSVCleanup.lastCleanup.year == year - 1 and CombatMetronome.SV.automaticSVCleanup.lastCleanup.month < month) then
+		CombatMetronome.debug:Print("No SV cleanup necessary. Last SV cleanup has taken place less than a year ago on "..CombatMetronome.SV.lastSVCleanup.lastCleanup.day.."-"..CombatMetronome.SV.lastSVCleanup.lastCleanup.month.."-"..CombatMetronome.SV.lastSVCleanup.lastCleanup.year)
+	elseif CombatMetronome.SV.automaticSVCleanup.lastCleanup.year == 0 then
+		CombatMetronome.debug:Print("No SV cleanup has taken place yet. Starting automatic cleanup.")
+		self:CleanupSVEnstries()
+	elseif year > CombatMetronome.SV.automaticSVCleanup.lastCleanup.year and month >= CombatMetronome.SV.lastSVCleanup.lastCleanup.month then
+		CombatMetronome.SV.lastSVCleanup = {["year"] = year, ["month"] = month, ["day"] = day}
+		CombatMetronome.debug:Print("Last SV cleanup was about a year ago. Starting automatic cleanup.")
+		self:CleanupSVEntries()
+	end
+end
+
+function CombatMetronome:CleanupSVEntries()
+	for _, vars in pairs(CombatMetronomeSavedVars.Default[GetDisplayName()]) do
+		for section, subsection in pairs(vars) do
+			local sectionNeedsClearing = true
+			for entry, _ in pairs(CombatMetronome.DEFAULT_SAVED_VARS) do
+				if entry == section then
+					sectionNeedsClearing = false
+					break
+				end
+			end
+			if sectionNeedsClearing then
+				vars[section] = nil
+				CombatMetronome.debug:Print("saved vars cleanup - cleaning section: |c2a52be"..section.."|r")
+			elseif type(subsection) == "table" then
+				for name, _ in pairs(subsection) do
+					local needsToBeCleaned = true
+					for entry, _ in pairs(CombatMetronome.DEFAULT_SAVED_VARS[section]) do
+						if name == entry then
+							needsToBeCleaned = false
+							break
+						end
+					end
+					if needsToBeCleaned then
+						subsection[name] = nil
+						CombatMetronome.debug:Print("saved vars cleanup - cleaning option/table: |c2a52be"..section.."|r - |ce11212"..name.."|r")
+					end
+				end
+			end
+		end
+	end
+end
+
+	-----------------------
+	---- Notifications ----
+	-----------------------
+
+local function RemoveNotification(provider, identifier)
+	local notifications = provider.notifications
+	for i = #notifications, 1, -1 do
+		if notifications[i].heading == identifier then
+			table.remove(notifications, i)
+			provider:UpdateNotifications()
+			break
+		end
+	end
+end
+
+local function BetaNotification(provider)
+	local identifier = "CombatMetronome Beta User"
+	local function accept()
+		CombatMetronome.SV.showBetaMessage = false
+		RemoveNotification(provider, identifier) 
+	end
+
+	local msg = {
+	dataType = NOTIFICATIONS_REQUEST_DATA,
+	secsSinceRequest = ZO_NormalizeSecondsSince(0),
+	note = "If you encounter any unwanted 'features' pls report them in the ESOUI 'Comment' section (You can find the link in the menu metadata).\nAccepting this message will disable it.",
+	message = "You are currently using CombatMetronome's beta version",
+	heading = identifier,
+	texture = "/esoui/art/miscellaneous/eso_icon_warning.dds",
+	shortDisplayText = "CombatMetronome beta warning",
+	controlsOwnSounds = false,
+	keyboardAcceptCallback = accept,
+    keyboardDeclineCallback = function() RemoveNotification(provider, identifier) end,
+    gamepadAcceptCallback = accept,
+    gamepadDeclineCallback = function() RemoveNotification(provider, identifier) end,
+	data = {}, -- Place any custom data you want to store here
+    }
+	
+	-- CombatMetronome.debug:Print("You're currently using CombatMetronome's beta version")
+	
+	return msg
+end
+
+local function NewVersionAlert(provider)
+	local identifier = "CombatMetronome version update"
+	local function decline()
+		CombatMetronome.SV.lastAddOnVersion = CombatMetronome.versionCheck
+		RemoveNotification(provider, identifier)
+	end
+
+	local msg = {
+	dataType = NOTIFICATIONS_ALERT_DATA,
+	secsSinceRequest = ZO_NormalizeSecondsSince(0),
+	note = "Your new version is: "..CombatMetronome.versionCheck.."\nSometimes due to updates some values in your saved vars have been reset and you need to adjust your options. I apologize for the inconvenience.",
+	message = "You are now using CombatMetronome version "..CombatMetronome.versionCheck.."\nCheck the changelog for new features. Dismiss to disable this message.",
+	heading = identifier,
+	texture = "/esoui/art/journal/u26_progress_digsite_checked_complete.dds",
+	shortDisplayText = "CombatMetronome updated",
+	controlsOwnSounds = false,
+	keyboardAcceptCallback = function() RemoveNotification(provider, identifier) end,
+	keyboardDeclineCallback = decline,
+	gamepadAcceptCallback = function() RemoveNotification(provider, identifier) end,
+	gamepadDeclineCallback = decline,
+	data = {}, -- Place any custom data you want to store here
+    }
+	
+	-- CombatMetronome.debug:Print("New Version was detected. Current version: "..tostring(CombatMetronome.versionCheck))
+	
+	return msg
+end
+
+function CombatMetronome:CreateNotifications()
+	local provider = self.msg:CreateProvider()
+	local msg
+	
+	if self.beta and self.SV.showBetaMessage then
+		msg = BetaNotification(provider)
+		table.insert(provider.notifications, msg)
+	end
+	
+	if self.versionCheck ~= self.SV.lastAddOnVersion then
+		msg = NewVersionAlert(provider)
+		table.insert(provider.notifications, msg)
+	end
+	
+	provider:UpdateNotifications()
 end

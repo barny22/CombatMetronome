@@ -1,6 +1,14 @@
+2025-04-19 v1.8.0
+!  Complete overhaul of Stacks.lua and fixes to GCD tracking in Ability.lua in anticipation of U46
+
+2025-02-28 v1.7.13
+!  Changed updating of scribed skills. They will now be updated when finishing interaction with a scribing station
+!  Changed CropZOSString function to work with cached function zo_strformat
+!  Fixed cancelling of channeled spells with incoming ACTION_RESULT_EFFECT_FADED
+
 2025-02-17 v1.7.12
 +  Enabled detection of ground, enemy or ally targeting spells regardless of language
-+  Making GCD and its values a regularly updated resource in the library
++  reverted -->> Making GCD and its values a regularly updated resource in the library
 !  Fixed cancelling of channeled abilities when target is ST and target is dead 
 !  Fixed recognition of psijik abilities mend wounds and meditate 
 

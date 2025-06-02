@@ -40,7 +40,7 @@ jobs:
           echo "❌ Keine Manifest-Datei gefunden!" >&2
           exit 1
         fi
-
+    
     - name: Extract API Versions and Addon Version
       id: version_info
       run: |

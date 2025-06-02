@@ -32,12 +32,23 @@ function Util.Text.formatNumberCompact(value)
 	return string.format("%i", value)
 end
 
-function Util.Text.CropZOSString(zosString)
-    local _, zosStringDivider = string.find(zosString, "%^")
+function Util.Text.CropZOSString(zosString, formatter)
+    -- local _, zosStringDivider = string.find(zosString, "%^")
     
-    if zosStringDivider then
-        return string.sub(zosString, 1, zosStringDivider - 1)
-    else
-        return zosString
-    end
+    -- if zosStringDivider then
+        -- return string.sub(zosString, 1, zosStringDivider - 1)
+    -- else
+        -- return zosString
+    -- end
+	if formatter == "ability" then
+		return zo_strformat(SI_ABILITY_NAME, zosString)
+	elseif formatter == "name" then
+		return zo_strformat(SI_TOOLTIP_UNIT_NAME, zosString)
+	elseif formatter == "item" then
+		return zo_strformat(SI_TOOLTIP_ITEM_NAME, zosString)
+	elseif formatter == "collectible" then
+		return zo_strformat(SI_COLLECTIBLE_NAME_FORMATTER, zosString)
+	elseif formatter == "synergy" then
+		return zo_strformat(SI_USE_SYNERGY, zosString)
+	end
 end

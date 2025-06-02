@@ -98,15 +98,13 @@ local SlotNumbers = {3,4,5,6,7,8}
 
 local log = Util.log
 
-function Ability:ForId(id, isScribedAbility)
-	if not isScribedAbility then
-        local o = self.cache[id]
-        if (o) then 
-            -- CombatMetronome.debug:Print(" Ability "..o.name.." is cached for id, "..id)
-            -- o.slot = slot or o.slot
-            -- o.hotbar = GetActiveHotbarCategory()
-            return o 
-        end
+function Ability:ForId(id)
+    local o = self.cache[id]
+    if (o) then 
+        -- CombatMetronome.debug:Print(" Ability "..o.name.." is cached for id, "..id)
+        -- o.slot = slot or o.slot
+        -- o.hotbar = GetActiveHotbarCategory()
+        return o 
     end
 
 	o = { }
@@ -122,7 +120,7 @@ function Ability:ForId(id, isScribedAbility)
     -- end
 
     o.id = id
-    o.name = Util.Text.CropZOSString(GetAbilityName(id))
+    o.name = Util.Text.CropZOSString(GetAbilityName(id), "ability")
     local channeled, duration = GetAbilityCastInfo(id)
     o.channeled = channeled
     if channeled then
@@ -181,6 +179,14 @@ function Ability:ForId(id, isScribedAbility)
     return o
 end
 
+function Ability:UpdateScribedSkills()
+    for i = 1, 12 do
+        local abilityId = GetAbilityIdForCraftedAbilityId(i)
+        self.cache[abilityId] = nil
+        Ability:ForId(abilityId)
+    end
+end
+
 -- -------- --
 -- Tracking --
 -- -------- --
@@ -189,12 +195,12 @@ end
 
 Ability.Tracker = Ability.Tracker or { }
 Ability.Tracker.name = "Util.Ability.Tracker"
-Ability.Tracker.GCD = {
-    ["progress"] = 0,
-    ["duration"] = 0,
-    ["remaining"] = 0,
-}
-local GCD = Ability.Tracker.GCD
+-- Ability.Tracker.GCD = {
+    -- ["progress"] = 0,
+    -- ["duration"] = 0,
+    -- ["remaining"] = 0,
+-- }
+-- local GCD = Ability.Tracker.GCD
 
 local EVENT_RECORD_DELAY = 10
 local EVENT_FORCE_WAIT = 100
@@ -266,44 +272,46 @@ function Ability.Tracker:Start()
     EVENT_MANAGER:RegisterForEvent(self.name.."WeaponLockChange", EVENT_WEAPON_PAIR_LOCK_CHANGED, function(_, locked)
 		Ability.Tracker:HandleWeaponLockChange(locked)
     end)
+    EVENT_MANAGER:RegisterForEvent(self.name.."UpdateScribedSkills", EVENT_END_CRAFTING_STATION_INTERACT, function(_, craftType, _)
+        if craftType == CRAFTING_TYPE_SCRIBING then Ability:UpdateScribedSkills() end
+    end)
 end
 
 function Ability.Tracker:GCDCheck()
-    -- local slotRemaining, slotDuration, global
-    -- local cdInfo = {}
-    -- for i = 3, 7 do
-        -- slotRemaining, slotDuration, global, _ = GetSlotCooldownInfo(i)
-        -- if global then
-            -- local o = {}
-            -- o.sR = slotRemaining
-            -- o.sD = slotDuration
-            -- table.insert(cdInfo, o)
-        -- end
-        -- if #cdInfo == 2 then break end
-    -- end
+    local sR, sD, global
+    local j = 1
+    local cdInfo = {[1] = { ["sR"] = 0, ["sD"] = 0 }, [2] = { ["sR"] = 0, ["sD"] = 0 }}
+    for i = 3, 7 do
+        sR, sD, global, _ = GetSlotCooldownInfo(i)
+        if global then
+            cdInfo[j] = { ["sR"] = sR, ["sD"] = sD }
+            j = j+1
+            if j == 2 then break end
+        end
+    end
 
-    -- if cdInfo[1].sR > cdInfo[2].sR or cdInfo[1].sD > cdInfo[2].sD then
-        -- cdInfo[2].sR = cdInfo[1].sR
-        -- cdInfo[2].sD = cdInfo[1].sD
-    -- end
+    if (cdInfo[1].sR > cdInfo[2].sR) or (cdInfo[1].sD > cdInfo[2].sD) then
+        cdInfo[2].sR = cdInfo[1].sR
+        cdInfo[2].sD = cdInfo[1].sD
+    end
     
-    -- slotRemaining = cdInfo[2].sR
-    -- slotDuration = cdInfo[2].sD
-    -- if slotDuration < 1 then slotDuration = 1 end
-    local slotRemaining, slotDuration, global, _ = GetSlotCooldownInfo(3)
-    local sR, sD, g, _ = GetSlotCooldownInfo(4)
-    if not global then
-        slotRemaining, slotDuration, _, _ = GetSlotCooldownInfo(5)
-    elseif not g then
-        sR, sD, _, _ = GetSlotCooldownInfo(5)
-    end
-    if (sR > slotRemaining) or ( sD > slotDuration ) then
-        slotRemaining = sR
-        slotDuration = sD
-    end
-    if slotDuration < 1 then
-        slotDuration = 1
-    end
+    local slotRemaining = cdInfo[2].sR
+    local slotDuration = cdInfo[2].sD
+    if slotDuration < 1 then slotDuration = 1 end
+    -- local slotRemaining, slotDuration, global, _ = GetSlotCooldownInfo(3)
+    -- local sR, sD, g, _ = GetSlotCooldownInfo(4)
+    -- if not global then
+        -- slotRemaining, slotDuration, _, _ = GetSlotCooldownInfo(5)
+    -- elseif not g then
+        -- sR, sD, _, _ = GetSlotCooldownInfo(5)
+    -- end
+    -- if (sR > slotRemaining) or ( sD > slotDuration ) then
+        -- slotRemaining = sR
+        -- slotDuration = sD
+    -- end
+    -- if slotDuration < 1 then
+        -- slotDuration = 1
+    -- end
     local gcdProgress = slotRemaining/slotDuration
     return gcdProgress, slotRemaining, slotDuration
 end
@@ -531,7 +539,7 @@ function Ability.Tracker:AbilityUsed(trigger)
         self.queuedEvent = nil
         
         if event.ability.id == carverId.mag or event.ability.id == carverId.stam then
-            local cruxes = Util.Stacks:GetCurrentNumCruxOnPlayer()
+            local cruxes = Util.Stacks:GetCurrentNumStacksOnPlayer("Crux")
             event.ability.delay = CARVER_DELAY_PLACEHOLDER + (338 * cruxes)
             -- CombatMetronome.debug:Print(string.format("Fatecarver duration succesfully adjusted with %d crux(es)", cruxes))
         end
@@ -678,6 +686,8 @@ function Ability.Tracker:HandleCombatEvent(_,     res,  err,   aName, _, aSlotTy
                 ["ability"] = Ability.cache.silenced,
             }
             return
+        elseif res == ACTION_RESULT_EFFECT_FADED and self.currentEvent and self.currentEvent.ability.id == aId then
+            self:CancelCurrentEvent("Effect faded")
         -- elseif IsMeditate(aId) then
             -- if res == ACTION_RESULT_EFFECT_GAINED then
                 -- self.meditating = true
@@ -720,7 +730,7 @@ function Ability.Tracker:HandleCombatEvent(_,     res,  err,   aName, _, aSlotTy
     -- This does happen too often and in the wrong cases sometimes --
     -----------------------------------------------------------------
         
-    aName = Util.Text.CropZOSString(aName)
+    aName = Util.Text.CropZOSString(aName, "ability")
 
     -- log("Checking combat event")
     -- log("sName = ", sName, ", sUId = ", sUId)
