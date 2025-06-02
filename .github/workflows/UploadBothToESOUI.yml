@@ -49,7 +49,7 @@ jobs:
         MANIFEST_FILE=$MANIFEST
         
         # Addon-Version extrahieren
-        AddonVersion=$(grep -Po '(?<=## Version: )[\d.]+' "$MANIFEST_FILE")
+        APIVersions=$(grep -Po '(?<=## APIVersion: )[\d\s]+' "$MANIFEST_FILE" | tr -s ' ' | sed 's/ *$//')
     
         echo "API_VERSION=$APIVersions" >> $GITHUB_ENV
         echo "ADDON_VERSION=$AddonVersion" >> $GITHUB_ENV
