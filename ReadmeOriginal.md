@@ -3,6 +3,7 @@
 [size=5][color=yellow]With the update you've been waiting for![/color][/size]
 
 [size=4][color=blue][b]Support the Author:[/b][/color][/size]
+
 [size=3]If you like my work and want to support what I'm doing, consider supporting me on [url=https://ko-fi.com/barnyteso][color=green]Ko-Fi[/color][/url] or on [url=https://buymeacoffee.com/barnyteso][color=green]buymeacoffee[/color][/url].[/size]
 
 Should there be any bugs, feel free to report them on my [url="https://www.esoui.com/portal.php?id=386&a=listbugs"]ESOUI Portal[/url].
@@ -28,7 +29,7 @@ Track your [b]heavy swings[/b], [b]ability cooldowns[/b], and [b]cast/channels[/
 [*] Keybind to force display + show absolute health.
 [*] '[b]Tick Tock[/b]' sound cues for audio feedback.
 [*] New UI customization options for a personalized experience.
-[*] [b]Track stacks[/b] for class-specific skills: Bound Armaments, Crux, Fetcher Infection, Flame Skull, Molten Whip and Grim Focus (+ its morphs).
+[*] [b]Track stacks[/b] for skilline-specific skills: Bound Armaments, Crux, Fetcher Infection, Flame Skull, Molten Whip and Grim Focus (+ its morphs).
 [/list]
 
 To access the addon settings quickly, enter the command: [b]/cm[/b]
