@@ -23,7 +23,7 @@ jobs:
     - name: Set Test only
       id: test_only
       run: |
-        echo "TEST_ONLY=false" >> $GITHUB_ENV
+        echo "TEST_ONLY=true" >> $GITHUB_ENV
         
     - name: Set beta = false and dev = false in CombatMetronome.lua
       run: |
@@ -141,7 +141,7 @@ jobs:
           -Version "${{ env.ADDON_VERSION }}" `
           -FilePath "./CombatMetronome_2373/CombatMetronome_${{ env.ADDON_VERSION }}.zip" `
           -ChangelogFilePath "$changelogPath" `
-          -Compatible "${{ env.PATCH_IDS }}" `
+          -Compatible "${{ env.PATCH_IDs }}" `
           -ReadmeFilePath "$readmePath" `
           -Archive "Yes" `
           -TestOnly "${{ env.TEST_ONLY }}"
@@ -162,7 +162,7 @@ jobs:
           -Version "${{ env.ADDON_VERSION }}" `
           -FilePath "./CombatMetronome_3790/CombatMetronome_${{ env.ADDON_VERSION }}.zip" `
           -ChangelogFilePath "$changelogPath" `
-          -Compatible "${{ env.PATCH_IDS }}" `
+          -Compatible "${{ env.PATCH_IDs }}" `
           -ReadmeFilePath "$readmePath" `
           -Archive "Yes" `
           -TestOnly "${{ env.TEST_ONLY }}"
