@@ -46,18 +46,18 @@ local MORPH_IDS = {
 
 function Stacks:CheckMorph(value)
 	local morph = ""
-	local morphId
 	local _,index,_,_,_,_ = GetAbilityProgressionXPInfoFromAbilityId(MORPH_IDS[value])
-	morphId = GetSkillAbilityIndicesFromProgressionIndex(index)
+	-- morphId = GetSkillAbilityIndicesFromProgressionIndex(index)
+	local _,morphId,_ = GetAbilityProgressionInfo(index)
 	if value == "FS" then
-		if morphId == 0 then morph = "FS"
-		elseif morphId == 1 then morph = "VS"
+		if morphId == 1 then morph = "VS"
 		elseif morphId == 2 then morph = "RS"
+		else morph = "FS"
 		end
 	elseif value == "GF" then
-		if morphId == 0 then morph = "GF"
-		elseif morphId == 1 then morph = "RF"
+		if morphId == 1 then morph = "RF"
 		elseif morphId == 2 then morph = "MR"
+		else morph = "GF"
 		end
 	end
 	return morph
@@ -127,7 +127,7 @@ function Stacks:StoreAbilitiesOnActionBar()
 				else
 					actionSlot.id = GetSlotBoundId(i, j)
 				end
-				if not IsAlreadyInList(actionSlot.id) then
+				if (actionSlot.id ~= 0) and not IsAlreadyInList(actionSlot.id) then
 					actionSlot.icon = GetAbilityIcon(actionSlot.id)
 					actionSlot.name = Util.Text.CropZOSString(GetAbilityName(actionSlot.id), "ability")
 
@@ -157,7 +157,7 @@ function Stacks:GetCurrentNumStacksOnPlayer(skill)
 	if skill == "FS" and self.morphs.FS then
 		local ability
 		for i=2,3 do
-			ability = IDS.FS[morph][i]
+			ability = IDS.FS[Stacks.morphs.FS][i]
 			for j=1,#CombatMetronome.StackTracker.actionSlotCache do
 				if CombatMetronome.StackTracker.actionSlotCache[j].id == ability then
 					stacks.FS = i-1

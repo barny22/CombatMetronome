@@ -174,7 +174,7 @@ function CombatMetronome:UpdateAdjustChoices()
         end
     end
 
-	local panelControls = self.menu.panels.progressbar.controlsToRefresh
+	local panelControls = self.menu.panels.Progressbar.controlsToRefresh
 	for i = 1, #panelControls do
 		local control = panelControls[i]
 		if (control.data and control.data.name == "Select skill adjust") then
@@ -251,8 +251,8 @@ function CombatMetronome:BuildListOfCurrentlyEquippedAbilities()
 	end
 	
 	-- refresh equipped ability list
-	if self.menu.panels and self.menu.panels.progressbar then
-		local panelControls = self.menu.panels.progressbar.controlsToRefresh
+	if self.menu.panels and self.menu.panels.Progressbar then
+		local panelControls = self.menu.panels.Progressbar.controlsToRefresh
 		for i = 1, #panelControls do
 			local control = panelControls[i]
 			if (control.data and control.data.name == "Currently equipped abilities:") then
@@ -387,6 +387,7 @@ function StackTracker:CheckIfSlotted(skill)
 	elseif skill == "Crux" and self.activeSkills[skill] then return true
 	elseif skill == "FS" then
 		local morph = Util.Stacks.morphs.FS
+		if not morph then return false end
 		for i=1,3 do
 			ability = attributes.id[morph].ability[i]
 			for j=1,#self.actionSlotCache do

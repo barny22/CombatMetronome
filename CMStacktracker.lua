@@ -24,7 +24,7 @@ function StackTracker:HandleEffectChanged(_,changeType, _, _, unitTag, _, _, sta
 end
 
 function StackTracker:HandleHotbarChangeRequested(_,aId,_,_)
-	local morph = Util.Stacks.morphs.FS.new
+	local morph = Util.Stacks.morphs.FS
 	for i=2,3 do
 		if self.SKILL_ATTRIBUTES.FS.id[morph].ability[i] then
 			self:ChangeStackCount("FS", i-1)

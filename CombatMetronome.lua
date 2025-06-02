@@ -110,28 +110,16 @@ function CombatMetronome:Init()
 	StackTracker.activeSkills = {}
 	StackTracker:IsTrackingAvailable()
 	
-	if self.API < 101046 then
-		if StackTracker.class == "CRO" then
-			local skill = "FS"
-			StackTracker:MorphCheck(skill)
-			Util.Stacks:HandleMorphRegister(true)
-		elseif StackTracker.class == "NB" then
-			local skill = "GF"
-			StackTracker:MorphCheck(skill)
-			Util.Stacks:HandleMorphRegister(true)
-		end
-	else
-		if StackTracker.activeSkills["FS"] and StackTracker.activeSkills["GF"] then
-			StackTracker:MorphCheck("FS")
-			StackTracker:MorphCheck("GF")
-			Util.Stacks:HandleMorphRegister(true)
-		elseif StackTracker.activeSkills["FS"] then
-			StackTracker:MorphCheck("FS")
-			Util.Stacks:HandleMorphRegister(true)
-		elseif StackTracker.activeSkills["GF"] then
-			StackTracker:MorphCheck("GF")
-			Util.Stacks:HandleMorphRegister(true)
-		end
+	if StackTracker.activeSkills["FS"] and StackTracker.activeSkills["GF"] then
+		StackTracker:MorphCheck("FS")
+		StackTracker:MorphCheck("GF")
+		Util.Stacks:HandleMorphRegister(true)
+	elseif StackTracker.activeSkills["FS"] then
+		StackTracker:MorphCheck("FS")
+		Util.Stacks:HandleMorphRegister(true)
+	elseif StackTracker.activeSkills["GF"] then
+		StackTracker:MorphCheck("GF")
+		Util.Stacks:HandleMorphRegister(true)
 	end
 	
 	StackTracker.trackedIds = {}
@@ -175,31 +163,36 @@ end
 	-----------------------------
 
 function CombatMetronome:RegisterMetadata()
-	-- EVENT_MANAGER:RegisterForEvent(
-        -- self.name.."CurrentActionslotsOnHotbar",
-        -- EVENT_ACTION_SLOTS_ALL_HOTBARS_UPDATED,
-        -- function()
-			-- CombatMetronome:BuildListOfCurrentlyEquippedAbilities()
-			-- StackTracker.actionSlotCache = self.currentlyEquippedAbilities.data
-			-- for skill, _ in pairs(StackTracker.SKILL_ATTRIBUTES) do
-				-- if StackTracker.activeSkills[skill] and CombatMetronome.SV.StackTracker[skill].tracked then
-					-- if StackTracker:CheckIfSlotted(skill) then
-						-- StackTracker:InitializeUI(skill)
-						-- StackTracker:GetCurrentStacks(skill)
-						-- StackTracker:Register(skill)
-					-- elseif StackTracker:CheckIfRegistered(skill) and not StackTracker:CheckIfSlotted(skill) then
-						-- StackTracker:Unregister(skill)
-					-- end
-				-- end
-			-- end
-        -- end
-    -- )
+	EVENT_MANAGER:RegisterForEvent(
+        self.name.."CurrentActionslotsOnHotbar",
+        EVENT_ACTION_SLOTS_ALL_HOTBARS_UPDATED,
+        function()
+			CombatMetronome:BuildListOfCurrentlyEquippedAbilities()
+			StackTracker.actionSlotCache = self.currentlyEquippedAbilities.data
+			for skill, _ in pairs(StackTracker.SKILL_ATTRIBUTES) do
+				if StackTracker.activeSkills[skill] and CombatMetronome.SV.StackTracker[skill].tracked and StackTracker:CheckIfSlotted(skill) then
+					if StackTracker:CheckIfSlotted(skill) then
+						StackTracker:InitializeUI(skill)
+						StackTracker:GetCurrentStacks(skill)
+						StackTracker:Register(skill)
+					elseif StackTracker:CheckIfRegistered(skill) and not StackTracker:CheckIfSlotted(skill) then
+						StackTracker:Unregister(skill)
+					end
+				end
+			end
+        end
+    )
 	
 	EVENT_MANAGER:RegisterForEvent(
         self.name.."RespecResult",
         EVENT_SKILL_RESPEC_RESULT,
         function(_, result)
-			if result ~= RESPEC_RESULT_SUCCESS then return end
+			if (result ~= RESPEC_RESULT_SUCCESS) then
+				if CombatMetronome.SV.debug.enabled then
+					CombatMetronome.debug:Print("Respec result not successful. Will return now...")
+				end
+				return
+			end
 			CombatMetronome:BuildListOfCurrentlyEquippedAbilities()
 			StackTracker.actionSlotCache = self.currentlyEquippedAbilities.data
 			StackTracker:IsTrackingAvailable()
@@ -220,8 +213,8 @@ function CombatMetronome:RegisterMetadata()
 				if Util.Stacks.morphs["FS"] then Util.Stacks.morphs["FS"] = nil end
 				Util.Stacks:HandleMorphRegister(false)
 			end
-			for skill, value in pairs(StackTracker.activeSkills) do
-				if value and StackTracker:CheckIfSlotted(skill) then
+			for skill, _ in pairs(StackTracker.activeSkills) do
+				if StackTracker.activeSkills[skill] and StackTracker:CheckIfSlotted(skill) and CombatMetronome.SV.StackTracker[skill].tracked then
 					StackTracker:InitializeUI(skill)
 					StackTracker:GetCurrentStacks(skill)
 					StackTracker:Register(skill)
@@ -244,8 +237,8 @@ function CombatMetronome:RegisterMetadata()
 			end
 			
 			-- Get current stack count if you left an instance
-			for skill, value in pairs(StackTracker.activeSkills) do
-				if value and StackTracker:CheckIfSlotted(skill) then
+			for skill, _ in pairs(StackTracker.activeSkills) do
+				if StackTracker.activeSkills[skill] and StackTracker:CheckIfSlotted(skill) and CombatMetronome.SV.StackTracker[skill].tracked then
 					StackTracker:InitializeUI(skill)
 					StackTracker:GetCurrentStacks(skill)
 					StackTracker:Register(skill)
@@ -624,19 +617,34 @@ function StackTracker:Unregister(skill)
 		unregisteredAbility = true
 	elseif skill ~= "FS" then
 			
-		local aId
+		-- local aId
 		
-		if type(self.SKILL_ATTRIBUTES[skill].id) == "number" then
-			aId = self.SKILL_ATTRIBUTES[skill].id
-		elseif self.SKILL_ATTRIBUTES[skill].id.buff then
-			aId = self.SKILL_ATTRIBUTES[skill].id.buff
-		elseif skill == "GF" then
-			aId = self.SKILL_ATTRIBUTES[skill].id[Util.Stacks.morphs[skill]].buff
+		-- if type(self.SKILL_ATTRIBUTES[skill].id) == "number" then
+			-- aId = self.SKILL_ATTRIBUTES[skill].id
+		-- elseif self.SKILL_ATTRIBUTES[skill].id.buff then
+			-- aId = self.SKILL_ATTRIBUTES[skill].id.buff
+		-- elseif skill == "GF" then
+			-- if Util.Stacks.morphs[skill] then
+				-- aId = self.SKILL_ATTRIBUTES[skill].id[Util.Stacks.morphs[skill]].buff
+			-- else
+				-- for id, ability in pairs(self.trackedIds) do
+					-- if (skill == ability) then
+						-- aId = id
+						-- break
+					-- end
+				-- end
+			-- end
+		-- end
+		-- if self.trackedIds[aId] then 
+			-- self.trackedIds[aId] = nil
+		-- end
+		for id, ability in pairs(self.trackedIds) do
+			if (ability == skill) then
+				self.trackedIds[id] = nil
+				unregisteredAbility = true
+				break
+			end
 		end
-		if self.trackedIds[aId] then 
-			self.trackedIds[aId] = nil
-		end
-		unregisteredAbility = true
 	
 		EVENT_MANAGER:UnregisterForEvent(
 			self.name..skill.."Stacks")
