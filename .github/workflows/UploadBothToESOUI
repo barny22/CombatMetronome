@@ -1,0 +1,171 @@
+name: CombatMetronome Dual Release
+
+# Auslöser: Bei einem Pull Request auf die master-Branch von development oder workflow dispatch
+on:
+  pull_request:
+    branches:
+      - stable
+    types:
+       - closed
+  workflow_dispatch:
+
+jobs:
+  build:
+    if: (github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'stable' && github.event.pull_request.head.ref == 'Development') || (github.event_name == 'workflow_dispatch')
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        path: 'CombatMetronome'
+
+    - name: Set Test only
+      id: test_only
+      run: |
+        echo "TEST_ONLY=false" >> $GITHUB_ENV
+        
+    - name: Set beta = false and dev = false in CombatMetronome.lua
+      run: |
+        sed -i 's/local beta = true/local beta = false/' CombatMetronome/CombatMetronome.lua
+        sed -i 's/local dev = true/local dev = false/' CombatMetronome/CombatMetronome.lua
+
+    - name: Detect Manifest File
+      id: detect_manifest
+      run: |
+        if [ -f CombatMetronome/CombatMetronome.addon ]; then
+          echo "MANIFEST=CombatMetronome/CombatMetronome.addon" >> $GITHUB_ENV
+        elif [ -f CombatMetronome/CombatMetronome.txt ]; then
+          echo "MANIFEST=CombatMetronome/CombatMetronome.txt" >> $GITHUB_ENV
+        else
+          echo "❌ Keine Manifest-Datei gefunden!" >&2
+          exit 1
+        fi
+    
+    - name: Extract API Versions and Addon Version
+      id: version_info
+      run: |
+      
+        MANIFEST_FILE=$MANIFEST
+        
+        # Addon-Version extrahieren
+        APIVersions=$(grep -Po '(?<=## APIVersion: )[\d\s]+' "$MANIFEST_FILE" | tr -s ' ' | sed 's/ *$//')
+    
+        # Addon-Version extrahieren
+        AddonVersion=$(grep -Po '(?<=## Version: )[\d.]+' "$MANIFEST_FILE")
+        
+        echo "API_VERSION=$APIVersions" >> $GITHUB_ENV
+        echo "ADDON_VERSION=$AddonVersion" >> $GITHUB_ENV
+    
+        echo "Gefundene API-Versionen: $APIVersions"
+        echo "Addon-Version: $AddonVersion"
+    
+    - name: Get Compatible Patch IDs
+      id: get_patch_ids
+      run: |
+      
+        echo "Hole Patch-IDs für API-Versionen: $API_VERSION"
+        APIList=$(echo "$API_VERSION" | tr ' ' '\n')
+    
+        # Hole alle Patch-IDs von ESOUI
+        CompatibleList=$(curl -s -H "x-api-token: ${{ secrets.ESOUI_API_TOKEN }}" "https://api.esoui.com/addons/compatible.json")
+    
+        PatchIDs=""
+        for api in $APIList; do
+          PatchID=$(echo "$CompatibleList" | jq -r ".[] | select(.interface == \"$api\") | .id")
+          if [ -z "$PatchID" ]; then
+            echo "❌ Keine Patch-ID für API-Version $api gefunden!" >&2
+            exit 1
+          fi
+          if [ -z "$PatchIDs" ]; then
+            PatchIDs="$PatchID"
+          else
+            PatchIDs="$PatchIDs,$PatchID"
+          fi
+        done
+    
+        echo "PATCH_IDS=$PatchIDs" >> $GITHUB_ENV
+        echo "Gefundene Patch-IDs: $PatchIDs"
+        
+    - name: Extract Changelog
+      id: changelog
+      run: |
+        Changelog=$(cat CombatMetronome/Changelog.txt)
+        echo "CHANGELOG<<EOF" >> $GITHUB_ENV
+        echo "$Changelog" >> $GITHUB_ENV
+        echo "EOF" >> $GITHUB_ENV
+
+    #- name: Extract Addon Description
+    #  id: description
+    #  run: |
+    #    DescriptionOriginal=$(cat CombatMetronome/ReadmeOriginal.md)
+    #    echo "DESCRIPTIONORIGINAL<<EOF" >> $GITHUB_ENV
+    #    echo "$DescriptionOriginal" >> $GITHUB_ENV
+    #    echo "EOF" >> $GITHUB_ENV
+    #    DescriptionUpdated=$(cat CombatMetronome/ReadmeUpdated.md)
+    #    echo "DESCRIPTIONUPDATED<<EOF" >> $GITHUB_ENV
+    #    echo "$DescriptionUpdated" >> $GITHUB_ENV
+    #    echo "EOF" >> $GITHUB_ENV
+
+    - name: Create GitHub Release
+      if: env.TEST_ONLY == 'false'  # Nur wenn TEST_ONLY false ist
+      uses: softprops/action-gh-release@v2
+      env:
+        GITHUB_TOKEN: ${{ secrets.CREATE_RELEASE_TOKEN }}
+      with:
+        tag_name: ${{ env.ADDON_VERSION }}
+        name: Release ${{ env.ADDON_VERSION }}
+        body: ${{ env.CHANGELOG }}
+        draft: false
+        prerelease: false
+
+    # Zip-Datei für Addon ID 2373 (ohne ReadmeUpdated.md)
+    - name: Zip Addon Files for Addon ID 2373 (excluding ReadmeUpdated.md)
+      run: |
+        7z a ./CombatMetronome_2373/CombatMetronome_${{ env.ADDON_VERSION }}.zip * -xr!ReadmeUpdated.md -xr!ReadmeBeta.md -xr!*.git*
+
+# Zip-Datei für Addon ID 3790 (ohne ReadmeOriginal.md)
+    - name: Zip Addon Files for Addon ID 3790 (excluding ReadmeOriginal.md)
+      run: |
+        7z a ./CombatMetronome_3790/CombatMetronome_${{ env.ADDON_VERSION }}.zip * -xr!ReadmeOriginal.md -xr!ReadmeBeta.md -xr!*.git* -xr!*_2373
+        
+    - name: Upload Addon 2373 to ESOUI with PowerShell
+      shell: pwsh
+      run: |
+        $baseDir = Get-Location
+        $changelogPath = "$baseDir/CombatMetronome/Changelog.txt"
+        $readmePath = "$baseDir/CombatMetronome/ReadmeOriginal.md"
+        Write-Host "Changelog Path: $changelogPath" # Debugging-Ausgabe
+        Write-Host "Readme Path: $readmePath" # Debugging-Ausgabe
+        ./CombatMetronome/.github/scripts/upload_to_esoui.ps1 `
+          -ApiToken "${{ secrets.ESOUI_API_TOKEN }}" `
+          -AddonId 2373 `
+          -Title "Combat Metronome (GCD Tracker)" `
+          -Version "${{ env.ADDON_VERSION }}" `
+          -FilePath "./CombatMetronome_2373/CombatMetronome_${{ env.ADDON_VERSION }}.zip" `
+          -ChangelogFilePath "$changelogPath" `
+          -Compatible "${{ env.PATCH_IDS }}" `
+          -ReadmeFilePath "$readmePath" `
+          -Archive "Yes" `
+          -TestOnly "${{ env.TEST_ONLY }}"
+
+
+    - name: Upload Addon 3790 to ESOUI with PowerShell
+      shell: pwsh
+      run: |
+        $baseDir = Get-Location
+        $changelogPath = "$baseDir/CombatMetronome/Changelog.txt"
+        $readmePath = "$baseDir/CombatMetronome/ReadmeUpdated.md"
+        Write-Host "Changelog Path: $changelogPath" # Debugging-Ausgabe
+        Write-Host "Readme Path: $readmePath" # Debugging-Ausgabe
+        ./CombatMetronome/.github/scripts/upload_to_esoui.ps1 `
+          -ApiToken "${{ secrets.ESOUI_API_TOKEN }}" `
+          -AddonId 3790 `
+          -Title "Combat Metronome (GCD Tracker) Update" `
+          -Version "${{ env.ADDON_VERSION }}" `
+          -FilePath "./CombatMetronome_3790/CombatMetronome_${{ env.ADDON_VERSION }}.zip" `
+          -ChangelogFilePath "$changelogPath" `
+          -Compatible "${{ env.PATCH_IDS }}" `
+          -ReadmeFilePath "$readmePath" `
+          -Archive "Yes" `
+          -TestOnly "${{ env.TEST_ONLY }}"

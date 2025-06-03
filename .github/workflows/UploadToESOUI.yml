@@ -49,8 +49,11 @@ jobs:
         MANIFEST_FILE=$MANIFEST
         
         # Addon-Version extrahieren
-        AddonVersion=$(grep -Po '(?<=## Version: )[\d.]+' "$MANIFEST_FILE")
+        APIVersions=$(grep -Po '(?<=## APIVersion: )[\d\s]+' "$MANIFEST_FILE" | tr -s ' ' | sed 's/ *$//')
     
+        # Addon-Version extrahieren
+        AddonVersion=$(grep -Po '(?<=## Version: )[\d.]+' "$MANIFEST_FILE")
+        
         echo "API_VERSION=$APIVersions" >> $GITHUB_ENV
         echo "ADDON_VERSION=$AddonVersion" >> $GITHUB_ENV
     
@@ -119,19 +122,19 @@ jobs:
     # Zip-Datei für Addon ID 2373 (ohne ReadmeUpdated.md)
     - name: Zip Addon Files for Addon ID 2373 (excluding ReadmeUpdated.md)
       run: |
-        7z a ./CombatMetronome_2373/CombatMetronome_${{ env.ADDON_VERSION }}.zip * -xr!ReadmeUpdated.md -xr!ReadmeBeta.md -xr!*.git*
+        7z a ./CombatMetronome_2373/CombatMetronome_${{ env.ADDON_VERSION }}.zip * -xr!ReadmeBeta.md -xr!*.git* -xr!_archive
 
 # Zip-Datei für Addon ID 3790 (ohne ReadmeOriginal.md)
-    - name: Zip Addon Files for Addon ID 3790 (excluding ReadmeOriginal.md)
-      run: |
-        7z a ./CombatMetronome_3790/CombatMetronome_${{ env.ADDON_VERSION }}.zip * -xr!ReadmeOriginal.md -xr!ReadmeBeta.md -xr!*.git* -xr!*_2373
+    # - name: Zip Addon Files for Addon ID 3790 (excluding ReadmeOriginal.md)
+      # run: |
+        # 7z a ./CombatMetronome_3790/CombatMetronome_${{ env.ADDON_VERSION }}.zip * -xr!ReadmeOriginal.md -xr!ReadmeBeta.md -xr!*.git* -xr!*_2373
         
     - name: Upload Addon 2373 to ESOUI with PowerShell
       shell: pwsh
       run: |
         $baseDir = Get-Location
         $changelogPath = "$baseDir/CombatMetronome/Changelog.txt"
-        $readmePath = "$baseDir/CombatMetronome/ReadmeOriginal.md"
+        $readmePath = "$baseDir/CombatMetronome/Readme.md"
         Write-Host "Changelog Path: $changelogPath" # Debugging-Ausgabe
         Write-Host "Readme Path: $readmePath" # Debugging-Ausgabe
         ./CombatMetronome/.github/scripts/upload_to_esoui.ps1 `
@@ -147,22 +150,22 @@ jobs:
           -TestOnly "${{ env.TEST_ONLY }}"
 
 
-    - name: Upload Addon 3790 to ESOUI with PowerShell
-      shell: pwsh
-      run: |
-        $baseDir = Get-Location
-        $changelogPath = "$baseDir/CombatMetronome/Changelog.txt"
-        $readmePath = "$baseDir/CombatMetronome/ReadmeUpdated.md"
-        Write-Host "Changelog Path: $changelogPath" # Debugging-Ausgabe
-        Write-Host "Readme Path: $readmePath" # Debugging-Ausgabe
-        ./CombatMetronome/.github/scripts/upload_to_esoui.ps1 `
-          -ApiToken "${{ secrets.ESOUI_API_TOKEN }}" `
-          -AddonId 3790 `
-          -Title "Combat Metronome (GCD Tracker) Update" `
-          -Version "${{ env.ADDON_VERSION }}" `
-          -FilePath "./CombatMetronome_3790/CombatMetronome_${{ env.ADDON_VERSION }}.zip" `
-          -ChangelogFilePath "$changelogPath" `
-          -Compatible "${{ env.PATCH_IDS }}" `
-          -ReadmeFilePath "$readmePath" `
-          -Archive "Yes" `
-          -TestOnly "${{ env.TEST_ONLY }}"
+    # - name: Upload Addon 3790 to ESOUI with PowerShell
+      # shell: pwsh
+      # run: |
+        # $baseDir = Get-Location
+        # $changelogPath = "$baseDir/CombatMetronome/Changelog.txt"
+        # $readmePath = "$baseDir/CombatMetronome/ReadmeUpdated.md"
+        # Write-Host "Changelog Path: $changelogPath" # Debugging-Ausgabe
+        # Write-Host "Readme Path: $readmePath" # Debugging-Ausgabe
+        # ./CombatMetronome/.github/scripts/upload_to_esoui.ps1 `
+          # -ApiToken "${{ secrets.ESOUI_API_TOKEN }}" `
+          # -AddonId 3790 `
+          # -Title "Combat Metronome (GCD Tracker) Update" `
+          # -Version "${{ env.ADDON_VERSION }}" `
+          # -FilePath "./CombatMetronome_3790/CombatMetronome_${{ env.ADDON_VERSION }}.zip" `
+          # -ChangelogFilePath "$changelogPath" `
+          # -Compatible "${{ env.PATCH_IDS }}" `
+          # -ReadmeFilePath "$readmePath" `
+          # -Archive "Yes" `
+          # -TestOnly "${{ env.TEST_ONLY }}"
