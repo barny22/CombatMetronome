@@ -1,4 +1,7 @@
-2025-03-04 v1.6.15
+2025-06-03 v1.7.1
+! Hotfix for SV bug
+
+2025-03-04 v1.7.0
 !  Updates to string formatting
 !  Finally adding channeled abilities to abilities that change channel color
 +  Added option to automatically show stam/mag if coral/MK/bahsei is detected (requires LibSetDetection)
