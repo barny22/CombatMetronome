@@ -348,7 +348,7 @@ function CombatMetronome:BuildMenu()
 							"CombatMetronomeSavedVars", 2, nil, DEFAULT_SAVED_VARS
 						)
 						if not CombatMetronome.SV.migrated then
-							self:ConvertSavedVariables()
+							self:CheckSavedVariables()
 							if CombatMetronome.SV.debug.enabled then CombatMetronome.debug:Print("Migrating saved variables") end
 						end
 						CombatMetronome.SV.global = true
