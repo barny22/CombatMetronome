@@ -169,6 +169,7 @@ function CombatMetronome:RegisterMetadata()
         function()
 			CombatMetronome:BuildListOfCurrentlyEquippedAbilities()
 			StackTracker.actionSlotCache = self.currentlyEquippedAbilities.data
+			StackTracker:IsTrackingAvailable()
 			for skill, _ in pairs(StackTracker.SKILL_ATTRIBUTES) do
 				if StackTracker.activeSkills[skill] and CombatMetronome.SV.StackTracker[skill].tracked and StackTracker:CheckIfSlotted(skill) then
 					if StackTracker:CheckIfSlotted(skill) then
