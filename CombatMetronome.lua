@@ -188,8 +188,8 @@ function CombatMetronome:RegisterMetadata()
 				Util.Stacks:HandleMorphRegister(false)
 			end
 			for skill, _ in pairs(StackTracker.SKILL_ATTRIBUTES) do
-				if StackTracker.activeSkills[skill] and CombatMetronome.SV.StackTracker[skill].tracked then
-					if StackTracker:CheckIfSlotted(skill) then
+				if CombatMetronome.SV.StackTracker[skill].tracked then
+					if StackTracker.activeSkills[skill] and StackTracker:CheckIfSlotted(skill) then
 						StackTracker:InitializeUI(skill)
 						StackTracker:GetCurrentStacks(skill)
 						StackTracker:Register(skill)
