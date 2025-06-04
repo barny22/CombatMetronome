@@ -512,7 +512,7 @@ function StackTracker:Register(skill)
 		return
 	end
 	self:InitializeUI(skill)
-	self:GetCurrentStacks(skill)
+	self.stacks[skill] = self:GetCurrentStacks(skill)
 	
 	local registeredAbility = false
 	if skill == "FS" then
@@ -548,7 +548,6 @@ function StackTracker:Register(skill)
 		-- if CombatMetronome.SV.debug.enabled then CombatMetronome.debug:Print(skill.." effectChanged is registered with ID: "..aId) end
 	end
 	if registeredAbility then
-		self.stacks[skill] = self:GetCurrentStacks(skill)
 		StackTracker:ChangeStackCount(skill, self.stacks[skill])
 		if CombatMetronome.SV.debug.enabled then CombatMetronome.debug:Print(skill.." tracker is registered") end
 	end
