@@ -255,13 +255,18 @@ function CombatMetronome:RegisterMetadata()
 			for skill, _ in pairs(CombatMetronome.StackTracker.SKILL_ATTRIBUTES) do	
 				StackTracker:PVPSwitch(skill)
 			end
-			
+		end
+	)
+	
+	EVENT_MANAGER:RegisterForEvent(
+		self.name.."ModelRebuilt",
+		EVENT_LOCAL_PLAYER_MODEL_REBUILT,
+		function()
 			-- Get current stack count if you left an instance
 			for skill, _ in pairs(StackTracker.activeSkills) do
 				if StackTracker.activeSkills[skill] and StackTracker:CheckIfSlotted(skill) and CombatMetronome.SV.StackTracker[skill].tracked then
-					StackTracker:Register(skill)
-				else
-					StackTracker:Unregister(skill)
+					StackTracker.stacks[skill] = StackTracker:GetCurrentStacks(skill)
+					StackTracker:ChangeStackCount(skill, StackTracker.stacks[skill])
 				end
 			end
 		end
