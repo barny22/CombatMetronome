@@ -259,8 +259,6 @@ function CombatMetronome:RegisterMetadata()
 			-- Get current stack count if you left an instance
 			for skill, _ in pairs(StackTracker.activeSkills) do
 				if StackTracker.activeSkills[skill] and StackTracker:CheckIfSlotted(skill) and CombatMetronome.SV.StackTracker[skill].tracked then
-					StackTracker:InitializeUI(skill)
-					StackTracker:GetCurrentStacks(skill)
 					StackTracker:Register(skill)
 				else
 					StackTracker:Unregister(skill)
@@ -508,6 +506,8 @@ function StackTracker:Register(skill)
 	if self:CheckIfRegistered(skill) then
 		return
 	end
+	self:InitializeUI(skill)
+	self:GetCurrentStacks(skill)
 	
 	local registeredAbility = false
 	if skill == "FS" then

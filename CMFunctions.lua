@@ -524,7 +524,7 @@ function StackTracker:PVPSwitch(skill)
 		if CombatMetronome.SV.StackTracker[skill].hideInPVP and CombatMetronome.inPVPZone then
 			if registered then
 				self:Unregister(skill)
-				self.UI[skill].FadeScenes("NoUI")
+				-- self.UI[skill].FadeScenes("NoUI")
 				-- if CombatMetronome.SV.debug.enabled then CombatMetronome.debug:Print("registered tracker scenario 1") end
 			else
 				self.UI[skill].FadeScenes("NoUi")
@@ -537,7 +537,7 @@ function StackTracker:PVPSwitch(skill)
 			end
 		end
 	elseif self:TrackerIsActive(skill) and self:CheckIfSlotted(skill) and not self.UI[skill] and not CombatMetronome.inPVPZone then
-		self:InitializeUI(skill)
+		-- self:InitializeUI(skill)
 		self:Register(skill)
 	end
 end
