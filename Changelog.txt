@@ -1,5 +1,5 @@
 2025-06-03 v1.7.1
-! Hotfix for SV bug
+! Bugfixes
 
 2025-03-04 v1.7.0
 !  Updates to string formatting
