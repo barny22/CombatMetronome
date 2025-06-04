@@ -190,8 +190,8 @@ function CombatMetronome:RegisterMetadata()
 			for skill, _ in pairs(StackTracker.SKILL_ATTRIBUTES) do
 				if CombatMetronome.SV.StackTracker[skill].tracked then
 					if StackTracker.activeSkills[skill] and StackTracker:CheckIfSlotted(skill) then
-						StackTracker:InitializeUI(skill)
-						StackTracker:GetCurrentStacks(skill)
+						-- StackTracker:InitializeUI(skill)
+						-- StackTracker:GetCurrentStacks(skill)
 						StackTracker:Register(skill)
 					elseif StackTracker:CheckIfRegistered(skill) and not StackTracker:CheckIfSlotted(skill) then
 						StackTracker:Unregister(skill)
