@@ -1,4 +1,4 @@
-name: CombatMetronome Dual Release
+name: CombatMetronome Release
 
 # Auslöser: Bei einem Pull Request auf die master-Branch von development oder workflow dispatch
 on:
