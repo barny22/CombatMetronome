@@ -345,19 +345,19 @@ function CombatMetronome:BuildMenu()
 					if value then
 						CombatMetronome.SV.global = true
 						CombatMetronome.SV = ZO_SavedVars:NewAccountWide(
-							"CombatMetronomeSavedVars", 1, nil, DEFAULT_SAVED_VARS
+							"CombatMetronomeSavedVars", 2, nil, DEFAULT_SAVED_VARS
 						)
 						if not CombatMetronome.SV.migrated then
-							self:ConvertSavedVariables()
+							self:CheckSavedVariables()
 							if CombatMetronome.SV.debug.enabled then CombatMetronome.debug:Print("Migrating saved variables") end
 						end
 						CombatMetronome.SV.global = true
 					else
 						CombatMetronome.SV = ZO_SavedVars:NewCharacterIdSettings(
-							"CombatMetronomeSavedVars", 1, nil, DEFAULT_SAVED_VARS
+							"CombatMetronomeSavedVars", 2, nil, DEFAULT_SAVED_VARS
 						)
 						if not CombatMetronome.SV.migrated then
-							self:ConvertSavedVariables()
+							self:CheckSavedVariables()
 							if CombatMetronome.SV.debug.enabled then CombatMetronome.debug:Print("Migrating saved variables") end
 						end
 						CombatMetronome.SV.global = false

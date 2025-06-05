@@ -169,34 +169,8 @@ function CombatMetronome:RegisterMetadata()
         function()
 			CombatMetronome:BuildListOfCurrentlyEquippedAbilities()
 			StackTracker.actionSlotCache = self.currentlyEquippedAbilities.data
-			for skill, _ in pairs(StackTracker.SKILL_ATTRIBUTES) do
-				if StackTracker.activeSkills[skill] and CombatMetronome.SV.StackTracker[skill].tracked and StackTracker:CheckIfSlotted(skill) then
-					if StackTracker:CheckIfSlotted(skill) then
-						StackTracker:InitializeUI(skill)
-						StackTracker:GetCurrentStacks(skill)
-						StackTracker:Register(skill)
-					elseif StackTracker:CheckIfRegistered(skill) and not StackTracker:CheckIfSlotted(skill) then
-						StackTracker:Unregister(skill)
-					end
-				end
-			end
-        end
-    )
-	
-	EVENT_MANAGER:RegisterForEvent(
-        self.name.."RespecResult",
-        EVENT_SKILL_RESPEC_RESULT,
-        function(_, result)
-			if (result ~= RESPEC_RESULT_SUCCESS) then
-				if CombatMetronome.SV.debug.enabled then
-					CombatMetronome.debug:Print("Respec result not successful. Will return now...")
-				end
-				return
-			end
-			CombatMetronome:BuildListOfCurrentlyEquippedAbilities()
-			StackTracker.actionSlotCache = self.currentlyEquippedAbilities.data
 			StackTracker:IsTrackingAvailable()
-            if StackTracker.activeSkills["FS"] and StackTracker.activeSkills["GF"] then
+			if StackTracker.activeSkills["FS"] and StackTracker.activeSkills["GF"] then
 				StackTracker:MorphCheck("FS")
 				StackTracker:MorphCheck("GF")
 				Util.Stacks:HandleMorphRegister(true)
@@ -213,17 +187,63 @@ function CombatMetronome:RegisterMetadata()
 				if Util.Stacks.morphs["FS"] then Util.Stacks.morphs["FS"] = nil end
 				Util.Stacks:HandleMorphRegister(false)
 			end
-			for skill, _ in pairs(StackTracker.activeSkills) do
-				if StackTracker.activeSkills[skill] and StackTracker:CheckIfSlotted(skill) and CombatMetronome.SV.StackTracker[skill].tracked then
-					StackTracker:InitializeUI(skill)
-					StackTracker:GetCurrentStacks(skill)
-					StackTracker:Register(skill)
-				else
-					StackTracker:Unregister(skill)
+			for skill, _ in pairs(StackTracker.SKILL_ATTRIBUTES) do
+				if CombatMetronome.SV.StackTracker[skill].tracked then
+					if StackTracker.activeSkills[skill] and StackTracker:CheckIfSlotted(skill) then
+						-- StackTracker:InitializeUI(skill)
+						-- StackTracker:GetCurrentStacks(skill)
+						StackTracker:Register(skill)
+					elseif StackTracker:CheckIfRegistered(skill) and not StackTracker:CheckIfSlotted(skill) then
+						StackTracker:Unregister(skill)
+					end
 				end
 			end
         end
     )
+	
+	-- EVENT_MANAGER:RegisterForEvent(
+        -- self.name.."RespecResult",
+        -- EVENT_SKILL_RESPEC_RESULT,
+        -- function(_, result)
+			-- if (result ~= RESPEC_RESULT_SUCCESS) then
+				-- if CombatMetronome.SV.debug.enabled then
+					-- CombatMetronome.debug:Print("Respec result not successful. Will return now...")
+				-- end
+				-- return
+			-- end
+			-- CombatMetronome:BuildListOfCurrentlyEquippedAbilities()
+			-- StackTracker.actionSlotCache = self.currentlyEquippedAbilities.data
+			-- StackTracker:IsTrackingAvailable()
+            -- if StackTracker.activeSkills["FS"] and StackTracker.activeSkills["GF"] then
+				-- StackTracker:MorphCheck("FS")
+				-- StackTracker:MorphCheck("GF")
+				-- Util.Stacks:HandleMorphRegister(true)
+			-- elseif StackTracker.activeSkills["FS"] then
+				-- StackTracker:MorphCheck("FS")
+				-- if Util.Stacks.morphs["GF"] then Util.Stacks.morphs["GF"] = nil end
+				-- Util.Stacks:HandleMorphRegister(true)
+			-- elseif StackTracker.activeSkills["GF"] then
+				-- StackTracker:MorphCheck("GF")
+				-- if Util.Stacks.morphs["FS"] then Util.Stacks.morphs["FS"] = nil end
+				-- Util.Stacks:HandleMorphRegister(true)
+			-- else
+				-- if Util.Stacks.morphs["GF"] then Util.Stacks.morphs["GF"] = nil end
+				-- if Util.Stacks.morphs["FS"] then Util.Stacks.morphs["FS"] = nil end
+				-- Util.Stacks:HandleMorphRegister(false)
+			-- end
+			-- for skill, _ in pairs(StackTracker.activeSkills) do
+				-- if StackTracker.activeSkills[skill] and CombatMetronome.SV.StackTracker[skill].tracked then
+					-- if StackTracker:CheckIfSlotted(skill) then
+						-- StackTracker:InitializeUI(skill)
+						-- StackTracker:GetCurrentStacks(skill)
+						-- StackTracker:Register(skill)
+					-- else
+						-- StackTracker:Unregister(skill)
+					-- else
+				-- end
+			-- end
+        -- end
+    -- )
 	
 	EVENT_MANAGER:RegisterForEvent(
 		self.name.."CharacterLoaded",
@@ -235,15 +255,18 @@ function CombatMetronome:RegisterMetadata()
 			for skill, _ in pairs(CombatMetronome.StackTracker.SKILL_ATTRIBUTES) do	
 				StackTracker:PVPSwitch(skill)
 			end
-			
+		end
+	)
+	
+	EVENT_MANAGER:RegisterForEvent(
+		self.name.."ModelRebuilt",
+		EVENT_LOCAL_PLAYER_MODEL_REBUILT,
+		function()
 			-- Get current stack count if you left an instance
 			for skill, _ in pairs(StackTracker.activeSkills) do
 				if StackTracker.activeSkills[skill] and StackTracker:CheckIfSlotted(skill) and CombatMetronome.SV.StackTracker[skill].tracked then
-					StackTracker:InitializeUI(skill)
-					StackTracker:GetCurrentStacks(skill)
-					StackTracker:Register(skill)
-				else
-					StackTracker:Unregister(skill)
+					StackTracker.stacks[skill] = StackTracker:GetCurrentStacks(skill)
+					StackTracker:ChangeStackCount(skill, StackTracker.stacks[skill])
 				end
 			end
 		end
@@ -488,6 +511,8 @@ function StackTracker:Register(skill)
 	if self:CheckIfRegistered(skill) then
 		return
 	end
+	self:InitializeUI(skill)
+	self.stacks[skill] = self:GetCurrentStacks(skill)
 	
 	local registeredAbility = false
 	if skill == "FS" then
@@ -523,7 +548,6 @@ function StackTracker:Register(skill)
 		-- if CombatMetronome.SV.debug.enabled then CombatMetronome.debug:Print(skill.." effectChanged is registered with ID: "..aId) end
 	end
 	if registeredAbility then
-		self.stacks[skill] = self:GetCurrentStacks(skill)
 		StackTracker:ChangeStackCount(skill, self.stacks[skill])
 		if CombatMetronome.SV.debug.enabled then CombatMetronome.debug:Print(skill.." tracker is registered") end
 	end

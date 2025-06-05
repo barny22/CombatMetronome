@@ -96,7 +96,7 @@ jobs:
 # Zip-Datei (ohne nicht beta Readmes)
     - name: Zip Addon Files for Addon ID 3987 (excluding Readmes)
       run: |
-        7z a ./CombatMetronome/CombatMetronome_${{ env.ADDON_VERSION }}_beta.zip * -xr!ReadmeOriginal.md -xr!ReadmeUpdated.md -xr!*.git*
+        7z a ./CombatMetronome/CombatMetronome_${{ env.ADDON_VERSION }}_beta.zip * -xr!ReadmeOriginal.md -xr!_archive -xr!*.git*
         
     - name: Upload Beta to ESOUI with PowerShell
       shell: pwsh
