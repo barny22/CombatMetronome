@@ -1,3 +1,6 @@
+2025-06-05 v1.7.2
+! Bugfix for flame skill stacks
+
 2025-06-03 v1.7.1
 ! Bugfixes
 
