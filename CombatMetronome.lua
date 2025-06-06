@@ -193,7 +193,7 @@ function CombatMetronome:RegisterMetadata()
 						-- StackTracker:InitializeUI(skill)
 						-- StackTracker:GetCurrentStacks(skill)
 						StackTracker:Register(skill)
-					elseif StackTracker:CheckIfRegistered(skill) and not StackTracker:CheckIfSlotted(skill) then
+					elseif not StackTracker:CheckIfSlotted(skill) and StackTracker:CheckIfRegistered(skill) then
 						StackTracker:Unregister(skill)
 					end
 				end

@@ -376,6 +376,7 @@ function StackTracker:CheckIfSlotted(skill)
 	if skill == "BA" or skill == "MW" or skill == "FI" then ability = attributes.id.ability
 	elseif skill == "GF" then 
 		local morph = Util.Stacks.morphs.GF
+		if not morph then return false end
 		ability = attributes.id[morph].ability
 	end
 	if ability ~= "" then

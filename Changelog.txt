@@ -1,8 +1,9 @@
 2025-06-05 v1.7.2
-! Bugfix for flame skill stacks
+!  Bugfix for flame skill stacks
+!  Bugfix for channeled/cast abilities < 1 sec not releasing channel color correctly
 
 2025-06-03 v1.7.1
-! Bugfixes
+!  Bugfixes
 
 2025-03-04 v1.7.0
 !  Updates to string formatting
