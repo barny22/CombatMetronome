@@ -75,9 +75,9 @@ local IDS = {
 		["RF"] = 122587,
 	},
 	["FS"] = {
-		["FS"] = {[1] = 114108, [2] = 123683, [3] = 123685},
-		["RS"] = {[1] = 117637, [2] = 123718, [3] = 123719},
-		["VS"] = {[1] = 117624, [2] = 123699, [3] = 123704},
+		["FS"] = 114131,
+		["RS"] = 117638,
+		["VS"] = 117625,
 	},
 	["FI"] = 91416,
 }
@@ -154,42 +154,44 @@ function Stacks:GetCurrentNumStacksOnPlayer(skill)
 		["FS"] = 0,
 		["FI"] = 0,
 	}
-	if skill == "FS" and self.morphs.FS then
-		local ability
-		for i=2,3 do
-			ability = IDS.FS[Stacks.morphs.FS][i]
-			for j=1,#CombatMetronome.StackTracker.actionSlotCache do
-				if CombatMetronome.StackTracker.actionSlotCache[j].id == ability then
-					stacks.FS = i-1
+	-- if skill == "FS" and self.morphs.FS then
+		-- local ability
+		-- for i=2,3 do
+			-- ability = IDS.FS[Stacks.morphs.FS][i]
+			-- for j=1,#CombatMetronome.StackTracker.actionSlotCache do
+				-- if CombatMetronome.StackTracker.actionSlotCache[j].id == ability then
+					-- stacks.FS = i-1
+					-- break
+				-- end
+			-- end
+			-- if stacks.FS ~= 0 then
+				-- break
+			-- end
+		-- end
+	-- else
+	local abilityToCheck
+	if skill == "GF" and Stacks.morphs.GF then
+		abilityToCheck = IDS.GF[Stacks.morphs.GF]
+	elseif skill == "FS" and Stacks.morphs.FS then
+		abilityToCheck = IDS.FS[Stacks.morphs.FS]
+	elseif not (skill == "GF" or skill == "FS") then
+		abilityToCheck = IDS[skill]
+	else
+		return 0
+	end
+	if abilityToCheck then
+		for i=1,GetNumBuffs("player") do
+			local name,_,_,_,stack,_,_,_,_,statusEffectType,abilityId = GetUnitBuffInfo("player", i)
+			if abilityId == abilityToCheck then
+				if skill == "FI" then
+					stacks[skill] = 1
 					break
 				end
-			end
-			if stacks.FS ~= 0 then
-				break
-			end
-		end
-	else
-		local abilityToCheck
-		if skill == "GF" and Stacks.morphs.GF then
-			abilityToCheck = IDS.GF[Stacks.morphs.GF]
-		elseif skill ~= "GF" then
-			abilityToCheck = IDS[skill]
-		else
-			return 0
-		end
-		if abilityToCheck then
-			for i=1,GetNumBuffs("player") do
-				local name,_,_,_,stack,_,_,_,_,statusEffectType,abilityId = GetUnitBuffInfo("player", i)
-				if abilityId == abilityToCheck then
-					if skill == "FI" then
-						stacks[skill] = 1
-						break
-					end
-					stacks[skill] = stack
-				break 
-				end
+				stacks[skill] = stack
+			break 
 			end
 		end
 	end
+	-- end
 	return stacks[skill]
 end
