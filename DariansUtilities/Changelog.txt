@@ -1,3 +1,6 @@
+2025-06-06 v1.8.1
+!  Bugfixes for stack tracking of GF and FS
+
 2025-04-19 v1.8.0
 !  Complete overhaul of Stacks.lua and fixes to GCD tracking in Ability.lua in anticipation of U46
 
