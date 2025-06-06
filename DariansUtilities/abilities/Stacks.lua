@@ -12,19 +12,31 @@ function Stacks:HandleMorphRegister(value)
 			function()
 				for ability, morph in pairs(Stacks.morphs) do
 					local morphUpdated = false
-					local newMorph = self:CheckMorph(ability)
+					-- local newMorph = self:CheckMorph(ability)
 					if value == "FS" then
 						if not Stacks.morphs.FS or Stacks.morphs.FS ~= morph then
 							Stacks.morphs.FS = morph
 							morphUpdated = true
 						end
-						if morphUpdated and CombatMetronome and CombatMetronome.StackTracker and CombatMetronome.StackTracker.UI and CombatMetronome.StackTracker.UI.FS then CombatMetronome.StackTracker.UI.FS.indicator.ApplyIcon() end
+						if morphUpdated and CombatMetronome and CombatMetronome.StackTracker and CombatMetronome.StackTracker.UI and CombatMetronome.StackTracker.UI.FS then
+							CombatMetronome.StackTracker.UI.FS.indicator.ApplyIcon()
+							for id, skill in pairs(CombatMetronome.StackTracker.trackedIds) do
+								if skill == "FS" then CombatMetronome.StackTracker.trackedIds[id] = nil end	-- delete old tracked id
+								CombatMetronome.StackTracker.trackedIds[IDS.FS[morph]] = "FS"	-- use new tracked id
+							end
+						end
 					elseif value == "GF" then
 						if not Stacks.morphs.GF or Stacks.morphs.GF ~= morph then
 							Stacks.morphs.GF = morph
 							morphUpdated = true
 						end
-						if morphUpdated and CombatMetronome and CombatMetronome.StackTracker and CombatMetronome.StackTracker.UI and CombatMetronome.StackTracker.UI.GF then CombatMetronome.StackTracker.UI.GF.indicator.ApplyIcon() end
+						if morphUpdated and CombatMetronome and CombatMetronome.StackTracker and CombatMetronome.StackTracker.UI and CombatMetronome.StackTracker.UI.GF then
+							CombatMetronome.StackTracker.UI.GF.indicator.ApplyIcon()
+							for id, skill in pairs(CombatMetronome.StackTracker.trackedIds) do
+								if skill == "GF" then CombatMetronome.StackTracker.trackedIds[id] = nil end	-- delete old tracked id
+								CombatMetronome.StackTracker.trackedIds[IDS.GF[morph]] = "GF"	-- use new tracked id
+							end
+						end
 					end
 				end
 			end
