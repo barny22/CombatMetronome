@@ -17,7 +17,11 @@ function StackTracker:HandleEffectChanged(_,changeType, _, _, unitTag, _, _, sta
 	if not self.trackedIds[aId] then return end
 	
 	local iMax = self.SKILL_ATTRIBUTES[self.trackedIds[aId]].iMax
-	if self.trackedIds[aId] == "FI" then stackCount = 1 end
+	if self.trackedIds[aId] == "FI" then 
+		stackCount = 1
+	elseif self.trackedIds[aId] == "FS" and stackCount == 3 then
+		stackCount = 0
+	end
 	-- if CombatMetronome.SV.debug.enabled then CombatMetronome.debug:Print("Found matching id, initiating stackCount change") end
 	if changeType == EFFECT_RESULT_FADED then stackCount = 0 end
 	self:ChangeStackCount(self.trackedIds[aId], stackCount)

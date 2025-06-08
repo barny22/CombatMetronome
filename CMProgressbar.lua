@@ -226,11 +226,12 @@ function CombatMetronome:Update()
 			------------------------------------------------
 				if CombatMetronome.SV.Progressbar.changeOnChanneled then
 					if (not ability.instant and ability.delay <= 1000) or ability.delay > 1000 then
+						local castIsFinished = ((ability.delay <= 1000) and (timeRemaining*1000 <= 1000 - ability.delay)) or (timeRemaining <= 0)
 						-- self.SV.debug.enabled then CombatMetronome.debug:Print("Ability with cast time < 1s detected") end
-						if timeRemaining >= 0 and self.Progressbar.bar.segments[2].color == CombatMetronome.SV.Progressbar.progressColor then
+						if not castIsFinished and self.Progressbar.bar.segments[2].color == CombatMetronome.SV.Progressbar.progressColor then
 							self.Progressbar.bar.segments[2].color = CombatMetronome.SV.Progressbar.channelColor
 							--if self.SV.debug.enabled then CombatMetronome.debug:Print("Trying to update Channel Color") end
-						elseif timeRemaining <= 0  and self.Progressbar.bar.segments[2].color == CombatMetronome.SV.Progressbar.channelColor then
+						elseif castIsFinished  and self.Progressbar.bar.segments[2].color == CombatMetronome.SV.Progressbar.channelColor then
 							self.Progressbar.bar.segments[2].color = CombatMetronome.SV.Progressbar.progressColor
 							--if self.SV.debug.enabled then CombatMetronome.debug:Print("Turning back to Progress Color") end
 						end
