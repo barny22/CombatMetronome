@@ -1,5 +1,5 @@
 2025-06-05 v1.7.2
-!  Bugfix for flame skill stacks
+!  Bugfix for flame skull stacks
 !  Bugfix for channeled/cast abilities < 1 sec not releasing channel color correctly
 
 2025-06-03 v1.7.1
