@@ -244,9 +244,9 @@ function Ability.Tracker:Start()
         -- GCD.progress, GCD.remaining, GCD.duration = self:GCDCheck()
     -- end)
 
-    -- EVENT_MANAGER:RegisterForEvent(self.name.."SlotUpdated", EVENT_ACTION_SLOT_STATE_UPDATED, function(_, slot) 
-        -- if slot > 2 and slot < 9 then self:HandleSlotUpdated(_, slot) end
-    -- end)
+    EVENT_MANAGER:RegisterForEvent(self.name.."SlotUpdated", EVENT_ACTION_SLOT_STATE_UPDATED, function(_, slot) 
+        if slot > 2 and slot < 9 then self:HandleSlotUpdated(_, slot) end
+    end)
     EVENT_MANAGER:RegisterForEvent(self.name.."SlotUsed", EVENT_ACTION_SLOT_ABILITY_USED, function(_, slot)
         if slot >1 and slot < 9 then self:HandleSlotUsed(_, slot) end
     end)
@@ -257,9 +257,9 @@ function Ability.Tracker:Start()
         self.mountedState = mounted
         if not mounted then self.lastMounted = GetFrameTimeMilliseconds() end
     end)
-    EVENT_MANAGER:RegisterForEvent(self.name.."CooldownsUpdated", EVENT_ACTION_UPDATE_COOLDOWNS, function()
-        self:HandleCooldownsUpdated()
-    end)
+    -- EVENT_MANAGER:RegisterForEvent(self.name.."CooldownsUpdated", EVENT_ACTION_UPDATE_COOLDOWNS, function()
+        -- self:HandleCooldownsUpdated()
+    -- end)
 	-- EVENT_MANAGER:RegisterForEvent(self.name.."Meditate", EVENT_EFFECT_CHANGED, function(...)
         -- self:HandleMeditate(...)
 	-- end)
@@ -596,6 +596,37 @@ function Ability.Tracker:CallbackAbilityCancelled(event)
     -- for name, callback in pairs(self.callbacks[self.CALLBACK_ABILITY_CANCELLED]) do
     --     callback(event)
     -- end
+end
+
+function Ability.Tracker:HandleSlotUpdated(e, slot)
+    if (slot < 3) then return
+    elseif self.queuedEvent and self.queuedEvent.slot ~= slot then return
+    end
+
+    -- local remaining, duration, global, t = GetSlotCooldownInfo(slot)
+    local gcdProgress, sR, sD = self:GCDCheck()
+    local time = GetFrameTimeMilliseconds()
+
+    if (sD > 0 and sR > 0) then
+        self.gcd = sD
+
+        local oldStart = self.eventStart or 0
+        self.eventStart = time + sR - sD 
+
+        -- if (oldStart ~= self.eventStart) then
+            -- _=self.log and d(""..time.." : Event start "..tostring(duration - remaining).."ms ago")
+        -- end
+        
+        if self.queuedEvent and self.eventStart > oldStart then
+            -- _=self.log and d(""..time.." : Moved queued "..self.queuedEvent.ability.name.." to current") 
+            -- log("  Dispatching ", self.queuedEvent.ability.name)
+            -- log("    oldStart = ", oldStart)
+            -- log("    newStart = ", self.eventStart)
+            -- log("    current  = ", GetFrameTimeMilliseconds())
+            self:AbilityUsed("normal")
+            self.abilityTriggerCounters.normal = self.abilityTriggerCounters.normal + 1
+        end
+    end
 end
 
 function Ability.Tracker:HandleCooldownsUpdated()

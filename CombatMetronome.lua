@@ -317,19 +317,19 @@ function CombatMetronome:RegisterCM()
 	
 	self.cmRegistered = true
 	
-	if CombatMetronome.SV.Progressbar.trackCollectibles or (CombatMetronome.SV.Progressbar.showMountNick and CombatMetronome.SV.Progressbar.trackMounting) then
+	if CombatMetronome.SV.Progressbar.trackGCD and (CombatMetronome.SV.Progressbar.trackCollectibles or (CombatMetronome.SV.Progressbar.showMountNick and CombatMetronome.SV.Progressbar.trackMounting)) then
 		CombatMetronome:RegisterCollectiblesTracker()
 	end
 	
-	if CombatMetronome.SV.Progressbar.trackItems then
+	if CombatMetronome.SV.Progressbar.trackGCD and CombatMetronome.SV.Progressbar.trackItems then
 		CombatMetronome:RegisterItemsTracker()
 	end
 	
-	if CombatMetronome:CheckForCombatEventsRegister() then
+	if CombatMetronome.SV.Progressbar.trackGCD and CombatMetronome:CheckForCombatEventsRegister() then
 		CombatMetronome:RegisterCombatEvents()
 	end
 	
-	if CombatMetronome.SV.Progressbar.trackSynergies then
+	if CombatMetronome.SV.Progressbar.trackGCD and CombatMetronome.SV.Progressbar.trackSynergies then
 		CombatMetronome:RegisterSynergyChanged()
 	end
 	-- if CombatMetronome.SV.debug.enabled then CombatMetronome.debug:Print("cm is registered") end
@@ -340,22 +340,24 @@ function CombatMetronome:RegisterCollectiblesTracker()
 		self.name.."CollectibleUsed",
 		EVENT_COLLECTIBLE_UPDATED,
 		function(_, id)
-			local name,_,icon,_,_,_,_,type,_ = GetCollectibleInfo(id)
-			if type == COLLECTIBLE_CATEGORY_TYPE_ASSISTANT or type == COLLECTIBLE_CATEGORY_TYPE_COMPANION then
-				CombatMetronome:SetIconsAndNamesNil()
-				self.Progressbar.collectibleInUse = {}
-				self.Progressbar.collectibleInUse.name = Util.Text.CropZOSString(name, "collectible")
-				self.Progressbar.collectibleInUse.icon = icon
-				zo_callLater(function() self.Progressbar.collectibleInUse = nil end, 1000)
-			end
-			if type == COLLECTIBLE_CATEGORY_TYPE_MOUNT then
-				-- if id == GetActiveCollectibleByType(COLLECTIBLE_CATEGORY_TYPE_MOUNT,GAMEPLAY_ACTOR_CATEGORY_PLAYER) then
-					self.Progressbar.activeMount.name = Util.Text.CropZOSString(GetCollectibleNickname(id), "collectible")
-					self.Progressbar.activeMount.icon = icon
-					if CombatMetronome.menu.icons[2] then
-						CombatMetronome.menu.icons[2]:SetTexture(icon)
-					end
-				-- end
+			if CombatMetronome.SV.Progressbar.trackGCD then
+				local name,_,icon,_,_,_,_,type,_ = GetCollectibleInfo(id)
+				if type == COLLECTIBLE_CATEGORY_TYPE_ASSISTANT or type == COLLECTIBLE_CATEGORY_TYPE_COMPANION then
+					CombatMetronome:SetIconsAndNamesNil()
+					self.Progressbar.collectibleInUse = {}
+					self.Progressbar.collectibleInUse.name = Util.Text.CropZOSString(name, "collectible")
+					self.Progressbar.collectibleInUse.icon = icon
+					zo_callLater(function() self.Progressbar.collectibleInUse = nil end, 1000)
+				end
+				if type == COLLECTIBLE_CATEGORY_TYPE_MOUNT then
+					-- if id == GetActiveCollectibleByType(COLLECTIBLE_CATEGORY_TYPE_MOUNT,GAMEPLAY_ACTOR_CATEGORY_PLAYER) then
+						self.Progressbar.activeMount.name = Util.Text.CropZOSString(GetCollectibleNickname(id), "collectible")
+						self.Progressbar.activeMount.icon = icon
+						if CombatMetronome.menu.icons[2] then
+							CombatMetronome.menu.icons[2]:SetTexture(icon)
+						end
+					-- end
+				end
 			end
 		end
 	)
@@ -368,19 +370,21 @@ function CombatMetronome:RegisterItemsTracker()
 		self.name.."InventoryItemUsed",
 		EVENT_INVENTORY_ITEM_USED,
 		function()
-			local bagSize = GetBagSize(1)
-			CombatMetronome:SetIconsAndNamesNil()
-			self.itemCache = {}
-			self.itemCache.name = {}
-			self.itemCache.icon = {}
-			for i = 1, bagSize do
-				self.itemCache.name[i] = Util.Text.CropZOSString(GetItemName(1, i), "item")
-				self.itemCache.icon[i] = GetItemInfo(1, i)
+			if CombatMetronome.SV.Progressbar.trackGCD then
+				local bagSize = GetBagSize(1)
+				CombatMetronome:SetIconsAndNamesNil()
+				self.itemCache = {}
+				self.itemCache.name = {}
+				self.itemCache.icon = {}
+				for i = 1, bagSize do
+					self.itemCache.name[i] = Util.Text.CropZOSString(GetItemName(1, i), "item")
+					self.itemCache.icon[i] = GetItemInfo(1, i)
+				end
+				-- zo_callLater(function()
+					-- self.itemCache = nil
+				-- end,
+				-- 400)
 			end
-			-- zo_callLater(function()
-				-- self.itemCache = nil
-			-- end,
-			-- 400)
 		end
 	)
 
@@ -388,19 +392,21 @@ function CombatMetronome:RegisterItemsTracker()
 		self.name.."InventoryItemInfo",
 		EVENT_INVENTORY_SINGLE_SLOT_UPDATE,
 		function(_, bagId, slotId, _, _, _, stackCountChange, _, _, _, _)
-			if not self.Progressbar.synergy.wasUsed and stackCountChange == -1 and self.itemCache then
-				CombatMetronome:SetIconsAndNamesNil()
-				self.Progressbar.itemUsed = {
-					["name"] = self.itemCache.name[slotId],
-					["icon"] = self.itemCache.icon[slotId]
-				}
-				zo_callLater(function()
-					if self.Progressbar.itemUsed then
-						self.Progressbar.itemUsed = nil
-						self.itemCache = nil
-					end
-				end,
-				950)
+			if CombatMetronome.SV.Progressbar.trackGCD then
+				if not self.Progressbar.synergy.wasUsed and stackCountChange == -1 and self.itemCache then
+					CombatMetronome:SetIconsAndNamesNil()
+					self.Progressbar.itemUsed = {
+						["name"] = self.itemCache.name[slotId],
+						["icon"] = self.itemCache.icon[slotId]
+					}
+					zo_callLater(function()
+						if self.Progressbar.itemUsed then
+							self.Progressbar.itemUsed = nil
+							self.itemCache = nil
+						end
+					end,
+					950)
+				end
 			end
 		end
 	)
@@ -417,7 +423,7 @@ function CombatMetronome:RegisterCombatEvents()
 --	------------------------------
 		function (_,   res,  err, aName, aGraphic, aSlotType, sName, sType, tName, 
 				tType, hVal, pType, dType, _, 		sUId, 	 tUId,  aId,   _     )
-			if Util.Text.CropZOSString(sName, "name") == self.currentCharacterName then
+			if Util.Text.CropZOSString(sName, "name") == self.currentCharacterName and CombatMetronome.SV.Progressbar.trackGCD then
 				if IsMounted() and aId == 36432 and self.Progressbar.activeMount.action ~= "Dismounting" then
 					CombatMetronome:SetIconsAndNamesNil()
 					self.Progressbar.activeMount.action = "Dismounting"
@@ -463,14 +469,16 @@ function CombatMetronome:RegisterSynergyChanged()
 		self.name.."SynergyChanged",
 		EVENT_SYNERGY_ABILITY_CHANGED,
 		function()
-			local hasSynergy, name, icon, _, _ = GetCurrentSynergyInfo()
-			if hasSynergy then
-				-- if CombatMetronome.SV.debug.enabled then self.debug:Print("Found synergy: "..Util.Text.CropZOSString(name, "synergy")) end
-				self.Progressbar.synergy.name = Util.Text.CropZOSString(name, "synergy")
-				self.Progressbar.synergy.icon = icon
-			-- else
-				-- self.Progressbar.synergy = nil
-				-- if CombatMetronome.SV.debug.enabled then self.debug:Print("Synergy deleted") end
+			if CombatMetronome.SV.Progressbar.trackGCD then
+				local hasSynergy, name, icon, _, _ = GetCurrentSynergyInfo()
+				if hasSynergy then
+					-- if CombatMetronome.SV.debug.enabled then self.debug:Print("Found synergy: "..Util.Text.CropZOSString(name, "synergy")) end
+					self.Progressbar.synergy.name = Util.Text.CropZOSString(name, "synergy")
+					self.Progressbar.synergy.icon = icon
+				-- else
+					-- self.Progressbar.synergy = nil
+					-- if CombatMetronome.SV.debug.enabled then self.debug:Print("Synergy deleted") end
+				end
 			end
 		end
 	)
@@ -721,7 +729,7 @@ end
 function CombatMetronome:DevTools()
 
 	local ADDON_DEPENDENCY_VERSIONS = {
-		["libAddonKeybinds"] = -1, ["LibAddonMenu-2.0"] = -1, ["LibChatMessage"] = -1, ["LibSetDetection"] = -1, ["LibNotification"] = -1, ["LibGroupBroadcast"] = -1,
+		["libAddonKeybinds"] = -1, ["LibAddonMenu-2.0"] = -1, ["LibChatMessage"] = -1, ["LibSetDetection"] = -1, ["LibNotification"] = -1, ["LibGroupBroadcast"] = -1, ["LibAddonMenuOrderListBox"] = -1,
 	}
 
 	local function GetDependencyVersions()

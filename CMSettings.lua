@@ -1448,7 +1448,7 @@ function CombatMetronome:BuildMenu()
 					},
 					{
 						type = "slider",
-						name = "Modify skill adjust",
+						name = "Modify skill adjust (in ms)",
 						min = -MAX_ADJUST,
 						max = MAX_ADJUST,
 						step = 1,
