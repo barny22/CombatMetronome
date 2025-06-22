@@ -283,10 +283,10 @@ function Ability.Tracker:GCDCheck()
     local cdInfo = {[1] = { ["sR"] = 0, ["sD"] = 0 }, [2] = { ["sR"] = 0, ["sD"] = 0 }}
     for i = 3, 7 do
         sR, sD, global, _ = GetSlotCooldownInfo(i)
+        if j == 3 then break end
         if global then
             cdInfo[j] = { ["sR"] = sR, ["sD"] = sD }
             j = j+1
-            if j == 2 then break end
         end
     end
 
