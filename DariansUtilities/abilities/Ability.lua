@@ -843,13 +843,13 @@ function Ability.Tracker:HandleCombatEvent(_,     res,  err,   aName, _, aSlotTy
             return
         end
         -- local lightId = GetSlotBoundId(1)
-        if aSlotType == ACTION_SLOT_TYPE_LIGHT_ATTACK --[[and res == 2240 and time ~= self.lastLightAttack ]]then
-            if res == ACTION_RESULT_EFFECT_GAINED and time ~= self.lastLightAttack then
+        if aSlotType == ACTION_SLOT_TYPE_LIGHT_ATTACK or aSlotType == ACTION_SLOT_TYPE_WEAPON_ATTACK--[[and res == 2240 and time ~= self.lastLightAttack ]]then
+            if (res == ACTION_RESULT_EFFECT_GAINED or res == ACTION_RESULT_CRITICAL_DAMAGE or res == ACTION_RESULT_DAMAGE) and time ~= self.lastLightAttack then
                 Ability.Tracker:CallbackLightAttackUsed(time)
+                self.lastLightAttack = time
             end
             --CombatMetronome.debug:Print(res.." - "..hVal.." - "..overflow)
         end
-        self.lastLightAttack = time
     else
         return
     end
