@@ -1,5 +1,6 @@
 2025-06-18 v1.8.2
 +  Reenabling slot updated as ability trigger in an attempt to fix ability triggers
+-  Also reverting those changes right back.
 
 2025-06-06 v1.8.1
 !  Bugfixes for stack tracking of GF and FS

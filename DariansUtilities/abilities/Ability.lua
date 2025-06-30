@@ -244,9 +244,9 @@ function Ability.Tracker:Start()
         -- GCD.progress, GCD.remaining, GCD.duration = self:GCDCheck()
     -- end)
 
-    EVENT_MANAGER:RegisterForEvent(self.name.."SlotUpdated", EVENT_ACTION_SLOT_STATE_UPDATED, function(_, slot) 
-        if slot > 2 and slot < 9 then self:HandleSlotUpdated(_, slot) end
-    end)
+    -- EVENT_MANAGER:RegisterForEvent(self.name.."SlotUpdated", EVENT_ACTION_SLOT_STATE_UPDATED, function(_, slot) 
+        -- if slot > 2 and slot < 9 then self:HandleSlotUpdated(_, slot) end
+    -- end)
     EVENT_MANAGER:RegisterForEvent(self.name.."SlotUsed", EVENT_ACTION_SLOT_ABILITY_USED, function(_, slot)
         if slot >1 and slot < 9 then self:HandleSlotUsed(_, slot) end
     end)
@@ -257,9 +257,9 @@ function Ability.Tracker:Start()
         self.mountedState = mounted
         if not mounted then self.lastMounted = GetFrameTimeMilliseconds() end
     end)
-    -- EVENT_MANAGER:RegisterForEvent(self.name.."CooldownsUpdated", EVENT_ACTION_UPDATE_COOLDOWNS, function()
-        -- self:HandleCooldownsUpdated()
-    -- end)
+    EVENT_MANAGER:RegisterForEvent(self.name.."CooldownsUpdated", EVENT_ACTION_UPDATE_COOLDOWNS, function()
+        self:HandleCooldownsUpdated()
+    end)
 	-- EVENT_MANAGER:RegisterForEvent(self.name.."Meditate", EVENT_EFFECT_CHANGED, function(...)
         -- self:HandleMeditate(...)
 	-- end)
@@ -518,6 +518,8 @@ function Ability.Tracker:AbilityUsed(trigger)
         return
     end
     
+    -- local time = GetFrameTimeMilliseconds()
+    
     local gcdProgress, sR, sD
     if self.queuedEvent and self.queuedEvent.ability.heavy then
         sR, sD, _, _ = GetSlotCooldownInfo(2)
@@ -527,6 +529,8 @@ function Ability.Tracker:AbilityUsed(trigger)
     end
     
     if gcdProgress > 0.92 or (self.queuedEvent and self.queuedEvent.ability.heavy) then
+    
+    -- if (self.queuedEvent and self.queuedEvent.ability.heavy) or self.abilityTrigger == time then
     
         -- killing old self.currentEvent since new event is coming
         if self.currentEvent then self:CancelCurrentEvent("Old event over, new event coming") end
@@ -558,6 +562,12 @@ function Ability.Tracker:AbilityUsed(trigger)
         end
         
         self.lastAbilityFinished = event.start + math.max(event.ability.delay, self.adjustedGCD)
+        
+        if trigger == "Slot updated" or trigger == "CD updated" then
+            self.abilityTriggerCounters.normal = self.abilityTriggerCounters.normal + 1
+        end
+    -- else
+        -- self.abilityTrigger = time
     end
 end
 
@@ -623,8 +633,8 @@ function Ability.Tracker:HandleSlotUpdated(e, slot)
             -- log("    oldStart = ", oldStart)
             -- log("    newStart = ", self.eventStart)
             -- log("    current  = ", GetFrameTimeMilliseconds())
-            self:AbilityUsed("normal")
-            self.abilityTriggerCounters.normal = self.abilityTriggerCounters.normal + 1
+            self:AbilityUsed("Slot updated")
+            -- self.abilityTriggerCounters.normal = self.abilityTriggerCounters.normal + 1
         end
     end
 end
@@ -650,8 +660,8 @@ function Ability.Tracker:HandleCooldownsUpdated()
         self.eventStart = self.cdTriggerTime + sR - sD
         if self.eventStart + (CombatMetronome.SV.debug.triggers and CombatMetronome.SV.debug.triggerTimer or 170) >= self.cdTriggerTime then
             -- CombatMetronome.debug:Print("Firing "..self.queuedEvent.ability.name)
-            self:AbilityUsed("normal")
-            self.abilityTriggerCounters.normal = self.abilityTriggerCounters.normal + 1
+            self:AbilityUsed("CD updated")
+            -- self.abilityTriggerCounters.normal = self.abilityTriggerCounters.normal + 1
         end
     end
 end

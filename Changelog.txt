@@ -1,7 +1,7 @@
 2025-06-08 v1.7.3
 !  Finally applied correct version, so it is now correctly shown in the settings menu
 !  Additional failsaves for not tracking all gcd
-+  Reenabling slot updated as ability trigger in an attempt to fix ability triggers
+!  Fixing minor spelling errors that caused bugs
 
 2025-06-05 v1.7.2
 !  Bugfix for flame skull stacks
