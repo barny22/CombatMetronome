@@ -625,7 +625,7 @@ function CombatMetronome:AutomaticSVCleanup()
 		CombatMetronome.debug:Print("No SV cleanup necessary. Last SV cleanup has taken place less than a year ago on "..CombatMetronome.SV.lastSVCleanup.lastCleanup.day.."-"..CombatMetronome.SV.lastSVCleanup.lastCleanup.month.."-"..CombatMetronome.SV.lastSVCleanup.lastCleanup.year)
 	elseif CombatMetronome.SV.automaticSVCleanup.lastCleanup.year == 0 then
 		CombatMetronome.debug:Print("No SV cleanup has taken place yet. Starting automatic cleanup.")
-		self:CleanupSVEnstries()
+		self:CleanupSVEntries()
 	elseif year > CombatMetronome.SV.automaticSVCleanup.lastCleanup.year and month >= CombatMetronome.SV.lastSVCleanup.lastCleanup.month then
 		CombatMetronome.SV.lastSVCleanup = {["year"] = year, ["month"] = month, ["day"] = day}
 		CombatMetronome.debug:Print("Last SV cleanup was about a year ago. Starting automatic cleanup.")

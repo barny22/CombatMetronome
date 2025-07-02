@@ -283,10 +283,10 @@ function Ability.Tracker:GCDCheck()
     local cdInfo = {[1] = { ["sR"] = 0, ["sD"] = 0 }, [2] = { ["sR"] = 0, ["sD"] = 0 }}
     for i = 3, 7 do
         sR, sD, global, _ = GetSlotCooldownInfo(i)
+        if j == 3 then break end
         if global then
             cdInfo[j] = { ["sR"] = sR, ["sD"] = sD }
             j = j+1
-            if j == 2 then break end
         end
     end
 
@@ -518,6 +518,8 @@ function Ability.Tracker:AbilityUsed(trigger)
         return
     end
     
+    -- local time = GetFrameTimeMilliseconds()
+    
     local gcdProgress, sR, sD
     if self.queuedEvent and self.queuedEvent.ability.heavy then
         sR, sD, _, _ = GetSlotCooldownInfo(2)
@@ -527,6 +529,8 @@ function Ability.Tracker:AbilityUsed(trigger)
     end
     
     if gcdProgress > 0.92 or (self.queuedEvent and self.queuedEvent.ability.heavy) then
+    
+    -- if (self.queuedEvent and self.queuedEvent.ability.heavy) or self.abilityTrigger == time then
     
         -- killing old self.currentEvent since new event is coming
         if self.currentEvent then self:CancelCurrentEvent("Old event over, new event coming") end
@@ -558,6 +562,12 @@ function Ability.Tracker:AbilityUsed(trigger)
         end
         
         self.lastAbilityFinished = event.start + math.max(event.ability.delay, self.adjustedGCD)
+        
+        if trigger == "Slot updated" or trigger == "CD updated" then
+            self.abilityTriggerCounters.normal = self.abilityTriggerCounters.normal + 1
+        end
+    -- else
+        -- self.abilityTrigger = time
     end
 end
 
@@ -598,6 +608,37 @@ function Ability.Tracker:CallbackAbilityCancelled(event)
     -- end
 end
 
+function Ability.Tracker:HandleSlotUpdated(e, slot)
+    if (slot < 3) then return
+    elseif self.queuedEvent and self.queuedEvent.slot ~= slot then return
+    end
+
+    -- local remaining, duration, global, t = GetSlotCooldownInfo(slot)
+    local gcdProgress, sR, sD = self:GCDCheck()
+    local time = GetFrameTimeMilliseconds()
+
+    if (sD > 0 and sR > 0) then
+        self.gcd = sD
+
+        local oldStart = self.eventStart or 0
+        self.eventStart = time + sR - sD 
+
+        -- if (oldStart ~= self.eventStart) then
+            -- _=self.log and d(""..time.." : Event start "..tostring(duration - remaining).."ms ago")
+        -- end
+        
+        if self.queuedEvent and self.eventStart > oldStart then
+            -- _=self.log and d(""..time.." : Moved queued "..self.queuedEvent.ability.name.." to current") 
+            -- log("  Dispatching ", self.queuedEvent.ability.name)
+            -- log("    oldStart = ", oldStart)
+            -- log("    newStart = ", self.eventStart)
+            -- log("    current  = ", GetFrameTimeMilliseconds())
+            self:AbilityUsed("Slot updated")
+            -- self.abilityTriggerCounters.normal = self.abilityTriggerCounters.normal + 1
+        end
+    end
+end
+
 function Ability.Tracker:HandleCooldownsUpdated()
     self.cdTriggerTime = GetFrameTimeMilliseconds()
     
@@ -619,8 +660,8 @@ function Ability.Tracker:HandleCooldownsUpdated()
         self.eventStart = self.cdTriggerTime + sR - sD
         if self.eventStart + (CombatMetronome.SV.debug.triggers and CombatMetronome.SV.debug.triggerTimer or 170) >= self.cdTriggerTime then
             -- CombatMetronome.debug:Print("Firing "..self.queuedEvent.ability.name)
-            self:AbilityUsed("normal")
-            self.abilityTriggerCounters.normal = self.abilityTriggerCounters.normal + 1
+            self:AbilityUsed("CD updated")
+            -- self.abilityTriggerCounters.normal = self.abilityTriggerCounters.normal + 1
         end
     end
 end
@@ -812,13 +853,13 @@ function Ability.Tracker:HandleCombatEvent(_,     res,  err,   aName, _, aSlotTy
             return
         end
         -- local lightId = GetSlotBoundId(1)
-        if aSlotType == ACTION_SLOT_TYPE_LIGHT_ATTACK --[[and res == 2240 and time ~= self.lastLightAttack ]]then
-            if res == ACTION_RESULT_EFFECT_GAINED and time ~= self.lastLightAttack then
+        if aSlotType == ACTION_SLOT_TYPE_LIGHT_ATTACK or aSlotType == ACTION_SLOT_TYPE_WEAPON_ATTACK--[[and res == 2240 and time ~= self.lastLightAttack ]]then
+            if (res == ACTION_RESULT_EFFECT_GAINED or res == ACTION_RESULT_CRITICAL_DAMAGE or res == ACTION_RESULT_DAMAGE) and time ~= self.lastLightAttack then
                 Ability.Tracker:CallbackLightAttackUsed(time)
+                self.lastLightAttack = time
             end
             --CombatMetronome.debug:Print(res.." - "..hVal.." - "..overflow)
         end
-        self.lastLightAttack = time
     else
         return
     end

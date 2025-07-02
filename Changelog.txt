@@ -1,3 +1,8 @@
+2025-07-02 v1.7.3
+!  Finally applied correct version, so it is now correctly shown in the settings menu
+!  Additional failsaves for not tracking all gcd
+!  Fixing minor spelling errors that caused bugs
+
 2025-06-05 v1.7.2
 !  Bugfix for flame skull stacks
 !  Bugfix for channeled/cast abilities < 1 sec not releasing channel color correctly
