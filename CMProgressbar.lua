@@ -169,6 +169,12 @@ function CombatMetronome:Update()
 				return
 			end
 			local ability = self.currentEvent.ability
+			
+			if not ability.name or ability.name == "" then
+				self:OnCDStop()
+				return
+			end
+			
 			local start = self.currentEvent.start
 			if time - start < 0 then
 				cdTimer = 0
