@@ -206,6 +206,7 @@ local EVENT_RECORD_DELAY = 10
 local EVENT_FORCE_WAIT = 100
 local DISMOUNT_PERIOD = 300
 local SHEATHING_PERIOD = 800
+-- local SWAP_PERIOD = 500
 
 function Ability.Tracker:Start()
     if self.started then return end
@@ -221,6 +222,7 @@ function Ability.Tracker:Start()
     self.cdTriggerTime = 0
     self.lastMounted = 0
     self.weaponLastSheathed = 0
+    -- self.weaponSwap = 0
     self.eventStart = 0
     self.lastLightAttack = 0
     self.rollDodgeFinished = true
@@ -341,6 +343,7 @@ end
 function Ability.Tracker:HandleBarSwap(_, barswap, _, _)
     if self.barswap == barswap then return end
     self.barswap = barswap == true
+    -- self.weaponSwap = time
     if self.barswap and self.currentEvent and self.currentEvent.ability and self.currentEvent.ability.delay > 1000 then
         self:CancelCurrentEvent("Barswap")
         self.barswap = false
@@ -474,6 +477,7 @@ function Ability.Tracker:NewEvent(ability, slot, start)
 
     local isMounted = time < self.lastMounted + DISMOUNT_PERIOD
     local weaponSheathed = time < self.weaponLastSheathed + SHEATHING_PERIOD
+    -- local weaponSwap = time < self.weaponSwap + SWAP_PERIOD
     event.allowForce = ability.casted and ability.instant and not (isMounted or weaponSheathed or ability.ground)
     
     event.slot = slot
@@ -709,7 +713,7 @@ end
 --                                         10     11    12     13    14 	15     16     17     18
 function Ability.Tracker:HandleCombatEvent(_,     res,  err,   aName, _, aSlotType, sName, sType, tName, 
                                            tType, hVal, pType, dType, _, sUId, tUId,  aId, overflow)
-    if Util.Targeting.isUnitPlayer(tName, tUId) then
+    if Util.Targeting.isUnitPlayer(tName, tUId) and CombatMetronome and CombatMetronome.currentEvent then
         if (   res == ACTION_RESULT_KNOCKBACK
             or res == ACTION_RESULT_PACIFIED
             or res == ACTION_RESULT_STAGGERED
@@ -719,22 +723,25 @@ function Ability.Tracker:HandleCombatEvent(_,     res,  err,   aName, _, aSlotTy
             self:CancelCurrentEvent("CC")
             self:CancelEvent("CC")
             return
-        elseif res == ACTION_RESULT_SILENCED and CombatMetronome and CombatMetronome.currentEvent and CombatMetronome.currentEvent.ability.id == aId then
-            local start = CombatMetronome.currentEvent.start
-            self:CancelCurrentEvent("Silenced")
-            CombatMetronome.currentEvent = {
-                ["start"] = start,
-                ["ability"] = Ability.cache.silenced,
-            }
-            return
-        elseif res == ACTION_RESULT_EFFECT_FADED and self.currentEvent and self.currentEvent.ability.id == aId then
-            self:CancelCurrentEvent("Effect faded")
-        -- elseif IsMeditate(aId) then
-            -- if res == ACTION_RESULT_EFFECT_GAINED then
-                -- self.meditating = true
-            -- elseif res == ACTION_RESULT_EFFECT_FADED then
-                -- self.meditating = false
-            -- end
+        elseif Util.Targeting.isUnitPlayer(sName, sUId) then
+            if res == ACTION_RESULT_SILENCED and CombatMetronome.currentEvent.ability.id == aId then
+                local start = CombatMetronome.currentEvent.start
+                self:CancelCurrentEvent("Silenced")
+                CombatMetronome.currentEvent = {
+                    ["start"] = start,
+                    ["ability"] = Ability.cache.silenced,
+                }
+                CombatMetronome.currentEvent.ability.delay = self:GCDCheck()
+                return
+            elseif res == ACTION_RESULT_EFFECT_FADED and self.currentEvent and self.currentEvent.ability.id == aId then
+                self:CancelCurrentEvent("Effect faded")
+            -- elseif IsMeditate(aId) then
+                -- if res == ACTION_RESULT_EFFECT_GAINED then
+                    -- self.meditating = true
+                -- elseif res == ACTION_RESULT_EFFECT_FADED then
+                    -- self.meditating = false
+                -- end
+            end
         end
     end
     
@@ -795,12 +802,11 @@ function Ability.Tracker:HandleCombatEvent(_,     res,  err,   aName, _, aSlotTy
             if remaining > 0 then
                 local start = CombatMetronome.currentEvent.start
                 self:CancelCurrentEvent("Target died but GCD > 0")
-                if CombatMetronome then
-                    CombatMetronome.currentEvent = {
-                        ["start"] = start,
-                        ["ability"] = Ability.cache.targetDied,
-                    }
-                end
+                CombatMetronome.currentEvent = {
+                    ["start"] = start,
+                    ["ability"] = Ability.cache.targetDied,
+                }
+                CombatMetronome.currentEvent.ability.delay = remaining
             else
                 self:CancelEvent()
                 self:CancelCurrentEvent("Target died")
@@ -822,11 +828,12 @@ function Ability.Tracker:HandleCombatEvent(_,     res,  err,   aName, _, aSlotTy
                 ["start"] = start,
                 ["ability"] = Ability.cache.invalidLocation,
             }
+            CombatMetronome.currentEvent.ability.delay = self:GCDCheck()
             return
                     -- rolldodge
         elseif aId == 28549 and res == ACTION_RESULT_EFFECT_GAINED then
             self.rollDodgeFinished = false
-            local remaining = GetSlotCooldownInfo(3)
+            local remaining = self:GCDCheck()
             zo_callLater(function() self.rollDodgeFinished = true end, remaining)
             self:CancelEvent("Rolldodge")
             if self.currentEvent then
@@ -839,7 +846,7 @@ function Ability.Tracker:HandleCombatEvent(_,     res,  err,   aName, _, aSlotTy
 
         -- log("Not error!")
 
-		if aSlotType == ACTION_SLOT_TYPE_HEAVY_ATTACK and (res == ACTION_RESULT_BEGIN or res == ACTION_RESULT_BEGIN_CHANNEL) then
+		if aSlotType == ACTION_SLOT_TYPE_HEAVY_ATTACK and (res == ACTION_RESULT_BEGIN or res == ACTION_RESULT_BEGIN_CHANNEL) and sType == COMBAT_UNIT_TYPE_PLAYER then
             -- CombatMetronome.debug:Print("Heavy ability is current combat event")
             if (self.currentEvent and self.currentEvent.ability.id == aId) then
                 return

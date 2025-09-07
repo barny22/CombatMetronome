@@ -72,7 +72,9 @@ function CombatMetronome:Update()
 	-------------------------
 	
 		-- reset channeled color --
-		if self.Progressbar.bar.segments[2].color ~= CombatMetronome.SV.Progressbar.progressColor then self.Progressbar.bar.segments[2].color = CombatMetronome.SV.Progressbar.progressColor end
+		if not (self.currentEvent and self.currentEvent.ability and ((not self.currentEvent.ability.instant and self.currentEvent.ability.delay <= 1000) or self.currentEvent.ability.delay > 1000)) and self.Progressbar.bar.segments[2].color ~= CombatMetronome.SV.Progressbar.progressColor then
+			self.Progressbar.bar.segments[2].color = CombatMetronome.SV.Progressbar.progressColor
+		end
 		
 		if CombatMetronome.SV.Progressbar.dontShowPing then
 			latency = 0
@@ -236,7 +238,7 @@ function CombatMetronome:Update()
 						-- self.SV.debug.enabled then CombatMetronome.debug:Print("Ability with cast time < 1s detected") end
 						if not castIsFinished and self.Progressbar.bar.segments[2].color == CombatMetronome.SV.Progressbar.progressColor then
 							self.Progressbar.bar.segments[2].color = CombatMetronome.SV.Progressbar.channelColor
-							--if self.SV.debug.enabled then CombatMetronome.debug:Print("Trying to update Channel Color") end
+							if self.SV.debug.enabled then CombatMetronome.debug:Print(zo_strformat("Trying to update Channel Color for event named <<1>>", ability.name)) end
 						elseif castIsFinished  and self.Progressbar.bar.segments[2].color == CombatMetronome.SV.Progressbar.channelColor then
 							self.Progressbar.bar.segments[2].color = CombatMetronome.SV.Progressbar.progressColor
 							--if self.SV.debug.enabled then CombatMetronome.debug:Print("Turning back to Progress Color") end
