@@ -336,7 +336,7 @@ function StackTracker:BuildUI(skill)
 	local attributes = self.SKILL_ATTRIBUTES[skill]
 	local size = CombatMetronome.SV.StackTracker[skill].indicatorSize
 	local distance = size/5
-	local multiplier = (CombatMetronome.API >= 101046 and (skill == "BA" or skill == "GF")) and 2 or 1
+	local multiplier = (skill == "BA" or skill == "GF") and 2 or 1
 	
 	------------------------------
 	---- Build TopLevelWindow ----

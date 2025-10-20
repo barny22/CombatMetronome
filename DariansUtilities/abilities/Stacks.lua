@@ -67,9 +67,15 @@ function Stacks:CheckMorph(value)
 		else morph = "FS"
 		end
 	elseif value == "GF" then
-		if morphId == 1 then morph = "RF"
-		elseif morphId == 2 then morph = "MR"
-		else morph = "GF"
+		if morphId == 1 then
+			morph = "RF"
+			CombatMetronome.StackTracker.SKILL_ATTRIBUTES.GF.activation = 4
+		elseif morphId == 2 then
+			morph = "MR"
+			CombatMetronome.StackTracker.SKILL_ATTRIBUTES.GF.activation = 5
+		else
+			morph = "GF"
+			CombatMetronome.StackTracker.SKILL_ATTRIBUTES.GF.activation = 5
 		end
 	end
 	return morph

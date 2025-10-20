@@ -43,8 +43,8 @@ function StackTracker:ChangeStackCount(skill, stackCount)
 		return
 	end
 	local attributes = self.SKILL_ATTRIBUTES[skill]
-	local oneOff = attributes.iMax - 1
-	local animStart = not self.UI[skill].indicator[attributes.iMax].controls.highlightAnimation:IsControlHidden()
+	local oneOff = attributes.activation - 1
+	local animStart = not self.UI[skill].indicator[attributes.activation].controls.highlightAnimation:IsControlHidden()
 	previousStack = self.stacks[skill]
 	self.stacks[skill] = stackCount
 	
@@ -54,12 +54,12 @@ function StackTracker:ChangeStackCount(skill, stackCount)
 		self.UI[skill].indicator[i].SetAnimationHidden(true)
 	end
 	if CombatMetronome.SV.StackTracker[skill].hightlightOnFullStacks then											--Animation when stacks are full
-		if stackCount >= attributes.iMax and not animStart then
+		if stackCount >= attributes.activation and not animStart then
 			for i=1,#self.UI[skill].indicator do
 				self.UI[skill].indicator[i].Animate()
 			end
 			animStart = true
-		elseif animStart == true and stackCount < attributes.iMax then
+		elseif animStart == true and stackCount < attributes.activation then
 			for i=1,#self.UI[skill].indicator do
 				self.UI[skill].indicator[i].StopAnimation()
 			end
@@ -72,7 +72,7 @@ function StackTracker:ChangeStackCount(skill, stackCount)
 	end
 	if CombatMetronome.SV.StackTracker[skill].playSound then
 		local uiVolume = GetSetting(SETTING_TYPE_AUDIO, AUDIO_SETTING_UI_VOLUME)											--Sound cue when stacks are full
-		if previousStack == oneOff and stackCount == attributes.iMax then
+		if previousStack == oneOff and stackCount == attributes.activation then
 			local trackerCue = ZO_QueuedSoundPlayer:New(0)
 			trackerCue:SetFinishedAllSoundsCallback(function()
 				SetSetting(SETTING_TYPE_AUDIO, AUDIO_SETTING_UI_VOLUME, uiVolume)

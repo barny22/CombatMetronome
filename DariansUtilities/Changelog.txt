@@ -1,5 +1,6 @@
-2025-09-07 v1.8.3
+2025-09-21 v1.8.3
 !  Fix to ability.lua to prevent "ghost" heavy attacks at player activation
+!  Fix to stack tracking for RF
 
 2025-07-02 v1.8.2
 +  Reenabling slot updated as ability trigger in an attempt to fix ability triggers
