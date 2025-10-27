@@ -11,11 +11,11 @@ local CherryBlossom = {
 }
 
 local function AnchorSpellIcon(dynamic)
-	if dynamic then
+	if dynamic and not CombatMetronome.Progressbar.spellIconAnchoredDynamically then
 		CombatMetronome.Progressbar.spellIcon:ClearAnchors()
 		CombatMetronome.Progressbar.spellIcon:SetAnchor(RIGHT, CombatMetronome.Progressbar.bar.segments[2].bars[1], RIGHT, -(CombatMetronome.SV.Progressbar.height/10), 0)
 		CombatMetronome.Progressbar.spellIconAnchoredDynamically = true
-	elseif CombatMetronome.Progressbar.spellIconAnchoredDynamically then
+	elseif CombatMetronome.Progressbar.spellIconAnchoredDynamically and not dynamic then
 		CombatMetronome.Progressbar.spellIcon:ClearAnchors()
 		CombatMetronome.Progressbar.spellIcon:SetAnchor(RIGHT, CombatMetronome.Progressbar.frame, LEFT, -(CombatMetronome.SV.Progressbar.height/10), 0)
 		CombatMetronome.Progressbar.spellIconAnchoredDynamically = false
@@ -189,9 +189,9 @@ function CombatMetronome:Update()
 			local timeRemaining = (duration - cdTimer) / 1000
 			local castProgress = 1 - (cdTimer/duration)
 			
-			local dynamicProgress = self.SV.Progressbar.expandDynamically and duration > 1000
-			local multiplyerCheck = self.SV.Progressbar.dynamicExpansionMultiplyer*duration/10000 > 1
-			local multiplyer = multiplyerCheck and self.SV.Progressbar.dynamicExpansionMultiplyer*duration/10000 or 1
+			local dynamicProgress = self.SV.Progressbar.expandDynamically and self.SV.Progressbar.dynamicExpansionMultiplyer*math.max(duration, timeRemaining*1000)/10000 > 1
+			-- local multiplyerCheck = self.SV.Progressbar.dynamicExpansionMultiplyer*math.max(duration, timeRemaining*1000)/10000 > 1
+			local multiplyer = self.SV.Progressbar.dynamicExpansionMultiplyer*duration/10000
 			local dynamicAnchor = self.SV.Progressbar.barAlign == "Center" and self.SV.Progressbar.moveIconDynamically and (castProgress*multiplyer > 1)
 						
 			-- local playerDidBlock = (self.lastBlockStatus == false) and IsBlockActive()
@@ -249,6 +249,13 @@ function CombatMetronome:Update()
 						end
 					end
 				end
+				if cdTimer >= (duration+latency) then
+					self:OnCDStop()
+				else
+					self:HideBar(false)
+					self.Progressbar.bar.backgroundTexture:SetWidth((1 - (cdTimer/duration))*CombatMetronome.SV.Progressbar.width)
+				end
+				self.Progressbar.bar:Update()
 				
 				if dynamicProgress then
 					self.Progressbar.bar.segments[2].progress = castProgress*multiplyer
@@ -259,13 +266,6 @@ function CombatMetronome:Update()
 					self.Progressbar.bar.segments[1].progress = latency / duration
 					AnchorSpellIcon(false)
 				end
-				if cdTimer >= (duration+latency) then
-					self:OnCDStop()
-				else
-					self:HideBar(false)
-					self.Progressbar.bar.backgroundTexture:SetWidth((1 - (cdTimer/duration))*CombatMetronome.SV.Progressbar.width)
-				end
-				self.Progressbar.bar:Update()
 			end
 			------------------------------
 			---- Spell Label and Icon ----					--Spell Label on Castbar by barny
