@@ -74,6 +74,8 @@ function CombatMetronome:Update()
 		-- reset channeled color --
 		if not (self.currentEvent and self.currentEvent.ability and ((not self.currentEvent.ability.instant and self.currentEvent.ability.delay <= 1000) or self.currentEvent.ability.delay > 1000)) and self.Progressbar.bar.segments[2].color ~= CombatMetronome.SV.Progressbar.progressColor then
 			self.Progressbar.bar.segments[2].color = CombatMetronome.SV.Progressbar.progressColor
+		elseif not self.currentEvent and self.Progressbar.bar.segments[2].color ~= CombatMetronome.SV.Progressbar.progressColor then
+			self.Progressbar.bar.segments[2].color = CombatMetronome.SV.Progressbar.progressColor
 		end
 		
 		if CombatMetronome.SV.Progressbar.dontShowPing then
