@@ -718,7 +718,9 @@ function Ability.Tracker:HandleCombatEvent(_,     res,  err,   aName, _, aSlotTy
             or res == ACTION_RESULT_PACIFIED
             or res == ACTION_RESULT_STAGGERED
             or res == ACTION_RESULT_STUNNED
-            or res == ACTION_RESULT_INTERRUPT) then
+            or res == ACTION_RESULT_INTERRUPT)
+            or res == ACTION_RESULT_FEARED
+            or res == ACTION_RESULT_LEVITATED then
             -- and not (IsUnitInAir("player") and self.currentEvent) then
             self:CancelCurrentEvent("CC")
             self:CancelEvent("CC")
