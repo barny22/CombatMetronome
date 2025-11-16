@@ -113,13 +113,13 @@ function CombatMetronome:Init()
 	if StackTracker.activeSkills["FS"] and StackTracker.activeSkills["GF"] then
 		StackTracker:MorphCheck("FS")
 		StackTracker:MorphCheck("GF")
-		Util.Stacks:HandleMorphRegister(true)
+		-- Util.Stacks:HandleMorphRegister(true)
 	elseif StackTracker.activeSkills["FS"] then
 		StackTracker:MorphCheck("FS")
-		Util.Stacks:HandleMorphRegister(true)
+		-- Util.Stacks:HandleMorphRegister(true)
 	elseif StackTracker.activeSkills["GF"] then
 		StackTracker:MorphCheck("GF")
-		Util.Stacks:HandleMorphRegister(true)
+		-- Util.Stacks:HandleMorphRegister(true)
 	end
 	
 	StackTracker.trackedIds = {}
@@ -173,19 +173,19 @@ function CombatMetronome:RegisterMetadata()
 			if StackTracker.activeSkills["FS"] and StackTracker.activeSkills["GF"] then
 				StackTracker:MorphCheck("FS")
 				StackTracker:MorphCheck("GF")
-				Util.Stacks:HandleMorphRegister(true)
+				-- Util.Stacks:HandleMorphRegister(true)
 			elseif StackTracker.activeSkills["FS"] then
 				StackTracker:MorphCheck("FS")
 				if Util.Stacks.morphs["GF"] then Util.Stacks.morphs["GF"] = nil end
-				Util.Stacks:HandleMorphRegister(true)
+				-- Util.Stacks:HandleMorphRegister(true)
 			elseif StackTracker.activeSkills["GF"] then
 				StackTracker:MorphCheck("GF")
 				if Util.Stacks.morphs["FS"] then Util.Stacks.morphs["FS"] = nil end
-				Util.Stacks:HandleMorphRegister(true)
+				-- Util.Stacks:HandleMorphRegister(true)
 			else
 				if Util.Stacks.morphs["GF"] then Util.Stacks.morphs["GF"] = nil end
 				if Util.Stacks.morphs["FS"] then Util.Stacks.morphs["FS"] = nil end
-				Util.Stacks:HandleMorphRegister(false)
+				-- Util.Stacks:HandleMorphRegister(false)
 			end
 			for skill, _ in pairs(StackTracker.SKILL_ATTRIBUTES) do
 				if CombatMetronome.SV.StackTracker[skill].tracked then
