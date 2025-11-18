@@ -306,11 +306,19 @@ end
 	-------------------------------------------
 	---- Check if Stack  Tracker is active ----
 	-------------------------------------------
-function StackTracker:MorphCheck(skill)
-	if skill == "GF" then
+function StackTracker:MorphCheck()
+	if StackTracker.activeSkills["FS"] and StackTracker.activeSkills["GF"] then
 		Util.Stacks.morphs.GF = Util.Stacks:CheckMorph("GF")
-	elseif skill == "FS" then
 		Util.Stacks.morphs.FS = Util.Stacks:CheckMorph("FS")
+	elseif StackTracker.activeSkills["FS"] then
+		Util.Stacks.morphs.FS = Util.Stacks:CheckMorph("FS")
+		if Util.Stacks.morphs["GF"] then Util.Stacks.morphs["GF"] = nil end
+	elseif StackTracker.activeSkills["GF"] then
+		Util.Stacks.morphs.GF = Util.Stacks:CheckMorph("GF")
+		if Util.Stacks.morphs["FS"] then Util.Stacks.morphs["FS"] = nil end
+	else
+		if Util.Stacks.morphs["GF"] then Util.Stacks.morphs["GF"] = nil end
+		if Util.Stacks.morphs["FS"] then Util.Stacks.morphs["FS"] = nil end
 	end
 end
 

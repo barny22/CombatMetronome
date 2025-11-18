@@ -4,7 +4,6 @@ Util.Stacks = Util.Stacks or {}
 local Stacks = Util.Stacks
 Stacks.morphs = {}
 
-
 -- function Stacks:HandleMorphRegister(value)
 	-- if value and not Stacks.morphCheckRegistered then
 		-- EVENT_MANAGER:RegisterForEvent(
@@ -56,46 +55,6 @@ function Stacks:CheckMorph(value)
 	return morph
 end
 
-function Stacks:UpdateMorphData(ability, morph)
-	-- for ability, morph in pairs(Stacks.morphs) do
-		local morphUpdated = false
-		-- local newMorph = self:CheckMorph(ability)
-		if ability == "FS" then
-			if not self.morphs.FS or self.morphs.FS ~= morph then
-				self.morphs.FS = morph
-				morphUpdated = true
-			end
-			if morphUpdated and CombatMetronome and CombatMetronome.StackTracker then
-				if CombatMetronome.StackTracker.UI and CombatMetronome.StackTracker.UI.FS then
-					CombatMetronome.StackTracker.UI.FS.indicator.ApplyIcon()
-				end
-				if CombatMetronome.StackTracker.trackedIds then
-					for id, skill in pairs(CombatMetronome.StackTracker.trackedIds) do
-						if skill == "FS" then CombatMetronome.StackTracker.trackedIds[id] = nil end	-- delete old tracked id
-						CombatMetronome.StackTracker.trackedIds[IDS.FS[morph]] = "FS"	-- use new tracked id
-					end
-				end
-			end
-		elseif ability == "GF" then
-			if not self.morphs.GF or self.morphs.GF ~= morph then
-				self.morphs.GF = morph
-				morphUpdated = true
-			end
-			if morphUpdated and CombatMetronome and CombatMetronome.StackTracker then
-				if CombatMetronome.StackTracker.UI and CombatMetronome.StackTracker.UI.GF then
-					CombatMetronome.StackTracker.UI.GF.indicator.ApplyIcon()
-				end
-				if CombatMetronome.StackTracker.trackedIds then
-					for id, skill in pairs(CombatMetronome.StackTracker.trackedIds) do
-						if skill == "GF" then CombatMetronome.StackTracker.trackedIds[id] = nil end	-- delete old tracked id
-						CombatMetronome.StackTracker.trackedIds[IDS.GF[morph]] = "GF"	-- use new tracked id
-					end
-				end
-			end
-		end
-	-- end
-end
-
 --IDs for easy access
 
 local IDS = {
@@ -114,6 +73,55 @@ local IDS = {
 	},
 	["FI"] = 91416,
 }
+
+function Stacks:UpdateMorphData(ability, morph)
+	-- for ability, morph in pairs(Stacks.morphs) do
+		local morphUpdated = false
+		-- local newMorph = self:CheckMorph(ability)
+		if ability == "FS" then
+			if not self.morphs.FS or self.morphs.FS ~= morph then
+				self.morphs.FS = morph
+				morphUpdated = true
+			end
+			if morphUpdated and CombatMetronome and CombatMetronome.StackTracker then
+				if CombatMetronome.StackTracker.UI and CombatMetronome.StackTracker.UI.FS then
+					CombatMetronome.StackTracker.UI.FS.indicator.ApplyIcon()
+				end
+				if CombatMetronome.StackTracker.trackedIds then
+					for id, skill in pairs(CombatMetronome.StackTracker.trackedIds) do
+						if skill == "FS" then
+							CombatMetronome.StackTracker.trackedIds[id] = nil									-- delete old tracked id
+							break
+						end
+					end
+					CombatMetronome.StackTracker.trackedIds[IDS.FS[morph]] = "FS"								-- use new tracked id
+					CombatMetronome.StackTracker:ChangeStackCount("FS", self:GetCurrentNumStacksOnPlayer("FS")) -- change stackCount
+				end
+			end
+		elseif ability == "GF" then
+			if not self.morphs.GF or self.morphs.GF ~= morph then
+				self.morphs.GF = morph
+				morphUpdated = true
+			end
+			if morphUpdated and CombatMetronome and CombatMetronome.StackTracker then
+				if CombatMetronome.StackTracker.UI and CombatMetronome.StackTracker.UI.GF then
+					CombatMetronome.StackTracker.UI.GF.indicator.ApplyIcon()
+				end
+				if CombatMetronome.StackTracker.trackedIds then
+					for id, skill in pairs(CombatMetronome.StackTracker.trackedIds) do
+						if skill == "GF" then
+							CombatMetronome.StackTracker.trackedIds[id] = nil									-- delete old tracked id
+							break
+						end
+					end
+					CombatMetronome.StackTracker.trackedIds[IDS.GF[morph]] = "GF"								-- use new tracked id
+					CombatMetronome.StackTracker:ChangeStackCount("GF", self:GetCurrentNumStacksOnPlayer("GF")) -- change stackCount
+				end
+			end
+		end
+	-- end
+end
+
 -- local cruxId = 184220
 -- local bAId = { ["buff"] = 203447, ["ability"] = 24165,}
 -- local mWId = { ["buff"] = 122658, ["ability"] = 20805,} -- 122729
