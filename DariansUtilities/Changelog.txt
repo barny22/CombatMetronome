@@ -1,9 +1,7 @@
-2025-11-15 v1.8.4
-!  Fix to morph updating
-
-2025-11-01 v1.8.3
+2025-11-19 v1.8.3
 !  Fix to ability.lua to prevent "ghost" heavy attacks at player activation
 !  Fix to stack tracking for RF
+!  Fix to morph updating
 +  Adding Fear and Levitate to interrupts in ability.lua
 
 2025-07-02 v1.8.2

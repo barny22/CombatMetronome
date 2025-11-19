@@ -1,7 +1,8 @@
-2025-07-03 v1.7.4
+2025-11-19 v1.7.4
 +  Made code slightly more preformant
 !  Fixes to Ability.lua to prevent "ghost" heavy attacks
 !  Fixed activation stacks for relentless focus
+!  Fixed morph updates when respecing
 
 2025-07-02 v1.7.3
 !  Finally applied correct version, so it is now correctly shown in the settings menu
