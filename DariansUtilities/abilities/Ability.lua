@@ -725,6 +725,8 @@ function Ability.Tracker:HandleCombatEvent(_,     res,  err,   aName, _, aSlotTy
             self:CancelCurrentEvent("CC")
             self:CancelEvent("CC")
             return
+        elseif res == ACTION_RESULT_EFFECT_FADED and self.currentEvent and self.currentEvent.ability.id == aId then
+            self:CancelCurrentEvent("Effect faded")
         elseif Util.Targeting.isUnitPlayer(sName, sUId) then
             if res == ACTION_RESULT_SILENCED and CombatMetronome.currentEvent.ability.id == aId then
                 local start = CombatMetronome.currentEvent.start
@@ -735,8 +737,6 @@ function Ability.Tracker:HandleCombatEvent(_,     res,  err,   aName, _, aSlotTy
                 }
                 CombatMetronome.currentEvent.ability.delay = self:GCDCheck()
                 return
-            elseif res == ACTION_RESULT_EFFECT_FADED and self.currentEvent and self.currentEvent.ability.id == aId then
-                self:CancelCurrentEvent("Effect faded")
             -- elseif IsMeditate(aId) then
                 -- if res == ACTION_RESULT_EFFECT_GAINED then
                     -- self.meditating = true
