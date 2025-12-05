@@ -2,6 +2,7 @@ local LAM = LibAddonMenu2
 local Util = DariansUtilities
 CombatMetronome.SV = CombatMetronome.SV or {}
 -- local healthColor = {}
+local coralThreshold, mkThreshold, bahseiThreshold = 50, 50, 50
 
 function CombatMetronome:UpdateLabels()
     
@@ -60,18 +61,63 @@ function CombatMetronome:UpdateLabels()
         else
             self.Resources.ultLabel:SetHidden(true)
         end
+        
+        local coral = CombatMetronome.SV.Resources.coralBahsei and CombatMetronome.Resources.coralActive
+        local mk = CombatMetronome.SV.Resources.coralBahsei and CombatMetronome.Resources.mkActive
+        local bahsei = CombatMetronome.SV.Resources.coralBahsei and CombatMetronome.Resources.bahseiActive
 
-        if showResources and (CombatMetronome.SV.Resources.showStamina or (CombatMetronome.SV.Resources.coralBahsei and (CombatMetronome.Resources.coralActive or CombatMetronome.Resources.mkActive))) then
+        -- if showResources and (CombatMetronome.SV.Resources.showStamina or (CombatMetronome.SV.Resources.coralBahsei and (CombatMetronome.Resources.coralActive or CombatMetronome.Resources.mkActive))) then
+        if showResources and (CombatMetronome.SV.Resources.showStamina or coral or mk) then
             local stam, _, maxStam = GetUnitPower("player", POWERTYPE_STAMINA)
-            self.Resources.stamLabel:SetText(stam == maxStam and "100%" or string.format("%i%%", 100 * stam / maxStam))
+            local percentage = 100 * stam / maxStam
+            local threshold = math.max((CombatMetronome.SV.Resources.highlightStam and CombatMetronome.SV.Resources.stamHighlightThreshold) or 0, (coral and coralThreshold) or 0, (mk and mkThreshold) or 0)
+            
+            if threshold ~= 0 and percentage < threshold then
+                -- self.Resources.stamLabel:SetColor(unpack(CombatMetronome.SV.Resources.stamColor))
+                -- self.Resources.stamLabel:SetAnchor(CENTER, GuiRoot, CENTER, 0, 50)
+                -- self.Resources.stamLabel:SetFont(Util.Text.getFontString(CombatMetronome.SV.Resources.labelFont, (3*CombatMetronome.SV.Resources.stamSize/2), CombatMetronome.SV.Resources.fontStyle))
+
+                local PERIOD = 1000
+
+                local mix = (1 + math.sin(time * math.pi * 2 / PERIOD)) / 2
+                local color = Util.Vectors.mix(CombatMetronome.SV.Resources.stamColor, CombatMetronome.SV.Resources.stamHighligtColor, mix)
+
+                self.Resources.stamLabel:SetColor(unpack(color))
+            else
+                self.Resources.stamLabel:SetColor(unpack(CombatMetronome.SV.Resources.stamColor))
+                -- self.Resources.stamLabel:SetAnchor(BOTTOMRIGHT, self.frame.body, TOPRIGHT, 0, 0)
+                -- self.Resources.stamLabel:SetFont(Util.Text.getFontString(CombatMetronome.SV.Resources.labelFont, CombatMetronome.SV.Resources.stamSize, CombatMetronome.SV.Resources.fontStyle))
+            end
+            
+            self.Resources.stamLabel:SetText(stam == maxStam and "100%" or string.format("%i%%", percentage))
             self.Resources.stamLabel:SetHidden(false)
         else
             self.Resources.stamLabel:SetHidden(true)
         end
         
-        if showResources and (CombatMetronome.SV.Resources.showMagicka or (CombatMetronome.SV.Resources.coralBahsei and CombatMetronome.Resources.bahseiActive)) then
+        if showResources and (CombatMetronome.SV.Resources.showMagicka or bahsei) then
             local mag, _, maxMag = GetUnitPower("player", POWERTYPE_MAGICKA)
-            self.Resources.magLabel:SetText(mag == maxMag and "100%" or string.format("%i%%", 100 * mag / maxMag))
+            local percentage = 100 * mag / maxMag
+            local threshold = math.max((CombatMetronome.SV.Resources.highlightMag and CombatMetronome.SV.Resources.magHighlightThreshold) or 0, (bahsei and bahseiThreshold) or 0)
+            
+            if threshold ~= 0 and percentage < threshold then
+                -- self.Resources.magLabel:SetColor(unpack(CombatMetronome.SV.Resources.stamColor))
+                -- self.Resources.magLabel:SetAnchor(CENTER, GuiRoot, CENTER, 0, 50)
+                -- self.Resources.magLabel:SetFont(Util.Text.getFontString(CombatMetronome.SV.Resources.labelFont, (3*CombatMetronome.SV.Resources.magSize/2), CombatMetronome.SV.Resources.fontStyle))
+
+                local PERIOD = 1000
+
+                local mix = (1 + math.sin(time * math.pi * 2 / PERIOD)) / 2
+                local color = Util.Vectors.mix(CombatMetronome.SV.Resources.magColor, CombatMetronome.SV.Resources.magHighligtColor, mix)
+
+                self.Resources.magLabel:SetColor(unpack(color))
+            else
+                self.Resources.magLabel:SetColor(unpack(CombatMetronome.SV.Resources.magColor))
+                -- self.Resources.magLabel:SetAnchor(BOTTOMRIGHT, self.frame.body, TOPRIGHT, 0, 0)
+                -- self.Resources.magLabel:SetFont(Util.Text.getFontString(CombatMetronome.SV.Resources.labelFont, CombatMetronome.SV.Resources.magSize, CombatMetronome.SV.Resources.fontStyle))
+            end
+            
+            self.Resources.magLabel:SetText(mag == maxMag and "100%" or string.format("%i%%", percentage))
             self.Resources.magLabel:SetHidden(false)
         else
             self.Resources.magLabel:SetHidden(true)
@@ -82,7 +128,7 @@ function CombatMetronome:UpdateLabels()
             local showAbsolute = not self.inCombat or hp == maxHp
 
             if 100 * (hp / maxHp) < CombatMetronome.SV.Resources.hpHighlightThreshold then
-                self.Resources.hpLabel:SetColor(unpack(CombatMetronome.SV.Resources.healthColor))
+                -- self.Resources.hpLabel:SetColor(unpack(CombatMetronome.SV.Resources.healthColor))
                 -- self.Resources.hpLabel:SetAnchor(CENTER, GuiRoot, CENTER, 0, 50)
                 self.Resources.hpLabel:SetFont(Util.Text.getFontString(CombatMetronome.SV.Resources.labelFont, (3*CombatMetronome.SV.Resources.healthSize/2), CombatMetronome.SV.Resources.fontStyle))
 
