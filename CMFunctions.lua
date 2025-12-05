@@ -444,13 +444,14 @@ end
 function StackTracker:InitializeUI(skill)
 	if not self.UI[skill] then
 		self.UI[skill] = self:BuildUI(skill)
-		self.UI[skill].indicator.ApplyDistance(CombatMetronome.SV.StackTracker[skill].indicatorSize/5, CombatMetronome.SV.StackTracker[skill].indicatorSize)
+		-- self.UI[skill].indicator.ApplyDistance(CombatMetronome.SV.StackTracker[skill].indicatorSize/5, CombatMetronome.SV.StackTracker[skill].indicatorSize)
 		self.UI[skill].indicator.ApplySize(CombatMetronome.SV.StackTracker[skill].indicatorSize)
 		self.UI[skill].indicator.ApplyIcon()
 		self.UI[skill].stacksWindow:SetMovable(CombatMetronome.SV.StackTracker.isUnlocked)
-		if CombatMetronome.SV.StackTracker.isUnlocked then self:HandleUIVisibility(skill, "Sample") end
 	end
 	self:HandleUIVisibility(skill, "UI")
+	self:UpdateTimers()
+	if CombatMetronome.SV.StackTracker.isUnlocked then self:HandleUIVisibility(skill, "Sample") end
 end
 
 function StackTracker:HandleUIVisibility(skill, scene)

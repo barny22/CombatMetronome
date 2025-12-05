@@ -334,9 +334,10 @@ local StackTracker = CombatMetronome.StackTracker
 
 function StackTracker:BuildUI(skill)
 	local attributes = self.SKILL_ATTRIBUTES[skill]
-	local size = CombatMetronome.SV.StackTracker[skill].indicatorSize
+	local sv = CombatMetronome.SV.StackTracker[skill]
+	local size = sv.indicatorSize
 	local distance = size/5
-	local multiplier = (skill == "BA" or skill == "GF") and 2 or 1
+	local multiplier = attributes.multiplier or 1
 	
 	------------------------------
 	---- Build TopLevelWindow ----
@@ -346,23 +347,23 @@ function StackTracker:BuildUI(skill)
 		-- local stacksWindow = Util.Controls:NewFrame(self.name..skill.."StackTrackerWindow")
 		local stacksWindow = WINDOW_MANAGER:CreateTopLevelWindow(self.name..skill.."StackTrackerWindow")
 		stacksWindow:SetHandler( "OnMoveStop", function(...)
-			CombatMetronome.SV.StackTracker[skill].xOffset = stacksWindow:GetLeft()
-			CombatMetronome.SV.StackTracker[skill].yOffset = stacksWindow:GetTop()
+			sv.xOffset = stacksWindow:GetLeft()
+			sv.yOffset = stacksWindow:GetTop()
 		end)
 		stacksWindow:SetDimensions((size*attributes.iMax+distance*(attributes.iMax-1)), size*multiplier)
 		stacksWindow:SetMouseEnabled(true)
-		stacksWindow:SetMovable(CombatMetronome.SV.StackTracker[skill].isUnlocked)
+		stacksWindow:SetMovable(sv.isUnlocked)
 		stacksWindow:SetClampedToScreen(true)
 		stacksWindow:SetHidden(true)
 		-- stacksWindow:SetDrawTier(DT_HIGH)
 	-- end
-	
+		
 	local function Position(value)
 		stacksWindow:ClearAnchors()
 		if value == "UI" then
-			stacksWindow:SetAnchor(TOPLEFT, GuiRoot, TOPLEFT, CombatMetronome.SV.StackTracker[skill].xOffset, CombatMetronome.SV.StackTracker[skill].yOffset)
-		elseif value == "Sample" then
-			stacksWindow:SetAnchor(RIGHT, GuiRoot, RIGHT, -GuiRoot:GetWidth()/8, GuiRoot:GetHeight()/6)
+			stacksWindow:SetAnchor(TOPLEFT, GuiRoot, TOPLEFT, sv.xOffset, sv.yOffset)
+		-- elseif value == "Sample" then
+			-- stacksWindow:SetAnchor(RIGHT, GuiRoot, RIGHT, -GuiRoot:GetWidth()/8, GuiRoot:GetHeight()/6)
 		end
 	end
 	
@@ -474,37 +475,135 @@ function StackTracker:BuildUI(skill)
 
 	for i =1,attributes.iMax*multiplier do 
 		indicator[i] = GetIndicator(i)
-	end 
+	end
+	
+		------------------------
+		---- Timer Controls ----
+		------------------------
+		
+	local function CreateTimerControls()
+		local windowWidth = stacksWindow:GetWidth()
+		local timer = WINDOW_MANAGER:CreateControl(self.name..skill.."BuffTimer", stacksWindow, CT_LABEL)
+		timer:SetDrawTier(DT_HIGH)
+		timer:SetColor(unpack(attributes.highlight))
+		timer:SetAlpha(1)
+		timer:SetFont(Util.Text.getFontString(tostring("$(BOLD_FONT)"), size*multiplier, "outline"))
+		timer:SetHidden(not sv.showTimer)
+		
+		local timerBarBackdrop = WINDOW_MANAGER:CreateControl(self.name..skill.."TimerBarBackdrop", stacksWindow, CT_BACKDROP)
+		timerBarBackdrop:SetDrawTier(DT_HIGH)
+		timerBarBackdrop:SetCenterColor(0.06, 0.06, 0.06, 0.7)
+		timerBarBackdrop:SetEdgeTexture("/esoui/art/miscellaneous/borderedinsettransparent_edgefile.dds", 128, 16, size/2)
+		timerBarBackdrop:SetHidden(not sv.showTimerBar)
+		
+		local timerBar = WINDOW_MANAGER:CreateControl(self.name..skill.."TimerBar", stacksWindow, CT_STATUSBAR)
+		timerBar:SetDrawTier(DT_HIGH)
+		local r,g,b,a = unpack(attributes.highlight)
+		timerBar:SetColor(r,g,b,0.35)
+		timerBar:SetHidden(not sv.showTimerBar)
+		
+		local timerBarGloss = WINDOW_MANAGER:CreateControl(self.name..skill.."TimerBarGloss", timerBar, CT_TEXTURE)
+		timerBarGloss:SetDrawTier(DT_HIGH)
+		timerBarGloss:SetAlpha(0.9)
+		timerBarGloss:SetTexture("/esoui/art/unitattributevisualizer/gamepad/gp_attributebar_dynamic_fill_gloss.dds")
+		timerBarGloss:SetTextureCoords(0, 1, 0.5, 0.36)
+		timerBarGloss:SetHidden(not sv.showTimerBar)
+				
+		local function TimerBarOrientation(orientation)
+			timerBar:ClearAnchors()
+			if orientation == "LEFT" then
+				timerBar:SetAnchor(LEFT, timerBarBackdrop, LEFT, size*0.075, 0)
+			else
+				timerBar:SetAnchor(RIGHT, timerBarBackdrop, RIGHT, -size*0.075, 0)
+			end
+		end
+		
+		local function TimerBarAnchors()
+			timer:ClearAnchors()
+			timer:SetAnchor(LEFT, stacksWindow, RIGHT, 2*distance, 0)
+			timerBarBackdrop:ClearAnchors()
+			timerBarBackdrop:SetAnchor(TOP, stacksWindow, BOTTOM, 0, distance)
+			timerBarGloss:SetAnchorFill(timerBar)
+			TimerBarOrientation(sv.timerBarOrientation)
+		end
+				
+		return {
+		stacksWindow = stacksWindow,
+		timer = timer,
+		timerBar = timerBar,
+		timerBarGloss = timerBarGloss,
+		timerBarBackdrop = timerBarBackdrop,
+		TimerBarOrientation = TimerBarOrientation,
+		TimerBarAnchors = TimerBarAnchors,
+		}
+	end
+		
+	if attributes.duration then
+		local timerControls = CreateTimerControls()
+		indicator.timer = timerControls.timer
+		indicator.timerBar = timerControls.timerBar
+		indicator.timerBarGloss = timerControls.timerBarGloss
+		indicator.timerBarBackdrop = timerControls.timerBarBackdrop
+		indicator.TimerBarOrientation = timerControls.TimerBarOrientation
+		indicator.TimerBarAnchors = timerControls.TimerBarAnchors
+	end
 	
 	-----------------------
 	---- Changing Size ----
 	-----------------------
 	
-	local function ApplySize(size) 
+	local function ApplySize(size)
+		local dis = size/5
 		for i=1,attributes.iMax*multiplier do 
 			indicator[i].controls.frame:SetDimensions(size,size)
 			indicator[i].controls.highlight:SetDimensions(size,size)
 			indicator[i].controls.icon:SetDimensions(size,size)
 			indicator[i].controls.highlightAnimation:SetAnchor(TOPLEFT, stackIdicator, TOPLEFT, math.floor(size/20), math.floor(size/20))
 			indicator[i].controls.highlightAnimation:SetAnchor(BOTTOMRIGHT, stackIndicator, BOTTOMRIGHT, size-math.floor(size/20), size-math.floor(size/20))
+			
+			-- Applying correct distances
+			
+			if i <= attributes.iMax then
+				local xOffset = (i-1)*(size+dis)
+				indicator[i].controls.stackIndicator:ClearAnchors()
+				indicator[i].controls.stackIndicator:SetAnchor(TOPLEFT, stacksWindow, TOPLEFT, xOffset, 0)
+			else
+				local xOffset = (i-attributes.iMax-1)*(size+dis)
+				indicator[i].controls.stackIndicator:ClearAnchors()
+				indicator[i].controls.stackIndicator:SetAnchor(TOPLEFT, stacksWindow, TOPLEFT, xOffset, size+dis)
+			end
+		end
+		
+			-- Timer Controls
+			
+		if indicator.timer then
+			local width = stacksWindow:GetWidth()
+			indicator.timer:SetDimensions(size*multiplier*1.5, size*multiplier)
+			indicator.timer:SetFont(Util.Text.getFontString(tostring("$(BOLD_FONT)"), size*multiplier, "outline"))
+			indicator.timerBar:SetDimensions(width-size*0.15, size*0.85)
+			indicator.timerBarBackdrop:SetDimensions(width, size)
+			indicator.timerBarBackdrop:SetEdgeTexture("/esoui/art/miscellaneous/borderedinsettransparent_edgefile.dds", 128, 16, size/2)
+			-- indicator.timerBarFrame:SetDimensions(stacksWindow:GetWidth(), size)
+			
+			indicator.TimerBarAnchors()
 		end
 	end
 	indicator.ApplySize = ApplySize
 	
-	local function ApplyDistance(distance, size) 
-		for i=1,attributes.iMax*multiplier do
-			if i <= attributes.iMax then
-				local xOffset = (i-1)*(size+distance)
-				indicator[i].controls.stackIndicator:ClearAnchors()
-				indicator[i].controls.stackIndicator:SetAnchor(TOPLEFT, stacksWindow, TOPLEFT, xOffset, 0)
-			else
-				local xOffset = (i-attributes.iMax-1)*(size+distance)
-				indicator[i].controls.stackIndicator:ClearAnchors()
-				indicator[i].controls.stackIndicator:SetAnchor(TOPLEFT, stacksWindow, TOPLEFT, xOffset, size+distance)
-			end
-		end
-	end
-	indicator.ApplyDistance = ApplyDistance
+	-- local function ApplyDistance(distance, size) 
+		-- for i=1,attributes.iMax*multiplier do
+			-- if i <= attributes.iMax then
+				-- local xOffset = (i-1)*(size+distance)
+				-- indicator[i].controls.stackIndicator:ClearAnchors()
+				-- indicator[i].controls.stackIndicator:SetAnchor(TOPLEFT, stacksWindow, TOPLEFT, xOffset, 0)
+			-- else
+				-- local xOffset = (i-attributes.iMax-1)*(size+distance)
+				-- indicator[i].controls.stackIndicator:ClearAnchors()
+				-- indicator[i].controls.stackIndicator:SetAnchor(TOPLEFT, stacksWindow, TOPLEFT, xOffset, size+distance)
+			-- end
+		-- end
+	-- end
+	-- indicator.ApplyDistance = ApplyDistance
 	
 	local function ApplyIcon()
 		if skill == "GF" then

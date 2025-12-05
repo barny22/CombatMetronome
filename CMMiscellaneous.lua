@@ -72,11 +72,17 @@ CombatMetronome.DEFAULT_SAVED_VARS = {
 		["showStamina"] = true,
 		["showMagicka"] = true,
 		["showHealth"] = true,
+		["highlightMag"] = false,
+		["highlightStam"] = false,
+		["magHighlightThreshold"] = 0,
+		["stamHighlightThreshold"] = 0,
 		["ultColor"] = {1, 1, 1, 1},
 		["magColor"] = {0, 0.5, 1, 1},
 		["stamColor"] = {0, 0.8, 0.3, 1},
 		["healthColor"] = {0.8, 0, 0, 1},
 		["healthHighligtColor"] = {1, 1, 1, 1},
+		["magHighligtColor"] = {1, 1, 1, 1},
+		["stamHighligtColor"] = {1, 1, 1, 1},
 		["stamSize"] = 21,
 		["magSize"] = 21,
 		["ultSize"] = 40,
@@ -202,6 +208,7 @@ CombatMetronome.StackTracker.SKILL_ATTRIBUTES = {
 	["Crux"] = {
 		["iMax"] = 3,
 		["activation"] = 3,
+		["duration"] = true,
 		["graphic"] = "/esoui/art/icons/class_buff_arcanist_crux.dds",
 		["highlight"] = {0,1,0,0.2},
 		["highlightAnimation"] = {0.8,1,0.8,0.8},
@@ -212,6 +219,7 @@ CombatMetronome.StackTracker.SKILL_ATTRIBUTES = {
 	["MW"] = {
 		["iMax"] = 3,
 		["activation"] = 3,
+		["duration"] = true,
 		["graphic"] = "/esoui/art/icons/ability_dragonknight_001_b.dds",
 		["highlight"] = {1,0,0,0.2},
 		["highlightAnimation"] = {1,0.8,0.8,0.8},
@@ -221,7 +229,9 @@ CombatMetronome.StackTracker.SKILL_ATTRIBUTES = {
 	},
 	["BA"] = {
 		["iMax"] = 4,
+		["multiplier"] = 2,
 		["activation"] = 4,
+		["duration"] = true,
 		["graphic"] = "/esoui/art/icons/ability_sorcerer_bound_armaments.dds",
 		["highlight"] = {0,0,1,0.2},
 		["highlightAnimation"] = {0.8,0.8,1,0.8},
@@ -231,6 +241,7 @@ CombatMetronome.StackTracker.SKILL_ATTRIBUTES = {
 	},
 	["GF"] = {
 		["iMax"] = 5,
+		["multiplier"] = 2,
 		["activation"] = 5,
 		["icon"] = {
 			["GF"] = "/esoui/art/icons/ability_nightblade_005.dds",
@@ -328,6 +339,17 @@ local function InsertSkillOptionsForStackTracker()
 			["hightlightOnFullStacks"] = false,
 			["volume"] = 100,
 		}
+		if CombatMetronome.StackTracker.SKILL_ATTRIBUTES[skill].duration then
+			skillOptions[skill].showTimerBar = false
+			skillOptions[skill].timerBarOrientation = "LEFT"
+			skillOptions[skill].showTimer = false
+			skillOptions[skill].animateTimer = false
+			skillOptions[skill].soundReminder = false
+			skillOptions[skill].reminderVolume = 100
+			skillOptions[skill].expirationSound = "GroupElection_Requested"
+			skillOptions[skill].expirationTimer = 1.5
+			skillOptions[skill].remindersOnlyInCombat = false
+		end
 		CombatMetronome.DEFAULT_SAVED_VARS.StackTracker[skill] = skillOptions[skill]
 	end
 end

@@ -116,11 +116,11 @@ function CombatMetronome:Init()
 	StackTracker.trackedIds = {}
 	StackTracker.stacks = {}
 	StackTracker.UI = {}
-	for skill, _ in pairs(StackTracker.SKILL_ATTRIBUTES) do
-		if CombatMetronome.SV.StackTracker[skill].tracked and StackTracker.activeSkills[skill] and StackTracker:CheckIfSlotted(skill) then
-			StackTracker:InitializeUI(skill)
-		end
-	end
+	-- for skill, _ in pairs(StackTracker.SKILL_ATTRIBUTES) do
+		-- if CombatMetronome.SV.StackTracker[skill].tracked and StackTracker.activeSkills[skill] and StackTracker:CheckIfSlotted(skill) then
+			-- StackTracker:InitializeUI(skill)
+		-- end
+	-- end
 	
 	------------------------------
 	---- Light Attack Tracker ----
@@ -481,11 +481,8 @@ function StackTracker:Register(skill)
 	
 	if self:CheckIfRegistered(skill) then
 		return
-	end
-	self:InitializeUI(skill)
-	self.stacks[skill] = self:GetCurrentStacks(skill)
-	
-	local registeredAbility = false
+	end	
+	-- local registeredAbility = false
 	-- if skill == "FS" then
 	
 		-- EVENT_MANAGER:RegisterForEvent(
@@ -514,14 +511,17 @@ function StackTracker:Register(skill)
 		
 		self:RegisterEffectChanged(eventName, aId)  -- Register Skill
 		
-		registeredAbility = true
+		self.stacks[skill] = self:GetCurrentStacks(skill)
+		self:InitializeUI(skill)
+		
+		-- registeredAbility = true
 		
 		-- if CombatMetronome.SV.debug.enabled then CombatMetronome.debug:Print(skill.." effectChanged is registered with ID: "..aId) end
 	-- end
-	if registeredAbility then
+	-- if registeredAbility then
 		StackTracker:ChangeStackCount(skill, self.stacks[skill])
 		if CombatMetronome.SV.debug.enabled then CombatMetronome.debug:Print(skill.." tracker is registered") end
-	end
+	-- end
 end
 
 function StackTracker:RegisterEffectChanged(name, aId)
@@ -602,7 +602,7 @@ function StackTracker:Unregister(skill)
 		return
 	end
 	
-	local unregisteredAbility = false
+	-- local unregisteredAbility = false
 	-- if skill == "FS" then
 		-- EVENT_MANAGER:UnregisterForEvent(
 			-- self.name.."HotbarUpdate")
@@ -636,7 +636,7 @@ function StackTracker:Unregister(skill)
 		for id, ability in pairs(self.trackedIds) do
 			if (ability == skill) then
 				self.trackedIds[id] = nil
-				unregisteredAbility = true
+				-- unregisteredAbility = true
 				break
 			end
 		end
@@ -646,12 +646,12 @@ function StackTracker:Unregister(skill)
 	
 		-- if CombatMetronome.SV.debug.enabled then CombatMetronome.debug:Print(skill.." effectChanged is unregistered") end
 	-- end
-	if unregisteredAbility then
+	-- if unregisteredAbility then
 		self.stacks[skill] = nil
 		self:HandleUIVisibility(skill, "NoUI")
 		self:HandleUIVisibility(skill, "NoSample")
 		if CombatMetronome.SV.debug.enabled then CombatMetronome.debug:Print(skill.." tracker is unregistered") end
-	end
+	-- end
 end
 
 function CombatMetronome:UnregisterCollectiblesTracker()
