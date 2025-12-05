@@ -65,18 +65,23 @@ local function IconDesaturation(icon, value)
 	end
 end
 
--- local function InsertDependencyVersions()
-	-- for name, version in pairs(CombatMetronome.DependencyVersions) do
-		-- local control = {
-			-- type = "editbox",
-			-- name = name,
-			-- getFunc = function() return version end,
-			-- setFunc = function() end,
-			-- disabled = true,
-		-- }
-		-- table.insert(CombatMetronome.menu.options.General, control)
-	-- end
--- end
+local function DeleteShortNamesFromCache()
+	for _, entry in pairs(Util.Ability.cache) do
+		if entry.shortName then
+			entry.shortName = nil
+		end
+	end
+end
+
+local function FindMenuPosition(searchTable, name)
+	for i, entry in ipairs(searchTable) do
+		if entry.name == name then
+			return i
+		end
+	end
+	if CombatMetronome.SV.debug.enabled then CombatMetronome.debug:Print(zo_strformat("Couldn't find '<<1>>' in requested searchTable, menu could not be created", name)) end
+	return false
+end
 
 function CombatMetronome:BuildMenu()
     self.menu = self.menu or { }
@@ -89,18 +94,20 @@ function CombatMetronome:BuildMenu()
 	}
 	local LATrackerSettings = LATracker:BuildUI()
 	local function CreateStacksSettings()
-		local position
-		for i, entry in ipairs(self.menu.options.StackTracker) do
-			if entry.name == "Stacks to track" then position = i break end
-		end
+		local position = FindMenuPosition(self.menu.options.StackTracker, "Stacks to track")
+		-- for i, entry in ipairs(self.menu.options.StackTracker) do
+			-- if entry.name == "Stacks to track" then position = i break end
+		-- end
 		local sortedControls = {}
 		for skill, entry in pairs(self.menu.CONTROLS.stackTracker) do
 			table.insert(sortedControls, skill)
-			table.sort(sortedControls)
 		end
+		table.sort(sortedControls)
+		
 		for i = 1, #sortedControls do
 			local skill = sortedControls[i]
 			local entry = self.menu.CONTROLS.stackTracker[skill]
+			local sv = CombatMetronome.SV.StackTracker[skill]
 			local submenu = {
 				{
 					type = "submenu",
@@ -113,15 +120,21 @@ function CombatMetronome:BuildMenu()
 							disabled = function()
 								return not StackTracker.activeSkills[skill]
 							end,
-							getFunc = function() return CombatMetronome.SV.StackTracker[skill].tracked end,
+							getFunc = function() return sv.tracked end,
 							setFunc = function(value)
-								CombatMetronome.SV.StackTracker[skill].tracked = value
-								if value and not StackTracker.UI[skill] and StackTracker:CheckIfSlotted(skill) then
-									StackTracker:InitializeUI(skill)
+								sv.tracked = value
+								-- if value and not StackTracker.UI[skill] and StackTracker:CheckIfSlotted(skill) then
+									-- StackTracker:InitializeUI(skill)
+									-- StackTracker:ChangeStackCount(skill, StackTracker.stacks[skill])
 								-- IconDesaturation(self.menu.icons.stackTracker.frame[skill], value and StackTracker.activeSkills[skill])
 								-- IconDesaturation(self.menu.icons.stackTracker.icon[skill], value and StackTracker.activeSkills[skill])
-								elseif not value and StackTracker.UI[skill] then
-									StackTracker:HandleUIVisibility(skill, "NoSample")
+								-- elseif not value and StackTracker.UI[skill] then
+									-- StackTracker:HandleUIVisibility(skill, "NoSample")
+									-- StackTracker:HandleUIVisibility(skill, "NoUI")
+								if value then
+									StackTracker:Register(skill)
+								else
+									StackTracker:Unregister(skill)
 								end
 							end,
 						},
@@ -130,9 +143,9 @@ function CombatMetronome:BuildMenu()
 							name = "Hide in PVP Zones",
 							tooltip = "Hides stack tracker in PVPZones to keep UI clean",
 							disabled = function () return not StackTracker:TrackerIsActive() end,
-							getFunc = function() return CombatMetronome.SV.StackTracker[skill].hideInPVP end,
+							getFunc = function() return sv.hideInPVP end,
 							setFunc = function(value)
-								CombatMetronome.SV.StackTracker[skill].hideInPVP = value
+								sv.hideInPVP = value
 								StackTracker:PVPSwitch(skill)
 							end,
 						},
@@ -142,29 +155,25 @@ function CombatMetronome:BuildMenu()
 							min = 10,
 							max = 60,
 							step = 1,
-							default = CombatMetronome.SV.StackTracker[skill].indicatorSize,
-							getFunc = function() return CombatMetronome.SV.StackTracker[skill].indicatorSize end,
+							default = sv.indicatorSize,
+							getFunc = function() return sv.indicatorSize end,
 							setFunc = function(value)
-								CombatMetronome.SV.StackTracker[skill].indicatorSize = value
+								sv.indicatorSize = value
 								StackTracker.UI[skill].indicator.ApplySize(value)
-								StackTracker.UI[skill].indicator.ApplyDistance(value/5, value)
-								local attributes = StackTracker.SKILL_ATTRIBUTES[skill]
-								StackTracker.UI[skill].stacksWindow:SetDimensions((value*attributes.iMax+(value/5)*(attributes.iMax-1)), value)
+								-- StackTracker.UI[skill].indicator.ApplyDistance(value/5, value)
+								-- local attributes = StackTracker.SKILL_ATTRIBUTES[skill]
+								-- StackTracker.UI[skill].stacksWindow:SetDimensions((value*attributes.iMax+(value/5)*(attributes.iMax-1)), value)
 							end,
 						},
 						{
-							type = "header",
-							name = "Audio and visual cues",
-							tooltip = "Settings regarding audio and visual cues when reaching full stacks",
-						},
-						{	type = "checkbox",
+							type = "checkbox",
 							name = "Play sound cue at max stacks",
 							tooltip = "Plays a sound when you are at max stacks, so you don't miss to cast your ability",
-							getFunc = function() return CombatMetronome.SV.StackTracker[skill].playSound end,
+							getFunc = function() return sv.playSound end,
 							setFunc = function(value)
-								CombatMetronome.SV.StackTracker[skill].playSound = value
-								if value and StackTracker.stacks[skill] and StackTracker.stacks[skill] >= StackTracker.SKILL_ATTRIBUTES[skill].iMax and CombatMetronome.SV.StackTracker[skill].sound then
-									PlaySound(SOUNDS[CombatMetronome.SV.StackTracker[skill].sound])
+								sv.playSound = value
+								if value and StackTracker.stacks[skill] and StackTracker.stacks[skill] >= StackTracker.SKILL_ATTRIBUTES[skill].iMax and sv.sound then
+									PlaySound(SOUNDS[sv.sound])
 								end
 							end,
 						},
@@ -173,31 +182,32 @@ function CombatMetronome:BuildMenu()
 							name = "Sound cue volume",
 							tooltip = "Adjust volume of the sound cue effect",
 							warning = "You may have to adjust your general audio settings and general audio volume for this to have a noticable effect. Take care not to overadjust, your ears can only take so much!",
-							disabled = function() return not CombatMetronome.SV.StackTracker[skill].playSound end,
+							disabled = function() return not sv.playSound end,
 							min = 0,
 							max = 100,
-							setp = 1,
-							getFunc = function() return CombatMetronome.SV.StackTracker[skill].volume end,
-							setFunc = function(value) CombatMetronome.SV.StackTracker[skill].volume = value end,
+							step = 1,
+							getFunc = function() return sv.volume end,
+							setFunc = function(value) sv.volume = value end,
 						},
 						{
 							type = "dropdown",
 							name = "Select Sound",
 							choices = fullStackSounds,
-							default = CombatMetronome.SV.StackTracker[skill].sound,
-							disabled = function() return not CombatMetronome.SV.StackTracker[skill].playSound end,
-							getFunc = function() return CombatMetronome.SV.StackTracker[skill].sound end,
+							default = sv.sound,
+							disabled = function() return not sv.playSound end,
+							getFunc = function() return sv.sound end,
 							setFunc = function(value) 
-								CombatMetronome.SV.StackTracker[skill].sound = value
+								sv.sound = value
 								PlaySound(SOUNDS[value])
 							end
 						},
-						{	type = "checkbox",
+						{
+							type = "checkbox",
 							name = "Animation cue to fire stacks",
 							tooltip = "Gives you a more intense visual cue, if you reach an amount of stacks needed to fire an ability, or at max stacks",
-							getFunc = function() return CombatMetronome.SV.StackTracker[skill].hightlightOnFullStacks end,
+							getFunc = function() return sv.hightlightOnFullStacks end,
 							setFunc = function(value)
-								CombatMetronome.SV.StackTracker[skill].hightlightOnFullStacks = value
+								sv.hightlightOnFullStacks = value
 								if value and StackTracker.stacks[skill] and StackTracker.stacks[skill] >= StackTracker.SKILL_ATTRIBUTES[skill].iMax and StackTracker.UI[skill].indicator[StackTracker.SKILL_ATTRIBUTES[skill].iMax].controls.highlightAnimation:IsControlHidden() then
 									for i=1,#StackTracker.UI[skill].indicator do
 										StackTracker.UI[skill].indicator[i].Animate()
@@ -217,6 +227,146 @@ function CombatMetronome:BuildMenu()
 					},
 				},
 			}
+			if CombatMetronome.StackTracker.SKILL_ATTRIBUTES[skill].duration then
+				local position = FindMenuPosition(submenu[1].controls, "Stack indicator size")
+				if not position then return end
+				local controls = {
+					{
+						type = "header",
+						name = "Timer indicators"
+					},
+					{
+						type = "checkbox",
+						name = "Show buff timer",
+						tooltip = "Shows a timer right next to your stack indicators",
+						disabled = function () return not sv.tracked end,
+						getFunc = function() return sv.showTimer end,
+						setFunc = function(value)
+							sv.showTimer = value
+							StackTracker.UI[skill].indicator.timer:SetHidden(not value)
+						end,
+					},
+					{
+						type = "checkbox",
+						name = "Show timer bar",
+						tooltip = "Shows a timer bar right under to your stack indicators",
+						disabled = function () return not sv.tracked end,
+						getFunc = function() return sv.showTimerBar end,
+						setFunc = function(value)
+							sv.showTimerBar = value
+							StackTracker.UI[skill].indicator.timerBar:SetHidden(not value)
+							StackTracker.UI[skill].indicator.timerBarGloss:SetHidden(not value)
+							StackTracker.UI[skill].indicator.timerBarBackdrop:SetHidden(not value)
+						end,
+					},
+					{
+						type = "dropdown",
+						name = "Bar orientation",
+						-- width = "half",
+						choices = {"LEFT", "RIGHT"},
+						disabled = function() return not (sv.tracked and sv.showTimerBar) end,
+						getFunc = function() return sv.timerBarOrientation end,
+						setFunc = function(value) 
+							sv.timerBarOrientation = value
+							StackTracker.UI[skill].indicator.TimerBarOrientation(value)
+						end
+					},
+					{
+						type = "header",
+						name = "Audio and visual cues",
+						tooltip = "Settings regarding audio and visual cues when reaching full stacks or buff expiration",
+					},
+				}
+				for i = 1, #controls do
+					table.insert(submenu[1].controls, position + i, controls[i])
+				end
+				controls = {
+					{
+						type = "divider",
+					},
+					{
+						type = "checkbox",
+						name = "Animate timer when about to run out",
+						tooltip = "Animates the timer when buff is about to run out",
+						width = "half",
+						disabled = function () return not (sv.tracked and sv.showTimer) end,
+						getFunc = function() return sv.animateTimer end,
+						setFunc = function(value)
+							sv.animateTimer = value
+						end,
+					},
+					{
+						type = "checkbox",
+						name = "Play sound when about to run out",
+						tooltip = "Plays a sound when buff is about to run out",
+						width = "half",
+						disabled = function () return not sv.tracked end,
+						getFunc = function() return sv.soundReminder end,
+						setFunc = function(value)
+							sv.soundReminder = value
+						end,
+					},
+					{
+						type = "dropdown",
+						name = "Select Sound",
+						width = "half",
+						choices = sounds,
+						default = sv.soundReminder,
+						disabled = function() return not (sv.tracked and sv.soundReminder) end,
+						getFunc = function() return sv.expirationSound end,
+						setFunc = function(value) 
+							sv.expirationSound = value
+							PlaySound(value)
+						end
+					},
+					{
+						type = "slider",
+						name = "Reminder volume",
+						tooltip = "Adjust volume of the reminder sound",
+						warning = "You may have to adjust your general audio settings and general audio volume for this to have a noticable effect. Take care not to overadjust, your ears can only take so much!",
+						width = "half",
+						disabled = function() return not (sv.tracked and sv.soundReminder) end,
+						min = 0,
+						max = 100,
+						step = 1,
+						getFunc = function() return sv.reminderVolume end,
+						setFunc = function(value) sv.reminderVolume = value end,
+					},
+					{
+						type = "slider",
+						name = "Time remaining (ms)",
+						tooltip = "Adjust the time remaining to show/play reminders",
+						disabled = function() return not (sv.tracked and (sv.animateTimer or sv.soundReminder)) end,
+						min = 500,
+						max = 5000,
+						step = 100,
+						getFunc = function() return sv.expirationTimer*1000 end,
+						setFunc = function(value) sv.expirationTimer = value/1000 end,
+					},
+					{
+						type = "checkbox",
+						name = "Only during combat",
+						tooltip = "Only shows/plays buff expiration reminders when in combat",
+						disabled = function () return not (sv.tracked and (sv.animateTimer or sv.soundReminder)) end,
+						getFunc = function() return sv.remindersOnlyInCombat end,
+						setFunc = function(value)
+							sv.remindersOnlyInCombat = value
+						end,
+					},
+				}
+				for i = 1, #controls do
+					table.insert(submenu[1].controls, controls[i])
+				end
+			else
+				local position = FindMenuPosition(submenu[1].controls, "Play sound cue at max stacks")
+				if not position then return end
+				local queueHeader = {
+					type = "header",
+					name = "Audio and visual cues",
+					tooltip = "Settings regarding audio and visual cues when reaching full stacks",
+				}
+				table.insert(submenu[1].controls, position, queueHeader)
+			end
 			table.insert(self.menu.options.StackTracker, position+i, submenu[1])
 			-- for i=#self.menu.options.StackTracker, 1, -1 do
 				-- if not self.menu.options.StackTracker[i] then
@@ -695,6 +845,7 @@ function CombatMetronome:BuildMenu()
 						setFunc = function(value) 
 							CombatMetronome.SV.Progressbar.width = value
 							self.Progressbar.UI.Size()
+							DeleteShortNamesFromCache()
 							-- self:BuildUI()
 						end,
 					},
@@ -899,6 +1050,7 @@ function CombatMetronome:BuildMenu()
 						setFunc = function(value)
 							CombatMetronome.SV.Progressbar.spellSize = value
 							self.Progressbar.UI.Fonts()
+							DeleteShortNamesFromCache()
 						end,
 					},
 				},
@@ -1217,7 +1369,7 @@ function CombatMetronome:BuildMenu()
 						disabled = function() return not (CombatMetronome.SV.Progressbar.soundTickEnabled or CombatMetronome.SV.Progressbar.soundTockEnabled) end,
 						min = 0,
 						max = 100,
-						setp = 1,
+						step = 1,
 						getFunc = function() return CombatMetronome.SV.Progressbar.tickVolume end,
 						setFunc = function(value) CombatMetronome.SV.Progressbar.tickVolume = value end,
 					},
@@ -1627,171 +1779,292 @@ function CombatMetronome:BuildMenu()
 				end,
 			},
 			{
-				type = "checkbox",
-				name = "Show Ultimate",
-				tooltip = "Toggle show ultimate above cast bar",
-				getFunc = function() return CombatMetronome.SV.Resources.showUltimate end,
-				setFunc = function(value)
-					CombatMetronome.SV.Resources.showUltimate = value
-				end,
+				type = "submenu",
+				name = "Ultimate",
+				controls = {
+					{
+						type = "checkbox",
+						name = "Show Ultimate",
+						tooltip = "Toggle show ultimate above cast bar",
+						getFunc = function() return CombatMetronome.SV.Resources.showUltimate end,
+						setFunc = function(value)
+							CombatMetronome.SV.Resources.showUltimate = value
+						end,
+					},
+					{
+						type = "slider",
+						name = "Ultimate Label Size",
+						tooltip = "Set the size of the Ultimate label",
+						disabled = function()
+							return (not CombatMetronome.SV.Resources.showUltimate)
+						end,
+						min = 0,
+						max = CombatMetronome.SV.Resources.height,
+						step = 1,
+						default = CombatMetronome.SV.Resources.ultSize,
+						getFunc = function() return CombatMetronome.SV.Resources.ultSize end,
+						setFunc = function(value)
+							CombatMetronome.SV.Resources.ultSize = value
+							self.Progressbar.UI.Fonts()
+							-- self:BuildUI()
+						end,
+					},
+					{
+						type = "colorpicker",
+						name = "Ultimate Label Color",
+						tooltip = "Color of your ultimate label",
+						disabled = function()
+							return (not CombatMetronome.SV.Resources.showUltimate)
+						end,
+						getFunc = function() return unpack(CombatMetronome.SV.Resources.ultColor) end,
+						setFunc = function(r, g, b, a)
+							CombatMetronome.SV.Resources.ultColor = {r, g, b, a}
+							self.Progressbar.UI.LabelColors()
+							-- self:BuildUI()
+						end,
+					},
+				},
 			},
 			{
-				type = "slider",
-				name = "Ultimate Label Size",
-				tooltip = "Set the size of the Ultimate label",
-				disabled = function()
-					return (not CombatMetronome.SV.Resources.showUltimate)
-				end,
-				min = 0,
-				max = CombatMetronome.SV.Resources.height,
-				step = 1,
-				default = CombatMetronome.SV.Resources.ultSize,
-				getFunc = function() return CombatMetronome.SV.Resources.ultSize end,
-				setFunc = function(value)
-					CombatMetronome.SV.Resources.ultSize = value
-					self.Progressbar.UI.Fonts()
-					-- self:BuildUI()
-				end,
+				type = "submenu",
+				name = "|c00cc4eStamina|r",
+				controls = {
+					{
+						type = "checkbox",
+						name = "Show Stamina",
+						tooltip = "Toggle show stamina above cast bar",
+						getFunc = function() return CombatMetronome.SV.Resources.showStamina end,
+						setFunc = function(value)
+							CombatMetronome.SV.Resources.showStamina = value
+							self.Progressbar.UI.Anchors()
+						end,
+					},
+					{
+						type = "slider",
+						name = "Stamina Label Size",
+						tooltip = "Set the size of the Stamina label",
+						disabled = function()
+							return not (CombatMetronome.SV.Resources.showStamina or CombatMetronome.SV.Resources.coralBahsei)
+						end,
+						min = 0,
+						max = CombatMetronome.SV.Resources.height/2,
+						step = 1,
+						default = CombatMetronome.SV.Resources.stamSize,
+						getFunc = function() return CombatMetronome.SV.Resources.stamSize end,
+						setFunc = function(value)
+							CombatMetronome.SV.Resources.stamSize = value
+							self.Progressbar.UI.Fonts()
+							-- self:BuildUI()
+						end,
+					},
+					{
+						type = "colorpicker",
+						name = "Stamina Label Color",
+						tooltip = "Color of your stamina label",
+						disabled = function()
+							return not (CombatMetronome.SV.Resources.showStamina or CombatMetronome.SV.Resources.coralBahsei)
+						end,
+						getFunc = function() return unpack(CombatMetronome.SV.Resources.stamColor) end,
+						setFunc = function(r, g, b, a)
+							CombatMetronome.SV.Resources.stamColor = {r, g, b, a}
+							self.Progressbar.UI.LabelColors()
+							-- self:BuildUI()
+						end,
+					},
+					{	type = "divider"},
+					{
+						type = "checkbox",
+						name = "Highlight stamina percentage",
+						tooltip = "Highlights stamina percentage when in hits a certain threshold",
+						getFunc = function() return CombatMetronome.SV.Resources.highlightStam end,
+						setFunc = function(value)
+							CombatMetronome.SV.Resources.highlightStam = value
+						end,
+					},
+					{
+						type = "slider",
+						name = "Highlight threshold",
+						tooltip = "Set the threshold for stamina highlighting (Set 0% for no highlight)",
+						disabled = function()
+							return not (CombatMetronome.SV.Resources.highlightStam and CombatMetronome.SV.Resources.coralBahsei)
+						end,
+						min = 0,
+						max = 100,
+						getFunc = function() return CombatMetronome.SV.Resources.stamHighlightThreshold end,
+						setFunc = function(value) CombatMetronome.SV.Resources.stamHighlightThreshold = value end,
+					},
+					{
+						type = "colorpicker",
+						name = "Stamina Highlight Color",
+						tooltip = "Highlighting color of stamina label",
+						disabled = function()
+							return not (CombatMetronome.SV.Resources.stamHighlightThreshold ~= 0 and CombatMetronome.SV.Resources.highlightStam)
+						end,
+						getFunc = function() return unpack(CombatMetronome.SV.Resources.stamHighligtColor) end,
+						setFunc = function(r, g, b, a)
+							CombatMetronome.SV.Resources.stamHighligtColor = {r, g, b, a}
+							-- self:BuildUI()
+						end,
+					},
+				},
 			},
 			{
-				type = "colorpicker",
-				name = "Ultimate Label Color",
-				tooltip = "Color of your ultimate label",
-				disabled = function()
-					return (not CombatMetronome.SV.Resources.showUltimate)
-				end,
-				getFunc = function() return unpack(CombatMetronome.SV.Resources.ultColor) end,
-				setFunc = function(r, g, b, a)
-					CombatMetronome.SV.Resources.ultColor = {r, g, b, a}
-					self.Progressbar.UI.LabelColors()
-					-- self:BuildUI()
-				end,
+				type = "submenu",
+				name = "|c0055ffMagicka|r",
+				controls = {
+					{
+						type = "checkbox",
+						name = "Show Magicka",
+						tooltip = "Toggle show magicka above cast bar",
+						getFunc = function() return CombatMetronome.SV.Resources.showMagicka end,
+						setFunc = function(value)
+							CombatMetronome.SV.Resources.showMagicka = value
+							self.Progressbar.UI.Anchors()
+							-- self.sampleBar.Mag:SetHidden(not value)
+						end,
+					},
+					{
+						type = "slider",
+						name = "Magicka Label Size",
+						tooltip = "Set the size of the Magicka label",
+						disabled = function()
+							return not (CombatMetronome.SV.Resources.showMagicka or CombatMetronome.SV.Resources.coralBahsei)
+						end,
+						min = 0,
+						max = CombatMetronome.SV.Resources.height/2,
+						step = 1,
+						default = CombatMetronome.SV.Resources.magSize,
+						getFunc = function() return CombatMetronome.SV.Resources.magSize end,
+						setFunc = function(value)
+							CombatMetronome.SV.Resources.magSize = value
+							self.Progressbar.UI.Fonts()
+							-- self:BuildUI()
+						end,
+					},
+					{
+						type = "colorpicker",
+						name = "Magicka Label Color",
+						tooltip = "Color of your magicka label",
+						disabled = function()
+							return not (CombatMetronome.SV.Resources.showMagicka or CombatMetronome.SV.Resources.coralBahsei)
+						end,
+						getFunc = function() return unpack(CombatMetronome.SV.Resources.magColor) end,
+						setFunc = function(r, g, b, a)
+							CombatMetronome.SV.Resources.magColor = {r, g, b, a}
+							self.Progressbar.UI.LabelColors()
+							-- self:BuildUI()
+						end,
+					},
+					{	type = "divider"},
+					{
+						type = "checkbox",
+						name = "Highlight magicka percentage",
+						tooltip = "Highlights magicka percentage when in hits a certain threshold",
+						getFunc = function() return CombatMetronome.SV.Resources.highlightMag end,
+						setFunc = function(value)
+							CombatMetronome.SV.Resources.highlightMag = value
+						end,
+					},
+					{
+						type = "slider",
+						name = "Highlight threshold",
+						tooltip = "Set the threshold for magicka highlighting (Set 0% for no highlight)",
+						disabled = function()
+							return not (CombatMetronome.SV.Resources.highlightMag and CombatMetronome.SV.Resources.coralBahsei)
+						end,
+						min = 0,
+						max = 100,
+						getFunc = function() return CombatMetronome.SV.Resources.magHighlightThreshold end,
+						setFunc = function(value) CombatMetronome.SV.Resources.magHighlightThreshold = value end,
+					},
+					{
+						type = "colorpicker",
+						name = "Magicka Highlight Color",
+						tooltip = "Highlighting color of magicka label",
+						disabled = function()
+							return not (CombatMetronome.SV.Resources.magHighlightThreshold ~= 0 and CombatMetronome.SV.Resources.highlightMag)
+						end,
+						getFunc = function() return unpack(CombatMetronome.SV.Resources.magHighligtColor) end,
+						setFunc = function(r, g, b, a)
+							CombatMetronome.SV.Resources.magHighligtColor = {r, g, b, a}
+							-- self:BuildUI()
+						end,
+					},
+				},
 			},
 			{
-				type = "checkbox",
-				name = "Show Stamina",
-				tooltip = "Toggle show stamina above cast bar",
-				getFunc = function() return CombatMetronome.SV.Resources.showStamina end,
-				setFunc = function(value)
-					CombatMetronome.SV.Resources.showStamina = value
-					self.Progressbar.UI.Anchors()
-				end,
-			},
-			{
-				type = "slider",
-				name = "Stamina Label Size",
-				tooltip = "Set the size of the Stamina label",
-				disabled = function()
-					return not (CombatMetronome.SV.Resources.showStamina or CombatMetronome.SV.Resources.coralBahsei)
-				end,
-				min = 0,
-				max = CombatMetronome.SV.Resources.height/2,
-				step = 1,
-				default = CombatMetronome.SV.Resources.stamSize,
-				getFunc = function() return CombatMetronome.SV.Resources.stamSize end,
-				setFunc = function(value)
-					CombatMetronome.SV.Resources.stamSize = value
-					self.Progressbar.UI.Fonts()
-					-- self:BuildUI()
-				end,
-			},
-			{
-				type = "colorpicker",
-				name = "Stamina Label Color",
-				tooltip = "Color of your stamina label",
-				disabled = function()
-					return not (CombatMetronome.SV.Resources.showStamina or CombatMetronome.SV.Resources.coralBahsei)
-				end,
-				getFunc = function() return unpack(CombatMetronome.SV.Resources.stamColor) end,
-				setFunc = function(r, g, b, a)
-					CombatMetronome.SV.Resources.stamColor = {r, g, b, a}
-					self.Progressbar.UI.LabelColors()
-					-- self:BuildUI()
-				end,
-			},
-			{
-				type = "checkbox",
-				name = "Show Magicka",
-				tooltip = "Toggle show magicka above cast bar",
-				getFunc = function() return CombatMetronome.SV.Resources.showMagicka end,
-				setFunc = function(value)
-					CombatMetronome.SV.Resources.showMagicka = value
-					self.Progressbar.UI.Anchors()
-					-- self.sampleBar.Mag:SetHidden(not value)
-				end,
-			},
-			{
-				type = "slider",
-				name = "Magicka Label Size",
-				tooltip = "Set the size of the Magicka label",
-				disabled = function()
-					return not (CombatMetronome.SV.Resources.showMagicka or CombatMetronome.SV.Resources.coralBahsei)
-				end,
-				min = 0,
-				max = CombatMetronome.SV.Resources.height/2,
-				step = 1,
-				default = CombatMetronome.SV.Resources.magSize,
-				getFunc = function() return CombatMetronome.SV.Resources.magSize end,
-				setFunc = function(value)
-					CombatMetronome.SV.Resources.magSize = value
-					self.Progressbar.UI.Fonts()
-					-- self:BuildUI()
-				end,
-			},
-			{
-				type = "colorpicker",
-				name = "Magicka Label Color",
-				tooltip = "Color of your magicka label",
-				disabled = function()
-					return not (CombatMetronome.SV.Resources.showMagicka or CombatMetronome.SV.Resources.coralBahsei)
-				end,
-				getFunc = function() return unpack(CombatMetronome.SV.Resources.magColor) end,
-				setFunc = function(r, g, b, a)
-					CombatMetronome.SV.Resources.magColor = {r, g, b, a}
-					self.Progressbar.UI.LabelColors()
-					-- self:BuildUI()
-				end,
-			},
-			{
-				type = "checkbox",
-				name = "Show Target Health",
-				tooltip = "Toggle show target health above cast bar",
-				getFunc = function() return CombatMetronome.SV.Resources.showHealth end,
-				setFunc = function(value)
-					CombatMetronome.SV.Resources.showHealth = value
-				end,
-			},
-			{
-				type = "slider",
-				name = "Health Label Size",
-				tooltip = "Set the size of the Health label",
-				disabled = function()
-					return (not CombatMetronome.SV.Resources.showHealth)
-				end,
-				min = 0,
-				max = CombatMetronome.SV.Resources.height,
-				step = 1,
-				default = CombatMetronome.SV.Resources.healthSize,
-				getFunc = function() return CombatMetronome.SV.Resources.healthSize end,
-				setFunc = function(value)
-					CombatMetronome.SV.Resources.healthSize = value
-					self.Progressbar.UI.Fonts()
-					-- self:BuildUI()
-				end,
-			},
-			{
-				type = "colorpicker",
-				name = "Health Label Color",
-				tooltip = "Color of target health label",
-				disabled = function()
-					return (not CombatMetronome.SV.Resources.showHealth)
-				end,
-				getFunc = function() return unpack(CombatMetronome.SV.Resources.healthColor) end,
-				setFunc = function(r, g, b, a)
-					CombatMetronome.SV.Resources.healthColor = {r, g, b, a}
-					self.Progressbar.UI.LabelColors()
-					-- self:BuildUI()
-					end,
+				type = "submenu",
+				name = "|cc40000Health|r",
+				controls = {
+					{
+						type = "checkbox",
+						name = "Show Target Health",
+						tooltip = "Toggle show target health above cast bar",
+						getFunc = function() return CombatMetronome.SV.Resources.showHealth end,
+						setFunc = function(value)
+							CombatMetronome.SV.Resources.showHealth = value
+						end,
+					},
+					{
+						type = "slider",
+						name = "Health Label Size",
+						tooltip = "Set the size of the Health label",
+						disabled = function()
+							return (not CombatMetronome.SV.Resources.showHealth)
+						end,
+						min = 0,
+						max = CombatMetronome.SV.Resources.height,
+						step = 1,
+						default = CombatMetronome.SV.Resources.healthSize,
+						getFunc = function() return CombatMetronome.SV.Resources.healthSize end,
+						setFunc = function(value)
+							CombatMetronome.SV.Resources.healthSize = value
+							self.Progressbar.UI.Fonts()
+							-- self:BuildUI()
+						end,
+					},
+					{
+						type = "colorpicker",
+						name = "Health Label Color",
+						tooltip = "Color of target health label",
+						disabled = function()
+							return (not CombatMetronome.SV.Resources.showHealth)
+						end,
+						getFunc = function() return unpack(CombatMetronome.SV.Resources.healthColor) end,
+						setFunc = function(r, g, b, a)
+							CombatMetronome.SV.Resources.healthColor = {r, g, b, a}
+							self.Progressbar.UI.LabelColors()
+							-- self:BuildUI()
+						end,
+					},
+					{	type = "divider"},
+					{
+						type = "slider",
+						name = "Target Health execute highlight threshold",
+						tooltip = "Set the threshold for target health highlighting (Set 0% for no highlight)",
+						disabled = function()
+							return (not CombatMetronome.SV.Resources.showHealth)
+						end,
+						min = 0,
+						max = 100,
+						getFunc = function() return CombatMetronome.SV.Resources.hpHighlightThreshold end,
+						setFunc = function(value) CombatMetronome.SV.Resources.hpHighlightThreshold = value end,
+					},
+					{
+						type = "colorpicker",
+						name = "Health Highlight Color",
+						tooltip = "Highlighting color of target health label",
+						disabled = function()
+							return (not (CombatMetronome.SV.Resources.hpHighlightThreshold ~= 0 and CombatMetronome.SV.Resources.showHealth))
+						end,
+						getFunc = function() return unpack(CombatMetronome.SV.Resources.healthHighligtColor) end,
+						setFunc = function(r, g, b, a)
+							CombatMetronome.SV.Resources.healthHighligtColor = {r, g, b, a}
+							self.Progressbar.UI.LabelColors()
+							-- self:BuildUI()
+						end,
+					},
+				},
 			},
 			{
 				type = "checkbox",
@@ -1820,32 +2093,6 @@ function CombatMetronome:BuildMenu()
 					self.Progressbar.UI.Anchors()
 					--self:BuildUI()
 				end,
-			},
-			{
-				type = "slider",
-				name = "Target Health execute highlight threshold",
-				tooltip = "Set the threshold for target health highlighting (Set 0% for no highlight)",
-				disabled = function()
-					return (not CombatMetronome.SV.Resources.showHealth)
-				end,
-				min = 0,
-				max = 100,
-				getFunc = function() return CombatMetronome.SV.Resources.hpHighlightThreshold end,
-				setFunc = function(value) CombatMetronome.SV.Resources.hpHighlightThreshold = value end,
-			},
-			{
-				type = "colorpicker",
-				name = "Health Highlight Color",
-				tooltip = "Color of target health label",
-				disabled = function()
-					return (not (CombatMetronome.SV.Resources.hpHighlightThreshold ~= 0 and CombatMetronome.SV.Resources.showHealth))
-				end,
-				getFunc = function() return unpack(CombatMetronome.SV.Resources.healthHighligtColor) end,
-				setFunc = function(r, g, b, a)
-					CombatMetronome.SV.Resources.healthHighligtColor = {r, g, b, a}
-					self.Progressbar.UI.LabelColors()
-					-- self:BuildUI()
-					end,
 			},
 			{
 				type = "checkbox",
