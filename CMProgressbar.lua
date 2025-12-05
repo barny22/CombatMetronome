@@ -22,6 +22,9 @@ local function AnchorSpellIcon(dynamic)
 	end
 end
 
+local function AbbreviateSpellLabel(aName)
+end
+
 	--------------------------
 	---- Cast Bar Updater ----
 	--------------------------
@@ -193,8 +196,6 @@ function CombatMetronome:Update()
 			
 			local dynamicProgress = self.SV.Progressbar.expandDynamically and self.SV.Progressbar.dynamicExpansionMultiplyer*math.max(duration, timeRemaining*1000)/10000 > 1
 			-- local multiplyerCheck = self.SV.Progressbar.dynamicExpansionMultiplyer*math.max(duration, timeRemaining*1000)/10000 > 1
-			local multiplyer = self.SV.Progressbar.dynamicExpansionMultiplyer*duration/10000
-			local dynamicAnchor = self.SV.Progressbar.barAlign == "Center" and self.SV.Progressbar.moveIconDynamically and (castProgress*multiplyer > 1)
 						
 			-- local playerDidBlock = (self.lastBlockStatus == false) and IsBlockActive()
 			-- if playerDidBlock and self.SV.debug.enabled then CombatMetronome.debug:Print("Player blocked") end
@@ -260,8 +261,10 @@ function CombatMetronome:Update()
 				self.Progressbar.bar:Update()
 				
 				if dynamicProgress then
+					local multiplyer = self.SV.Progressbar.dynamicExpansionMultiplyer*duration/10000
 					self.Progressbar.bar.segments[2].progress = castProgress*multiplyer
 					self.Progressbar.bar.segments[1].progress = (latency / duration)*multiplyer
+					local dynamicAnchor = self.SV.Progressbar.barAlign == "Center" and self.SV.Progressbar.moveIconDynamically and (castProgress*multiplyer > 1)
 					AnchorSpellIcon(dynamicAnchor)
 				else
 					self.Progressbar.bar.segments[2].progress = castProgress
@@ -270,21 +273,9 @@ function CombatMetronome:Update()
 				end
 			end
 			------------------------------
-			---- Spell Label and Icon ----					--Spell Label on Castbar by barny
-			------------------------------
-			if CombatMetronome.SV.Progressbar.showSpell and ((ability.delay > 0 and timeRemaining >= 0) or self.SV.Progressbar.alwaysShowSpell) and not ability.heavy then
-				self.Progressbar.spellLabel:SetText(ability.name)
-				self.Progressbar.spellLabel:SetHidden(false)
-			--Spell Icon next to Castbar
-				self.Progressbar.spellIcon:SetTexture(ability.icon)
-				self.Progressbar.spellIcon:SetHidden(false)
-				self.Progressbar.spellIconBorder:SetHidden(false)
-			else
-				self.Progressbar.spellLabel:SetHidden(true)
-				self.Progressbar.spellIcon:SetHidden(true)
-				self.Progressbar.spellIconBorder:SetHidden(true)
-			end
-				
+			---- Spell Label and Icon ----
+			------------------------------	
+			
 			--Remaining time on Castbar by barny
 			if CombatMetronome.SV.Progressbar.showTimeRemaining and ((ability.delay > 0 and timeRemaining >= 0) or self.SV.Progressbar.alwaysShowTimeRemaining) and not ability.heavy then
 				-- to have timers at least at 1 second
@@ -296,6 +287,38 @@ function CombatMetronome:Update()
 			else
 				self.Progressbar.timeLabel:SetHidden(true)
 			end
+			
+			--Spell Label on Castbar by barny
+			if CombatMetronome.SV.Progressbar.showSpell and ((ability.delay > 0 and timeRemaining >= 0) or self.SV.Progressbar.alwaysShowSpell) and not ability.heavy then
+				if not ability.shortName then
+					self.Progressbar.spellLabel:SetText(ability.name)
+					local barSpace = self.SV.Progressbar.width - (self.SV.Progressbar.showTimeRemaining and 2.5*self.Progressbar.timeLabel:GetWidth() or 0)
+					if self.Progressbar.spellLabel:GetWidth() > barSpace then
+						for i = #ability.name, 1, -1 do
+							local shortName =  string.sub(ability.name, 1, i):gsub("%s+$", "") .. ".."
+							self.Progressbar.spellLabel:SetText(shortName)
+							if self.Progressbar.spellLabel:GetWidth() <= barSpace then
+								ability.shortName = shortName
+								break
+							end
+						end
+					else
+						ability.shortName = ability.name
+					end
+				end
+				self.Progressbar.spellLabel:SetText(ability.shortName)
+				self.Progressbar.spellLabel:SetHidden(false)
+				
+			--Spell Icon next to Castbar
+				self.Progressbar.spellIcon:SetTexture(ability.icon)
+				self.Progressbar.spellIcon:SetHidden(false)
+				self.Progressbar.spellIconBorder:SetHidden(false)
+			else
+				self.Progressbar.spellLabel:SetHidden(true)
+				self.Progressbar.spellIcon:SetHidden(true)
+				self.Progressbar.spellIconBorder:SetHidden(true)
+			end
+			
 			--------------------
 			---- Interrupts ----							-- check for interrupts by dodge, barswap or block -- moved to DariansUtilities.Ability.Tracker
 			--------------------
