@@ -67,8 +67,8 @@ end
 
 local function DeleteShortNamesFromCache()
 	for _, entry in pairs(Util.Ability.cache) do
-		if entry.shortName then
-			entry.shortName = nil
+		if entry.displayName then
+			entry.displayName = nil
 		end
 	end
 end
