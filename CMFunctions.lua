@@ -5,14 +5,6 @@ Util.Stacks = Util.Stacks or {}
 CombatMetronome.StackTracker = CombatMetronome.StackTracker or {}
 local StackTracker = CombatMetronome.StackTracker
 	
--- local previousStack = 0
-
-	--------------------------------------------------------------------------------------------------------------------
-	---- Script to get (SkillType skillType, luaindex skillLineIndex, luaindex skillIndex) to determine skill morph ----
-	--------------------------------------------------------------------------------------------------------------------
-	
--- /script _,index,_,_,_,_ = GetAbilityProgressionXPInfoFromAbilityId(ID) CombatMetronome.debug:Print(GetSkillAbilityIndicesFromProgressionIndex(index))
-
 	--------------------------
 	---- Helper Functions ----
 	--------------------------

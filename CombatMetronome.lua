@@ -20,7 +20,6 @@ CombatMetronome = {
 CombatMetronome.versionString = string.format("%s.%s.%s", CombatMetronome.version.patch, CombatMetronome.version.major, CombatMetronome.version.minor)
 CombatMetronome.versionCheck = tonumber(string.format("%s%02d%02d", CombatMetronome.version.patch, CombatMetronome.version.major, CombatMetronome.version.minor))
 
--- local LAM = LibAddonMenu2
 local Util = DariansUtilities
 Util.Ability = Util.Ability or {}
 Util.Text = Util.Text or {}
@@ -71,16 +70,12 @@ function CombatMetronome:Init()
 	self.currentCharacterName = Util.Text.CropZOSString(GetUnitName("player"), "name")
 	self.currentlyEquippedAbilities = {}
 	CombatMetronome:BuildListOfCurrentlyEquippedAbilities()
-	-- CombatMetronome:GetDependencyVersions()
 		
 	StackTracker.classId = GetUnitClassId("player")
 	StackTracker.class = StackTracker.CLASS[StackTracker.classId]
 
-    -- self.log = CombatMetronome.SV.debug
-
     self.inCombat = IsUnitInCombat("player")
     self.currentEvent = nil
-	-- self.rollDodgeFinished = true
 
     self.gcd = 1000
 
@@ -116,11 +111,6 @@ function CombatMetronome:Init()
 	StackTracker.trackedIds = {}
 	StackTracker.stacks = {}
 	StackTracker.UI = {}
-	-- for skill, _ in pairs(StackTracker.SKILL_ATTRIBUTES) do
-		-- if CombatMetronome.SV.StackTracker[skill].tracked and StackTracker.activeSkills[skill] and StackTracker:CheckIfSlotted(skill) then
-			-- StackTracker:InitializeUI(skill)
-		-- end
-	-- end
 	
 	------------------------------
 	---- Light Attack Tracker ----
@@ -168,8 +158,6 @@ function CombatMetronome:RegisterMetadata()
 			for skill, _ in pairs(StackTracker.SKILL_ATTRIBUTES) do
 				if CombatMetronome.SV.StackTracker[skill].tracked then
 					if StackTracker.activeSkills[skill] and StackTracker:CheckIfSlotted(skill) then
-						-- StackTracker:InitializeUI(skill)
-						-- StackTracker:GetCurrentStacks(skill)
 						StackTracker:Register(skill)
 					elseif not StackTracker:CheckIfSlotted(skill) and StackTracker:CheckIfRegistered(skill) then
 						StackTracker:Unregister(skill)
@@ -184,27 +172,9 @@ function CombatMetronome:RegisterMetadata()
         EVENT_SKILL_RESPEC_RESULT,
         function(_, result)
 			if (result ~= RESPEC_RESULT_SUCCESS) then
-				-- if CombatMetronome.SV.debug.enabled then
-					-- CombatMetronome.debug:Print("Respec result not successful. Will return now...")
-				-- end
 				return
 			end
 			self.isRespec = true
-			-- CombatMetronome:BuildListOfCurrentlyEquippedAbilities()
-			-- StackTracker.actionSlotCache = self.currentlyEquippedAbilities.data
-			-- StackTracker:IsTrackingAvailable()
-            -- StackTracker:MorphCheck()
-			-- for skill, _ in pairs(StackTracker.SKILL_ATTRIBUTES) do
-				-- if CombatMetronome.SV.StackTracker[skill].tracked then
-					-- if StackTracker.activeSkills[skill] and StackTracker:CheckIfSlotted(skill) then
-						-- StackTracker:InitializeUI(skill)
-						-- StackTracker:GetCurrentStacks(skill)
-						-- StackTracker:Register(skill)
-					-- elseif not StackTracker:CheckIfSlotted(skill) and StackTracker:CheckIfRegistered(skill) then
-						-- StackTracker:Unregister(skill)
-					-- end
-				-- end
-			-- end
         end
     )
 	
@@ -240,7 +210,6 @@ function CombatMetronome:RegisterMetadata()
         EVENT_PLAYER_COMBAT_STATE,
         function(_, inCombat) 
             self.inCombat = inCombat == true
-            -- self.stamGradient:Reset()
 			LATracker:ManageLATracker(inCombat)
         end
     )		
@@ -252,32 +221,7 @@ function CombatMetronome:RegisterCM()
         1000 / 60,
         function(...) CombatMetronome:Update() end
     )
-    
-    -- EVENT_MANAGER:RegisterForEvent(
-        -- self.name.."SlotUsed",
-        -- EVENT_ACTION_SLOT_ABILITY_USED,
-        -- function(e, slot)
-			-- if CombatMetronome.SV.debug.enabled then CombatMetronome.debug:Print(slot) end
-			-- local ability = {}
-            -- local actionType = GetSlotType(slot)
-			-- if CombatMetronome.SV.debug.enabled then CombatMetronome.debug:Print(actionType) end
-			-- if actionType == ACTION_TYPE_CRAFTED_ABILITY then --3 then
-				-- if CombatMetronome.SV.debug.enabled then CombatMetronome.debug:Print("Crafted ability executed") end
-				-- ability = Util.Ability:ForId(GetAbilityIdForCraftedAbilityId(GetSlotBoundId(slot)))
-				-- if CombatMetronome.SV.debug.enabled then CombatMetronome.debug:Print("Ability used - "..ability.name..", ID: "..ability.id) end
-			-- else
-				-- ability = Util.Ability:ForId(GetSlotBoundId(slot))
-			-- end
-						
-			-- if CombatMetronome.SV.debug.enabled then CombatMetronome.debug:Print("Slot used - Target: "..GetAbilityTargetDescription(GetSlotBoundId(slot)).." - "..ability.name) end
-            -- log("Abilty used - ", ability.name)
-            -- if slot == 2 then
-                -- log("Cancelling heavy")
-                -- self.currentEvent = nil
-            -- end
-        -- end
-    -- )
-	
+    	
 	self.cmRegistered = true
 	
 	if CombatMetronome.SV.Progressbar.trackGCD and (CombatMetronome.SV.Progressbar.trackCollectibles or (CombatMetronome.SV.Progressbar.showMountNick and CombatMetronome.SV.Progressbar.trackMounting)) then
@@ -313,13 +257,11 @@ function CombatMetronome:RegisterCollectiblesTracker()
 					zo_callLater(function() self.Progressbar.collectibleInUse = nil end, 1000)
 				end
 				if type == COLLECTIBLE_CATEGORY_TYPE_MOUNT then
-					-- if id == GetActiveCollectibleByType(COLLECTIBLE_CATEGORY_TYPE_MOUNT,GAMEPLAY_ACTOR_CATEGORY_PLAYER) then
-						self.Progressbar.activeMount.name = Util.Text.CropZOSString(GetCollectibleNickname(id), "collectible")
-						self.Progressbar.activeMount.icon = icon
-						if CombatMetronome.menu.icons[2] then
-							CombatMetronome.menu.icons[2]:SetTexture(icon)
-						end
-					-- end
+					self.Progressbar.activeMount.name = Util.Text.CropZOSString(GetCollectibleNickname(id), "collectible")
+					self.Progressbar.activeMount.icon = icon
+					if CombatMetronome.menu.icons[2] then
+						CombatMetronome.menu.icons[2]:SetTexture(icon)
+					end
 				end
 			end
 		end
@@ -343,10 +285,6 @@ function CombatMetronome:RegisterItemsTracker()
 					self.itemCache.name[i] = Util.Text.CropZOSString(GetItemName(1, i), "item")
 					self.itemCache.icon[i] = GetItemInfo(1, i)
 				end
-				-- zo_callLater(function()
-					-- self.itemCache = nil
-				-- end,
-				-- 400)
 			end
 		end
 	)
@@ -396,28 +334,12 @@ function CombatMetronome:RegisterCombatEvents()
 				elseif aId == 87474 then
 					CombatMetronome:SetIconsAndNamesNil()
 					self.Progressbar.jesterFestivalCherryBlossom = true
-				-- elseif aId == 138780 then
-					-- CombatMetronome:SetIconsAndNamesNil()
-					-- self.Progressbar.killingAction = {}
-					-- self.Progressbar.killingAction.name = Util.Text.CropZOSString(aName, "ability")
-					-- self.Progressbar.killingAction.icon = "/esoui/art/icons/ability_u26_vampire_synergy_feed.dds"
-				-- elseif aId == 146301 then
-					-- CombatMetronome:SetIconsAndNamesNil()
-					-- self.Progressbar.killingAction = {}
-					-- self.Progressbar.killingAction.name = Util.Text.CropZOSString(aName, "ability")
-					-- self.Progressbar.killingAction.icon = "/esoui/art/icons/achievement_u23_skillmaster_darkbrotherhood.dds"
 				elseif aId == 16565 then
 					CombatMetronome:SetIconsAndNamesNil()
 					self.Progressbar.breakingFree = {}
 					self.Progressbar.breakingFree.name = Util.Text.CropZOSString(aName, "ability")
 					self.Progressbar.breakingFree.icon = "/esoui/art/icons/ability_rogue_050.dds"
-				-- elseif aGraphic ~= nil and aName ~= nil and res == 2240 and aId ~= (36432 or 36010 or 138780 or 146301 or 16565) and aSlotType == ACTION_SLOT_TYPE_OTHER then
-					-- CombatMetronome:SetIconsAndNamesNil()
-					-- self.otherSynergies = {}
-					-- self.otherSynergies.icon = aGraphic
-					-- self.otherSynergies.name = Util.Text.CropZOSString(aName)
 				elseif not self.Progressbar.synergy.wasUsed and self.Progressbar.synergy.name == Util.Text.CropZOSString(aName, "synergy") then
-					-- self.debug:Print("Synergy "..Util.Text.CropZOSString(aName, "ability").." was used")
 					self.Progressbar.synergy.wasUsed = true
 				end
 			end
@@ -481,47 +403,28 @@ function StackTracker:Register(skill)
 	
 	if self:CheckIfRegistered(skill) then
 		return
-	end	
-	-- local registeredAbility = false
-	-- if skill == "FS" then
+	end
 	
-		-- EVENT_MANAGER:RegisterForEvent(
-			-- self.name.."HotbarUpdateUpdate",
-			-- EVENT_HOTBAR_SLOT_CHANGE_REQUESTED,
-			-- function(...) self:HandleHotbarChangeRequested(...) end
-		-- )
-		
-		-- self.hotbarUpdateRegistered = true
-		-- registeredAbility = true
-		-- if CombatMetronome.SV.debug.enabled then CombatMetronome.debug:Print("hotbarUpdate is registered") end
-	-- elseif skill ~= "FS" then
-		
-		local aId
-				
-		if type(self.SKILL_ATTRIBUTES[skill].id) == "number" then
-			aId = self.SKILL_ATTRIBUTES[skill].id
-		elseif self.SKILL_ATTRIBUTES[skill].id.buff then
-			aId = self.SKILL_ATTRIBUTES[skill].id.buff
-		elseif skill == "GF" or skill == "FS" then
-			aId = self.SKILL_ATTRIBUTES[skill].id[Util.Stacks.morphs[skill]].buff
-		end
-		self.trackedIds[aId] = skill
-		
-		local eventName = self.name..skill.."Stacks"
-		
-		self:RegisterEffectChanged(eventName, aId)  -- Register Skill
-		
-		self.stacks[skill] = self:GetCurrentStacks(skill)
-		self:InitializeUI(skill)
-		
-		-- registeredAbility = true
-		
-		-- if CombatMetronome.SV.debug.enabled then CombatMetronome.debug:Print(skill.." effectChanged is registered with ID: "..aId) end
-	-- end
-	-- if registeredAbility then
-		StackTracker:ChangeStackCount(skill, self.stacks[skill])
-		if CombatMetronome.SV.debug.enabled then CombatMetronome.debug:Print(skill.." tracker is registered") end
-	-- end
+	local aId
+			
+	if type(self.SKILL_ATTRIBUTES[skill].id) == "number" then
+		aId = self.SKILL_ATTRIBUTES[skill].id
+	elseif self.SKILL_ATTRIBUTES[skill].id.buff then
+		aId = self.SKILL_ATTRIBUTES[skill].id.buff
+	elseif skill == "GF" or skill == "FS" then
+		aId = self.SKILL_ATTRIBUTES[skill].id[Util.Stacks.morphs[skill]].buff
+	end
+	self.trackedIds[aId] = skill
+	
+	local eventName = self.name..skill.."Stacks"
+	
+	self:RegisterEffectChanged(eventName, aId)  -- Register Skill
+	
+	self.stacks[skill] = self:GetCurrentStacks(skill)
+	self:InitializeUI(skill)
+	
+	StackTracker:ChangeStackCount(skill, self.stacks[skill])
+	if CombatMetronome.SV.debug.enabled then CombatMetronome.debug:Print(skill.." tracker is registered") end
 end
 
 function StackTracker:RegisterEffectChanged(name, aId)
@@ -553,13 +456,7 @@ function CombatMetronome:UnregisterCM()
 	
 	self.cmRegistered = false
 	-- if CombatMetronome.SV.debug.enabled then CombatMetronome.debug:Print("cm is unregistered") end
-	
-	-- EVENT_MANAGER:UnregisterForEvent(
-		-- self.name.."BarSwap")
 		
-	-- EVENT_MANAGER:UnregisterForEvent(
-		-- self.name.."RollDodge")
-	
 	if self.collectiblesTrackerRegistered then
 		CombatMetronome:UnregisterCollectiblesTracker()
 	end
@@ -602,56 +499,21 @@ function StackTracker:Unregister(skill)
 		return
 	end
 	
-	-- local unregisteredAbility = false
-	-- if skill == "FS" then
-		-- EVENT_MANAGER:UnregisterForEvent(
-			-- self.name.."HotbarUpdate")
-		
-		-- self.hotbarUpdateRegistered = false
-		-- if CombatMetronome.SV.debug.enabled then CombatMetronome.debug:Print("hotbarUpdate is unregistered") end
-		-- unregisteredAbility = true
-	-- elseif skill ~= "FS" then
-			
-		-- local aId
-		
-		-- if type(self.SKILL_ATTRIBUTES[skill].id) == "number" then
-			-- aId = self.SKILL_ATTRIBUTES[skill].id
-		-- elseif self.SKILL_ATTRIBUTES[skill].id.buff then
-			-- aId = self.SKILL_ATTRIBUTES[skill].id.buff
-		-- elseif skill == "GF" then
-			-- if Util.Stacks.morphs[skill] then
-				-- aId = self.SKILL_ATTRIBUTES[skill].id[Util.Stacks.morphs[skill]].buff
-			-- else
-				-- for id, ability in pairs(self.trackedIds) do
-					-- if (skill == ability) then
-						-- aId = id
-						-- break
-					-- end
-				-- end
-			-- end
-		-- end
-		-- if self.trackedIds[aId] then 
-			-- self.trackedIds[aId] = nil
-		-- end
-		for id, ability in pairs(self.trackedIds) do
-			if (ability == skill) then
-				self.trackedIds[id] = nil
-				-- unregisteredAbility = true
-				break
-			end
+	for id, ability in pairs(self.trackedIds) do
+		if (ability == skill) then
+			self.trackedIds[id] = nil
+			-- unregisteredAbility = true
+			break
 		end
-	
-		EVENT_MANAGER:UnregisterForEvent(
-			self.name..skill.."Stacks")
-	
-		-- if CombatMetronome.SV.debug.enabled then CombatMetronome.debug:Print(skill.." effectChanged is unregistered") end
-	-- end
-	-- if unregisteredAbility then
-		self.stacks[skill] = nil
-		self:HandleUIVisibility(skill, "NoUI")
-		self:HandleUIVisibility(skill, "NoSample")
-		if CombatMetronome.SV.debug.enabled then CombatMetronome.debug:Print(skill.." tracker is unregistered") end
-	-- end
+	end
+
+	EVENT_MANAGER:UnregisterForEvent(
+		self.name..skill.."Stacks")
+
+	self.stacks[skill] = nil
+	self:HandleUIVisibility(skill, "NoUI")
+	self:HandleUIVisibility(skill, "NoSample")
+	if CombatMetronome.SV.debug.enabled then CombatMetronome.debug:Print(skill.." tracker is unregistered") end
 end
 
 function CombatMetronome:UnregisterCollectiblesTracker()
