@@ -46,30 +46,31 @@ function CombatMetronome:Init()
 
 	self:CheckSavedVariables()
 	
-	CombatMetronome.SV = ZO_SavedVars:NewCharacterIdSettings("CombatMetronomeSavedVars", 2, nil, self.DEFAULT_SAVED_VARS)
-	if CombatMetronome.SV.global then
-		CombatMetronome.SV = ZO_SavedVars:NewAccountWide("CombatMetronomeSavedVars", 2, nil, self.DEFAULT_SAVED_VARS)
-		CombatMetronome.SV.global = true
+	self.SV = ZO_SavedVars:NewCharacterIdSettings("CombatMetronomeSavedVars", 2, nil, self.DEFAULT_SAVED_VARS)
+	if self.SV.global then
+		self.SV = ZO_SavedVars:NewAccountWide("CombatMetronomeSavedVars", 2, nil, self.DEFAULT_SAVED_VARS)
+		self.SV.global = true
 	end
 	
-	CombatMetronome.debug = LibChatMessage("|ce11212C|rombat |ce11212M|retronome", "|ce11212CM|r")
-	CombatMetronome.debug:SetEnabled(true)
+	self.debug = LibChatMessage("|ce11212C|rombat |ce11212M|retronome", "|ce11212CM|r")
+	self.debug:SetEnabled(true)
 	
-	CombatMetronome.msg = LibNotification
+	self.msg = LibNotification
 	
-	if CombatMetronome.SV.automaticSVCleanup.enabled then
+	if self.SV.automaticSVCleanup.enabled then
 		self:AutomaticSVCleanup()
 	end
 		
 	if LibSetDetection and LibSetDetection.RegisterEvent then
-		CombatMetronome.LSD = LibSetDetection
+		self.LSD = LibSetDetection
 	else
-		CombatMetronome.SV.Resources.coralBahsei = false
+		self.SV.Resources.coralBahsei = false
 	end
 	
 	self.currentCharacterName = Util.Text.CropZOSString(GetUnitName("player"), "name")
 	self.currentlyEquippedAbilities = {}
-	CombatMetronome:BuildListOfCurrentlyEquippedAbilities()
+	-- StackTracker.slottedSkills = {}
+	-- CombatMetronome:BuildListOfCurrentlyEquippedAbilities()
 		
 	StackTracker.classId = GetUnitClassId("player")
 	StackTracker.class = StackTracker.CLASS[StackTracker.classId]
@@ -88,12 +89,12 @@ function CombatMetronome:Init()
 	self.Progressbar.itemUsed = nil
 	self.Progressbar.collectibleInUse = nil
 	self.Progressbar.synergy = {}
-    self.Progressbar.UI = CombatMetronome:BuildUI()
-    CombatMetronome:BuildMenu()
+    self.Progressbar.UI = self:BuildUI()
+    -- CombatMetronome:BuildMenu()
 	-- CombatMetronome:UpdateAdjustChoices()
 
     self.Progressbar.lastInterval = 0
-	StackTracker.actionSlotCache = self.currentlyEquippedAbilities.data
+	-- StackTracker.actionSlotCache = self.currentlyEquippedAbilities.data
 
 	
 	Util.Ability.Tracker.CombatMetronome = self
@@ -103,7 +104,9 @@ function CombatMetronome:Init()
 	---- Stack Tracker ----
 	-----------------------
 	
-	StackTracker.activeSkills = {}
+	StackTracker.availableSkills = {}
+	StackTracker.AVAILABLE_TRACKING_IDS = {}
+	StackTracker.slottedSkills = {}
 	StackTracker:IsTrackingAvailable()
 	
 	StackTracker:MorphCheck()
@@ -123,11 +126,13 @@ function CombatMetronome:Init()
 	--------------
 	-- Metadata --
 	--------------
+	
+	self:BuildListOfCurrentlyEquippedAbilities()
+    self:BuildMenu()
 	self:RegisterMetadata()
 	
 	if dev then self.DevTools = self:DevTools() end
-	
-	CombatMetronome:CreateNotifications()
+	self:CreateNotifications()
 end
 
 -- LOAD HOOK
@@ -144,37 +149,49 @@ end
 	-----------------------------
 
 function CombatMetronome:RegisterMetadata()
+	-- EVENT_MANAGER:RegisterForEvent(
+        -- self.name.."CurrentActionslotsOnHotbar",
+        -- EVENT_ACTION_SLOTS_ALL_HOTBARS_UPDATED,
+        -- function()
+			-- CombatMetronome:BuildListOfCurrentlyEquippedAbilities()
+			-- StackTracker.actionSlotCache = self.currentlyEquippedAbilities.data
+			-- StackTracker:IsTrackingAvailable()
+			-- if self.isRespec then
+				-- StackTracker:MorphCheck()
+				-- self.isRespec = false
+			-- end
+			-- for skill, _ in pairs(StackTracker.SKILL_ATTRIBUTES) do
+				-- if CombatMetronome.SV.StackTracker[skill].tracked then
+					-- if StackTracker.availableSkills[skill] and StackTracker:CheckIfSlotted(skill) then
+					-- if StackTracker.availableSkills[skill] and StackTracker.slottedSkills[skill] then
+						-- StackTracker:Register(skill)
+					-- elseif not StackTracker:CheckIfSlotted(skill) and StackTracker:CheckIfRegistered(skill) then
+					-- elseif not StackTracker.slottedSkills[skill] and StackTracker:CheckIfRegistered(skill) then
+						-- StackTracker:Unregister(skill)
+					-- end
+				-- end
+			-- end
+        -- end
+    -- )
+	
 	EVENT_MANAGER:RegisterForEvent(
-        self.name.."CurrentActionslotsOnHotbar",
-        EVENT_ACTION_SLOTS_ALL_HOTBARS_UPDATED,
-        function()
-			CombatMetronome:BuildListOfCurrentlyEquippedAbilities()
-			StackTracker.actionSlotCache = self.currentlyEquippedAbilities.data
-			StackTracker:IsTrackingAvailable()
-			if self.isRespec then
-				StackTracker:MorphCheck()
-				self.isRespec = false
-			end
-			for skill, _ in pairs(StackTracker.SKILL_ATTRIBUTES) do
-				if CombatMetronome.SV.StackTracker[skill].tracked then
-					if StackTracker.activeSkills[skill] and StackTracker:CheckIfSlotted(skill) then
-						StackTracker:Register(skill)
-					elseif not StackTracker:CheckIfSlotted(skill) and StackTracker:CheckIfRegistered(skill) then
-						StackTracker:Unregister(skill)
-					end
-				end
-			end
-        end
+        self.name.."ArmoryBuildRestore",
+        EVENT_ARMORY_BUILD_RESTORE_RESPONSE,
+        function(_, result, _)
+			-- callLater needed, since the abilities are only updated after the event fired
+			zo_callLater(function() StackTracker:AbilityUpdater() end, 10)
+		end
     )
 	
 	EVENT_MANAGER:RegisterForEvent(
         self.name.."RespecResult",
         EVENT_SKILL_RESPEC_RESULT,
         function(_, result)
-			if (result ~= RESPEC_RESULT_SUCCESS) then
-				return
-			end
-			self.isRespec = true
+			-- if (result ~= RESPEC_RESULT_SUCCESS) then
+				-- return
+			-- end
+			-- self.isRespec = true
+			StackTracker:AbilityUpdater()
         end
     )
 	
@@ -188,22 +205,32 @@ function CombatMetronome:RegisterMetadata()
 			for skill, _ in pairs(CombatMetronome.StackTracker.SKILL_ATTRIBUTES) do	
 				StackTracker:PVPSwitch(skill)
 			end
-		end
-	)
-	
-	EVENT_MANAGER:RegisterForEvent(
-		self.name.."ModelRebuilt",
-		EVENT_LOCAL_PLAYER_MODEL_REBUILT,
-		function()
+			
 			-- Get current stack count if you left an instance
-			for skill, _ in pairs(StackTracker.activeSkills) do
-				if StackTracker.activeSkills[skill] and StackTracker:CheckIfSlotted(skill) and CombatMetronome.SV.StackTracker[skill].tracked then
+			for skill, _ in pairs(StackTracker.availableSkills) do
+				-- if StackTracker.availableSkills[skill] and StackTracker:CheckIfSlotted(skill) and CombatMetronome.SV.StackTracker[skill].tracked then
+				if StackTracker.availableSkills[skill] and StackTracker.slottedSkills[skill] and CombatMetronome.SV.StackTracker[skill].tracked then
 					StackTracker.stacks[skill] = StackTracker:GetCurrentStacks(skill)
 					StackTracker:ChangeStackCount(skill, StackTracker.stacks[skill])
 				end
 			end
 		end
 	)
+	
+	-- EVENT_MANAGER:RegisterForEvent(
+		-- self.name.."ModelRebuilt",
+		-- EVENT_LOCAL_PLAYER_MODEL_REBUILT,
+		-- function()
+			-- Get current stack count if you left an instance
+			-- for skill, _ in pairs(StackTracker.availableSkills) do
+				-- if StackTracker.availableSkills[skill] and StackTracker:CheckIfSlotted(skill) and CombatMetronome.SV.StackTracker[skill].tracked then
+				-- if StackTracker.availableSkills[skill] and StackTracker.slottedSkills[skill] and CombatMetronome.SV.StackTracker[skill].tracked then
+					-- StackTracker.stacks[skill] = StackTracker:GetCurrentStacks(skill)
+					-- StackTracker:ChangeStackCount(skill, StackTracker.stacks[skill])
+				-- end
+			-- end
+		-- end
+	-- )
 
     EVENT_MANAGER:RegisterForEvent(
         self.name.."CombatStateChange",

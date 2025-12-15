@@ -112,13 +112,13 @@ function CombatMetronome:BuildMenu()
 				{
 					type = "submenu",
 					name = "|t20:20:"..entry.icon.."|t "..entry.subName,
-					disabled = function() return not StackTracker.activeSkills[skill] end,
+					disabled = function() return not StackTracker.availableSkills[skill] end,
 					controls = {
 						{
 							type = "checkbox",
 							name = entry.Name,
 							disabled = function()
-								return not StackTracker.activeSkills[skill]
+								return not StackTracker.availableSkills[skill]
 							end,
 							getFunc = function() return sv.tracked end,
 							setFunc = function(value)
@@ -126,8 +126,8 @@ function CombatMetronome:BuildMenu()
 								-- if value and not StackTracker.UI[skill] and StackTracker:CheckIfSlotted(skill) then
 									-- StackTracker:InitializeUI(skill)
 									-- StackTracker:ChangeStackCount(skill, StackTracker.stacks[skill])
-								-- IconDesaturation(self.menu.icons.stackTracker.frame[skill], value and StackTracker.activeSkills[skill])
-								-- IconDesaturation(self.menu.icons.stackTracker.icon[skill], value and StackTracker.activeSkills[skill])
+								-- IconDesaturation(self.menu.icons.stackTracker.frame[skill], value and StackTracker.availableSkills[skill])
+								-- IconDesaturation(self.menu.icons.stackTracker.icon[skill], value and StackTracker.availableSkills[skill])
 								-- elseif not value and StackTracker.UI[skill] then
 									-- StackTracker:HandleUIVisibility(skill, "NoSample")
 									-- StackTracker:HandleUIVisibility(skill, "NoUI")

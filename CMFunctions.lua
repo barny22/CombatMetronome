@@ -230,16 +230,34 @@ function CombatMetronome:BuildListOfCurrentlyEquippedAbilities()
 	if not self.currentlyEquippedAbilities.list then self.currentlyEquippedAbilities.list = {} end
 	
 	local executeAbilityFound = false
+	self.StackTracker.slottedSkills = {}
 	for i, skill in ipairs(self.currentlyEquippedAbilities.data) do
 		self.currentlyEquippedAbilities.list[i] = tostring("|t20:20:"..skill.icon.."|t "..skill.name)
+		
+		-- SLOTTED Skills check
+		-- for skill in pairs(self.StackTracker.slottedSkills) do
+			-- self.StackTracker.slottedSkills[skill] = nil
+		-- end
+		
+		if self.StackTracker.AVAILABLE_TRACKING_IDS[skill.id] then
+			self.StackTracker.slottedSkills[self.StackTracker.AVAILABLE_TRACKING_IDS[skill.id]] = true
+		end
+		
+		if self.StackTracker.availableSkills.Crux and not self.StackTracker.slottedSkills.Crux and self.StackTracker.CRUX_SKILL_LINE_IDS[skill.skillLine] then
+			self.StackTracker.slottedSkills.Crux = true
+		end
+		
+		-- EXECUTE check
 		if self.Resources.EXECUTE_ABILITIES[skill.id] then
 			-- CombatMetronome.debug:Print("Execute ability found, adjusting execute threshold")
 			self.Resources.executeThreshold = math.max(self.Resources.EXECUTE_ABILITIES[skill.id], self.Resources.executeThreshold or 0)
 			executeAbilityFound = true
-		elseif not executeAbilityFound then
-			-- CombatMetronome.debug:Print("No execute ability found")
-			self.Resources.executeThreshold = CombatMetronome.SV.Resources.showHealth and CombatMetronome.SV.Resources.hpHighlightThreshold or 0
 		end
+		
+	end
+	if not executeAbilityFound then
+		-- CombatMetronome.debug:Print("No execute ability found")
+		self.Resources.executeThreshold = CombatMetronome.SV.Resources.showHealth and CombatMetronome.SV.Resources.hpHighlightThreshold or 0
 	end
 	
 	-- refresh equipped ability list
@@ -296,45 +314,44 @@ function CombatMetronome:HandleAbilityUsed(event)
 end
 
 	-------------------------------------------
-	---- Check if Stack  Tracker is active ----
+	---- Check if Stack Tracker is active ----
 	-------------------------------------------
 function StackTracker:MorphCheck()
-	if StackTracker.activeSkills["FS"] and StackTracker.activeSkills["GF"] then
+	if StackTracker.availableSkills.FS and StackTracker.availableSkills.GF then
+		-- CombatMetronome.debug:Print("Updating morphs for GF and FS")
 		Util.Stacks.morphs.GF = Util.Stacks:CheckMorph("GF")
 		Util.Stacks.morphs.FS = Util.Stacks:CheckMorph("FS")
-	elseif StackTracker.activeSkills["FS"] then
+	elseif StackTracker.availableSkills.FS then
+		-- CombatMetronome.debug:Print("Updating morphs for FS")
 		Util.Stacks.morphs.FS = Util.Stacks:CheckMorph("FS")
-		if Util.Stacks.morphs["GF"] then Util.Stacks.morphs["GF"] = nil end
-	elseif StackTracker.activeSkills["GF"] then
+		if Util.Stacks.morphs.GF then Util.Stacks.morphs.GF = nil end
+	elseif StackTracker.availableSkills.GF then
+		-- CombatMetronome.debug:Print("Updating morphs for GF")
 		Util.Stacks.morphs.GF = Util.Stacks:CheckMorph("GF")
-		if Util.Stacks.morphs["FS"] then Util.Stacks.morphs["FS"] = nil end
+		if Util.Stacks.morphs.FS then Util.Stacks.morphs.FS = nil end
 	else
-		if Util.Stacks.morphs["GF"] then Util.Stacks.morphs["GF"] = nil end
-		if Util.Stacks.morphs["FS"] then Util.Stacks.morphs["FS"] = nil end
+		-- CombatMetronome.debug:Print("Deleting morphs for GF and FS")
+		if Util.Stacks.morphs.GF then Util.Stacks.morphs.GF = nil end
+		if Util.Stacks.morphs.FS then Util.Stacks.morphs.FS = nil end
 	end
 end
 
 function StackTracker:TrackerIsActive(skill)
 	if skill then
-		if self.activeSkills[skill] and self:CheckIfSlotted(skill) and CombatMetronome.SV.StackTracker[skill].tracked then
+		-- if self.availableSkills[skill] and self:CheckIfSlotted(skill) and CombatMetronome.SV.StackTracker[skill].tracked then
+		if self.availableSkills[skill] and self.slottedSkills[skill] and CombatMetronome.SV.StackTracker[skill].tracked then
 			return true
 		end
 		return false
 	else
 		for skill, _ in pairs(self.SKILL_ATTRIBUTES) do
-			if self.activeSkills[skill] and self:CheckIfSlotted(skill) and CombatMetronome.SV.StackTracker[skill].tracked then
+			-- if self.availableSkills[skill] and self:CheckIfSlotted(skill) and CombatMetronome.SV.StackTracker[skill].tracked then
+			if self.availableSkills[skill] and self.slottedSkills[skill] and CombatMetronome.SV.StackTracker[skill].tracked then
 				return true
 			end
 		end
 		return false
 	end
-end
-
-function StackTracker:EffectChangedShouldBeActive()
-	if self:TrackerIsActive() and not self:IsTrackingAvailable("FS") then
-		return true
-	end
-	return false
 end
 
 		---------------------------------------
@@ -369,54 +386,24 @@ end
 		------------------------------------------------
         ---- Tracker check if abilities are slotted ----
         ------------------------------------------------
-		
-function StackTracker:CheckIfSlotted(skill)
-	local ability = ""
-	local attributes = StackTracker.SKILL_ATTRIBUTES[skill]
-	if skill == "BA" or skill == "MW" or skill == "FI" then ability = attributes.id.ability
-	elseif skill == "GF" then 
-		local morph = Util.Stacks.morphs.GF
-		if not morph then return false end
-		ability = attributes.id[morph].ability
-	end
-	if ability ~= "" then
-		for i=1,#self.actionSlotCache do
-			if self.actionSlotCache[i].id == ability then
-				return true
-			end
-		end
-	elseif skill == "Crux" and self.activeSkills[skill] then return true
-	elseif skill == "FS" then
-		local morph = Util.Stacks.morphs.FS
-		if not morph then return false end
-		for i=1,3 do
-			ability = attributes.id[morph].ability[i]
-			for j=1,#self.actionSlotCache do
-				if self.actionSlotCache[j].id == ability then
-					return true
-				end
-			end
-		end
-	end
-	return false
-end
 
 function StackTracker:CheckIfRegistered(skill)
-	if skill == "FS" and self.hotbarUpdateRegistered then
-		return true
-	else
+	-- if skill == "FS" and self.hotbarUpdateRegistered then
+		-- return true
+	-- else
 		for _, aName in pairs(self.trackedIds) do
 			if skill == aName then
 				return true
 			end
 		end
-	end
+	-- end
 	return false
 end
 
 function StackTracker:GetCurrentStacks(skill)
 	local stacks
-	if self:CheckIfSlotted(skill) then
+	-- if self:CheckIfSlotted(skill) then
+	if self.slottedSkills[skill] then
 		stacks = Util.Stacks:GetCurrentNumStacksOnPlayer(skill)
 		return stacks
 	end
@@ -426,11 +413,44 @@ end
 function StackTracker:IsTrackingAvailable()
 	for skill, entry in pairs(self.SKILL_ATTRIBUTES) do
 		for _, id in ipairs(entry.skillLineId) do
-			local _,_,isActive,_,_,_ = GetSkillLineDynamicInfo(GetSkillLineIndicesFromSkillLineId(id))
-			self.activeSkills[skill] = isActive
-			if isActive then break end
+			local _,_,isAvailable,_,_,_ = GetSkillLineDynamicInfo(GetSkillLineIndicesFromSkillLineId(id))
+			self.availableSkills[skill] = isAvailable
+			if isAvailable then break end
 		end
 	end
+		-- Build list of possibly trackable ids
+	for i in pairs(self.AVAILABLE_TRACKING_IDS) do
+		self.AVAILABLE_TRACKING_IDS[i] = nil
+	end
+	for skill in pairs(self.availableSkills) do
+		if self.availableSkills[skill] then
+			for id, ability in pairs(self.ALL_IDS) do
+				if skill == ability then self.AVAILABLE_TRACKING_IDS[id] = skill end
+			end
+		end
+	end		
+end
+
+function StackTracker:AbilityUpdater()
+	StackTracker:IsTrackingAvailable()
+	StackTracker:MorphCheck()
+	CombatMetronome:BuildListOfCurrentlyEquippedAbilities()
+	-- StackTracker.actionSlotCache = CombatMetronome.currentlyEquippedAbilities.data
+	
+	for skill, _ in pairs(StackTracker.SKILL_ATTRIBUTES) do
+		if CombatMetronome.SV.StackTracker[skill].tracked then
+			-- if StackTracker.availableSkills[skill] and StackTracker:CheckIfSlotted(skill) then
+			if StackTracker.availableSkills[skill] and StackTracker.slottedSkills[skill] then
+				-- if CombatMetronome.SV.debug.enabled then CombatMetronome.debug:Print("Trying to register "..skill) end
+				StackTracker:Register(skill)
+			-- elseif not StackTracker:CheckIfSlotted(skill) and StackTracker:CheckIfRegistered(skill) then
+			elseif not StackTracker.slottedSkills[skill] and StackTracker:CheckIfRegistered(skill) then
+				-- if CombatMetronome.SV.debug.enabled then CombatMetronome.debug:Print("Trying to unregister "..skill) end
+				StackTracker:Unregister(skill)
+			end
+		end
+	end
+	-- CombatMetronome.debug:Print("Abilities updated at: "..GetFrameTimeMilliseconds())
 end
 
 function StackTracker:InitializeUI(skill)
@@ -521,7 +541,7 @@ function CombatMetronome:ResourcesPVPSwitch()
 end
 
 function StackTracker:PVPSwitch(skill)
-	if self:TrackerIsActive(skill) and self:CheckIfSlotted(skill) and self.UI[skill] then
+	if self:TrackerIsActive(skill) and self.UI[skill] then
 		local registered = self:CheckIfRegistered(skill)
 		if CombatMetronome.SV.StackTracker[skill].hideInPVP and CombatMetronome.inPVPZone then
 			if registered then
@@ -538,7 +558,7 @@ function StackTracker:PVPSwitch(skill)
 				-- if CombatMetronome.SV.debug.enabled then CombatMetronome.debug:Print("registered tracker scenario 3") end
 			end
 		end
-	elseif self:TrackerIsActive(skill) and self:CheckIfSlotted(skill) and not self.UI[skill] and not CombatMetronome.inPVPZone then
+	elseif self:TrackerIsActive(skill) and not self.UI[skill] and not CombatMetronome.inPVPZone then
 		-- self:InitializeUI(skill)
 		self:Register(skill)
 	end

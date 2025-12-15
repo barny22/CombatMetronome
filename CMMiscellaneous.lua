@@ -296,6 +296,36 @@ CombatMetronome.StackTracker.SKILL_ATTRIBUTES = {
 	},
 }
 
+CombatMetronome.StackTracker.ALL_IDS = {}
+do
+	for skill, entry in pairs(CombatMetronome.StackTracker.SKILL_ATTRIBUTES) do
+		if skill ~= "Crux" then
+			if entry.id.ability then
+				CombatMetronome.StackTracker.ALL_IDS[entry.id.ability] = skill
+			else
+				for morph, ids in pairs(entry.id) do
+					if type(ids.ability) == "table" then
+						for i in ipairs(ids.ability) do
+							CombatMetronome.StackTracker.ALL_IDS[ids.ability[i]] = skill
+						end
+					else
+						CombatMetronome.StackTracker.ALL_IDS[ids.ability] = skill
+					end
+				end
+			end
+		end
+	end
+end
+
+CombatMetronome.StackTracker.CRUX_SKILL_LINE_IDS = {}
+do
+	for _, skillLineId in ipairs(CombatMetronome.StackTracker.SKILL_ATTRIBUTES.Crux.skillLineId) do
+		CombatMetronome.StackTracker.CRUX_SKILL_LINE_IDS[skillLineId] = true
+	end
+end
+
+CombatMetronome.StackTracker.ABILITIES_USING_OR_GENERATING_CRUX = {182977, 183006, 183047, 183122, 183165, 183241, 183261, 183430, 183537, 183542, 185794, 185803, 185805, 185823, 185842, 185894, 185901, 185908, 186189, 186191, 186193, 186200, 186207, 186209, 186211, 186220, 186366, 186452, 186477, 186531, 188658, 188780, 188787, 193331, 193397, 193398, 194873, 194875, 198282, 198288, 198292, 198309, 198330, 198537, 198564, 198567, 238169, 238174, 238191, 238238, 238249, 238429, 238447, 238482, 238545, 247126}
+
 CombatMetronome.StackTracker.CLASS = {
 	[1] = "DK",
 	[2] = "SORC",

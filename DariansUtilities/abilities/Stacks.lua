@@ -79,7 +79,7 @@ function Stacks:UpdateMorphData(ability, morph)
 		local morphUpdated = false
 		-- local newMorph = self:CheckMorph(ability)
 		if ability == "FS" then
-			if not self.morphs.FS or self.morphs.FS ~= morph then
+			if self.morphs.FS and self.morphs.FS ~= morph then
 				self.morphs.FS = morph
 				morphUpdated = true
 			end
@@ -90,16 +90,15 @@ function Stacks:UpdateMorphData(ability, morph)
 				if CombatMetronome.StackTracker.trackedIds then
 					for id, skill in pairs(CombatMetronome.StackTracker.trackedIds) do
 						if skill == "FS" then
-							CombatMetronome.StackTracker.trackedIds[id] = nil									-- delete old tracked id
+							CombatMetronome.StackTracker:Unregister("FS")												-- unregister old id
+							CombatMetronome.StackTracker:Register("FS")													-- register new id
 							break
 						end
 					end
-					CombatMetronome.StackTracker.trackedIds[IDS.FS[morph]] = "FS"								-- use new tracked id
-					CombatMetronome.StackTracker:ChangeStackCount("FS", self:GetCurrentNumStacksOnPlayer("FS")) -- change stackCount
 				end
 			end
 		elseif ability == "GF" then
-			if not self.morphs.GF or self.morphs.GF ~= morph then
+			if self.morphs.GF and self.morphs.GF ~= morph then
 				self.morphs.GF = morph
 				morphUpdated = true
 			end
@@ -110,12 +109,11 @@ function Stacks:UpdateMorphData(ability, morph)
 				if CombatMetronome.StackTracker.trackedIds then
 					for id, skill in pairs(CombatMetronome.StackTracker.trackedIds) do
 						if skill == "GF" then
-							CombatMetronome.StackTracker.trackedIds[id] = nil									-- delete old tracked id
+							CombatMetronome.StackTracker:Unregister("GF")												-- unregister old id
+							CombatMetronome.StackTracker:Register("GF")													-- register new id
 							break
 						end
 					end
-					CombatMetronome.StackTracker.trackedIds[IDS.GF[morph]] = "GF"								-- use new tracked id
-					CombatMetronome.StackTracker:ChangeStackCount("GF", self:GetCurrentNumStacksOnPlayer("GF")) -- change stackCount
 				end
 			end
 		end
@@ -171,6 +169,8 @@ function Stacks:StoreAbilitiesOnActionBar()
 				if (actionSlot.id ~= 0) and not IsAlreadyInList(actionSlot.id) then
 					actionSlot.icon = GetAbilityIcon(actionSlot.id)
 					actionSlot.name = Util.Text.CropZOSString(GetAbilityName(actionSlot.id), "ability")
+					local sType, index = GetSpecificSkillAbilityKeysByAbilityId(actionSlot.id)
+					actionSlot.skillLine = GetSkillLineId(sType, index)
 
 					table.insert(actionSlots, actionSlot)  -- Add the current action slot to the table
 					if not Util.Ability.cache[actionSlot.id] then Util.Ability:ForId(actionSlot.id) end
@@ -195,21 +195,7 @@ function Stacks:GetCurrentNumStacksOnPlayer(skill)
 		["FS"] = 0,
 		["FI"] = 0,
 	}
-	-- if skill == "FS" and self.morphs.FS then
-		-- local ability
-		-- for i=2,3 do
-			-- ability = IDS.FS[Stacks.morphs.FS][i]
-			-- for j=1,#CombatMetronome.StackTracker.actionSlotCache do
-				-- if CombatMetronome.StackTracker.actionSlotCache[j].id == ability then
-					-- stacks.FS = i-1
-					-- break
-				-- end
-			-- end
-			-- if stacks.FS ~= 0 then
-				-- break
-			-- end
-		-- end
-	-- else
+	
 	local abilityToCheck
 	if skill == "GF" and Stacks.morphs.GF then
 		abilityToCheck = IDS.GF[Stacks.morphs.GF]
