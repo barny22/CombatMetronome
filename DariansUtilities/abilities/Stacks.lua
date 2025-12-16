@@ -87,15 +87,7 @@ function Stacks:UpdateMorphData(ability, morph)
 				if CombatMetronome.StackTracker.UI and CombatMetronome.StackTracker.UI.FS then
 					CombatMetronome.StackTracker.UI.FS.indicator.ApplyIcon()
 				end
-				-- if CombatMetronome.StackTracker.trackedIds then
-					-- for id, skill in pairs(CombatMetronome.StackTracker.trackedIds) do
-						-- if skill == "FS" then
-							CombatMetronome.StackTracker:Unregister("FS")												-- unregister old id
-							-- CombatMetronome.StackTracker:Register("FS")													-- register new id
-							-- break
-						-- end
-					-- end
-				-- end
+				CombatMetronome.StackTracker:Unregister("FS")												-- unregister old id
 			end
 		elseif ability == "GF" then
 			if self.morphs.GF and self.morphs.GF ~= morph then
@@ -106,15 +98,7 @@ function Stacks:UpdateMorphData(ability, morph)
 				if CombatMetronome.StackTracker.UI and CombatMetronome.StackTracker.UI.GF then
 					CombatMetronome.StackTracker.UI.GF.indicator.ApplyIcon()
 				end
-				-- if CombatMetronome.StackTracker.trackedIds then
-					-- for id, skill in pairs(CombatMetronome.StackTracker.trackedIds) do
-						-- if skill == "GF" then
-							CombatMetronome.StackTracker:Unregister("GF")												-- unregister old id
-							-- CombatMetronome.StackTracker:Register("GF")													-- register new id
-							-- break
-						-- end
-					-- end
-				-- end
+				CombatMetronome.StackTracker:Unregister("GF")												-- unregister old id
 			end
 		end
 	-- end
