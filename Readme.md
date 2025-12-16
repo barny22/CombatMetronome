@@ -52,8 +52,8 @@ Thanks to [b]Seltiix[/b] for prototyping the initial sound cue system.
 [list]
 [*]LibAddonMenu-2.0
 [*]libAddonKeybinds
-[*][b]LibChatMessage[/b] [b](!!new!!)[/b]
-[*][b]LibNotification[/b] [b](!!new!!)[/b]
+[*][b]LibChatMessage[/b]
+[*][b]LibNotification[/b]
 [*][b]LibSetDetection[/b] [b](optional)[/b]
 [/list]
 
