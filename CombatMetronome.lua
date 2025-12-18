@@ -358,9 +358,9 @@ function CombatMetronome:RegisterCombatEvents()
 				elseif not IsMounted() and aId == 36010 and self.Progressbar.activeMount.action ~= "Mounting" then
 					CombatMetronome:SetIconsAndNamesNil()
 					self.Progressbar.activeMount.action = "Mounting"
-				elseif aId == 87474 then
+				elseif CombatMetronome.FESTIVAL_IDS[aId] then
 					CombatMetronome:SetIconsAndNamesNil()
-					self.Progressbar.jesterFestivalCherryBlossom = true
+					self.Progressbar.festivalGCD = aId
 				elseif aId == 16565 then
 					CombatMetronome:SetIconsAndNamesNil()
 					self.Progressbar.breakingFree = {}

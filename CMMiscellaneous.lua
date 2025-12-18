@@ -1,6 +1,7 @@
 CombatMetronome.StackTracker = CombatMetronome.StackTracker or {}
 CombatMetronome.Resources = CombatMetronome.Resources or {}
 CombatMetronome.menu = CombatMetronome.menu or {}
+local Util = DariansUtilities
 
 CombatMetronome.DEFAULT_SAVED_VARS = {
 	["version"] = 2,
@@ -384,3 +385,18 @@ local function InsertSkillOptionsForStackTracker()
 	end
 end
 InsertSkillOptionsForStackTracker()
+
+CombatMetronome.FESTIVAL_IDS = {
+	[242982] = {
+		["name"] = Util.Text.CropZOSString(GetAbilityName(242982), "ability"),
+		["icon"] = "/art/fx/texture/snowball.dds",
+	},
+	[84330] = {
+		["name"] = Util.Text.CropZOSString(GetAbilityName(84330), "ability"),
+		["icon"] = "/esoui/art/icons/quest_mudball.dds",
+	},
+	[87474] = {
+		["name"] = Util.Text.CropZOSString(GetAbilityName(87474), "ability"),
+		["icon"] = "/esoui/art/icons/event_jestersfestival_2016_cherry_blossom_branch.dds",
+	},
+}

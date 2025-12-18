@@ -97,7 +97,7 @@ function CombatMetronome:SetIconsAndNamesNil()
 	self.Progressbar.activeMount.action = ""
 	self.Progressbar.collectibleInUse = nil
 	self.Progressbar.itemUsed = nil
-	self.Progressbar.jesterFestivalCherryBlossom = false
+	self.Progressbar.festivalGCD = nil
 	-- self.itemCache = nil
 	-- self.Progressbar.killingAction = nil
 	self.Progressbar.breakingFree = nil

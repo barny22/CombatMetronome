@@ -5,10 +5,6 @@ Util.Text = Util.Text or {}
 CombatMetronome.SV = CombatMetronome.SV or {}
 
 -- local INTERVAL = 200
-local CherryBlossom = {
-	["name"] = Util.Text.CropZOSString(GetAbilityName(87474), "ability"),
-	["icon"] = "/esoui/art/icons/event_jestersfestival_2016_cherry_blossom_branch.dds",
-}
 
 local function AnchorSpellIcon(dynamic)
 	if dynamic and not CombatMetronome.Progressbar.spellIconAnchoredDynamically then
@@ -90,7 +86,7 @@ function CombatMetronome:Update()
 		
 		-- this is important for GCD Tracking
 		local gcdProgress, slotRemaining, slotDuration = Util.Ability.Tracker:GCDCheck()
-
+				
 		-- local interval = false
 		-- if time > progressbar.lastInterval + INTERVAL then
 			-- progressbar.lastInterval = time
@@ -153,8 +149,8 @@ function CombatMetronome:Update()
 			elseif progressbar.breakingFree and sv.trackBreakingFree then
 				self:GCDSpecifics(progressbar.breakingFree.name, progressbar.breakingFree.icon, gcdProgress, false)
 				-- progressbar.nonAbilityGCDRunning = true
-			elseif progressbar.jesterFestivalCherryBlossom then
-				self:GCDSpecifics(CherryBlossom.name, CherryBlossom.icon, gcdProgress, false)
+			elseif progressbar.festivalGCD then
+				self:GCDSpecifics(self.FESTIVAL_IDS[progressbar.festivalGCD].name, self.FESTIVAL_IDS[progressbar.festivalGCD].icon, gcdProgress, false)
 			end
 			
 			if gcdProgress <= 0 then
