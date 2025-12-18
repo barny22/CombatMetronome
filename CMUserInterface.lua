@@ -366,22 +366,7 @@ function StackTracker:BuildUI(skill)
 			-- stacksWindow:SetAnchor(RIGHT, GuiRoot, RIGHT, -GuiRoot:GetWidth()/8, GuiRoot:GetHeight()/6)
 		end
 	end
-	
-	local tracker = ZO_HUDFadeSceneFragment:New(stacksWindow) 
-	local function FadeScenes(value)
-		if value == "UI" then
-			SCENE_MANAGER:GetScene("hud"):AddFragment(tracker)
-			SCENE_MANAGER:GetScene("hudui"):AddFragment(tracker)
-		elseif value == "NoUI" then
-			SCENE_MANAGER:GetScene("hud"):RemoveFragment(tracker)
-			SCENE_MANAGER:GetScene("hudui"):RemoveFragment(tracker)
-		elseif value == "Sample" then
-			SCENE_MANAGER:GetScene("gameMenuInGame"):AddFragment(tracker)
-		elseif value == "NoSample" then
-			SCENE_MANAGER:GetScene("gameMenuInGame"):RemoveFragment(tracker)
-		end
-	end
-	
+		
 	-----------------------------
 	---- Generate Indicators ----
 	-----------------------------
@@ -488,26 +473,28 @@ function StackTracker:BuildUI(skill)
 		timer:SetColor(unpack(attributes.highlight))
 		timer:SetAlpha(1)
 		timer:SetFont(Util.Text.getFontString(tostring("$(BOLD_FONT)"), size*multiplier, "outline"))
-		timer:SetHidden(not sv.showTimer)
+		timer:SetHidden(not CombatMetronome.SV.StackTracker.isUnlocked)
+		timer:SetText("2.5s")
 		
 		local timerBarBackdrop = WINDOW_MANAGER:CreateControl(self.name..skill.."TimerBarBackdrop", stacksWindow, CT_BACKDROP)
 		timerBarBackdrop:SetDrawTier(DT_HIGH)
 		timerBarBackdrop:SetCenterColor(0.06, 0.06, 0.06, 0.7)
 		timerBarBackdrop:SetEdgeTexture("/esoui/art/miscellaneous/borderedinsettransparent_edgefile.dds", 128, 16, size/2)
-		timerBarBackdrop:SetHidden(not sv.showTimerBar)
+		timerBarBackdrop:SetHidden(not CombatMetronome.SV.StackTracker.isUnlocked)
 		
 		local timerBar = WINDOW_MANAGER:CreateControl(self.name..skill.."TimerBar", stacksWindow, CT_STATUSBAR)
 		timerBar:SetDrawTier(DT_HIGH)
 		local r,g,b,a = unpack(attributes.highlight)
 		timerBar:SetColor(r,g,b,0.35)
-		timerBar:SetHidden(not sv.showTimerBar)
+		timerBar:SetHidden(not CombatMetronome.SV.StackTracker.isUnlocked)
+		timerBar:SetValue(0.5)
 		
 		local timerBarGloss = WINDOW_MANAGER:CreateControl(self.name..skill.."TimerBarGloss", timerBar, CT_TEXTURE)
 		timerBarGloss:SetDrawTier(DT_HIGH)
 		timerBarGloss:SetAlpha(0.9)
 		timerBarGloss:SetTexture("/esoui/art/unitattributevisualizer/gamepad/gp_attributebar_dynamic_fill_gloss.dds")
 		timerBarGloss:SetTextureCoords(0, 1, 0.5, 0.36)
-		timerBarGloss:SetHidden(not sv.showTimerBar)
+		timerBarGloss:SetHidden(not CombatMetronome.SV.StackTracker.isUnlocked)
 				
 		local function TimerBarOrientation(orientation)
 			timerBar:ClearAnchors()
@@ -536,6 +523,21 @@ function StackTracker:BuildUI(skill)
 		TimerBarOrientation = TimerBarOrientation,
 		TimerBarAnchors = TimerBarAnchors,
 		}
+	end
+	
+	local tracker = ZO_HUDFadeSceneFragment:New(stacksWindow) 
+	local function FadeScenes(value)
+		if value == "UI" then
+			SCENE_MANAGER:GetScene("hud"):AddFragment(tracker)
+			SCENE_MANAGER:GetScene("hudui"):AddFragment(tracker)
+		elseif value == "NoUI" then
+			SCENE_MANAGER:GetScene("hud"):RemoveFragment(tracker)
+			SCENE_MANAGER:GetScene("hudui"):RemoveFragment(tracker)
+		elseif value == "Sample" then
+			SCENE_MANAGER:GetScene("gameMenuInGame"):AddFragment(tracker)
+		elseif value == "NoSample" then
+			SCENE_MANAGER:GetScene("gameMenuInGame"):RemoveFragment(tracker)
+		end
 	end
 		
 	if attributes.duration then
