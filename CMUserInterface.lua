@@ -4,7 +4,7 @@ local CM = CombatMetronome
 CombatMetronome.SV = CombatMetronome.SV or {}
 
 local MIN_WIDTH = 50
-local MAX_WIDTH = 500
+local MAX_WIDTH = GuiRoot:GetWidth()
 local MIN_HEIGHT = 10
 local MAX_HEIGHT = 100
 
@@ -36,6 +36,7 @@ function CombatMetronome:BuildUI()
 		end)
 		
 		self.Progressbar.bar = self.Progressbar.bar or Util.Bar:New(self.name.."TimerBar", self.Progressbar.frame)
+		self.Progressbar.bar.background:SetEdgeTexture("/esoui/art/miscellaneous/borderedinsettransparent_edgefile.dds", 128, 16, CombatMetronome.SV.Progressbar.height/3)
 		
 		self.Progressbar.spellIcon = self.Progressbar.spellIcon or WINDOW_MANAGER:CreateControl(self.name.."SpellIcon", self.Progressbar.frame, CT_TEXTURE)
 		self.Progressbar.spellIcon:SetDrawLayer(4)
@@ -167,18 +168,40 @@ function CombatMetronome:BuildUI()
 	end
 	
 	local function HiddenStates()
-		self.Resources.hpLabel:SetHidden(true)
-		self.Resources.magLabel:SetHidden(true)
-		self.Resources.stamLabel:SetHidden(true)
-		self.Resources.ultLabel:SetHidden(true)
-		self.Progressbar.timeLabel:SetHidden(true)
-		self.Progressbar.spellLabel:SetHidden(true)
-		self.Progressbar.bar.backgroundTexture:SetHidden(not CombatMetronome.SV.Progressbar.makeItFancy)
-		self.Progressbar.bar.borderL:SetHidden(not CombatMetronome.SV.Progressbar.makeItFancy)
-		self.Progressbar.bar.borderR:SetHidden(not CombatMetronome.SV.Progressbar.makeItFancy)
-		self.Progressbar.spellIcon:SetHidden(true)
-		self.Progressbar.spellIconBorder:SetHidden(true)
-		self.Progressbar.bar:SetHidden(not CombatMetronome.SV.Progressbar.dontHide)
+		if self.Resources.showSample then
+			self.Resources.magLabel:SetHidden(not self.SV.Resources.showMagicka)
+			self.Resources.stamLabel:SetHidden(not self.SV.Resources.showStamina)
+			self.Resources.ultLabel:SetHidden(not self.SV.Resources.showUltimate)
+			self.Resources.hpLabel:SetHidden(not self.SV.Resources.showHealth)
+		else
+			self.Resources.magLabel:SetHidden(true)
+			self.Resources.stamLabel:SetHidden(true)
+			self.Resources.ultLabel:SetHidden(true)
+			self.Resources.hpLabel:SetHidden(true)
+		end
+		if self.Progressbar.showSample then
+			self.Progressbar.bar:SetHidden(false)
+			self.Progressbar.timeLabel:SetHidden(not self.SV.Progressbar.showTimeRemaining)
+			self.Progressbar.spellLabel:SetHidden(not self.SV.Progressbar.showSpell)
+			self.Progressbar.bar.backgroundTexture:SetHidden(not CombatMetronome.SV.Progressbar.makeItFancy)
+			self.Progressbar.bar.borderL:SetHidden(not CombatMetronome.SV.Progressbar.makeItFancy)
+			self.Progressbar.bar.borderR:SetHidden(not CombatMetronome.SV.Progressbar.makeItFancy)
+			local edgecolor = CombatMetronome.SV.Progressbar.makeItFancy and {1,1,1,1} or {1,1,1,0}
+			self.Progressbar.bar.background:SetEdgeColor(unpack(edgecolor))
+			self.Progressbar.spellIcon:SetHidden(not self.SV.Progressbar.showSpell)
+			self.Progressbar.spellIconBorder:SetHidden(not self.SV.Progressbar.showSpell)
+		else
+			self.Progressbar.bar:SetHidden(not CombatMetronome.SV.Progressbar.dontHide)
+			self.Progressbar.timeLabel:SetHidden(true)
+			self.Progressbar.spellLabel:SetHidden(true)
+			self.Progressbar.bar.backgroundTexture:SetHidden(not (CombatMetronome.SV.Progressbar.makeItFancy and CombatMetronome.SV.Progressbar.dontHide))
+			self.Progressbar.bar.borderL:SetHidden(not (CombatMetronome.SV.Progressbar.makeItFancy and CombatMetronome.SV.Progressbar.dontHide))
+			self.Progressbar.bar.borderR:SetHidden(not (CombatMetronome.SV.Progressbar.makeItFancy and CombatMetronome.SV.Progressbar.dontHide))
+			local edgecolor = CombatMetronome.SV.Progressbar.makeItFancy and {1,1,1,1} or {1,1,1,0}
+			self.Progressbar.bar.background:SetEdgeColor(unpack(edgecolor))
+			self.Progressbar.spellIcon:SetHidden(true)
+			self.Progressbar.spellIconBorder:SetHidden(true)
+		end
 	end
 	
 	local function Anchors()
@@ -188,13 +211,13 @@ function CombatMetronome:BuildUI()
 		self.Progressbar.spellIconBorder:ClearAnchors()
 		self.Progressbar.spellIconBorder:SetAnchor(CENTER, self.Progressbar.spellIcon, CENTER, 0, 0)
 		self.Progressbar.bar.borderR:ClearAnchors()
-		self.Progressbar.bar.borderR:SetAnchor(TOPRIGHT)
+		self.Progressbar.bar.borderR:SetAnchor(RIGHT, self.Progressbar.bar.background, RIGHT, 0, 0)
 		self.Progressbar.bar.borderL:ClearAnchors()
-		self.Progressbar.bar.borderL:SetAnchor(TOPLEFT)
+		self.Progressbar.bar.borderL:SetAnchor(LEFT, self.Progressbar.bar.background, LEFT, 0, 0)
 		self.Progressbar.spellLabel:ClearAnchors()
 		self.Progressbar.spellLabel:SetAnchor(CENTER, self.Progressbar.frame, CENTER, 0, 0)
 		self.Progressbar.bar.background:ClearAnchors()
-		self.Progressbar.bar.background:SetAnchorFill()
+		self.Progressbar.bar.background:SetAnchor(CENTER, self.Progressbar.frame, CENTER, 0, 0)
 		if CombatMetronome.SV.Progressbar.barAlign == "Right" then
 			self.Progressbar.timeLabel:SetAnchor(LEFT, self.Progressbar.frame, LEFT, (CombatMetronome.SV.Progressbar.height/5), 0)
 			self.Progressbar.bar.backgroundTexture:SetAnchor(RIGHT, self.Progressbar.frame, RIGHT, 0, 0)
@@ -274,6 +297,8 @@ function CombatMetronome:BuildUI()
 	
 	local function BarColors()
 		self.Progressbar.bar.background:SetCenterColor(unpack(CombatMetronome.SV.Progressbar.backgroundColor))
+		local edgecolor = CombatMetronome.SV.Progressbar.makeItFancy and {1,1,1,1} or {1,1,1,0}
+		self.Progressbar.bar.background:SetEdgeColor(unpack(edgecolor))
 		self.Progressbar.bar:UpdateSegment(1, {
 			color = CombatMetronome.SV.Progressbar.pingColor,
 		})
