@@ -42,20 +42,10 @@ function CombatMetronome:Update()
 		end
 		if sv.showSpell then
 			progressbar.spellLabel:SetText("Generic sample text")
-			progressbar.spellLabel:SetHidden(false)
 			progressbar.spellIcon:SetTexture("/esoui/art/icons/ability_dualwield_002_b.dds")
-			progressbar.spellIcon:SetHidden(false)
-			progressbar.spellIconBorder:SetHidden(false)
-		else
-			progressbar.spellLabel:SetHidden(true)
-			progressbar.spellIcon:SetHidden(true)
-			progressbar.spellIconBorder:SetHidden(true)
 		end
 		if sv.showTimeRemaining then
 			progressbar.timeLabel:SetText("7.8s")
-			progressbar.timeLabel:SetHidden(false)
-		else
-			progressbar.timeLabel:SetHidden(true)
 		end
 		if sv.changeOnChanneled then
 			progressbar.bar.segments[2].color = sv.channelColor
@@ -63,6 +53,7 @@ function CombatMetronome:Update()
 			progressbar.bar.segments[2].color = sv.progressColor
 		end
 		progressbar.bar:Update()
+		progressbar.UI.HiddenStates()
 	else
 	
 	-------------------------
@@ -127,6 +118,10 @@ function CombatMetronome:Update()
 				AnchorSpellIcon(false)
 			end
 			
+			progressbar.bar.background:SetWidth(sv.width)
+			progressbar.bar.borderL:SetWidth(sv.width/2)
+			progressbar.bar.borderR:SetWidth(sv.width/2)
+			
 			progressbar.bar.segments[1].progress = (sv.showPingOnGCD and latency/1000) or 0
 			progressbar.bar.segments[2].progress = gcdProgress
 			if not Util.Ability.Tracker.rollDodgeFinished and sv.trackRolldodge then
@@ -187,7 +182,7 @@ function CombatMetronome:Update()
 			local timeRemaining = (duration - cdTimer) / 1000
 			local castProgress = 1 - (cdTimer/duration)
 			
-			local dynamicProgress = sv.expandDynamically and sv.dynamicExpansionMultiplyer*math.max(duration, timeRemaining*1000)/10000 > 1
+			local dynamicProgress = sv.expandDynamically and sv.dynamicExpansionMultiplyer*duration/10000 > 1
 			-- local multiplyerCheck = sv.dynamicExpansionMultiplyer*math.max(duration, timeRemaining*1000)/10000 > 1
 						
 			-- local playerDidBlock = (self.lastBlockStatus == false) and IsBlockActive()
@@ -249,19 +244,29 @@ function CombatMetronome:Update()
 					self:OnCDStop()
 				else
 					self:HideBar(false)
-					progressbar.bar.backgroundTexture:SetWidth((1 - (cdTimer/duration))*sv.width)
+					-- progressbar.bar.backgroundTexture:SetWidth((1 - (cdTimer/duration))*sv.width)
 				end
 				progressbar.bar:Update()
 				
 				if dynamicProgress then
 					local multiplyer = sv.dynamicExpansionMultiplyer*duration/10000
-					progressbar.bar.segments[2].progress = castProgress*multiplyer
-					progressbar.bar.segments[1].progress = (latency / duration)*multiplyer
-					local dynamicAnchor = sv.barAlign == "Center" and sv.moveIconDynamically and (castProgress*multiplyer > 1)
+					local isDynamic = castProgress*multiplyer > 1
+					local dynamicBarWidth = isDynamic and sv.width*castProgress*multiplyer or sv.width
+					progressbar.bar.segments[2].progress = isDynamic and 1 or castProgress*multiplyer
+					progressbar.bar.segments[1].progress = isDynamic and multiplyer*latency / timeRemaining or multiplyer*latency
+					progressbar.bar.background:SetWidth(dynamicBarWidth)
+					progressbar.bar.backgroundTexture:SetWidth((isDynamic and 1 or castProgress*multiplyer)*sv.width)
+					progressbar.bar.borderL:SetWidth(dynamicBarWidth/2)
+					progressbar.bar.borderR:SetWidth(dynamicBarWidth/2)
+					local dynamicAnchor = sv.barAlign == "Center" and sv.moveIconDynamically and isDynamic
 					AnchorSpellIcon(dynamicAnchor)
 				else
+					progressbar.bar.background:SetWidth(sv.width)
 					progressbar.bar.segments[2].progress = castProgress
 					progressbar.bar.segments[1].progress = latency / duration
+					progressbar.bar.backgroundTexture:SetWidth(castProgress*sv.width)
+					self.Progressbar.bar.borderL:SetWidth(sv.width/2)
+					self.Progressbar.bar.borderR:SetWidth(sv.width/2)
 					AnchorSpellIcon(false)
 				end
 			end
@@ -283,7 +288,7 @@ function CombatMetronome:Update()
 			
 			--Spell Label on Castbar by barny
 			if sv.showSpell and ((ability.delay > 0 and timeRemaining >= 0) or sv.alwaysShowSpell) and not ability.heavy then
-				if not ability.displayName then
+				if not ability.displayName or dynamicProgress then
 					progressbar.spellLabel:SetText(ability.name)
 					local barSpace = sv.width - (sv.showTimeRemaining and 2.5*progressbar.timeLabel:GetWidth() or 0)
 					if progressbar.spellLabel:GetWidth() > barSpace then
