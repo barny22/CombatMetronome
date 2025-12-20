@@ -145,8 +145,8 @@ function StackTracker:UpdateTimers()
 			local doReminder = (sv.remindersOnlyInCombat and CombatMetronome.inCombat) or not sv.remindersOnlyInCombat
 			if sv.showTimer then
 				ui.timer:SetHidden(false)
-				if timeLeft > 10 then
-					ui.timer:SetText(tostring(math.floor(timeLeft)))
+				if timeLeft >= 10 then
+					ui.timer:SetText(tostring(zo_round(timeLeft)))
 				else
 					ui.timer:SetText(string.format("%.1f", timeLeft))
 				end
