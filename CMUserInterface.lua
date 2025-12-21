@@ -34,7 +34,7 @@ function CombatMetronome:BuildUI()
 			self.Progressbar.UI.Size()
 			-- self:BuildUI()
 		end)
-		
+				
 		self.Progressbar.bar = self.Progressbar.bar or Util.Bar:New(self.name.."TimerBar", self.Progressbar.frame)
 		self.Progressbar.bar.background:SetEdgeTexture("/esoui/art/miscellaneous/borderedinsettransparent_edgefile.dds", 128, 16, CombatMetronome.SV.Progressbar.height/3)
 		
@@ -127,6 +127,21 @@ function CombatMetronome:BuildUI()
 		self.Resources.executeLabel:ClearAnchors()
 		self.Resources.executeLabel:SetAnchor(TOPLEFT, self.Resources.executeFrame, TOPLEFT, 0, -CombatMetronome.SV.Resources.executeHeight/10)
 		self.Resources.executeLabel:SetHidden(not CombatMetronome.SV.Resources.unlockExecuteReminder)
+	end
+	
+	local function FadeScenes(scene)
+		local fragment = ZO_HUDFadeSceneFragment:New(CombatMetronome.Progressbar.frame)
+		if scene == "Sample" then
+			SCENE_MANAGER:GetScene("gameMenuInGame"):AddFragment(fragment)
+		elseif scene == "NoSample" then
+			SCENE_MANAGER:GetScene("gameMenuInGame"):RemoveFragment(fragment)
+		elseif scene == "NoUI" then
+			SCENE_MANAGER:GetScene("hud"):RemoveFragment(fragment)
+			SCENE_MANAGER:GetScene("hudui"):RemoveFragment(fragment)
+		elseif scene == "UI" then
+			SCENE_MANAGER:GetScene("hud"):AddFragment(fragment)
+			SCENE_MANAGER:GetScene("hudui"):AddFragment(fragment)
+		end
 	end
 	
 	local function Position(value)
