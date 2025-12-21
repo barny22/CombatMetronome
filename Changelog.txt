@@ -8,7 +8,8 @@
 !  Fixed activation stacks for relentless focus
 !  Fixed morph updates when respecing
 !  Fixed StacksUI not hiding when being disabled after it was previously enabled
-!  Minor fixes to the settings menu
+!  Fixes to the settings menus
+!  UI Fixes
 
 2025-07-02 v1.7.3
 !  Finally applied correct version, so it is now correctly shown in the settings menu
