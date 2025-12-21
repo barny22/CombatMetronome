@@ -180,7 +180,7 @@ function CombatMetronome:Update()
 			local duration = math.max(ability.heavy and sv.stopHATracking and 0 or (self.gcd or 1000), ability.delay) + (self.currentEvent.adjust or 0)
 			-- local timeRemaining = ((start + duration + latency) - time) / 1000 or ((start + channelTime + latency) - time) < 0 and 0
 			local timeRemaining = (duration - cdTimer) / 1000
-			local castProgress = 1 - (cdTimer/duration)
+			local castProgress = timeRemaining/(duration/1000)
 			
 			local dynamicProgress = sv.expandDynamically and sv.dynamicExpansionMultiplyer*duration/10000 > 1
 			-- local multiplyerCheck = sv.dynamicExpansionMultiplyer*math.max(duration, timeRemaining*1000)/10000 > 1
@@ -253,7 +253,7 @@ function CombatMetronome:Update()
 					local isDynamic = castProgress*multiplyer > 1
 					local dynamicBarWidth = isDynamic and sv.width*castProgress*multiplyer or sv.width
 					progressbar.bar.segments[2].progress = isDynamic and 1 or castProgress*multiplyer
-					progressbar.bar.segments[1].progress = isDynamic and multiplyer*latency / timeRemaining or multiplyer*latency
+					progressbar.bar.segments[1].progress = isDynamic and multiplyer*latency / (1000*timeRemaining) or sv.dynamicExpansionMultiplyer*latency/duration
 					progressbar.bar.background:SetWidth(dynamicBarWidth)
 					progressbar.bar.backgroundTexture:SetWidth((isDynamic and 1 or castProgress*multiplyer)*sv.width)
 					progressbar.bar.borderL:SetWidth(dynamicBarWidth/2)
