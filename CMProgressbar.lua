@@ -255,7 +255,7 @@ function CombatMetronome:Update()
 					progressbar.bar.segments[2].progress = isDynamic and 1 or castProgress*multiplyer
 					progressbar.bar.segments[1].progress = isDynamic and multiplyer*latency / (1000*timeRemaining) or sv.dynamicExpansionMultiplyer*latency/duration
 					progressbar.bar.background:SetWidth(dynamicBarWidth)
-					progressbar.bar.backgroundTexture:SetWidth((isDynamic and 1 or castProgress*multiplyer)*sv.width)
+					progressbar.bar.backgroundTexture:SetWidth(sv.width*castProgress*multiplyer)
 					progressbar.bar.borderL:SetWidth(dynamicBarWidth/2)
 					progressbar.bar.borderR:SetWidth(dynamicBarWidth/2)
 					local dynamicAnchor = sv.barAlign == "Center" and sv.moveIconDynamically and isDynamic
