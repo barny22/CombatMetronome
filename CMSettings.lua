@@ -11,9 +11,10 @@ local ABILITY_ADJUST_PLACEHOLDER = "Add ability adjust"
 local MAX_ADJUST = 200
 
 local MIN_WIDTH = 50
-local MAX_WIDTH = 500
+local MAX_WIDTH = math.floor(GuiRoot:GetWidth())
 local MIN_HEIGHT = 10
 local MAX_HEIGHT = 100
+local MAX_ABILITY_DURATION = 5.3
 
 local sounds = {
     "Justice_PickpocketFailed",
@@ -57,6 +58,45 @@ local LATrackerChoices = {
 	"Nothing",
 }
 
+local SlidersToUpdate = {
+	["X Offset"] = "maxXOffset",
+	["Y Offset"] = "maxYOffset",
+	["Dynamic expansion multiplyer"] = "maxMultiplyer",
+}
+
+local function GetProgressbarMaxSliderValues()
+	local remainingSpace
+	local maxWidth = GuiRoot:GetWidth()
+	local maxHeight = GuiRoot:GetHeight()
+	if CombatMetronome.SV.Progressbar.barAlign == "Left" then
+		remainingSpace = maxWidth - CombatMetronome.SV.Progressbar.xOffset
+	elseif CombatMetronome.SV.Progressbar.barAlign == "Center" then
+		remainingSpace = (maxWidth-3*CombatMetronome.SV.Progressbar.height)
+	else
+		remainingSpace = CombatMetronome.SV.Progressbar.xOffset
+	end
+	CombatMetronome.Progressbar.maxMultiplyer = math.floor(10*remainingSpace/(MAX_ABILITY_DURATION*CombatMetronome.SV.Progressbar.width))
+	CombatMetronome.Progressbar.maxXOffset = math.floor(maxWidth - CombatMetronome.SV.Progressbar.width)
+	CombatMetronome.Progressbar.maxYOffset = math.floor(maxHeight - CombatMetronome.SV.Progressbar.height)
+end
+
+local function UpdateProgressbarSizeSliders()
+	if not CombatMetronomeProgressbarOptions then return end
+	GetProgressbarMaxSliderValues()
+	local slidersUpdated = 0
+	local slidersToUpdate = NonContiguousCount(SlidersToUpdate)
+	for i, entry in ipairs(CombatMetronomeProgressbarOptions.controlsToRefresh) do
+		if SlidersToUpdate[entry.data.name] then
+			entry.maxText:SetText(CombatMetronome.Progressbar[SlidersToUpdate[entry.data.name]])
+			local min, _ = entry.slider:GetMinMax()
+			entry.slider:SetMinMax(min, CombatMetronome.Progressbar[SlidersToUpdate[entry.data.name]])
+			entry.data.max = CombatMetronome.Progressbar[SlidersToUpdate[entry.data.name]]
+			slidersUpdated = slidersUpdated + 1
+			if slidersUpdated == slidersToUpdate then break end
+		end
+	end
+end
+
 local function IconDesaturation(icon, value)
 	if value then
 		icon:SetDesaturation(0)
@@ -84,6 +124,7 @@ local function FindMenuPosition(searchTable, name)
 end
 
 function CombatMetronome:BuildMenu()
+	GetProgressbarMaxSliderValues()
     self.menu = self.menu or { }
 	self.menu.icons = {
 		["progressbar"] = {},
@@ -155,6 +196,7 @@ function CombatMetronome:BuildMenu()
 							min = 10,
 							max = 60,
 							step = 1,
+							decimals = 0,
 							default = sv.indicatorSize,
 							getFunc = function() return sv.indicatorSize end,
 							setFunc = function(value)
@@ -186,6 +228,7 @@ function CombatMetronome:BuildMenu()
 							min = 0,
 							max = 100,
 							step = 1,
+							decimals = 0,
 							getFunc = function() return sv.volume end,
 							setFunc = function(value) sv.volume = value end,
 						},
@@ -329,6 +372,7 @@ function CombatMetronome:BuildMenu()
 						min = 0,
 						max = 100,
 						step = 1,
+						decimals = 0,
 						getFunc = function() return sv.reminderVolume end,
 						setFunc = function(value) sv.reminderVolume = value end,
 					},
@@ -340,6 +384,7 @@ function CombatMetronome:BuildMenu()
 						min = 500,
 						max = 5000,
 						step = 100,
+						decimals = 0,
 						getFunc = function() return sv.expirationTimer*1000 end,
 						setFunc = function(value) sv.expirationTimer = value/1000 end,
 					},
@@ -569,6 +614,7 @@ function CombatMetronome:BuildMenu()
 						min = 50,
 						max = 400,
 						step = 10,
+						decimals = 0,
 						width = "half",
 						disabled = function() return not CombatMetronome.SV.debug.triggers end,
 						getFunc = function() return CombatMetronome.SV.debug.triggerTimer end,
@@ -717,14 +763,16 @@ function CombatMetronome:BuildMenu()
 				getFunc = function() return CombatMetronome.SV.Progressbar.hide end,
 				setFunc = function(value)
 					CombatMetronome.SV.Progressbar.hide  = value
-					self.Progressbar.frame:SetHidden(value)
 					if value then
 						self:UnregisterCM()
 						self.Progressbar.bar:SetHidden(true)
+						self.Progressbar.UI.FadeScenes("NoUI")
+						self.Progressbar.showSample = false
 					else
 						self:RegisterCM()
-						self.Progressbar.UI.HiddenStates()
+						self.Progressbar.UI.FadeScenes("UI")
 					end
+					self.Progressbar.UI.HiddenStates()
 				end,
 			},
 			{
@@ -751,12 +799,12 @@ function CombatMetronome:BuildMenu()
 					self.Progressbar.showSample = value
 					if value then
 						self.Progressbar.UI.Position("Sample")
-						self.Progressbar.frame:SetHidden(false)
-						self.Progressbar.bar:SetHidden(false)
+						self.Progressbar.UI.FadeScenes("Sample")
 					else
 						self.Progressbar.UI.Position("UI")
-						self.Progressbar.UI.HiddenStates()
+						self.Progressbar.UI.FadeScenes("NoSample")
 					end
+					self.Progressbar.UI.HiddenStates()
 				end,
 			},
 	---------------------------
@@ -790,10 +838,11 @@ function CombatMetronome:BuildMenu()
 						name = "X Offset",
 						min = 0,
 						--max = math.floor(GuiRoot:GetWidth() - CombatMetronome.SV.Progressbar.barSize),
-						max = math.floor(GuiRoot:GetWidth() - CombatMetronome.SV.Progressbar.width),
+						max = MAX_WIDTH - CombatMetronome.SV.Progressbar.width,
 						step = 1,
+						decimals = 0,
 						disabled = function() return self.Progressbar.showSample end,
-						getFunc = function() return CombatMetronome.SV.Progressbar.xOffset end,
+						getFunc = function() return math.floor(CombatMetronome.SV.Progressbar.xOffset) end,
 						setFunc = function(value) 
 							CombatMetronome.SV.Progressbar.xOffset = value
 							self.Progressbar.UI.Position("UI")
@@ -817,8 +866,9 @@ function CombatMetronome:BuildMenu()
 						--max = math.floor(GuiRoot:GetHeight() - CombatMetronome.SV.Progressbar.barSize/10),
 						max = math.floor(GuiRoot:GetHeight() - CombatMetronome.SV.Progressbar.height),
 						step = 1,
+						decimals = 0,
 						disabled = function() return self.Progressbar.showSample end,
-						getFunc = function() return CombatMetronome.SV.Progressbar.yOffset end,
+						getFunc = function() return math.floor(CombatMetronome.SV.Progressbar.yOffset) end,
 						setFunc = function(value) 
 							CombatMetronome.SV.Progressbar.yOffset = value 
 							self.Progressbar.UI.Position("UI")
@@ -841,11 +891,16 @@ function CombatMetronome:BuildMenu()
 						min = MIN_WIDTH,
 						max = MAX_WIDTH,
 						step = 1,
+						decimals = 0,
+						-- warning = "When adjusting size, the max values for xOffset, yOffset and expansion multiplyer require a '/reloadui'. We recommend adjusting by unlocking and dragging the progressbar.",
 						getFunc = function() return CombatMetronome.SV.Progressbar.width end,
 						setFunc = function(value) 
 							CombatMetronome.SV.Progressbar.width = value
 							self.Progressbar.UI.Size()
 							DeleteShortNamesFromCache()
+							UpdateProgressbarSizeSliders()
+							if CombatMetronome.SV.Progressbar.xOffset > CombatMetronome.Progressbar.maxXOffset then CombatMetronome.SV.Progressbar.xOffset = CombatMetronome.Progressbar.maxXOffset end
+							if CombatMetronome.SV.Progressbar.dynamicExpansionMultiplyer > CombatMetronome.Progressbar.maxMultiplyer then CombatMetronome.SV.Progressbar.dynamicExpansionMultiplyer = CombatMetronome.Progressbar.maxMultiplyer end
 							-- self:BuildUI()
 						end,
 					},
@@ -875,8 +930,9 @@ function CombatMetronome:BuildMenu()
 						tooltip = "You may chose a custom multiplyer for dynamic castbar expansion",
 						disabled = function() return not CombatMetronome.SV.Progressbar.expandDynamically end,
 						min = 1,
-						max = 10,
+						max = CombatMetronome.Progressbar.maxMultiplyer or 10,
 						step = 1,
+						decimals = 0,
 						default = 5,
 						getFunc = function() return CombatMetronome.SV.Progressbar.dynamicExpansionMultiplyer end,
 						setFunc = function(value)
@@ -889,10 +945,13 @@ function CombatMetronome:BuildMenu()
 						min = MIN_HEIGHT,
 						max = MAX_HEIGHT,
 						step = 1,
+						decimals = 0,
 						getFunc = function() return CombatMetronome.SV.Progressbar.height end,
 						setFunc = function(value) 
 							CombatMetronome.SV.Progressbar.height = value 
 							self.Progressbar.UI.Size()
+							UpdateProgressbarSizeSliders()
+							if CombatMetronome.SV.Progressbar.yOffset > CombatMetronome.Progressbar.maxYOffset then CombatMetronome.SV.Progressbar.yOffset = CombatMetronome.Progressbar.maxYOffset end
 							-- self:BuildUI()
 						end,
 					},
@@ -925,13 +984,17 @@ function CombatMetronome:BuildMenu()
 						getFunc = function() return CombatMetronome.SV.Progressbar.makeItFancy, CombatMetronome.SV.Progressbar.lastBackgroundColor, CombatMetronome.SV.Progressbar.backgroundColor end,
 						setFunc = function(value)
 							CombatMetronome.SV.Progressbar.makeItFancy = value
-							if CombatMetronome.SV.Progressbar.makeItFancy then
+							if value then
 								CombatMetronome.SV.Progressbar.lastBackgroundColor = CombatMetronome.SV.Progressbar.backgroundColor
 								CombatMetronome.SV.Progressbar.backgroundColor = {0, 0, 0, 0}
 							else
 								CombatMetronome.SV.Progressbar.backgroundColor = CombatMetronome.SV.Progressbar.lastBackgroundColor
 							end
+							-- CombatMetronome.Progressbar.bar.background:SetCenterColor(unpack(CombatMetronome.SV.Progressbar.backgroundColor))
+							-- local edgecolor = value and {1,1,1,1} or {1,1,1,0}
+							-- self.Progressbar.bar.background:SetEdgeColor(unpack(edgecolor))
 							self.Progressbar.UI.HiddenStates()
+							self.Progressbar.UI.BarColors()
 							-- self:BuildUI()
 						end,
 					},
@@ -1045,6 +1108,7 @@ function CombatMetronome:BuildMenu()
 						min = 5,
 						max = math.floor(CombatMetronome.SV.Progressbar.height),
 						step = 1,
+						decimals = 0,
 						disabled = function() return not (CombatMetronome.SV.Progressbar.showTimeRemaining or CombatMetronome.SV.Progressbar.showSpell) end,
 						getFunc = function() return CombatMetronome.SV.Progressbar.spellSize end,
 						setFunc = function(value)
@@ -1070,6 +1134,7 @@ function CombatMetronome:BuildMenu()
 						min = 0,
 						max = 1000,
 						step = 1,
+						decimals = 0,
 						getFunc = function() return CombatMetronome.SV.Progressbar.maxLatency end,
 						setFunc = function(value) CombatMetronome.SV.Progressbar.maxLatency = value end,
 					},
@@ -1080,6 +1145,7 @@ function CombatMetronome:BuildMenu()
 						min = -MAX_ADJUST,
 						max = MAX_ADJUST,
 						step = 1,
+						decimals = 0,
 						getFunc = function() return CombatMetronome.SV.Progressbar.gcdAdjust end,
 						setFunc = function(value) 
 							CombatMetronome.SV.Progressbar.gcdAdjust = value 
@@ -1093,6 +1159,7 @@ function CombatMetronome:BuildMenu()
 						min = -MAX_ADJUST,
 						max = MAX_ADJUST,
 						step = 1,
+						decimals = 0,
 						getFunc = function() return CombatMetronome.SV.Progressbar.globalHeavyAdjust end,
 						setFunc = function(value) 
 							CombatMetronome.SV.Progressbar.globalHeavyAdjust = value 
@@ -1105,6 +1172,7 @@ function CombatMetronome:BuildMenu()
 						min = -MAX_ADJUST,
 						max = MAX_ADJUST,
 						step = 1,
+						decimals = 0,
 						getFunc = function() return CombatMetronome.SV.Progressbar.globalAbilityAdjust end,
 						setFunc = function(value)
 							CombatMetronome.SV.Progressbar.globalAbilityAdjust = value
@@ -1370,6 +1438,7 @@ function CombatMetronome:BuildMenu()
 						min = 0,
 						max = 100,
 						step = 1,
+						decimals = 0,
 						getFunc = function() return CombatMetronome.SV.Progressbar.tickVolume end,
 						setFunc = function(value) CombatMetronome.SV.Progressbar.tickVolume = value end,
 					},
@@ -1444,6 +1513,7 @@ function CombatMetronome:BuildMenu()
 						min = 0,
 						max = 1000,
 						step =  1,
+						decimals = 0,
 						getFunc = function() return CombatMetronome.SV.Progressbar.soundTickOffset end,
 						setFunc = function(value)
 							CombatMetronome.SV.Progressbar.soundTickOffset = value
@@ -1459,6 +1529,7 @@ function CombatMetronome:BuildMenu()
 						min = 0,
 						max = 1000,
 						step = 1,
+						decimals = 0,
 						getFunc = function() return CombatMetronome.SV.Progressbar.soundTockOffset end,
 						setFunc = function(value)
 							CombatMetronome.SV.Progressbar.soundTockOffset = value
@@ -1604,6 +1675,7 @@ function CombatMetronome:BuildMenu()
 						min = -MAX_ADJUST,
 						max = MAX_ADJUST,
 						step = 1,
+						decimals = 0,
 						getFunc = function()
 							-- for id, adj in pairs(CombatMetronome.SV.Progressbar.abilityAdjusts) do
 								-- if Util.Text.CropZOSString(GetAbilityName(id), "ability") == self.menu.curSkillName then
@@ -1801,6 +1873,7 @@ function CombatMetronome:BuildMenu()
 						min = 0,
 						max = CombatMetronome.SV.Resources.height,
 						step = 1,
+						decimals = 0,
 						default = CombatMetronome.SV.Resources.ultSize,
 						getFunc = function() return CombatMetronome.SV.Resources.ultSize end,
 						setFunc = function(value)
@@ -1849,6 +1922,7 @@ function CombatMetronome:BuildMenu()
 						min = 0,
 						max = CombatMetronome.SV.Resources.height/2,
 						step = 1,
+						decimals = 0,
 						default = CombatMetronome.SV.Resources.stamSize,
 						getFunc = function() return CombatMetronome.SV.Resources.stamSize end,
 						setFunc = function(value)
@@ -1890,6 +1964,8 @@ function CombatMetronome:BuildMenu()
 						end,
 						min = 0,
 						max = 100,
+						step = 1,
+						decimals = 0,
 						getFunc = function() return CombatMetronome.SV.Resources.stamHighlightThreshold end,
 						setFunc = function(value) CombatMetronome.SV.Resources.stamHighlightThreshold = value end,
 					},
@@ -1933,6 +2009,7 @@ function CombatMetronome:BuildMenu()
 						min = 0,
 						max = CombatMetronome.SV.Resources.height/2,
 						step = 1,
+						decimals = 0,
 						default = CombatMetronome.SV.Resources.magSize,
 						getFunc = function() return CombatMetronome.SV.Resources.magSize end,
 						setFunc = function(value)
@@ -1974,6 +2051,8 @@ function CombatMetronome:BuildMenu()
 						end,
 						min = 0,
 						max = 100,
+						step = 1,
+						decimals = 0,
 						getFunc = function() return CombatMetronome.SV.Resources.magHighlightThreshold end,
 						setFunc = function(value) CombatMetronome.SV.Resources.magHighlightThreshold = value end,
 					},
@@ -2015,6 +2094,7 @@ function CombatMetronome:BuildMenu()
 						min = 0,
 						max = CombatMetronome.SV.Resources.height,
 						step = 1,
+						decimals = 0,
 						default = CombatMetronome.SV.Resources.healthSize,
 						getFunc = function() return CombatMetronome.SV.Resources.healthSize end,
 						setFunc = function(value)
@@ -2047,6 +2127,8 @@ function CombatMetronome:BuildMenu()
 						end,
 						min = 0,
 						max = 100,
+						step = 1,
+						decimals = 0,
 						getFunc = function() return CombatMetronome.SV.Resources.hpHighlightThreshold end,
 						setFunc = function(value) CombatMetronome.SV.Resources.hpHighlightThreshold = value end,
 					},
@@ -2217,6 +2299,7 @@ function CombatMetronome:BuildMenu()
 				min = 1,
 				max = 30,
 				step = 1,
+				decimals = 0,
 				getFunc = function() return CombatMetronome.SV.LATracker.timeTilHiding end,
 				setFunc = function(value)
 					CombatMetronome.SV.LATracker.timeTilHiding = value
