@@ -132,6 +132,7 @@ function CombatMetronome:Init()
 	self:RegisterMetadata()
 	
 	if dev then self.DevTools = self:DevTools() end
+	if self.versionCheck ~= self.SV.lastAddOnVersion then self.SV.showBetaMessage = true end
 	self:CreateNotifications()
 end
 
