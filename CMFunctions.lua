@@ -4,6 +4,8 @@ Util.Text = Util.Text or {}
 Util.Stacks = Util.Stacks or {}
 CombatMetronome.StackTracker = CombatMetronome.StackTracker or {}
 local StackTracker = CombatMetronome.StackTracker
+
+-- local GRACE_PERIOD = 500
 	
 	--------------------------
 	---- Helper Functions ----
@@ -107,6 +109,10 @@ function CombatMetronome:SetIconsAndNamesNil()
 	self.Progressbar.spellLabel:SetHidden(true)
 	self.Progressbar.spellIcon:SetHidden(true)
 	self.Progressbar.spellIconBorder:SetHidden(true)
+	
+	-- if self.currentEvent and self.currentEvent.start and self.currentEvent.ability and self.currentEvent.start + math.max(self.currentEvent.ability.delay, 1000) + GRACE_PERIOD < GetFrameTimeMilliseconds() then
+		-- self.currentEvent = nil
+	-- end
 end
 
 	-----------------------

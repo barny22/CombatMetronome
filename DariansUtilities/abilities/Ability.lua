@@ -36,6 +36,8 @@ Ability.cache.silenced = {
     ["casted"] = true,
 }
 
+local GRACE_PERIOD = 500
+
 local Class = {
 [1] = "DK",
 [2] = "SORC",
@@ -377,10 +379,12 @@ function Ability.Tracker:Update()
 
     -- Fire off late events if no UPDATE_COOLDOWNS events
     if self.queuedEvent or (self.queuedEvent and self.queuedEvent.castDuringRollDodge and self.rollDodgeFinished) and not self.currentEvent and gcdProgress > (CombatMetronome.SV.debug.triggers and ((self.adjustedGCD - CombatMetronome.SV.debug.triggerTimer)/1000) or 0.9) and CanAbilityFire() then
-        -- if time > self.queuedEvent.recorded then
+        -- if self.queuedEvent.ability and time < self.queuedEvent.recorded + math.max(self.queuedEvent.ability.duration, 1000) + GRACE_PERIOD then
             self.eventStart = time + sR - sD
             self:AbilityUsed("late")
             self.abilityTriggerCounters.late = self.abilityTriggerCounters.late + 1
+        -- else
+            -- self:CancelEvent("Not fired")
         -- end
     -- elseif (not self.eventStart and self.queuedEvent and self.queuedEvent.allowForce and not self.queuedEvent.castDuringRollDodge and not self.currentEvent) and CanAbilityFire() then
         -- if (time > self.queuedEvent.recorded) then
@@ -519,6 +523,9 @@ function Ability.Tracker:AbilityUsed(trigger)
 
     if not CanAbilityFire() then 
         if CombatMetronome.SV.debug.abilityUsed then CombatMetronome.debug:Print("Couldn't fire ability") end
+        return
+    elseif not (self.queuedEvent.ability and GetFrameTimeMilliseconds() < self.queuedEvent.recorded + math.max(self.queuedEvent.ability.duration, 1000) + GRACE_PERIOD) then
+        self:CancelEvent("Not fired")
         return
     end
     
