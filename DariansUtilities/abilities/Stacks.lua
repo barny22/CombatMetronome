@@ -4,52 +4,24 @@ Util.Stacks = Util.Stacks or {}
 local Stacks = Util.Stacks
 Stacks.morphs = {}
 
-function Stacks:HandleMorphRegister(value)
-	if value and not Stacks.morphCheckRegistered then
-		EVENT_MANAGER:RegisterForEvent(
-			"StacksMorphCheck",
-			EVENT_ABILITY_LIST_CHANGED,
-			function()
-				for ability, morph in pairs(Stacks.morphs) do
-					local morphUpdated = false
-					-- local newMorph = self:CheckMorph(ability)
-					if value == "FS" then
-						if not Stacks.morphs.FS or Stacks.morphs.FS ~= morph then
-							Stacks.morphs.FS = morph
-							morphUpdated = true
-						end
-						if morphUpdated and CombatMetronome and CombatMetronome.StackTracker and CombatMetronome.StackTracker.UI and CombatMetronome.StackTracker.UI.FS then
-							CombatMetronome.StackTracker.UI.FS.indicator.ApplyIcon()
-							for id, skill in pairs(CombatMetronome.StackTracker.trackedIds) do
-								if skill == "FS" then CombatMetronome.StackTracker.trackedIds[id] = nil end	-- delete old tracked id
-								CombatMetronome.StackTracker.trackedIds[IDS.FS[morph]] = "FS"	-- use new tracked id
-							end
-						end
-					elseif value == "GF" then
-						if not Stacks.morphs.GF or Stacks.morphs.GF ~= morph then
-							Stacks.morphs.GF = morph
-							morphUpdated = true
-						end
-						if morphUpdated and CombatMetronome and CombatMetronome.StackTracker and CombatMetronome.StackTracker.UI and CombatMetronome.StackTracker.UI.GF then
-							CombatMetronome.StackTracker.UI.GF.indicator.ApplyIcon()
-							for id, skill in pairs(CombatMetronome.StackTracker.trackedIds) do
-								if skill == "GF" then CombatMetronome.StackTracker.trackedIds[id] = nil end	-- delete old tracked id
-								CombatMetronome.StackTracker.trackedIds[IDS.GF[morph]] = "GF"	-- use new tracked id
-							end
-						end
-					end
-				end
-			end
-		)
+-- function Stacks:HandleMorphRegister(value)
+	-- if value and not Stacks.morphCheckRegistered then
+		-- EVENT_MANAGER:RegisterForEvent(
+			-- "StacksMorphCheck",
+			-- EVENT_ABILITY_LIST_CHANGED,
+			-- function()
+				-- Stacks:UpdateMorphs()
+			-- end
+		-- )
 		
-		Stacks.morphCheckRegistered = true
-	elseif not value and Stacks.morphs ~= {} and Stacks.morphCheckRegistered then
-		EVENT_MANAGER:UnregisterForEvent(
-			"StacksMorphCheck")
+		-- Stacks.morphCheckRegistered = true
+	-- elseif not value and Stacks.morphs ~= {} and Stacks.morphCheckRegistered then
+		-- EVENT_MANAGER:UnregisterForEvent(
+			-- "StacksMorphCheck")
 			
-		Stacks.morphCheckRegistered = false
-	end
-end
+		-- Stacks.morphCheckRegistered = false
+	-- end
+-- end
 
 local MORPH_IDS = {
 	["FS"] = 114108,
@@ -66,11 +38,19 @@ function Stacks:CheckMorph(value)
 		elseif morphId == 2 then morph = "RS"
 		else morph = "FS"
 		end
+		Stacks:UpdateMorphData(value, morph)
 	elseif value == "GF" then
-		if morphId == 1 then morph = "RF"
-		elseif morphId == 2 then morph = "MR"
-		else morph = "GF"
+		if morphId == 1 then
+			morph = "RF"
+			CombatMetronome.StackTracker.SKILL_ATTRIBUTES.GF.activation = 4
+		elseif morphId == 2 then
+			morph = "MR"
+			CombatMetronome.StackTracker.SKILL_ATTRIBUTES.GF.activation = 5
+		else
+			morph = "GF"
+			CombatMetronome.StackTracker.SKILL_ATTRIBUTES.GF.activation = 5
 		end
+		Stacks:UpdateMorphData(value, morph)
 	end
 	return morph
 end
@@ -93,6 +73,37 @@ local IDS = {
 	},
 	["FI"] = 91416,
 }
+
+function Stacks:UpdateMorphData(ability, morph)
+	-- for ability, morph in pairs(Stacks.morphs) do
+		local morphUpdated = false
+		-- local newMorph = self:CheckMorph(ability)
+		if ability == "FS" then
+			if self.morphs.FS and self.morphs.FS ~= morph then
+				self.morphs.FS = morph
+				morphUpdated = true
+			end
+			if morphUpdated and CombatMetronome and CombatMetronome.StackTracker then
+				if CombatMetronome.StackTracker.UI and CombatMetronome.StackTracker.UI.FS then
+					CombatMetronome.StackTracker.UI.FS.indicator.ApplyIcon()
+				end
+				CombatMetronome.StackTracker:Unregister("FS")												-- unregister old id
+			end
+		elseif ability == "GF" then
+			if self.morphs.GF and self.morphs.GF ~= morph then
+				self.morphs.GF = morph
+				morphUpdated = true
+			end
+			if morphUpdated and CombatMetronome and CombatMetronome.StackTracker then
+				if CombatMetronome.StackTracker.UI and CombatMetronome.StackTracker.UI.GF then
+					CombatMetronome.StackTracker.UI.GF.indicator.ApplyIcon()
+				end
+				CombatMetronome.StackTracker:Unregister("GF")												-- unregister old id
+			end
+		end
+	-- end
+end
+
 -- local cruxId = 184220
 -- local bAId = { ["buff"] = 203447, ["ability"] = 24165,}
 -- local mWId = { ["buff"] = 122658, ["ability"] = 20805,} -- 122729
@@ -142,6 +153,8 @@ function Stacks:StoreAbilitiesOnActionBar()
 				if (actionSlot.id ~= 0) and not IsAlreadyInList(actionSlot.id) then
 					actionSlot.icon = GetAbilityIcon(actionSlot.id)
 					actionSlot.name = Util.Text.CropZOSString(GetAbilityName(actionSlot.id), "ability")
+					local sType, index = GetSpecificSkillAbilityKeysByAbilityId(actionSlot.id)
+					actionSlot.skillLine = GetSkillLineId(sType, index)
 
 					table.insert(actionSlots, actionSlot)  -- Add the current action slot to the table
 					if not Util.Ability.cache[actionSlot.id] then Util.Ability:ForId(actionSlot.id) end
@@ -166,21 +179,7 @@ function Stacks:GetCurrentNumStacksOnPlayer(skill)
 		["FS"] = 0,
 		["FI"] = 0,
 	}
-	-- if skill == "FS" and self.morphs.FS then
-		-- local ability
-		-- for i=2,3 do
-			-- ability = IDS.FS[Stacks.morphs.FS][i]
-			-- for j=1,#CombatMetronome.StackTracker.actionSlotCache do
-				-- if CombatMetronome.StackTracker.actionSlotCache[j].id == ability then
-					-- stacks.FS = i-1
-					-- break
-				-- end
-			-- end
-			-- if stacks.FS ~= 0 then
-				-- break
-			-- end
-		-- end
-	-- else
+	
 	local abilityToCheck
 	if skill == "GF" and Stacks.morphs.GF then
 		abilityToCheck = IDS.GF[Stacks.morphs.GF]

@@ -1,3 +1,16 @@
+2025-12-18 v1.7.4
++  Made code slightly more preformant
++  Added highlights for stam and mag label
++  Added timers for BA, MW, Crux buffs
++  Added sound/visual warnings for BA, MW, Crux if their buffs are about to run out
++  Spell names in progressbar now automatically abbreviate if they would exceed their given bar space (looking at you fatecarver!)
+!  Fixes to Ability.lua to prevent "ghost" heavy attacks
+!  Fixed activation stacks for relentless focus
+!  Fixed morph updates when respecing
+!  Fixed StacksUI not hiding when being disabled after it was previously enabled
+!  Fixes to the settings menus
+!  UI Fixes
+
 2025-07-02 v1.7.3
 !  Finally applied correct version, so it is now correctly shown in the settings menu
 !  Additional failsaves for not tracking all gcd

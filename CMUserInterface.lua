@@ -4,7 +4,7 @@ local CM = CombatMetronome
 CombatMetronome.SV = CombatMetronome.SV or {}
 
 local MIN_WIDTH = 50
-local MAX_WIDTH = 500
+local MAX_WIDTH = GuiRoot:GetWidth()
 local MIN_HEIGHT = 10
 local MAX_HEIGHT = 100
 
@@ -34,8 +34,9 @@ function CombatMetronome:BuildUI()
 			self.Progressbar.UI.Size()
 			-- self:BuildUI()
 		end)
-		
+				
 		self.Progressbar.bar = self.Progressbar.bar or Util.Bar:New(self.name.."TimerBar", self.Progressbar.frame)
+		self.Progressbar.bar.background:SetEdgeTexture("/esoui/art/miscellaneous/borderedinsettransparent_edgefile.dds", 128, 16, CombatMetronome.SV.Progressbar.height/3)
 		
 		self.Progressbar.spellIcon = self.Progressbar.spellIcon or WINDOW_MANAGER:CreateControl(self.name.."SpellIcon", self.Progressbar.frame, CT_TEXTURE)
 		self.Progressbar.spellIcon:SetDrawLayer(4)
@@ -46,15 +47,20 @@ function CombatMetronome:BuildUI()
 		self.Progressbar.spellIconBorder:SetDrawTier(2)
 	
 		self.Progressbar.bar.backgroundTexture = self.Progressbar.bar.backgroundTexture or WINDOW_MANAGER:CreateControl(self.name.."BackgroundTexture", self.Progressbar.frame, CT_STATUSBAR)
-		self.Progressbar.bar.backgroundTexture:SetTexture("/esoui/art/unitframes/progressbar_mechanic_fill.dds")
+		self.Progressbar.bar.backgroundTexture:SetTexture("/esoui/art/unitattributevisualizer/gamepad/gp_attributebar_dynamic_fill_gloss.dds")
+		self.Progressbar.bar.backgroundTexture:SetTextureCoords(0, 1, 0.5, 0.36)
+		self.Progressbar.bar.backgroundTexture:SetDrawLayer(4)
+		self.Progressbar.bar.backgroundTexture:SetDrawTier(2)
 		self.Progressbar.bar.borderL = self.Progressbar.bar.borderL or WINDOW_MANAGER:CreateControl(self.name.."SpellBarBorderL", self.Progressbar.frame, CT_TEXTURE)
 		self.Progressbar.bar.borderL:SetTexture("/esoui/art/unitframes/playercastbar_inset_left.dds")
 		self.Progressbar.bar.borderL:SetDrawLayer(2)
 		self.Progressbar.bar.borderL:SetDrawTier(1)
+		self.Progressbar.bar.borderL:SetDesaturation(1)
 		self.Progressbar.bar.borderR = self.Progressbar.bar.borderR or WINDOW_MANAGER:CreateControl(self.name.."SpellBarBorderR", self.Progressbar.frame, CT_TEXTURE)
 		self.Progressbar.bar.borderR:SetTexture("/esoui/art/unitframes/playercastbar_inset_right.dds")
 		self.Progressbar.bar.borderR:SetDrawLayer(2)
 		self.Progressbar.bar.borderR:SetDrawTier(1)
+		self.Progressbar.bar.borderR:SetDesaturation(1)
 
 		self.Progressbar.spellLabel = self.Progressbar.spellLabel or WINDOW_MANAGER:CreateControl(self.name.."SpellLabel", self.Progressbar.frame, CT_LABEL)
 		self.Progressbar.spellLabel:SetColor(1, 1, 1, 1)
@@ -128,6 +134,21 @@ function CombatMetronome:BuildUI()
 		self.Resources.executeLabel:SetHidden(not CombatMetronome.SV.Resources.unlockExecuteReminder)
 	end
 	
+	local function FadeScenes(scene)
+		local fragment = ZO_HUDFadeSceneFragment:New(CombatMetronome.Progressbar.frame)
+		if scene == "Sample" then
+			SCENE_MANAGER:GetScene("gameMenuInGame"):AddFragment(fragment)
+		elseif scene == "NoSample" then
+			SCENE_MANAGER:GetScene("gameMenuInGame"):RemoveFragment(fragment)
+		elseif scene == "NoUI" then
+			SCENE_MANAGER:GetScene("hud"):RemoveFragment(fragment)
+			SCENE_MANAGER:GetScene("hudui"):RemoveFragment(fragment)
+		elseif scene == "UI" then
+			SCENE_MANAGER:GetScene("hud"):AddFragment(fragment)
+			SCENE_MANAGER:GetScene("hudui"):AddFragment(fragment)
+		end
+	end
+	
 	local function Position(value)
 		self.Progressbar.frame:ClearAnchors()
 		if value == "UI" then
@@ -167,18 +188,40 @@ function CombatMetronome:BuildUI()
 	end
 	
 	local function HiddenStates()
-		self.Resources.hpLabel:SetHidden(true)
-		self.Resources.magLabel:SetHidden(true)
-		self.Resources.stamLabel:SetHidden(true)
-		self.Resources.ultLabel:SetHidden(true)
-		self.Progressbar.timeLabel:SetHidden(true)
-		self.Progressbar.spellLabel:SetHidden(true)
-		self.Progressbar.bar.backgroundTexture:SetHidden(not CombatMetronome.SV.Progressbar.makeItFancy)
-		self.Progressbar.bar.borderL:SetHidden(not CombatMetronome.SV.Progressbar.makeItFancy)
-		self.Progressbar.bar.borderR:SetHidden(not CombatMetronome.SV.Progressbar.makeItFancy)
-		self.Progressbar.spellIcon:SetHidden(true)
-		self.Progressbar.spellIconBorder:SetHidden(true)
-		self.Progressbar.bar:SetHidden(not CombatMetronome.SV.Progressbar.dontHide)
+		if self.Resources.showSample then
+			self.Resources.magLabel:SetHidden(not self.SV.Resources.showMagicka)
+			self.Resources.stamLabel:SetHidden(not self.SV.Resources.showStamina)
+			self.Resources.ultLabel:SetHidden(not self.SV.Resources.showUltimate)
+			self.Resources.hpLabel:SetHidden(not self.SV.Resources.showHealth)
+		else
+			self.Resources.magLabel:SetHidden(true)
+			self.Resources.stamLabel:SetHidden(true)
+			self.Resources.ultLabel:SetHidden(true)
+			self.Resources.hpLabel:SetHidden(true)
+		end
+		if self.Progressbar.showSample then
+			self.Progressbar.bar:SetHidden(false)
+			self.Progressbar.timeLabel:SetHidden(not self.SV.Progressbar.showTimeRemaining)
+			self.Progressbar.spellLabel:SetHidden(not self.SV.Progressbar.showSpell)
+			self.Progressbar.bar.backgroundTexture:SetHidden(not CombatMetronome.SV.Progressbar.makeItFancy)
+			self.Progressbar.bar.borderL:SetHidden(not CombatMetronome.SV.Progressbar.makeItFancy)
+			self.Progressbar.bar.borderR:SetHidden(not CombatMetronome.SV.Progressbar.makeItFancy)
+			local edgecolor = CombatMetronome.SV.Progressbar.makeItFancy and {1,1,1,1} or {1,1,1,0}
+			self.Progressbar.bar.background:SetEdgeColor(unpack(edgecolor))
+			self.Progressbar.spellIcon:SetHidden(not self.SV.Progressbar.showSpell)
+			self.Progressbar.spellIconBorder:SetHidden(not self.SV.Progressbar.showSpell)
+		else
+			self.Progressbar.bar:SetHidden(not CombatMetronome.SV.Progressbar.dontHide)
+			self.Progressbar.timeLabel:SetHidden(true)
+			self.Progressbar.spellLabel:SetHidden(true)
+			self.Progressbar.bar.backgroundTexture:SetHidden(not (CombatMetronome.SV.Progressbar.makeItFancy and CombatMetronome.SV.Progressbar.dontHide))
+			self.Progressbar.bar.borderL:SetHidden(not (CombatMetronome.SV.Progressbar.makeItFancy and CombatMetronome.SV.Progressbar.dontHide))
+			self.Progressbar.bar.borderR:SetHidden(not (CombatMetronome.SV.Progressbar.makeItFancy and CombatMetronome.SV.Progressbar.dontHide))
+			local edgecolor = CombatMetronome.SV.Progressbar.makeItFancy and {1,1,1,1} or {1,1,1,0}
+			self.Progressbar.bar.background:SetEdgeColor(unpack(edgecolor))
+			self.Progressbar.spellIcon:SetHidden(true)
+			self.Progressbar.spellIconBorder:SetHidden(true)
+		end
 	end
 	
 	local function Anchors()
@@ -188,13 +231,13 @@ function CombatMetronome:BuildUI()
 		self.Progressbar.spellIconBorder:ClearAnchors()
 		self.Progressbar.spellIconBorder:SetAnchor(CENTER, self.Progressbar.spellIcon, CENTER, 0, 0)
 		self.Progressbar.bar.borderR:ClearAnchors()
-		self.Progressbar.bar.borderR:SetAnchor(TOPRIGHT)
+		self.Progressbar.bar.borderR:SetAnchor(RIGHT, self.Progressbar.bar.background, RIGHT, 0, 0)
 		self.Progressbar.bar.borderL:ClearAnchors()
-		self.Progressbar.bar.borderL:SetAnchor(TOPLEFT)
+		self.Progressbar.bar.borderL:SetAnchor(LEFT, self.Progressbar.bar.background, LEFT, 0, 0)
 		self.Progressbar.spellLabel:ClearAnchors()
 		self.Progressbar.spellLabel:SetAnchor(CENTER, self.Progressbar.frame, CENTER, 0, 0)
 		self.Progressbar.bar.background:ClearAnchors()
-		self.Progressbar.bar.background:SetAnchorFill()
+		self.Progressbar.bar.background:SetAnchor(CENTER, self.Progressbar.frame, CENTER, 0, 0)
 		if CombatMetronome.SV.Progressbar.barAlign == "Right" then
 			self.Progressbar.timeLabel:SetAnchor(LEFT, self.Progressbar.frame, LEFT, (CombatMetronome.SV.Progressbar.height/5), 0)
 			self.Progressbar.bar.backgroundTexture:SetAnchor(RIGHT, self.Progressbar.frame, RIGHT, 0, 0)
@@ -274,6 +317,8 @@ function CombatMetronome:BuildUI()
 	
 	local function BarColors()
 		self.Progressbar.bar.background:SetCenterColor(unpack(CombatMetronome.SV.Progressbar.backgroundColor))
+		local edgecolor = CombatMetronome.SV.Progressbar.makeItFancy and {1,1,1,1} or {1,1,1,0}
+		self.Progressbar.bar.background:SetEdgeColor(unpack(edgecolor))
 		self.Progressbar.bar:UpdateSegment(1, {
 			color = CombatMetronome.SV.Progressbar.pingColor,
 		})
@@ -334,9 +379,10 @@ local StackTracker = CombatMetronome.StackTracker
 
 function StackTracker:BuildUI(skill)
 	local attributes = self.SKILL_ATTRIBUTES[skill]
-	local size = CombatMetronome.SV.StackTracker[skill].indicatorSize
+	local sv = CombatMetronome.SV.StackTracker[skill]
+	local size = sv.indicatorSize
 	local distance = size/5
-	local multiplier = (CombatMetronome.API >= 101046 and (skill == "BA" or skill == "GF")) and 2 or 1
+	local multiplier = attributes.multiplier or 1
 	
 	------------------------------
 	---- Build TopLevelWindow ----
@@ -346,41 +392,26 @@ function StackTracker:BuildUI(skill)
 		-- local stacksWindow = Util.Controls:NewFrame(self.name..skill.."StackTrackerWindow")
 		local stacksWindow = WINDOW_MANAGER:CreateTopLevelWindow(self.name..skill.."StackTrackerWindow")
 		stacksWindow:SetHandler( "OnMoveStop", function(...)
-			CombatMetronome.SV.StackTracker[skill].xOffset = stacksWindow:GetLeft()
-			CombatMetronome.SV.StackTracker[skill].yOffset = stacksWindow:GetTop()
+			sv.xOffset = stacksWindow:GetLeft()
+			sv.yOffset = stacksWindow:GetTop()
 		end)
 		stacksWindow:SetDimensions((size*attributes.iMax+distance*(attributes.iMax-1)), size*multiplier)
 		stacksWindow:SetMouseEnabled(true)
-		stacksWindow:SetMovable(CombatMetronome.SV.StackTracker[skill].isUnlocked)
+		stacksWindow:SetMovable(sv.isUnlocked)
 		stacksWindow:SetClampedToScreen(true)
 		stacksWindow:SetHidden(true)
 		-- stacksWindow:SetDrawTier(DT_HIGH)
 	-- end
-	
+		
 	local function Position(value)
 		stacksWindow:ClearAnchors()
 		if value == "UI" then
-			stacksWindow:SetAnchor(TOPLEFT, GuiRoot, TOPLEFT, CombatMetronome.SV.StackTracker[skill].xOffset, CombatMetronome.SV.StackTracker[skill].yOffset)
-		elseif value == "Sample" then
-			stacksWindow:SetAnchor(RIGHT, GuiRoot, RIGHT, -GuiRoot:GetWidth()/8, GuiRoot:GetHeight()/6)
+			stacksWindow:SetAnchor(TOPLEFT, GuiRoot, TOPLEFT, sv.xOffset, sv.yOffset)
+		-- elseif value == "Sample" then
+			-- stacksWindow:SetAnchor(RIGHT, GuiRoot, RIGHT, -GuiRoot:GetWidth()/8, GuiRoot:GetHeight()/6)
 		end
 	end
-	
-	local tracker = ZO_HUDFadeSceneFragment:New(stacksWindow) 
-	local function FadeScenes(value)
-		if value == "UI" then
-			SCENE_MANAGER:GetScene("hud"):AddFragment(tracker)
-			SCENE_MANAGER:GetScene("hudui"):AddFragment(tracker)
-		elseif value == "NoUI" then
-			SCENE_MANAGER:GetScene("hud"):RemoveFragment(tracker)
-			SCENE_MANAGER:GetScene("hudui"):RemoveFragment(tracker)
-		elseif value == "Sample" then
-			SCENE_MANAGER:GetScene("gameMenuInGame"):AddFragment(tracker)
-		elseif value == "NoSample" then
-			SCENE_MANAGER:GetScene("gameMenuInGame"):RemoveFragment(tracker)
-		end
-	end
-	
+		
 	-----------------------------
 	---- Generate Indicators ----
 	-----------------------------
@@ -474,37 +505,152 @@ function StackTracker:BuildUI(skill)
 
 	for i =1,attributes.iMax*multiplier do 
 		indicator[i] = GetIndicator(i)
-	end 
+	end
+	
+		------------------------
+		---- Timer Controls ----
+		------------------------
+		
+	local function CreateTimerControls()
+		local windowWidth = stacksWindow:GetWidth()
+		local timer = WINDOW_MANAGER:CreateControl(self.name..skill.."BuffTimer", stacksWindow, CT_LABEL)
+		timer:SetDrawTier(DT_HIGH)
+		timer:SetColor(unpack(attributes.highlight))
+		timer:SetAlpha(1)
+		timer:SetFont(Util.Text.getFontString(tostring("$(BOLD_FONT)"), size*multiplier, "outline"))
+		timer:SetHidden(not CombatMetronome.SV.StackTracker.isUnlocked)
+		timer:SetText("2.5s")
+		
+		local timerBarBackdrop = WINDOW_MANAGER:CreateControl(self.name..skill.."TimerBarBackdrop", stacksWindow, CT_BACKDROP)
+		timerBarBackdrop:SetDrawTier(DT_HIGH)
+		timerBarBackdrop:SetCenterColor(0.06, 0.06, 0.06, 0.7)
+		timerBarBackdrop:SetEdgeTexture("/esoui/art/miscellaneous/borderedinsettransparent_edgefile.dds", 128, 16, size/2)
+		timerBarBackdrop:SetHidden(not CombatMetronome.SV.StackTracker.isUnlocked)
+		
+		local timerBar = WINDOW_MANAGER:CreateControl(self.name..skill.."TimerBar", stacksWindow, CT_STATUSBAR)
+		timerBar:SetDrawTier(DT_HIGH)
+		local r,g,b,a = unpack(attributes.highlight)
+		timerBar:SetColor(r,g,b,0.35)
+		timerBar:SetHidden(not CombatMetronome.SV.StackTracker.isUnlocked)
+		timerBar:SetValue(0.5)
+		
+		local timerBarGloss = WINDOW_MANAGER:CreateControl(self.name..skill.."TimerBarGloss", timerBar, CT_TEXTURE)
+		timerBarGloss:SetDrawTier(DT_HIGH)
+		timerBarGloss:SetAlpha(0.9)
+		timerBarGloss:SetTexture("/esoui/art/unitattributevisualizer/gamepad/gp_attributebar_dynamic_fill_gloss.dds")
+		timerBarGloss:SetTextureCoords(0, 1, 0.5, 0.36)
+		timerBarGloss:SetHidden(not CombatMetronome.SV.StackTracker.isUnlocked)
+				
+		local function TimerBarOrientation(orientation)
+			timerBar:ClearAnchors()
+			if orientation == "LEFT" then
+				timerBar:SetAnchor(LEFT, timerBarBackdrop, LEFT, size*0.075, 0)
+			else
+				timerBar:SetAnchor(RIGHT, timerBarBackdrop, RIGHT, -size*0.075, 0)
+			end
+		end
+		
+		local function TimerBarAnchors()
+			timer:ClearAnchors()
+			timer:SetAnchor(LEFT, stacksWindow, RIGHT, 2*distance, 0)
+			timerBarBackdrop:ClearAnchors()
+			timerBarBackdrop:SetAnchor(TOP, stacksWindow, BOTTOM, 0, distance)
+			timerBarGloss:SetAnchorFill(timerBar)
+			TimerBarOrientation(sv.timerBarOrientation)
+		end
+				
+		return {
+		stacksWindow = stacksWindow,
+		timer = timer,
+		timerBar = timerBar,
+		timerBarGloss = timerBarGloss,
+		timerBarBackdrop = timerBarBackdrop,
+		TimerBarOrientation = TimerBarOrientation,
+		TimerBarAnchors = TimerBarAnchors,
+		}
+	end
+	
+	local tracker = ZO_HUDFadeSceneFragment:New(stacksWindow) 
+	local function FadeScenes(value)
+		if value == "UI" then
+			SCENE_MANAGER:GetScene("hud"):AddFragment(tracker)
+			SCENE_MANAGER:GetScene("hudui"):AddFragment(tracker)
+		elseif value == "NoUI" then
+			SCENE_MANAGER:GetScene("hud"):RemoveFragment(tracker)
+			SCENE_MANAGER:GetScene("hudui"):RemoveFragment(tracker)
+		elseif value == "Sample" then
+			SCENE_MANAGER:GetScene("gameMenuInGame"):AddFragment(tracker)
+		elseif value == "NoSample" then
+			SCENE_MANAGER:GetScene("gameMenuInGame"):RemoveFragment(tracker)
+		end
+	end
+		
+	if attributes.duration then
+		local timerControls = CreateTimerControls()
+		indicator.timer = timerControls.timer
+		indicator.timerBar = timerControls.timerBar
+		indicator.timerBarGloss = timerControls.timerBarGloss
+		indicator.timerBarBackdrop = timerControls.timerBarBackdrop
+		indicator.TimerBarOrientation = timerControls.TimerBarOrientation
+		indicator.TimerBarAnchors = timerControls.TimerBarAnchors
+	end
 	
 	-----------------------
 	---- Changing Size ----
 	-----------------------
 	
-	local function ApplySize(size) 
+	local function ApplySize(size)
+		local dis = size/5
 		for i=1,attributes.iMax*multiplier do 
 			indicator[i].controls.frame:SetDimensions(size,size)
 			indicator[i].controls.highlight:SetDimensions(size,size)
 			indicator[i].controls.icon:SetDimensions(size,size)
 			indicator[i].controls.highlightAnimation:SetAnchor(TOPLEFT, stackIdicator, TOPLEFT, math.floor(size/20), math.floor(size/20))
 			indicator[i].controls.highlightAnimation:SetAnchor(BOTTOMRIGHT, stackIndicator, BOTTOMRIGHT, size-math.floor(size/20), size-math.floor(size/20))
+			
+			-- Applying correct distances
+			
+			if i <= attributes.iMax then
+				local xOffset = (i-1)*(size+dis)
+				indicator[i].controls.stackIndicator:ClearAnchors()
+				indicator[i].controls.stackIndicator:SetAnchor(TOPLEFT, stacksWindow, TOPLEFT, xOffset, 0)
+			else
+				local xOffset = (i-attributes.iMax-1)*(size+dis)
+				indicator[i].controls.stackIndicator:ClearAnchors()
+				indicator[i].controls.stackIndicator:SetAnchor(TOPLEFT, stacksWindow, TOPLEFT, xOffset, size+dis)
+			end
+		end
+		
+			-- Timer Controls
+			
+		if indicator.timer then
+			local width = stacksWindow:GetWidth()
+			indicator.timer:SetDimensions(size*multiplier*1.5, size*multiplier)
+			indicator.timer:SetFont(Util.Text.getFontString(tostring("$(BOLD_FONT)"), size*multiplier, "outline"))
+			indicator.timerBar:SetDimensions(width-size*0.15, size*0.85)
+			indicator.timerBarBackdrop:SetDimensions(width, size)
+			indicator.timerBarBackdrop:SetEdgeTexture("/esoui/art/miscellaneous/borderedinsettransparent_edgefile.dds", 128, 16, size/2)
+			-- indicator.timerBarFrame:SetDimensions(stacksWindow:GetWidth(), size)
+			
+			indicator.TimerBarAnchors()
 		end
 	end
 	indicator.ApplySize = ApplySize
 	
-	local function ApplyDistance(distance, size) 
-		for i=1,attributes.iMax*multiplier do
-			if i <= attributes.iMax then
-				local xOffset = (i-1)*(size+distance)
-				indicator[i].controls.stackIndicator:ClearAnchors()
-				indicator[i].controls.stackIndicator:SetAnchor(TOPLEFT, stacksWindow, TOPLEFT, xOffset, 0)
-			else
-				local xOffset = (i-attributes.iMax-1)*(size+distance)
-				indicator[i].controls.stackIndicator:ClearAnchors()
-				indicator[i].controls.stackIndicator:SetAnchor(TOPLEFT, stacksWindow, TOPLEFT, xOffset, size+distance)
-			end
-		end
-	end
-	indicator.ApplyDistance = ApplyDistance
+	-- local function ApplyDistance(distance, size) 
+		-- for i=1,attributes.iMax*multiplier do
+			-- if i <= attributes.iMax then
+				-- local xOffset = (i-1)*(size+distance)
+				-- indicator[i].controls.stackIndicator:ClearAnchors()
+				-- indicator[i].controls.stackIndicator:SetAnchor(TOPLEFT, stacksWindow, TOPLEFT, xOffset, 0)
+			-- else
+				-- local xOffset = (i-attributes.iMax-1)*(size+distance)
+				-- indicator[i].controls.stackIndicator:ClearAnchors()
+				-- indicator[i].controls.stackIndicator:SetAnchor(TOPLEFT, stacksWindow, TOPLEFT, xOffset, size+distance)
+			-- end
+		-- end
+	-- end
+	-- indicator.ApplyDistance = ApplyDistance
 	
 	local function ApplyIcon()
 		if skill == "GF" then

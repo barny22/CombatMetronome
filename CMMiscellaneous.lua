@@ -1,6 +1,7 @@
 CombatMetronome.StackTracker = CombatMetronome.StackTracker or {}
 CombatMetronome.Resources = CombatMetronome.Resources or {}
 CombatMetronome.menu = CombatMetronome.menu or {}
+local Util = DariansUtilities
 
 CombatMetronome.DEFAULT_SAVED_VARS = {
 	["version"] = 2,
@@ -72,11 +73,17 @@ CombatMetronome.DEFAULT_SAVED_VARS = {
 		["showStamina"] = true,
 		["showMagicka"] = true,
 		["showHealth"] = true,
+		["highlightMag"] = false,
+		["highlightStam"] = false,
+		["magHighlightThreshold"] = 0,
+		["stamHighlightThreshold"] = 0,
 		["ultColor"] = {1, 1, 1, 1},
 		["magColor"] = {0, 0.5, 1, 1},
 		["stamColor"] = {0, 0.8, 0.3, 1},
 		["healthColor"] = {0.8, 0, 0, 1},
 		["healthHighligtColor"] = {1, 1, 1, 1},
+		["magHighligtColor"] = {1, 1, 1, 1},
+		["stamHighligtColor"] = {1, 1, 1, 1},
 		["stamSize"] = 21,
 		["magSize"] = 21,
 		["ultSize"] = 40,
@@ -201,6 +208,8 @@ CombatMetronome.menu.CONTROLS = {
 CombatMetronome.StackTracker.SKILL_ATTRIBUTES = {
 	["Crux"] = {
 		["iMax"] = 3,
+		["activation"] = 3,
+		["duration"] = true,
 		["graphic"] = "/esoui/art/icons/class_buff_arcanist_crux.dds",
 		["highlight"] = {0,1,0,0.2},
 		["highlightAnimation"] = {0.8,1,0.8,0.8},
@@ -210,6 +219,8 @@ CombatMetronome.StackTracker.SKILL_ATTRIBUTES = {
 	},
 	["MW"] = {
 		["iMax"] = 3,
+		["activation"] = 3,
+		["duration"] = true,
 		["graphic"] = "/esoui/art/icons/ability_dragonknight_001_b.dds",
 		["highlight"] = {1,0,0,0.2},
 		["highlightAnimation"] = {1,0.8,0.8,0.8},
@@ -219,6 +230,9 @@ CombatMetronome.StackTracker.SKILL_ATTRIBUTES = {
 	},
 	["BA"] = {
 		["iMax"] = 4,
+		["multiplier"] = 2,
+		["activation"] = 4,
+		["duration"] = true,
 		["graphic"] = "/esoui/art/icons/ability_sorcerer_bound_armaments.dds",
 		["highlight"] = {0,0,1,0.2},
 		["highlightAnimation"] = {0.8,0.8,1,0.8},
@@ -228,6 +242,8 @@ CombatMetronome.StackTracker.SKILL_ATTRIBUTES = {
 	},
 	["GF"] = {
 		["iMax"] = 5,
+		["multiplier"] = 2,
+		["activation"] = 5,
 		["icon"] = {
 			["GF"] = "/esoui/art/icons/ability_nightblade_005.dds",
 			["RF"] = "/esoui/art/icons/ability_nightblade_005_a.dds",
@@ -246,6 +262,7 @@ CombatMetronome.StackTracker.SKILL_ATTRIBUTES = {
 	},
 	["FS"] = {
 		["iMax"] = 2,
+		["activation"] = 2,
 		["icon"] = {
 			["FS"] = "/esoui/art/icons/ability_necromancer_001.dds",
 			["RS"] = "/esoui/art/icons/ability_necromancer_001_b.dds",
@@ -270,6 +287,7 @@ CombatMetronome.StackTracker.SKILL_ATTRIBUTES = {
 	},
 	["FI"] = {
 		["iMax"] = 1,
+		["activation"] = 1,
 		["graphic"] = "/esoui/art/icons/ability_warden_014_a.dds",
 		["highlight"] = {0,1,0,0.2},
 		["highlightAnimation"] = {0.8,1,0.8,0.8},
@@ -278,6 +296,36 @@ CombatMetronome.StackTracker.SKILL_ATTRIBUTES = {
 		-- ["skillLineIndex"] = 13,
 	},
 }
+
+CombatMetronome.StackTracker.ALL_IDS = {}
+do
+	for skill, entry in pairs(CombatMetronome.StackTracker.SKILL_ATTRIBUTES) do
+		if skill ~= "Crux" then
+			if entry.id.ability then
+				CombatMetronome.StackTracker.ALL_IDS[entry.id.ability] = skill
+			else
+				for morph, ids in pairs(entry.id) do
+					if type(ids.ability) == "table" then
+						for i in ipairs(ids.ability) do
+							CombatMetronome.StackTracker.ALL_IDS[ids.ability[i]] = skill
+						end
+					else
+						CombatMetronome.StackTracker.ALL_IDS[ids.ability] = skill
+					end
+				end
+			end
+		end
+	end
+end
+
+CombatMetronome.StackTracker.CRUX_SKILL_LINE_IDS = {}
+do
+	for _, skillLineId in ipairs(CombatMetronome.StackTracker.SKILL_ATTRIBUTES.Crux.skillLineId) do
+		CombatMetronome.StackTracker.CRUX_SKILL_LINE_IDS[skillLineId] = true
+	end
+end
+
+CombatMetronome.StackTracker.ABILITIES_USING_OR_GENERATING_CRUX = {182977, 183006, 183047, 183122, 183165, 183241, 183261, 183430, 183537, 183542, 185794, 185803, 185805, 185823, 185842, 185894, 185901, 185908, 186189, 186191, 186193, 186200, 186207, 186209, 186211, 186220, 186366, 186452, 186477, 186531, 188658, 188780, 188787, 193331, 193397, 193398, 194873, 194875, 198282, 198288, 198292, 198309, 198330, 198537, 198564, 198567, 238169, 238174, 238191, 238238, 238249, 238429, 238447, 238482, 238545, 247126}
 
 CombatMetronome.StackTracker.CLASS = {
 	[1] = "DK",
@@ -322,7 +370,33 @@ local function InsertSkillOptionsForStackTracker()
 			["hightlightOnFullStacks"] = false,
 			["volume"] = 100,
 		}
+		if CombatMetronome.StackTracker.SKILL_ATTRIBUTES[skill].duration then
+			skillOptions[skill].showTimerBar = false
+			skillOptions[skill].timerBarOrientation = "LEFT"
+			skillOptions[skill].showTimer = false
+			skillOptions[skill].animateTimer = false
+			skillOptions[skill].soundReminder = false
+			skillOptions[skill].reminderVolume = 100
+			skillOptions[skill].expirationSound = "GroupElection_Requested"
+			skillOptions[skill].expirationTimer = 1.5
+			skillOptions[skill].remindersOnlyInCombat = false
+		end
 		CombatMetronome.DEFAULT_SAVED_VARS.StackTracker[skill] = skillOptions[skill]
 	end
 end
 InsertSkillOptionsForStackTracker()
+
+CombatMetronome.FESTIVAL_IDS = {
+	[242982] = {
+		["name"] = Util.Text.CropZOSString(GetAbilityName(242982), "ability"),
+		["icon"] = "/art/fx/texture/snowball.dds",
+	},
+	[84330] = {
+		["name"] = Util.Text.CropZOSString(GetAbilityName(84330), "ability"),
+		["icon"] = "/esoui/art/icons/quest_mudball.dds",
+	},
+	[87474] = {
+		["name"] = Util.Text.CropZOSString(GetAbilityName(87474), "ability"),
+		["icon"] = "/esoui/art/icons/event_jestersfestival_2016_cherry_blossom_branch.dds",
+	},
+}
