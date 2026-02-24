@@ -154,7 +154,7 @@ function CombatMetronome:UpdateLabels()
             self.Resources.hpLabel:SetHidden(true)
         end
         if not CombatMetronome.SV.Resources.unlockExecuteReminder and CombatMetronome.Resources.executeThreshold then
-            if not IsUnitDead("reticleover") and showResources and CombatMetronome.SV.Resources.showExecuteReminder and hp~=1 and 100 * (hp / maxHp) <= CombatMetronome.Resources.executeThreshold and CombatMetronome.Resources.executeThreshold ~= 0 then
+            if not IsUnitDead("reticleover") and IsUnitAttackable("reticleover") and showResources and CombatMetronome.SV.Resources.showExecuteReminder and hp~=1 and 100 * (hp / maxHp) <= CombatMetronome.Resources.executeThreshold and CombatMetronome.Resources.executeThreshold ~= 0 then
                 self.Resources.executeLabel:SetHidden(false)
             else
                 self.Resources.executeLabel:SetHidden(true)
