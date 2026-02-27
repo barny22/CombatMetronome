@@ -5,7 +5,7 @@
 ## AddOnVersion: 010705
 ## APIVersion: 101048 101049
 ## SavedVariables: CombatMetronomeSavedVars
-## DependsOn: LibAddonMenu-2.0>=41 libAddonKeybinds>=6 DariansUtilities>=10803 LibChatMessage>=113 LibNotification>=15
+## DependsOn: LibAddonMenu-2.0>=41 libAddonKeybinds>=6 DariansUtilities>=10803 LibChatMessage>=118 LibNotification>=15
 ## OptionalDependsOn: LibSetDetection>=4
 
 ; This Add-on is not created by, affiliated with or sponsored by ZeniMax
