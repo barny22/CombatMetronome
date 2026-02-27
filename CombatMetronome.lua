@@ -4,7 +4,6 @@
 -- })
 
 local beta = true
-local dev = true
 
 CombatMetronome = {
     name = "CombatMetronome",
@@ -131,7 +130,6 @@ function CombatMetronome:Init()
     self:BuildMenu()
 	self:RegisterMetadata()
 	
-	if dev then self.DevTools = self:DevTools() end
 	if self.versionCheck ~= self.SV.lastAddOnVersion then self.SV.showBetaMessage = true end
 	self:CreateNotifications()
 end
@@ -573,100 +571,4 @@ function CombatMetronome:UnregisterCombatEvents()
 		self.name.."SynergyChanged")
 		
 	self.synergyChangedRegistered = false
-end
-
-	---------------------
-	---- DEV Section ----
-	---------------------
-
-function CombatMetronome:DevTools()
-
-	local ADDON_DEPENDENCY_VERSIONS = {
-		["libAddonKeybinds"] = -1, ["LibAddonMenu-2.0"] = -1, ["LibChatMessage"] = -1, ["LibSetDetection"] = -1, ["LibNotification"] = -1, ["LibGroupBroadcast"] = -1, ["LibAddonMenuOrderListBox"] = -1,
-	}
-
-	local function GetDependencyVersions()
-		local AM = GetAddOnManager()
-		for addonName, version in pairs(ADDON_DEPENDENCY_VERSIONS) do
-			for i = 1, AM:GetNumAddOns() do
-				local name = AM:GetAddOnInfo(i)
-				if name == addonName then
-					ADDON_DEPENDENCY_VERSIONS[name] = AM:GetAddOnVersion(i)
-				end
-			end
-		end
-	end
-	
-	GetDependencyVersions()
-	
-	--------------------
-	---- Chat Links ----
-	--------------------
-
-	local function HandleVersionDisableLink(link, button, text, color, linkType, noIdea)
-		if linkType ~= "END_CM_VERSION_INFO_LINK" then
-			-- CombatMetronome.debug:Print("Not my kind of link")
-			return
-		end
-		if button then
-			if not CombatMetronome.SV.dependencyVersions then CombatMetronome.SV.dependencyVersions = {} end
-			
-			for addonName, version in pairs(ADDON_DEPENDENCY_VERSIONS) do
-				if version ~= -1 then CombatMetronome.SV.dependencyVersions[addonName] = version end
-			end
-			CombatMetronome.debug:Print("Saved current dependency versions to you SV")
-			CombatMetronome.debug:Print("Enjoy your free chat at startup")
-		end
-		return true -- link has been handled
-	end
-	
-	local function InitLinkHandler()
-		LINK_HANDLER:RegisterCallback(LINK_HANDLER.LINK_CLICKED_EVENT, HandleVersionDisableLink)
-		LINK_HANDLER:RegisterCallback(LINK_HANDLER.LINK_MOUSE_UP_EVENT, HandleVersionDisableLink)
-	end
-
-	local function PrintStartupNotes()
-		CombatMetronome.debug:Print("You are now using the addon's developer mode")
-		
-		local versionChangeDetected, gotSV, versionStartMessage = false, false, false
-
-		if not CombatMetronome.SV.dependencyVersions then
-			gotSV = false
-		else 
-			gotSV = true
-		end
-		
-		for addonName, version in pairs(ADDON_DEPENDENCY_VERSIONS) do
-			if not gotSV and version ~= -1 then
-				if not versionStartMessage then
-					CombatMetronome.debug:Print("Dependency version changes:")
-					versionStartMessage = true
-				end
-				CombatMetronome.debug:Print(addonName..": "..version)
-				versionChangeDetected = true
-			elseif gotSV and version ~= -1 and version ~= CombatMetronome.SV.dependencyVersions[addonName] then
-				if not versionStartMessage then
-					CombatMetronome.debug:Print("Dependency version changes:")
-					versionStartMessage = true
-				end
-				CombatMetronome.debug:Print(addonName..": "..version)
-				versionChangeDetected = true
-			end
-		end
-		
-		if versionChangeDetected then
-			CombatMetronome.debug:Print("Click |c2a52be|H1:END_CM_VERSION_INFO_LINK|h[here]|h|r to save versions to SV and disable this message until another version change was found")
-		end
-	end
-	
-	InitLinkHandler()
-	PrintStartupNotes()
-	
-	return {
-		ADDON_DEPENDENCY_VERSIONS = ADDON_DEPENDENCY_VERSIONS,
-		GetDependencyVersions = GetDependencyVersions,
-		HandleVersionDisableLink = HandleVersionDisableLink,
-		InitLinkHandler = InitLinkHandler,
-		PrintStartupNotes = PrintStartupNotes,
-	}
 end
