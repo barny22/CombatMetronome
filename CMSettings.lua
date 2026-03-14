@@ -16,6 +16,13 @@ local MIN_HEIGHT = 10
 local MAX_HEIGHT = 100
 local MAX_ABILITY_DURATION = 5.3
 
+local difficulty = {
+	"|c00ff80EASY|r",
+	"NORMAL",
+	"|cec8b27HARD|r",
+	"|cff3131DEADLY|r",
+}
+
 local sounds = {
     "Justice_PickpocketFailed",
     "Dialog_Decline",
@@ -1820,6 +1827,23 @@ function CombatMetronome:BuildMenu()
 				tooltip = "Shows a little reminder on screen, when using health highlighting or equipping an execute ability and hitting the targets corresponding execute threshold",
 				getFunc = function() return CombatMetronome.SV.Resources.showExecuteReminder end,
 				setFunc = function(value) CombatMetronome.SV.Resources.showExecuteReminder = value end,
+			},
+			{
+				type = "dropdown",
+				name = "Execute reminder min target difficulty",
+				tooltip = "Only shows reminder if target difficulty is higher than selected",
+				choices = difficulty,
+				default = difficulty[2],
+				disabled = function() return not CombatMetronome.SV.Resources.showExecuteReminder end,
+				getFunc = function() return difficulty[CombatMetronome.SV.Resources.executeDifficulty] end,
+				setFunc = function(value)
+					for i, str in ipairs(difficulty) do
+						if str == value then
+							CombatMetronome.SV.Resources.executeDifficulty = i
+							break
+						end
+					end
+				end,
 			},
 			{
 				type = "colorpicker",

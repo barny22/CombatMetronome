@@ -1,5 +1,7 @@
 2026-02-22 v1.7.5
 !  Fixed execute reminder being shown on allies/non attackable units
+!  Eliminated some user irrelevant code
++  Added option to choose execute reminder target difficulty to prevent "EXECUTE!" spamming on normal mobs
 
 2025-12-18 v1.7.4
 +  Made code slightly more preformant

@@ -93,6 +93,7 @@ CombatMetronome.DEFAULT_SAVED_VARS = {
 		["reticleHp"] = false,
 		["unlockExecuteReminder"] = false,
 		["showExecuteReminder"] = false,
+		["executeDifficulty"] = 1,
 		["executeColor"] = {0.8, 0, 0, 1},
 		["executeX"] = (GuiRoot:GetWidth() - 250) / 2,
 		["executeY"] = (GuiRoot:GetHeight() - 50) / 2,
