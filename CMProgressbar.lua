@@ -157,9 +157,10 @@ function CombatMetronome:Update()
 			end
 			progressbar.bar:Update()
 		elseif self.currentEvent then
+			-- self.debug:Print(self.currentEvent.ability.name)
 			-- if CombatMetronome.SV.debug.triggers then CombatMetronome.debug:Print(remaining) end
 			self:SetIconsAndNamesNil()
-			if gcdProgress <= 0 and self.currentEvent.ability.delay <= 1000 and not self.currentEvent.ability.channeled then
+			if gcdProgress <= 0 and self.currentEvent.ability.delay <= 1000 and not self.currentEvent.ability.channeled and not self.currentEvent.ability.heavy then
 				self:OnCDStop()
 				return
 			end
@@ -177,7 +178,7 @@ function CombatMetronome:Update()
 				cdTimer = time - start
 			end
 			
-			local duration = math.max(ability.heavy and sv.stopHATracking and 0 or (self.gcd or 1000), ability.delay) + (self.currentEvent.adjust or 0)
+			local duration = math.max(self.gcd or 1000, ability.delay) + (self.currentEvent.adjust or 0)
 			-- local timeRemaining = ((start + duration + latency) - time) / 1000 or ((start + channelTime + latency) - time) < 0 and 0
 			local timeRemaining = (duration - cdTimer) / 1000
 			local castProgress = timeRemaining/(duration/1000)
@@ -189,9 +190,9 @@ function CombatMetronome:Update()
 			-- if playerDidBlock and self.SV.debug.enabled then CombatMetronome.debug:Print("Player blocked") end
 			
 			if ability.heavy then
-				if sv.displayPingOnHeavy then
-					duration = duration + latency
-				else
+				if not sv.displayPingOnHeavy then
+					-- duration = duration + latency
+				-- else
 					latency = 0
 				end
 			end
@@ -202,7 +203,7 @@ function CombatMetronome:Update()
 				self:OnCDStop()
 				return
 			else
-				local length = duration - latency
+				-- local length = duration - latency
 				
 				-- Sound contributed to by Seltiix --
 				if (self.inCombat or (sv.showOOC and sv.playSoundsOOC)) and not progressbar.soundTickPlayed and sv.soundTickEnabled then --and time > start + length - sv.soundTickOffset then
@@ -275,11 +276,11 @@ function CombatMetronome:Update()
 			------------------------------	
 			
 			--Remaining time on Castbar by barny
-			if sv.showTimeRemaining and ((ability.delay > 0 and timeRemaining >= 0) or sv.alwaysShowTimeRemaining) and not ability.heavy then
+			if sv.showTimeRemaining and ((ability.delay > 0 and timeRemaining >= 0) or sv.alwaysShowTimeRemaining) and (not ability.heavy or ability.heavy and sv.showHeavyDetails) then
 				-- to have timers at least at 1 second
-				if sv.alwaysShowTimeRemaining and ability.delay < 1000 then
-					timeRemaining = gcdProgress
-				end
+				-- if sv.alwaysShowTimeRemaining and ability.delay < 1000 then
+					-- timeRemaining = gcdProgress
+				-- end
 				progressbar.timeLabel:SetText(string.format("%.1fs", timeRemaining))
 				progressbar.timeLabel:SetHidden(false)
 			else
@@ -287,7 +288,7 @@ function CombatMetronome:Update()
 			end
 			
 			--Spell Label on Castbar by barny
-			if sv.showSpell and ((ability.delay > 0 and timeRemaining >= 0) or sv.alwaysShowSpell) and not ability.heavy then
+			if sv.showSpell and ((ability.delay > 0 and timeRemaining >= 0) or sv.alwaysShowSpell) and (not ability.heavy or ability.heavy and sv.showHeavyDetails) then
 				if not ability.displayName or dynamicProgress then
 					progressbar.spellLabel:SetText(ability.name)
 					local barSpace = sv.width - (sv.showTimeRemaining and 2.5*progressbar.timeLabel:GetWidth() or 0)

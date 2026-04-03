@@ -237,6 +237,15 @@ function CombatMetronome:RegisterMetadata()
         function(_, inCombat) 
             self.inCombat = inCombat == true
 			LATracker:ManageLATracker(inCombat)
+			if self.SV.StackTracker.onlyInCombat and not inCombat then
+				for skill, _ in pairs(StackTracker.availableSkills) do
+					StackTracker:HideTracker(skill, StackTracker.stacks[skill] == 0)
+				end
+			else
+				for skill, _ in pairs(StackTracker.availableSkills) do
+					StackTracker:HideTracker(skill, false)
+				end
+			end
         end
     )		
 end

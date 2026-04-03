@@ -55,6 +55,8 @@ function StackTracker:ChangeStackCount(skill, stackCount)
 	if not self.UI[skill] then
 		if CombatMetronome.SV.debug.enabled then CombatMetronome.debug:Print("Tried to change "..skill.." stackCount without UI initialized") end
 		return
+	elseif not (CombatMetronome.inCombat and CombatMetronome.SV.StackTracker.onlyInCombat) and stackCount == 0 then
+		self:HideTracker(skill, true)
 	end
 	local attributes = self.SKILL_ATTRIBUTES[skill]
 	local sv = CombatMetronome.SV.StackTracker[skill]

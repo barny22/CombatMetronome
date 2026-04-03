@@ -483,7 +483,7 @@ function StackTracker:BuildUI(skill)
 		local function SetAnimationHidden(value)
 			highlightAnimation:SetHidden(value)
 		end
-
+		
 		local controls = {
 		stackIndicator = stackIndicator,
 		frame = frame,
@@ -664,6 +664,15 @@ function StackTracker:BuildUI(skill)
 	end
 	indicator.ApplyIcon = ApplyIcon
 	
+	local function Hide(value)
+		for i=1,attributes.iMax*multiplier do 
+			indicator[i].controls.stackIndicator:SetHidden(value)
+			indicator[i].controls.icon:SetHidden(value)
+			indicator[i].controls.frame:SetHidden(value)
+			indicator[i].controls.highlight:SetHidden(value)
+		end
+	end
+	
 	Position("UI")
 	
 	SCENE_MANAGER:RegisterCallback("SceneStateChanged", function(scene, newState)
@@ -679,6 +688,7 @@ function StackTracker:BuildUI(skill)
 	indicator = indicator,
 	FadeScenes = FadeScenes,
 	Position = Position,
+	Hide = Hide,
 	}
 end
 

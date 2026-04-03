@@ -1368,28 +1368,6 @@ function CombatMetronome:BuildMenu()
 					},
 					{
 						type = "checkbox",
-						name = "I'm no Oakensorc",
-						tooltip = "Stops displaying heavy attacks on the progress bar",
-						getFunc = function() return CombatMetronome.SV.Progressbar.stopHATracking end,
-						setFunc = function(value)
-							CombatMetronome.SV.Progressbar.stopHATracking = value
-						end,
-					},
-					{
-						type = "checkbox",
-						name = "Display ping zone on heavy attacks",
-						tooltip = "Displays heavy attacks with ping zone - Heavy attack cast will finish at start on entering ping zone "
-											.."(heavy attack timing is calculated locally). This is for visual consistency",
-						disabled = function()
-							return (CombatMetronome.SV.Progressbar.dontShowPing)
-						end,
-						getFunc = function() return CombatMetronome.SV.Progressbar.displayPingOnHeavy end,
-						setFunc = function(value)
-							CombatMetronome.SV.Progressbar.displayPingOnHeavy = value
-						end,
-					},
-					{
-						type = "checkbox",
 						name = "Display spell name in cast bar",
 						tooltip = "Displays the spell name in the cast bar, when the ability is not an instant cast",
 						getFunc = function() return CombatMetronome.SV.Progressbar.showSpell end,
@@ -1425,6 +1403,44 @@ function CombatMetronome:BuildMenu()
 						setFunc = function(value)
 							CombatMetronome.SV.Progressbar.alwaysShowTimeRemaining = value
 						end,
+					},
+					{
+						type = "submenu",
+						name = "Heavy Attack options",
+						controls = {
+							{
+								type = "checkbox",
+								name = "I'm no Oakensorc",
+								tooltip = "Stops displaying heavy attacks on the progress bar",
+								getFunc = function() return CombatMetronome.SV.Progressbar.stopHATracking end,
+								setFunc = function(value)
+									CombatMetronome.SV.Progressbar.stopHATracking = value
+								end,
+							},
+							{
+								type = "checkbox",
+								name = "Display ping zone on heavy attacks",
+								tooltip = "Displays heavy attacks with ping zone - Heavy attack cast will finish at start on entering ping zone "
+													.."(heavy attack timing is calculated locally). This is for visual consistency",
+								disabled = function()
+									return (CombatMetronome.SV.Progressbar.dontShowPing)
+								end,
+								getFunc = function() return CombatMetronome.SV.Progressbar.displayPingOnHeavy end,
+								setFunc = function(value)
+									CombatMetronome.SV.Progressbar.displayPingOnHeavy = value
+								end,
+							},
+							{
+								type = "checkbox",
+								name = "Show labels and icon",
+								default = false,
+								disabled = function() return not (CombatMetronome.SV.Progressbar.showSpell and CombatMetronome.SV.Progressbar.showTimeRemaining) end,
+								getFunc = function() return CombatMetronome.SV.Progressbar.showHeavyDetails end,
+								setFunc = function(value)
+									CombatMetronome.SV.Progressbar.showHeavyDetails = value
+								end,
+							},
+						},
 					},
 				},
 			},
@@ -2253,6 +2269,15 @@ function CombatMetronome:BuildMenu()
 							end
 						end
 					end
+				end,
+			},
+			{
+				type = "checkbox",
+				name = "Show only in combat",
+				default = false,
+				getFunc = function() return CombatMetronome.SV.StackTracker.onlyInCombat end,
+				setFunc = function(value)
+					CombatMetronome.SV.StackTracker.onlyInCombat = value
 				end,
 			},
 			-------------------------
