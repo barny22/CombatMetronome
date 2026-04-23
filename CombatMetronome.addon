@@ -3,7 +3,7 @@
 ## Author: Darianopolis, |c2a52beb|rarny
 ## Version: 1.7.5
 ## AddOnVersion: 010705
-## APIVersion: 101048 101049
+## APIVersion: 101049
 ## SavedVariables: CombatMetronomeSavedVars
 ## DependsOn: LibAddonMenu-2.0>=41 libAddonKeybinds>=6 DariansUtilities>=10803 LibChatMessage>=118 LibNotification>=15
 ## OptionalDependsOn: LibSetDetection>=4
