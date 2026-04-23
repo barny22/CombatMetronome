@@ -96,6 +96,8 @@ function CombatMetronome:GCDSpecifics(text, icon, gcdProgress, wasSynergy)
 end
 
 function CombatMetronome:SetIconsAndNamesNil()
+	if self.currentEvent then return end
+	
 	self.Progressbar.activeMount.action = ""
 	self.Progressbar.collectibleInUse = nil
 	self.Progressbar.itemUsed = nil
@@ -109,6 +111,8 @@ function CombatMetronome:SetIconsAndNamesNil()
 	self.Progressbar.spellLabel:SetHidden(true)
 	self.Progressbar.spellIcon:SetHidden(true)
 	self.Progressbar.spellIconBorder:SetHidden(true)
+	
+	self.gcdEvent = {}
 	
 	-- if self.currentEvent and self.currentEvent.start and self.currentEvent.ability and self.currentEvent.start + math.max(self.currentEvent.ability.delay, 1000) + GRACE_PERIOD < GetFrameTimeMilliseconds() then
 		-- self.currentEvent = nil
@@ -249,8 +253,14 @@ function CombatMetronome:BuildListOfCurrentlyEquippedAbilities()
 			self.StackTracker.slottedSkills[self.StackTracker.AVAILABLE_TRACKING_IDS[skill.id]] = true
 		end
 		
-		if self.StackTracker.availableSkills.Crux and not self.StackTracker.slottedSkills.Crux and self.StackTracker.CRUX_SKILL_LINE_IDS[skill.skillLine] then
-			self.StackTracker.slottedSkills.Crux = true
+		if self.StackTracker.availableSkills.Crux and not self.StackTracker.slottedSkills.Crux then
+			for _, data in ipairs(self.currentlyEquippedAbilities.data) do
+				if self.StackTracker.ABILITIES_USING_OR_GENERATING_CRUX[data.id] then
+					self.StackTracker.slottedSkills.Crux = true
+					break
+				end
+				self.StackTracker.slottedSkills.Crux = false
+			end
 		end
 		
 		-- EXECUTE check
@@ -280,6 +290,19 @@ function CombatMetronome:BuildListOfCurrentlyEquippedAbilities()
 			end
 		end
 	end
+	if self.menu.panels and self.menu.panels.General then
+		local panelControls = self.menu.panels.General.controlsToRefresh
+		for i = 1, #panelControls do
+			local control = panelControls[i]
+			if (control.data and control.data.name == "Add ability ID to debug whitelist") then
+				-- CombatMetronome.debug:Print("Updating currently equipped skills")
+				-- self.currentlyEquippedAbilities = self:BuildListOfCurrentlyEquippedAbilities()
+				control:UpdateChoices()
+				control:UpdateValue()
+				break
+			end
+		end
+	end
 end
 
 	-------------------------
@@ -288,10 +311,10 @@ end
 
 function CombatMetronome:HandleAbilityUsed(event)
     if not (self.inCombat or CombatMetronome.SV.Progressbar.showOOC) then return end
-	if CombatMetronome.SV.debug.abilityUsed and event.ability then CombatMetronome.debug:Print("New event "..event.ability.name.." recieved in CombatMetronome. ID: "..event.ability.id) end
+	if event.ability then Util.Ability.Tracker:PrintDebugNotes("abilityUsed", event.ability.id, string.format("New event '%s' recieved in CombatMetronome. ID: %d", event.ability.name, event.ability.id)) end
 	if event == "cancel heavy" then
 		if self.currentEvent and self.currentEvent.ability.heavy then
-			if CombatMetronome.SV.debug.currentEvent then CombatMetronome.debug:Print("Canceled heavy"..self.currentEvent.ability.name) end
+			Util.Ability.Tracker:PrintDebugNotes("currentEvent", nil, string.format("Canceled heavy '%s'", self.currentEvent.ability.name))
 			self.currentEvent = nil
 			self.gcd = 0
 		end
@@ -480,6 +503,12 @@ function StackTracker:HandleUIVisibility(skill, scene)
 		-- elseif scene == "Sample" or scene == "UI" then
 			-- StackTracker.UI[skill].stacksWindow:SetHidden(false)
 		-- end
+	end
+end
+
+function StackTracker:HideTracker(skill, value)
+	if self.UI[skill] then
+		self.UI[skill].Hide(value)
 	end
 end
 
