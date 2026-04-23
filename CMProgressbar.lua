@@ -18,6 +18,26 @@ local function AnchorSpellIcon(dynamic)
 	end
 end
 
+local function CreateDisplayName(name)
+	local displayName
+	CombatMetronome.Progressbar.spellLabel:SetText(name)
+	local barSpace = CombatMetronome.SV.Progressbar.width - (CombatMetronome.SV.Progressbar.showTimeRemaining and 2.5*CombatMetronome.Progressbar.timeLabel:GetWidth() or 0)
+	if CombatMetronome.Progressbar.spellLabel:GetWidth() > barSpace then
+		for i = #name, 1, -1 do
+			local shortName =  string.sub(name, 1, i):gsub("%s+$", "") .. ".."
+			CombatMetronome.Progressbar.spellLabel:SetText(shortName)
+			if CombatMetronome.Progressbar.spellLabel:GetWidth() <= barSpace then
+				displayName = shortName
+				break
+			end
+		end
+	else
+		displayName = name
+	end
+	
+	return displayName
+end
+
 	--------------------------
 	---- Cast Bar Updater ----
 	--------------------------
@@ -124,29 +144,54 @@ function CombatMetronome:Update()
 			
 			progressbar.bar.segments[1].progress = (sv.showPingOnGCD and latency/1000) or 0
 			progressbar.bar.segments[2].progress = gcdProgress
+			
+			local gcdEvent = self.gcdEvent
+			
 			if not Util.Ability.Tracker.rollDodgeFinished and sv.trackRolldodge then
-				self:GCDSpecifics(Util.Text.CropZOSString(GetAbilityName(28549), "ability"), "/esoui/art/icons/ability_rogue_035.dds", gcdProgress, false)
+				gcdEvent.displayName = CreateDisplayName(Util.Text.CropZOSString(GetAbilityName(28549), "ability"))
+				gcdEvent.icon = "/esoui/art/icons/ability_rogue_035.dds"
+				gcdEvent.clearSynergy = false
+				-- self:GCDSpecifics(Util.Text.CropZOSString(GetAbilityName(28549), "ability"), "/esoui/art/icons/ability_rogue_035.dds", gcdProgress, false)
 			elseif progressbar.activeMount.action ~= "" and sv.trackMounting then
 				if sv.showMountNick then
-					self:GCDSpecifics(tostring(progressbar.activeMount.action.." "..progressbar.activeMount.name), progressbar.activeMount.icon, gcdProgress, false)
+					gcdEvent.displayName = CreateDisplayName(tostring(progressbar.activeMount.action.." "..progressbar.activeMount.name))
+					gcdEvent.icon = progressbar.activeMount.icon
+					gcdEvent.clearSynergy = false
+					-- self:GCDSpecifics(tostring(progressbar.activeMount.action.." "..progressbar.activeMount.name), progressbar.activeMount.icon, gcdProgress, false)
 				else
-					self:GCDSpecifics(progressbar.activeMount.action, progressbar.activeMount.icon, gcdProgress, false)
+					gcdEvent.displayName = CreateDisplayName(progressbar.activeMount.action)
+					gcdEvent.icon = progressbar.activeMount.icon
+					gcdEvent.clearSynergy = false
+					-- self:GCDSpecifics(progressbar.activeMount.action, progressbar.activeMount.icon, gcdProgress, false)
 				end
 			elseif progressbar.collectibleInUse and sv.trackCollectibles then
-				self:GCDSpecifics(progressbar.collectibleInUse.name, progressbar.collectibleInUse.icon, gcdProgress, false)
-				-- progressbar.nonAbilityGCDRunning = true
+				gcdEvent.displayName = CreateDisplayName(progressbar.collectibleInUse.name)
+				gcdEvent.icon = progressbar.collectibleInUse.icon
+				gcdEvent.clearSynergy = false
+				-- self:GCDSpecifics(progressbar.collectibleInUse.name, progressbar.collectibleInUse.icon, gcdProgress, false)
 			elseif progressbar.synergy and sv.trackSynergies and progressbar.synergy.wasUsed then
-				self:GCDSpecifics(progressbar.synergy.name, progressbar.synergy.icon, gcdProgress, true)
-				-- progressbar.nonAbilityGCDRunning = true
+				gcdEvent.displayName = CreateDisplayName(progressbar.synergy.name)
+				gcdEvent.icon = progressbar.synergy.icon
+				gcdEvent.clearSynergy = true
+				-- self:GCDSpecifics(progressbar.synergy.name, progressbar.synergy.icon, gcdProgress, true)
 			elseif progressbar.itemUsed and sv.trackItems then
-				self:GCDSpecifics(progressbar.itemUsed.name, progressbar.itemUsed.icon, gcdProgress, false)
-				-- progressbar.nonAbilityGCDRunning = true
+				gcdEvent.displayName = CreateDisplayName(progressbar.itemUsed.name)
+				gcdEvent.icon = progressbar.itemUsed.icon
+				gcdEvent.clearSynergy = false
+				-- self:GCDSpecifics(progressbar.itemUsed.name, progressbar.itemUsed.icon, gcdProgress, false)
 			elseif progressbar.breakingFree and sv.trackBreakingFree then
-				self:GCDSpecifics(progressbar.breakingFree.name, progressbar.breakingFree.icon, gcdProgress, false)
-				-- progressbar.nonAbilityGCDRunning = true
+				gcdEvent.displayName = CreateDisplayName(progressbar.breakingFree.name)
+				gcdEvent.icon = progressbar.breakingFree.icon
+				gcdEvent.clearSynergy = false
+				-- self:GCDSpecifics(progressbar.breakingFree.name, progressbar.breakingFree.icon, gcdProgress, false)
 			elseif progressbar.festivalGCD then
-				self:GCDSpecifics(self.FESTIVAL_IDS[progressbar.festivalGCD].name, self.FESTIVAL_IDS[progressbar.festivalGCD].icon, gcdProgress, false)
+				gcdEvent.displayName = CreateDisplayName(self.FESTIVAL_IDS[progressbar.festivalGCD].name)
+				gcdEvent.icon = self.FESTIVAL_IDS[progressbar.festivalGCD].icon
+				gcdEvent.clearSynergy = false
+				-- self:GCDSpecifics(self.FESTIVAL_IDS[progressbar.festivalGCD].name, self.FESTIVAL_IDS[progressbar.festivalGCD].icon, gcdProgress, false)
 			end
+			
+			if gcdEvent.displayName then self:GCDSpecifics(gcdEvent.displayName, gcdEvent.icon, gcdProgress, gcdEvent.clearSynergy) end
 			
 			if gcdProgress <= 0 then
 				self:SetIconsAndNamesNil()
@@ -289,21 +334,8 @@ function CombatMetronome:Update()
 			
 			--Spell Label on Castbar by barny
 			if sv.showSpell and ((ability.delay > 0 and timeRemaining >= 0) or sv.alwaysShowSpell) and (not ability.heavy or ability.heavy and sv.showHeavyDetails) then
-				if not ability.displayName or dynamicProgress then
-					progressbar.spellLabel:SetText(ability.name)
-					local barSpace = sv.width - (sv.showTimeRemaining and 2.5*progressbar.timeLabel:GetWidth() or 0)
-					if progressbar.spellLabel:GetWidth() > barSpace then
-						for i = #ability.name, 1, -1 do
-							local shortName =  string.sub(ability.name, 1, i):gsub("%s+$", "") .. ".."
-							progressbar.spellLabel:SetText(shortName)
-							if progressbar.spellLabel:GetWidth() <= barSpace then
-								ability.displayName = shortName
-								break
-							end
-						end
-					else
-						ability.displayName = ability.name
-					end
+				if not ability.displayName then
+					ability.displayName = CreateDisplayName(ability.name)
 				end
 				progressbar.spellLabel:SetText(ability.displayName)
 				progressbar.spellLabel:SetHidden(false)
