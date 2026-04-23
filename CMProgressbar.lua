@@ -1,6 +1,7 @@
 local Util = DariansUtilities
 Util.Ability = Util.Ability or {}
 Util.Ability.Tracker = Util.Ability.Tracker or {}
+local Tracker = Util.Ability.Tracker
 Util.Text = Util.Text or {}
 CombatMetronome.SV = CombatMetronome.SV or {}
 
@@ -96,7 +97,7 @@ function CombatMetronome:Update()
 		local time = GetFrameTimeMilliseconds()
 		
 		-- this is important for GCD Tracking
-		local gcdProgress, slotRemaining, slotDuration = Util.Ability.Tracker:GCDCheck()
+		local gcdProgress, slotRemaining, slotDuration = Tracker:GCDCheck()
 				
 		-- local interval = false
 		-- if time > progressbar.lastInterval + INTERVAL then
@@ -147,7 +148,7 @@ function CombatMetronome:Update()
 			
 			local gcdEvent = self.gcdEvent
 			
-			if not Util.Ability.Tracker.rollDodgeFinished and sv.trackRolldodge then
+			if not Tracker.rollDodgeFinished and sv.trackRolldodge then
 				gcdEvent.displayName = CreateDisplayName(Util.Text.CropZOSString(GetAbilityName(28549), "ability"))
 				gcdEvent.icon = "/esoui/art/icons/ability_rogue_035.dds"
 				gcdEvent.clearSynergy = false
@@ -275,7 +276,7 @@ function CombatMetronome:Update()
 						-- self.SV.debug.enabled then CombatMetronome.debug:Print("Ability with cast time < 1s detected") end
 						if not castIsFinished and progressbar.bar.segments[2].color == sv.progressColor then
 							progressbar.bar.segments[2].color = sv.channelColor
-							if self.SV.debug.enabled then CombatMetronome.debug:Print(zo_strformat("Trying to update Channel Color for event named <<1>>", ability.name)) end
+							-- if self.SV.debug.enabled then CombatMetronome.debug:Print(zo_strformat("Trying to update Channel Color for event named <<1>>", ability.name)) end
 						elseif castIsFinished  and progressbar.bar.segments[2].color == sv.channelColor then
 							progressbar.bar.segments[2].color = sv.progressColor
 							--if self.SV.debug.enabled then CombatMetronome.debug:Print("Turning back to Progress Color") end

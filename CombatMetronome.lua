@@ -76,6 +76,7 @@ function CombatMetronome:Init()
 
     self.inCombat = IsUnitInCombat("player")
     self.currentEvent = nil
+	self.gcdEvent = {}
 
     self.gcd = 1000
 
@@ -459,7 +460,7 @@ function StackTracker:Register(skill)
 	self:InitializeUI(skill)
 	
 	StackTracker:ChangeStackCount(skill, self.stacks[skill])
-	if CombatMetronome.SV.debug.enabled then CombatMetronome.debug:Print(skill.." tracker is registered") end
+	-- if CombatMetronome.SV.debug.enabled then CombatMetronome.debug:Print(skill.." tracker is registered") end
 end
 
 function StackTracker:RegisterEffectChanged(name, aId)

@@ -104,6 +104,22 @@ local function UpdateProgressbarSizeSliders()
 	end
 end
 
+local function UpdateDebugListChoices()
+	if CombatMetronome.menu.panels and CombatMetronome.menu.panels.General then
+		local panelControls = CombatMetronome.menu.panels.General.controlsToRefresh
+		for i = 1, #panelControls do
+			local control = panelControls[i]
+			if (control.data and control.data.name == "Delete from ability whitelist") then
+				-- CombatMetronome.debug:Print("Updating currently equipped skills")
+				-- self.currentlyEquippedAbilities = self:BuildListOfCurrentlyEquippedAbilities()
+				control:UpdateChoices()
+				control:UpdateValue()
+				break
+			end
+		end
+	end
+end
+
 local function IconDesaturation(icon, value)
 	if value then
 		icon:SetDesaturation(0)
@@ -655,6 +671,42 @@ function CombatMetronome:BuildMenu()
 							-- self.log = value
 						end,
 						width = "half",
+					},
+					-- {
+						-- type = "editbox",
+						-- name = "Add ability ID to debug whitelist",
+						-- func = function() end,
+					-- },
+					{
+						type = "dropdown",
+						name = "Add ability ID to debug whitelist",
+						choices = self.currentlyEquippedAbilities.list,
+						getFunc = function() end,
+						setFunc = function(selectedSkill)
+							local skillData = self:GetEquippedSkillData(selectedSkill)
+							if not CombatMetronome.SV.debug.abilityWhitelist.ids[skillData.id] then
+								table.insert(CombatMetronome.SV.debug.abilityWhitelist.list, selectedSkill)
+								CombatMetronome.SV.debug.abilityWhitelist.ids[skillData.id] = true
+								UpdateDebugListChoices()
+							end
+						end,
+					},
+					{
+						type = "dropdown",
+						name = "Delete from ability whitelist",
+						choices = CombatMetronome.SV.debug.abilityWhitelist.list or {},
+						getFunc = function() end,
+						setFunc = function(selectedSkill)
+							for i, name in ipairs(CombatMetronome.SV.debug.abilityWhitelist.list) do
+								if name == selectedSkill then
+									local skillData = self:GetEquippedSkillData(selectedSkill)
+									table.remove(CombatMetronome.SV.debug.abilityWhitelist.list, i)
+									CombatMetronome.SV.debug.abilityWhitelist.ids[skillData.id] = nil
+									UpdateDebugListChoices()
+									break
+								end
+							end
+						end,
 					},
 				},
 			},

@@ -506,7 +506,9 @@ function Ability.Tracker:CancelEvent(reason)
     local time = GetFrameTimeMilliseconds()
     
     if self.queuedEvent and not self.queuedEvent.allowForce and self.lastAbilityFinished < time then
-        if CombatMetronome.SV.debug.eventCancel and self.queuedEvent and self.queuedEvent.ability and not self.queuedEvent.ability.heavy then CombatMetronome.debug:Print("Canceled queued ability "..self.queuedEvent.ability.name..". Reason: "..reason) end
+        if self.queuedEvent and self.queuedEvent.ability and not self.queuedEvent.ability.heavy then
+            self:PrintDebugNotes("eventCancel", self.queuedEvent.ability.id, string.format("Canceled queued ability '%s'. Reason: %s", self.queuedEvent.ability.name, reason))
+        end
         self.queuedEvent = nil
     end
 
@@ -525,7 +527,7 @@ end
 function Ability.Tracker:AbilityUsed(trigger)
 
     if not CanAbilityFire() then 
-        if CombatMetronome.SV.debug.abilityUsed then CombatMetronome.debug:Print("Couldn't fire ability") end
+        if self.queuedEvent and self.queuedEvent.ability then self:PrintDebugNotes("abilityUsed", self.queuedEvent.ability.id, "Couldn't fire ability") end
         return
     elseif not (self.queuedEvent.ability and GetFrameTimeMilliseconds() < self.queuedEvent.recorded + math.max(self.queuedEvent.ability.duration, 1000) + GRACE_PERIOD) then
         self:CancelEvent("Not fired")
@@ -563,7 +565,7 @@ function Ability.Tracker:AbilityUsed(trigger)
         -- end
         
         self.gcd = sD
-        if CombatMetronome.SV.debug.abilityUsed then CombatMetronome.debug:Print("New ability used "..event.ability.name.." - Trigger: "..trigger) end
+        self:PrintDebugNotes("abilityUsed", event.ability.id, string.format("New ability used '%s' - Trigger: %s", event.ability.name, trigger))
         self:CallbackAbilityUsed(event)
 
         if (event.ability.instant or event.ability.channeled) then
@@ -608,7 +610,7 @@ end
 function Ability.Tracker:CallbackCancelHeavy()
     -- if not (self.cdTriggerTime == self.heavyUsedDuringHeavy) then
         self.currentEvent = nil
-        if CombatMetronome.SV.debug.currentEvent then CombatMetronome.debug:Print("Canceled heavy") end
+        self:PrintDebugNotes("currentEvent", nil, "Canceled heavy")
         self.gcd = 0
         -- CombatMetronome.debug:Print("cancelling heavy")
         Ability.Tracker:CallbackAbilityUsed("cancel heavy")
@@ -814,7 +816,7 @@ function Ability.Tracker:HandleCombatEvent(_,     res,  err,   aName, _, aSlotTy
         -- end
         -- CombatMetronome.debug:Print("Got an event that might kill currentEvent. Name: "..aName.." - Id: "..aId)
         if (res == ACTION_RESULT_DIED or res == ACTION_RESULT_DIED_XP) and CombatMetronome and CombatMetronome.currentEvent and CombatMetronome.currentEvent.ability.checkForDeadTarget and CombatMetronome.currentEvent.target == tUId then -- ACTION_RESULT_TARGET_DEAD
-            if CombatMetronome.SV.debug.currentEvent then CombatMetronome.debug:Print("Target dead. Cancelling: "..aName.." - Id: "..aId) end
+            self:PrintDebugNotes("currentEvent", aId, string.format("Target dead. Cancelling '%s' - Id: %d", aName, aId))
             local remaining = self:GCDCheck()
             if remaining > 0 then
                 local start = CombatMetronome.currentEvent.start
@@ -901,13 +903,10 @@ end
 
 function Ability.Tracker:ResetDebugCount(inCombat)
     if not inCombat and not self.debugCountReset then
-        if CombatMetronome.SV.debug.triggers then
-           CombatMetronome.debug:Print("Normal triggers: "..self.abilityTriggerCounters.normal)
-           CombatMetronome.debug:Print("Direct triggers: "..self.abilityTriggerCounters.direct)
-           CombatMetronome.debug:Print("Late triggers: "..self.abilityTriggerCounters.late)
-           -- CombatMetronome.debug:Print("Extra triggers: "..self.abilityTriggerCounters.extra)
-           CombatMetronome.debug:Print("Combat ended")
-        end
+        self:PrintDebugNotes("triggers", nil, string.format("Normal triggers: %d", self.abilityTriggerCounters.normal))
+        self:PrintDebugNotes("triggers", nil, string.format("Direct triggers: %d", self.abilityTriggerCounters.direct))
+        self:PrintDebugNotes("triggers", nil, string.format("Late triggers: %d", self.abilityTriggerCounters.late))
+        self:PrintDebugNotes("triggers", nil, "Combat ended")
         self.abilityTriggerCounters.late = 0
         self.abilityTriggerCounters.normal = 0
         self.abilityTriggerCounters.direct = 0
@@ -923,7 +922,9 @@ end
 -----------------------------------
 
 function Ability.Tracker:CancelCurrentEvent(reason)
+    
     if self.currentEvent then
+        if self.currentEvent.ability then self:PrintDebugNotes("currentEvent", self.currentEvent.ability.id, string.format("Current event cancel: %s", reason)) end
         if self.CombatMetronome and CombatMetronome.currentEvent then
             CombatMetronome:OnCDStop()
             -- CombatMetronome.abilityFinished = GetFrameTimeMilliseconds()
@@ -933,5 +934,27 @@ function Ability.Tracker:CancelCurrentEvent(reason)
         self.lastAbilityFinished = 0
         self.gcd = 1000
     end
-    if CombatMetronome.SV.debug.currentEvent --[[and (self.currentEvent.ability.id == carverId.mag or self.currentEvent.ability.id == carverId.stam)]] then CombatMetronome.debug:Print("Current event cancel: "..reason) end
+end
+
+function Ability.Tracker:PrintDebugNotes(debugType, abilityID, message)
+    local debugs = CombatMetronome.SV.debug
+    local debugTypeIsActive = false
+    
+    if debugType == "currentEvent" and debugs.currentEvent then debugTypeIsActive = true
+    elseif debugType == "abilityUsed" and debugs.abilityUsed then debugTypeIsActive = true
+    elseif debugType == "triggers" and debugs.triggers then debugTypeIsActive = true
+    elseif debugType == "eventCancel" and debugs.eventCancel then debugTypeIsActive = true
+    end
+    
+    if not debugTypeIsActive then return end
+    
+    local printDebug = false
+    if not next(CombatMetronome.SV.debug.abilityWhitelist.ids) then printDebug = true
+    elseif CombatMetronome.SV.debug.abilityWhitelist.ids[abilityID] then printDebug = true
+    elseif not abilityID then printDebug = true
+    end
+    
+    if printDebug then
+        CombatMetronome.debug:Print(message)
+    end
 end
