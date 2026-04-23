@@ -1420,8 +1420,7 @@ function CombatMetronome:BuildMenu()
 							{
 								type = "checkbox",
 								name = "Display ping zone on heavy attacks",
-								tooltip = "Displays heavy attacks with ping zone - Heavy attack cast will finish at start on entering ping zone "
-													.."(heavy attack timing is calculated locally). This is for visual consistency",
+								tooltip = "Displays heavy attacks with ping zone",
 								disabled = function()
 									return (CombatMetronome.SV.Progressbar.dontShowPing)
 								end,
