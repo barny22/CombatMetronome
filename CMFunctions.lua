@@ -277,29 +277,23 @@ function CombatMetronome:BuildListOfCurrentlyEquippedAbilities()
 	end
 	
 	-- refresh equipped ability list
-	if self.menu.panels and self.menu.panels.Progressbar then
-		local panelControls = self.menu.panels.Progressbar.controlsToRefresh
-		for i = 1, #panelControls do
-			local control = panelControls[i]
-			if (control.data and control.data.name == "Currently equipped abilities:") then
-				-- CombatMetronome.debug:Print("Updating currently equipped skills")
-				-- self.currentlyEquippedAbilities = self:BuildListOfCurrentlyEquippedAbilities()
-				control:UpdateChoices()
-				control:UpdateValue()
-				break
-			end
-		end
-	end
-	if self.menu.panels and self.menu.panels.General then
-		local panelControls = self.menu.panels.General.controlsToRefresh
-		for i = 1, #panelControls do
-			local control = panelControls[i]
-			if (control.data and control.data.name == "Add ability ID to debug whitelist") then
-				-- CombatMetronome.debug:Print("Updating currently equipped skills")
-				-- self.currentlyEquippedAbilities = self:BuildListOfCurrentlyEquippedAbilities()
-				control:UpdateChoices()
-				control:UpdateValue()
-				break
+	local panelOptions = {
+		Progressbar = "Currently equipped abilities:",
+		General = "Add ability ID to debug whitelist",
+	}
+	
+	for panel, option in pairs(panelOptions) do
+		if self.menu.panels and self.menu.panels[panel] then
+			local panelControls = self.menu.panels[panel].controlsToRefresh
+			for i = 1, #panelControls do
+				local control = panelControls[i]
+				if (control.data and control.data.name == option) then
+					-- CombatMetronome.debug:Print("Updating currently equipped skills")
+					-- self.currentlyEquippedAbilities = self:BuildListOfCurrentlyEquippedAbilities()
+					control:UpdateChoices()
+					control:UpdateValue()
+					break
+				end
 			end
 		end
 	end
@@ -314,7 +308,7 @@ function CombatMetronome:HandleAbilityUsed(event)
 	if event.ability then Util.Ability.Tracker:PrintDebugNotes("abilityUsed", event.ability.id, string.format("New event '%s' recieved in CombatMetronome. ID: %d", event.ability.name, event.ability.id)) end
 	if event == "cancel heavy" then
 		if self.currentEvent and self.currentEvent.ability.heavy then
-			Util.Ability.Tracker:PrintDebugNotes("currentEvent", nil, string.format("Canceled heavy '%s'", self.currentEvent.ability.name))
+			Util.Ability.Tracker:PrintDebugNotes("currentEvent", self.currentEvent.ability.id, string.format("Canceled heavy '%s'", self.currentEvent.ability.name))
 			self.currentEvent = nil
 			self.gcd = 0
 		end
