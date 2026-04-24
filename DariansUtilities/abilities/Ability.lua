@@ -609,8 +609,9 @@ end
 
 function Ability.Tracker:CallbackCancelHeavy()
     -- if not (self.cdTriggerTime == self.heavyUsedDuringHeavy) then
+        local heavyID = self.currentEvent and self.currentEvent.ability and self.currentEvent.ability.id or nil
         self.currentEvent = nil
-        self:PrintDebugNotes("currentEvent", nil, "Canceled heavy")
+        self:PrintDebugNotes("currentEvent", heavyID, "Canceled heavy")
         self.gcd = 0
         -- CombatMetronome.debug:Print("cancelling heavy")
         Ability.Tracker:CallbackAbilityUsed("cancel heavy")
