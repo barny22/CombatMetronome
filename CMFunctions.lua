@@ -611,32 +611,33 @@ local MENU_SOUND_CONTROLS = {
 }
 
 function CombatMetronome:RefreshSoundControls()
-	if not self.menu.soundControlsToRefresh then self.menu.soundControlsToRefresh = {} end
-	if #self.menu.soundControlsToRefresh == 0 then
-		if self.menu.panel then
-			local num = 0
-			for _,_ in pairs(MENU_SOUND_CONTROLS) do
-				num = num + 1
-			end
-			local updateCount = 0
-			local panelControls = self.menu.panel.controlsToRefresh
-			for i, control in ipairs(panelControls) do
-				if control.data and MENU_SOUND_CONTROLS[control.data.name] then
-					if control.UpdateValue then control:UpdateValue() end
-					if control.UpdateDisabled then control:UpdateDisabled() end
-					updateCount = updateCount + 1
-					self.menu.soundControlsToRefresh[updateCount] = i				
-				end
-				if updateCount == num then break end -- number of 
-			end
-		end
-	else
+	-- if not self.menu.soundControlsToRefresh then self.menu.soundControlsToRefresh = {} end
+	-- if #self.menu.soundControlsToRefresh == 0 then
+		-- if self.menu.panel then
+			-- local num = 0
+			-- for _,_ in pairs(MENU_SOUND_CONTROLS) do
+				-- num = num + 1
+			-- end
+			-- local updateCount = 0
+			-- local panelControls = self.menu.panel.controlsToRefresh
+			-- for i, control in ipairs(panelControls) do
+				-- if control.data and MENU_SOUND_CONTROLS[control.data.name] then
+					-- if control.UpdateValue then control:UpdateValue() end
+					-- if control.UpdateDisabled then control:UpdateDisabled() end
+					-- updateCount = updateCount + 1
+					-- self.menu.soundControlsToRefresh[updateCount] = i				
+				-- end
+				-- if updateCount == num then break end -- number of 
+			-- end
+		-- end
+	-- else
 		-- CombatMetronome.debug:Print("Second wind")
-		for _, i in ipairs(self.menu.soundControlsToRefresh) do
-			if self.menu.panel.controlsToRefresh[i].UpdateValue then self.menu.panel.controlsToRefresh[i]:UpdateValue() end
-			if self.menu.panel.controlsToRefresh[i].UpdateDisabled then self.menu.panel.controlsToRefresh[i]:UpdateDisabled() end
-		end
-	end
+		-- for _, i in ipairs(self.menu.soundControlsToRefresh) do
+			-- if self.menu.panel.controlsToRefresh[i].UpdateValue then self.menu.panel.controlsToRefresh[i]:UpdateValue() end
+			-- if self.menu.panel.controlsToRefresh[i].UpdateDisabled then self.menu.panel.controlsToRefresh[i]:UpdateDisabled() end
+		-- end
+	-- end
+	CombatMetronome.menu.panels.Progressbar:RefreshPanel()
 end
 
 		-----------------------------
@@ -764,7 +765,7 @@ local function NewVersionAlert(provider)
 		CombatMetronome.SV.lastAddOnVersion = CombatMetronome.versionCheck
 		RemoveNotification(provider, identifier)
 	end
-
+	
 	local msg = {
 	dataType = NOTIFICATIONS_ALERT_DATA,
 	secsSinceRequest = ZO_NormalizeSecondsSince(0),
@@ -780,6 +781,10 @@ local function NewVersionAlert(provider)
 	gamepadDeclineCallback = decline,
 	data = {}, -- Place any custom data you want to store here
     }
+	
+	if CombatMetronome.versionString == "1.7.5" then
+		msg.note = "Your new version is: "..CombatMetronome.versionCheck.."\nThe Tick/Tock volume settings have been changed. Please check the sound settings. I apologize for the inconvenience."
+	end
 	
 	-- CombatMetronome.debug:Print("New Version was detected. Current version: "..tostring(CombatMetronome.versionCheck))
 	

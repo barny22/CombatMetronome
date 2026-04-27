@@ -105,6 +105,7 @@ local function UpdateProgressbarSizeSliders()
 end
 
 local function UpdateDebugListChoices()
+	CombatMetronome.menu.panels.General:RefreshPanel()
 	if CombatMetronome.menu.panels and CombatMetronome.menu.panels.General then
 		local panelControls = CombatMetronome.menu.panels.General.controlsToRefresh
 		for i = 1, #panelControls do
@@ -1507,10 +1508,10 @@ function CombatMetronome:BuildMenu()
 						type = "slider",
 						name = "Volume of 'tick' and 'tock'",
 						tooltip = "Adjust volume of tick and tock effects",
-						warning = "You may have to adjust your general audio settings and general audio volume for this to have a noticable effect. Take care not to overadjust, your ears can only take so much!",
+						-- warning = "You may have to adjust your general audio settings and general audio volume for this to have a noticable effect. Take care not to overadjust, your ears can only take so much!",
 						disabled = function() return not (CombatMetronome.SV.Progressbar.soundTickEnabled or CombatMetronome.SV.Progressbar.soundTockEnabled) end,
 						min = 0,
-						max = 100,
+						max = 30,
 						step = 1,
 						decimals = 0,
 						getFunc = function() return CombatMetronome.SV.Progressbar.tickVolume end,
