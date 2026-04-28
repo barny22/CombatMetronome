@@ -799,8 +799,9 @@ function Ability.Tracker:HandleCombatEvent(_,     res,  err,   aName, _, aSlotTy
     -- log("sName = ", sName, ", sUId = ", sUId)
 
     if (Util.Targeting.isUnitPlayer(sName, sUId)) then
-        if res ~= ACTION_RESULT_EFFECT_FADED and CombatMetronome and CombatMetronome.currentEvent and CombatMetronome.currentEvent.ability.id == aId and CombatMetronome.currentEvent.ability.checkForDeadTarget then
+        if res ~= ACTION_RESULT_EFFECT_FADED and CombatMetronome and CombatMetronome.currentEvent and CombatMetronome.currentEvent.ability.id == aId and CombatMetronome.currentEvent.ability.checkForDeadTarget and not CombatMetronome.currentEvent.target then
             CombatMetronome.currentEvent.target = tUId
+            self:PrintDebugNotes("currentEvent", aId, string.format("Ability needs to check for dead target. Adding target unit id '%d' to currentEvent", tUId))
             -- CombatMetronome.debug:Print(string.format("Current tUId = %d", tUId))
         elseif res == ACTION_RESULT_EFFECT_FADED and self.currentEvent and self.currentEvent.ability.id == aId then
             self:CancelCurrentEvent("Effect faded, player is source")
@@ -925,7 +926,7 @@ end
 function Ability.Tracker:CancelCurrentEvent(reason)
     
     if self.currentEvent then
-        if self.currentEvent.ability then self:PrintDebugNotes("currentEvent", self.currentEvent.ability.id, string.format("Current event cancel: %s", reason)) end
+        if self.currentEvent.ability then self:PrintDebugNotes("currentEvent", self.currentEvent.ability.id, string.format("Current event '%s' canceled by: %s", self.currentEvent.ability.name, reason)) end
         if self.CombatMetronome and CombatMetronome.currentEvent then
             CombatMetronome:OnCDStop()
             -- CombatMetronome.abilityFinished = GetFrameTimeMilliseconds()
