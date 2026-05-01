@@ -330,7 +330,6 @@ function CombatMetronome:HandleAbilityUsed(event)
 	else
 		self.currentEvent = event
 		Util.Ability.Tracker:PrintDebugNotes("currentEvent", ability.id, string.format("Current event is now '%s'", ability.name))
-		-- if CombatMetronome.SV.debug.enabled then CombatMetronome.debug:Print("Got new Event "..event.ability.name) end
 	end
 	self.lastAbilityFinished = self.abilityFinished
 	self.abilityFinished = event.start + math.max(ability.delay, 1000)
