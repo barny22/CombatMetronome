@@ -232,13 +232,14 @@ function CombatMetronome:Update()
 			local timeRemaining = (duration - cdTimer) / 1000
 			local castProgress = timeRemaining/(duration/1000)
 			
-			local dynamicProgress = sv.expandDynamically and sv.dynamicExpansionMultiplyer*duration/10000 > 1
+			local dynamicProgress = sv.expandDynamically and sv.dynamicExpansionMultiplyer*duration/10000 > 1 and duration <= 6000
 			-- local multiplyerCheck = sv.dynamicExpansionMultiplyer*math.max(duration, timeRemaining*1000)/10000 > 1
 						
 			-- local playerDidBlock = (self.lastBlockStatus == false) and IsBlockActive()
 			-- if playerDidBlock and self.SV.debug.enabled then CombatMetronome.debug:Print("Player blocked") end
 			
 			if ability.heavy then
+				-- if dynamicProgress and ability.channelTime > 1500 then dynamicProgress = false end
 				if not sv.displayPingOnHeavy then
 					-- duration = duration + latency
 				-- else

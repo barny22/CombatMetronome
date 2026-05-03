@@ -877,7 +877,8 @@ function Ability.Tracker:HandleCombatEvent(_,     res,  err,   aName, _, aSlotTy
 
             local heavy = Util.Ability:ForId(aId, false)
             -- _=self.log and CombatMetronome.debug:Print("New heavy ability - "..heavy.name)
-            if not heavy.channeled or heavy.channeled and heavy.channelTime <= 1500 then self:NewEvent(heavy, 2, time) end
+            self:NewEvent(heavy, 2, time)
+            -- if not heavy.channeled or heavy.channeled and heavy.channelTime <= 1500 then self:NewEvent(heavy, 2, time) end
             return
         end
         -- local lightId = GetSlotBoundId(1)
