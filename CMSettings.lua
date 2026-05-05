@@ -14,7 +14,7 @@ local MIN_WIDTH = 50
 local MAX_WIDTH = math.floor(GuiRoot:GetWidth())
 local MIN_HEIGHT = 10
 local MAX_HEIGHT = 100
-local MAX_ABILITY_DURATION = 5.3
+local MAX_ABILITY_DURATION = 5.6
 
 local difficulty = {
 	"|c00ff80EASY|r",
