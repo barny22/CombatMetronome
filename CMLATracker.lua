@@ -66,16 +66,16 @@ end
 
 function LATracker:StartLATracker()
 	if not self.combatStart then
-		self.combatStart = GetFrameTimeMilliseconds()
+		self.combatStart = GetGameTimeMilliseconds()
 	end
 end
 
 function LATracker:ResetLATracker()
-	LATracker:CalculateLightAttacksPerSecond(GetFrameTimeMilliseconds())
+	LATracker:CalculateLightAttacksPerSecond(GetGameTimeMilliseconds())
 	LATracker:DisplayText()
 	if CombatMetronome.SV.LATracker.showLALogAfterFight then
 		CombatMetronome.debug:Print("End of combat")
-		CombatMetronome.debug:Print("You've been in combat for "..((GetFrameTimeMilliseconds()-self.combatStart)/1000).."s")
+		CombatMetronome.debug:Print("You've been in combat for "..((GetGameTimeMilliseconds()-self.combatStart)/1000).."s")
 		CombatMetronome.debug:Print("Total amount of light attacks: "..NumLA)
 		CombatMetronome.debug:Print("This equals to "..LightAttacksPerSecond.." la/s")
 	end

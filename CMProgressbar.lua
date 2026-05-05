@@ -94,7 +94,7 @@ function CombatMetronome:Update()
 			latency = math.min(GetLatency(), sv.maxLatency)
 		end
 		
-		local time = GetFrameTimeMilliseconds()
+		local time = GetGameTimeMilliseconds()
 		
 		-- this is important for GCD Tracking
 		local gcdProgress, slotRemaining, slotDuration = Tracker:GCDCheck()
@@ -199,7 +199,7 @@ function CombatMetronome:Update()
 			
 			if gcdProgress <= 0 then
 				self:SetIconsAndNamesNil()
-				self:OnCDStop()
+				self:OnCDStop("Reset non ability stuff")
 			else
 				self:HideBar(false)
 				progressbar.bar.backgroundTexture:SetWidth(gcdProgress*sv.width)
@@ -210,13 +210,13 @@ function CombatMetronome:Update()
 			-- if CombatMetronome.SV.debug.triggers then CombatMetronome.debug:Print(remaining) end
 			self:SetIconsAndNamesNil()
 			if gcdProgress <= 0 and self.currentEvent.ability.delay <= 1000 and not self.currentEvent.ability.channeled and not self.currentEvent.ability.heavy then
-				self:OnCDStop()
+				self:OnCDStop("GCD not given")
 				return
 			end
 			local ability = self.currentEvent.ability
 			
 			if not ability.name or ability.name == "" then
-				self:OnCDStop()
+				self:OnCDStop("No ability name")
 				return
 			end
 			
@@ -250,7 +250,7 @@ function CombatMetronome:Update()
 			---- Progress Bar ----
 			----------------------
 			if time > start + duration then
-				self:OnCDStop()
+				self:OnCDStop("Event seems to be over")
 				return
 			else
 				-- local length = duration - latency
@@ -295,7 +295,7 @@ function CombatMetronome:Update()
 					end
 				end
 				if cdTimer >= (duration+latency) then
-					self:OnCDStop()
+					self:OnCDStop("cdTimer seems to be over")
 				else
 					self:HideBar(false)
 					-- progressbar.bar.backgroundTexture:SetWidth((1 - (cdTimer/duration))*sv.width)
@@ -358,7 +358,7 @@ function CombatMetronome:Update()
 				progressbar.spellIconBorder:SetHidden(true)
 			end
 		else
-			self:OnCDStop()
+			self:OnCDStop("End of update cycle")
 			progressbar.bar:Update()
 		end
 	end

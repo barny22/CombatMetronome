@@ -11,7 +11,7 @@ local StackTracker = CombatMetronome.StackTracker
 	---- Helper Functions ----
 	--------------------------
 
-function CombatMetronome:OnCDStop()
+function CombatMetronome:OnCDStop(reason)
 	if CombatMetronome.SV.Progressbar.dontHide then
 		if CombatMetronome.SV.Progressbar.makeItFancy then
 			self:HideFancy(false)
@@ -24,8 +24,9 @@ function CombatMetronome:OnCDStop()
 	end
 	self:HideLabels(true)
 	if self.currentEvent then
-		self.abilityFinished = GetFrameTimeMilliseconds()
+		self.abilityFinished = GetGameTimeMilliseconds()
 	end
+	if self.currentEvent then Util.Ability.Tracker:PrintDebugNotes("currentEvent", self.currentEvent.ability.id, string.format("Was forced to kill currentEvent '%s' by CombatMetronome. Reason: '%s'", self.currentEvent.ability.name, reason)) end
 	self:SetEventNil()
 end
 
@@ -114,7 +115,7 @@ function CombatMetronome:SetIconsAndNamesNil()
 	
 	self.gcdEvent = {}
 	
-	-- if self.currentEvent and self.currentEvent.start and self.currentEvent.ability and self.currentEvent.start + math.max(self.currentEvent.ability.delay, 1000) + GRACE_PERIOD < GetFrameTimeMilliseconds() then
+	-- if self.currentEvent and self.currentEvent.start and self.currentEvent.ability and self.currentEvent.start + math.max(self.currentEvent.ability.delay, 1000) + GRACE_PERIOD < GetGameTimeMilliseconds() then
 		-- self.currentEvent = nil
 	-- end
 end
@@ -473,7 +474,7 @@ function StackTracker:AbilityUpdater()
 			end
 		end
 	end
-	-- CombatMetronome.debug:Print("Abilities updated at: "..GetFrameTimeMilliseconds())
+	-- CombatMetronome.debug:Print("Abilities updated at: "..GetGameTimeMilliseconds())
 end
 
 function StackTracker:InitializeUI(skill)
