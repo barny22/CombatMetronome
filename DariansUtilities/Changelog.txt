@@ -1,3 +1,7 @@
+2026-05-12 v1.8.4
+!  Fixed some tracking issues. Ability/GCD tracking should now be more precise than ever
+!  Fixed heavy one handed attacks not being tracked
+
 2025-11-19 v1.8.3
 !  Fix to ability.lua to prevent "ghost" heavy attacks at player activation
 !  Fix to stack tracking for RF
