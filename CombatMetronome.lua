@@ -10,7 +10,7 @@ CombatMetronome = {
     version = {
 		["patch"] = 1,
 		["major"] = 7,
-		["minor"] = 4,
+		["minor"] = 5,
 	},
 	API = GetAPIVersion(),
 	beta = beta,
@@ -76,7 +76,7 @@ function CombatMetronome:Init()
 
     self.inCombat = IsUnitInCombat("player")
     self.currentEvent = nil
-	self.gcdEvent = {}
+	self.gcdEvent = {finished = 0}
 
     self.gcd = 1000
 
@@ -360,8 +360,15 @@ function CombatMetronome:RegisterCombatEvents()
 --	------------------------------
 		function (_,   res,  err, aName, aGraphic, aSlotType, sName, sType, tName, 
 				tType, hVal, pType, dType, _, 		sUId, 	 tUId,  aId,   _     )
-			if Util.Text.CropZOSString(sName, "name") == self.currentCharacterName and CombatMetronome.SV.Progressbar.trackGCD then
-				if IsMounted() and aId == 36432 and self.Progressbar.activeMount.action ~= "Dismounting" then
+			if CombatMetronome.SV.Progressbar.trackGCD then
+				if aId == 16565 then
+					CombatMetronome:SetIconsAndNamesNil()
+					self.Progressbar.breakingFree = {}
+					self.Progressbar.breakingFree.name = Util.Text.CropZOSString(aName, "ability")
+					self.Progressbar.breakingFree.icon = "/esoui/art/icons/ability_rogue_050.dds"
+				-- none of these should be shown during combat, or during an active event
+				elseif self.currentEvent or self.inCombat then return
+				elseif IsMounted() and aId == 36432 and self.Progressbar.activeMount.action ~= "Dismounting" then
 					CombatMetronome:SetIconsAndNamesNil()
 					self.Progressbar.activeMount.action = "Dismounting"
 				elseif not IsMounted() and aId == 36010 and self.Progressbar.activeMount.action ~= "Mounting" then
@@ -370,11 +377,6 @@ function CombatMetronome:RegisterCombatEvents()
 				elseif CombatMetronome.FESTIVAL_IDS[aId] then
 					CombatMetronome:SetIconsAndNamesNil()
 					self.Progressbar.festivalGCD = aId
-				elseif aId == 16565 then
-					CombatMetronome:SetIconsAndNamesNil()
-					self.Progressbar.breakingFree = {}
-					self.Progressbar.breakingFree.name = Util.Text.CropZOSString(aName, "ability")
-					self.Progressbar.breakingFree.icon = "/esoui/art/icons/ability_rogue_050.dds"
 				elseif not self.Progressbar.synergy.wasUsed and self.Progressbar.synergy.name == Util.Text.CropZOSString(aName, "synergy") then
 					self.Progressbar.synergy.wasUsed = true
 				end
@@ -478,8 +480,8 @@ function StackTracker:RegisterEffectChanged(name, aId)
 	EVENT_MANAGER:AddFilterForEvent(
 		name,
 		EVENT_EFFECT_CHANGED,
-		REGISTER_FILTER_UNIT_TAG,
-		"player"
+		REGISTER_FILTER_SOURCE_COMBAT_UNIT_TYPE ,
+		COMBAT_UNIT_TYPE_PLAYER
 	)
 end
 

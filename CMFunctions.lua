@@ -24,10 +24,8 @@ function CombatMetronome:OnCDStop(reason)
 	end
 	self:HideLabels(true)
 	if self.currentEvent then
-		self.abilityFinished = GetGameTimeMilliseconds()
+		self:SetEventNil(reason)
 	end
-	if self.currentEvent then Util.Ability.Tracker:PrintDebugNotes("currentEvent", self.currentEvent.ability.id, string.format("Was forced to kill currentEvent '%s' by CombatMetronome. Reason: '%s'", self.currentEvent.ability.name, reason)) end
-	self:SetEventNil()
 end
 
 function CombatMetronome:HideBar(value)
@@ -39,8 +37,18 @@ function CombatMetronome:HideBar(value)
 	self.Progressbar.bar:SetHidden(value)
 end
 
-function CombatMetronome:SetEventNil()
-	self.currentEvent = nil
+function CombatMetronome:SetEventNil(reason)
+	local time = GetFrameTimeMilliseconds()
+	Util.Ability.Tracker:PrintDebugNotes("currentEvent", self.currentEvent.ability.id, string.format("Killed CM currentEvent '%s'. Reason: '%s'", self.currentEvent.ability.name, reason))
+	
+	if self.currentEvent then
+		self.currentEvent = nil
+		self.abilityFinished = time
+	end
+	if Util.Ability.Tracker.currentEvent then
+		Util.Ability.Tracker:CancelCurrentEvent("")
+	end
+	
 	self.Progressbar.bar.segments[1].progress = 0
 	self.Progressbar.bar.segments[2].progress = 0
 	self.Progressbar.bar.backgroundTexture:SetWidth(0)
@@ -113,9 +121,9 @@ function CombatMetronome:SetIconsAndNamesNil()
 	self.Progressbar.spellIcon:SetHidden(true)
 	self.Progressbar.spellIconBorder:SetHidden(true)
 	
-	self.gcdEvent = {}
+	self.gcdEvent = {finished = 0}
 	
-	-- if self.currentEvent and self.currentEvent.start and self.currentEvent.ability and self.currentEvent.start + math.max(self.currentEvent.ability.delay, 1000) + GRACE_PERIOD < GetGameTimeMilliseconds() then
+	-- if self.currentEvent and self.currentEvent.start and self.currentEvent.ability and self.currentEvent.start + math.max(self.currentEvent.ability.delay, 1000) + GRACE_PERIOD < GetFrameTimeMilliseconds() then
 		-- self.currentEvent = nil
 	-- end
 end
@@ -474,7 +482,7 @@ function StackTracker:AbilityUpdater()
 			end
 		end
 	end
-	-- CombatMetronome.debug:Print("Abilities updated at: "..GetGameTimeMilliseconds())
+	-- CombatMetronome.debug:Print("Abilities updated at: "..GetFrameTimeMilliseconds())
 end
 
 function StackTracker:InitializeUI(skill)
