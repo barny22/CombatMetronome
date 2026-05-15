@@ -38,7 +38,7 @@ function CombatMetronome:HideBar(value)
 end
 
 function CombatMetronome:SetEventNil(reason)
-	local time = GetGameTimeMilliseconds()
+	local time = GetFrameTimeMilliseconds()
 	Util.Ability.Tracker:PrintDebugNotes("currentEvent", self.currentEvent.ability.id, string.format("Killed CM currentEvent '%s'. Reason: '%s'", self.currentEvent.ability.name, reason))
 	
 	if self.currentEvent then
@@ -124,7 +124,7 @@ function CombatMetronome:SetIconsAndNamesNil()
 	
 	self.gcdEvent = {finished = true}
 	
-	-- if self.currentEvent and self.currentEvent.start and self.currentEvent.ability and self.currentEvent.start + math.max(self.currentEvent.ability.delay, 1000) + GRACE_PERIOD < GetGameTimeMilliseconds() then
+	-- if self.currentEvent and self.currentEvent.start and self.currentEvent.ability and self.currentEvent.start + math.max(self.currentEvent.ability.delay, 1000) + GRACE_PERIOD < GetFrameTimeMilliseconds() then
 		-- self.currentEvent = nil
 	-- end
 end
@@ -483,7 +483,7 @@ function StackTracker:AbilityUpdater()
 			end
 		end
 	end
-	-- CombatMetronome.debug:Print("Abilities updated at: "..GetGameTimeMilliseconds())
+	-- CombatMetronome.debug:Print("Abilities updated at: "..GetFrameTimeMilliseconds())
 end
 
 function StackTracker:InitializeUI(skill)

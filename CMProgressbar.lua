@@ -98,7 +98,7 @@ function CombatMetronome:Update()
 			latency = math.min(GetLatency(), sv.maxLatency)
 		end
 		
-		local time = GetGameTimeMilliseconds()
+		local time = GetFrameTimeMilliseconds()
 		
 		-- this is important for GCD Tracking
 		local gcdProgress, slotRemaining, slotDuration = Tracker:GCDCheck()

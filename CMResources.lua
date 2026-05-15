@@ -46,7 +46,7 @@ function CombatMetronome:UpdateLabels()
 	-------------------------
     
     else
-        local time = GetGameTimeMilliseconds()
+        local time = GetFrameTimeMilliseconds()
         -- healthColor = CombatMetronome.SV.Resources.healthColor
         
         local showResources = Util.Targeting.isUnitValidCombatTarget("reticleover", CombatMetronome.SV.Resources.showResourcesForGuard)
