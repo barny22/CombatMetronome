@@ -76,7 +76,7 @@ function CombatMetronome:Init()
 
     self.inCombat = IsUnitInCombat("player")
     self.currentEvent = nil
-	self.gcdEvent = {finished = 0}
+	self.gcdEvent = {finished = true}
 
     self.gcd = 1000
 
@@ -311,7 +311,7 @@ function CombatMetronome:RegisterItemsTracker()
 		self.name.."InventoryItemUsed",
 		EVENT_INVENTORY_ITEM_USED,
 		function()
-			if CombatMetronome.SV.Progressbar.trackGCD then
+			if CombatMetronome.SV.Progressbar.trackGCD and self.gcdEvent.finished then
 				local bagSize = GetBagSize(1)
 				CombatMetronome:SetIconsAndNamesNil()
 				self.itemCache = {}
@@ -329,7 +329,7 @@ function CombatMetronome:RegisterItemsTracker()
 		self.name.."InventoryItemInfo",
 		EVENT_INVENTORY_SINGLE_SLOT_UPDATE,
 		function(_, bagId, slotId, _, _, _, stackCountChange, _, _, _, _)
-			if CombatMetronome.SV.Progressbar.trackGCD then
+			if CombatMetronome.SV.Progressbar.trackGCD and self.gcdEvent.finished then
 				if not self.Progressbar.synergy.wasUsed and stackCountChange == -1 and self.itemCache then
 					CombatMetronome:SetIconsAndNamesNil()
 					self.Progressbar.itemUsed = {
@@ -360,7 +360,7 @@ function CombatMetronome:RegisterCombatEvents()
 --	------------------------------
 		function (_,   res,  err, aName, aGraphic, aSlotType, sName, sType, tName, 
 				tType, hVal, pType, dType, _, 		sUId, 	 tUId,  aId,   _     )
-			if CombatMetronome.SV.Progressbar.trackGCD then
+			if CombatMetronome.SV.Progressbar.trackGCD and self.gcdEvent.finished then
 				if aId == 16565 then
 					CombatMetronome:SetIconsAndNamesNil()
 					self.Progressbar.breakingFree = {}
@@ -392,7 +392,7 @@ function CombatMetronome:RegisterSynergyChanged()
 		self.name.."SynergyChanged",
 		EVENT_SYNERGY_ABILITY_CHANGED,
 		function()
-			if CombatMetronome.SV.Progressbar.trackGCD then
+			if CombatMetronome.SV.Progressbar.trackGCD and self.gcdEvent.finished then
 				local hasSynergy, name, icon, _, _ = GetCurrentSynergyInfo()
 				if hasSynergy then
 					-- if CombatMetronome.SV.debug.enabled then self.debug:Print("Found synergy: "..Util.Text.CropZOSString(name, "synergy")) end

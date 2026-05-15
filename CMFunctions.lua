@@ -38,12 +38,13 @@ function CombatMetronome:HideBar(value)
 end
 
 function CombatMetronome:SetEventNil(reason)
-	local time = GetFrameTimeMilliseconds()
+	local time = GetGameTimeMilliseconds()
 	Util.Ability.Tracker:PrintDebugNotes("currentEvent", self.currentEvent.ability.id, string.format("Killed CM currentEvent '%s'. Reason: '%s'", self.currentEvent.ability.name, reason))
 	
 	if self.currentEvent then
 		self.currentEvent = nil
 		self.abilityFinished = time
+		Util.Ability.Tracker.lastAbilityFinished = true
 	end
 	if Util.Ability.Tracker.currentEvent then
 		Util.Ability.Tracker:CancelCurrentEvent("")
@@ -121,9 +122,9 @@ function CombatMetronome:SetIconsAndNamesNil()
 	self.Progressbar.spellIcon:SetHidden(true)
 	self.Progressbar.spellIconBorder:SetHidden(true)
 	
-	self.gcdEvent = {finished = 0}
+	self.gcdEvent = {finished = true}
 	
-	-- if self.currentEvent and self.currentEvent.start and self.currentEvent.ability and self.currentEvent.start + math.max(self.currentEvent.ability.delay, 1000) + GRACE_PERIOD < GetFrameTimeMilliseconds() then
+	-- if self.currentEvent and self.currentEvent.start and self.currentEvent.ability and self.currentEvent.start + math.max(self.currentEvent.ability.delay, 1000) + GRACE_PERIOD < GetGameTimeMilliseconds() then
 		-- self.currentEvent = nil
 	-- end
 end
@@ -315,14 +316,14 @@ end
 function CombatMetronome:HandleAbilityUsed(event)
     if not (self.inCombat or CombatMetronome.SV.Progressbar.showOOC) then return end
 	if event.ability then Util.Ability.Tracker:PrintDebugNotes("abilityUsed", event.ability.id, string.format("New event '%s' recieved in CombatMetronome. ID: %d", event.ability.name, event.ability.id)) end
-	if event == "cancel heavy" then
-		if self.currentEvent and self.currentEvent.ability.heavy then
-			Util.Ability.Tracker:PrintDebugNotes("currentEvent", self.currentEvent.ability.id, string.format("Canceled heavy '%s'", self.currentEvent.ability.name))
-			self.currentEvent = nil
-			self.gcd = 0
-		end
-		return
-	end
+	-- if event == "cancel heavy" then
+		-- if self.currentEvent and self.currentEvent.ability.heavy then
+			-- Util.Ability.Tracker:PrintDebugNotes("currentEvent", self.currentEvent.ability.id, string.format("Canceled heavy '%s'", self.currentEvent.ability.name))
+			-- self.currentEvent = nil
+			-- self.gcd = 0
+		-- end
+		-- return
+	-- end
 
     self.Progressbar.soundTickPlayed = false
     self.Progressbar.soundTockPlayed = false
@@ -482,7 +483,7 @@ function StackTracker:AbilityUpdater()
 			end
 		end
 	end
-	-- CombatMetronome.debug:Print("Abilities updated at: "..GetFrameTimeMilliseconds())
+	-- CombatMetronome.debug:Print("Abilities updated at: "..GetGameTimeMilliseconds())
 end
 
 function StackTracker:InitializeUI(skill)

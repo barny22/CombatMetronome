@@ -40,7 +40,7 @@ local function CreateDisplayName(name)
 end
 
 local function QueueClearGCDEvent(timer)
-	zo_callLater(function() CombatMetronome.gcdEvent = {finished = 0} end, timer)
+	zo_callLater(function() CombatMetronome:SetIconsAndNamesNil() end, timer)
 end
 
 	--------------------------
@@ -98,7 +98,7 @@ function CombatMetronome:Update()
 			latency = math.min(GetLatency(), sv.maxLatency)
 		end
 		
-		local time = GetFrameTimeMilliseconds()
+		local time = GetGameTimeMilliseconds()
 		
 		-- this is important for GCD Tracking
 		local gcdProgress, slotRemaining, slotDuration = Tracker:GCDCheck()
@@ -154,12 +154,12 @@ function CombatMetronome:Update()
 			progressbar.bar.segments[2].progress = gcdProgress
 			
 			local gcdEvent = self.gcdEvent
-			if gcdEvent.finished <= time then
+			if gcdEvent.finished then
 				if not Tracker.rollDodgeFinished and sv.trackRolldodge then
 					gcdEvent.displayName = CreateDisplayName(Util.Text.CropZOSString(GetAbilityName(28549), "ability"))
 					gcdEvent.icon = "/esoui/art/icons/ability_rogue_035.dds"
 					gcdEvent.clearSynergy = false
-					gcdEvent.finished = time + slotRemaining
+					gcdEvent.finished = false
 					QueueClearGCDEvent(slotRemaining)
 					-- self:GCDSpecifics(Util.Text.CropZOSString(GetAbilityName(28549), "ability"), "/esoui/art/icons/ability_rogue_035.dds", gcdProgress, false)
 				elseif progressbar.activeMount.action ~= "" and sv.trackMounting then
@@ -167,14 +167,14 @@ function CombatMetronome:Update()
 						gcdEvent.displayName = CreateDisplayName(tostring(progressbar.activeMount.action.." "..progressbar.activeMount.name))
 						gcdEvent.icon = progressbar.activeMount.icon
 						gcdEvent.clearSynergy = false
-						gcdEvent.finished = time + slotRemaining
+						gcdEvent.finished = false
 						QueueClearGCDEvent(slotRemaining)
 						-- self:GCDSpecifics(tostring(progressbar.activeMount.action.." "..progressbar.activeMount.name), progressbar.activeMount.icon, gcdProgress, false)
 					else
 						gcdEvent.displayName = CreateDisplayName(progressbar.activeMount.action)
 						gcdEvent.icon = progressbar.activeMount.icon
 						gcdEvent.clearSynergy = false
-						gcdEvent.finished = time + slotRemaining
+						gcdEvent.finished = false
 						QueueClearGCDEvent(slotRemaining)
 						-- self:GCDSpecifics(progressbar.activeMount.action, progressbar.activeMount.icon, gcdProgress, false)
 					end
@@ -182,35 +182,35 @@ function CombatMetronome:Update()
 					gcdEvent.displayName = CreateDisplayName(progressbar.collectibleInUse.name)
 					gcdEvent.icon = progressbar.collectibleInUse.icon
 					gcdEvent.clearSynergy = false
-					gcdEvent.finished = time + slotRemaining
+					gcdEvent.finished = false
 					QueueClearGCDEvent(slotRemaining)
 					-- self:GCDSpecifics(progressbar.collectibleInUse.name, progressbar.collectibleInUse.icon, gcdProgress, false)
 				elseif progressbar.synergy and sv.trackSynergies and progressbar.synergy.wasUsed then
 					gcdEvent.displayName = CreateDisplayName(progressbar.synergy.name)
 					gcdEvent.icon = progressbar.synergy.icon
 					gcdEvent.clearSynergy = true
-					gcdEvent.finished = time + slotRemaining
+					gcdEvent.finished = false
 					QueueClearGCDEvent(slotRemaining)
 					-- self:GCDSpecifics(progressbar.synergy.name, progressbar.synergy.icon, gcdProgress, true)
 				elseif progressbar.itemUsed and sv.trackItems then
 					gcdEvent.displayName = CreateDisplayName(progressbar.itemUsed.name)
 					gcdEvent.icon = progressbar.itemUsed.icon
 					gcdEvent.clearSynergy = false
-					gcdEvent.finished = time + slotRemaining
+					gcdEvent.finished = false
 					QueueClearGCDEvent(slotRemaining)
 					-- self:GCDSpecifics(progressbar.itemUsed.name, progressbar.itemUsed.icon, gcdProgress, false)
 				elseif progressbar.breakingFree and sv.trackBreakingFree then
 					gcdEvent.displayName = CreateDisplayName(progressbar.breakingFree.name)
 					gcdEvent.icon = progressbar.breakingFree.icon
 					gcdEvent.clearSynergy = false
-					gcdEvent.finished = time + slotRemaining
+					gcdEvent.finished = false
 					QueueClearGCDEvent(slotRemaining)
 					-- self:GCDSpecifics(progressbar.breakingFree.name, progressbar.breakingFree.icon, gcdProgress, false)
 				elseif progressbar.festivalGCD then
 					gcdEvent.displayName = CreateDisplayName(self.FESTIVAL_IDS[progressbar.festivalGCD].name)
 					gcdEvent.icon = self.FESTIVAL_IDS[progressbar.festivalGCD].icon
 					gcdEvent.clearSynergy = false
-					gcdEvent.finished = time + slotRemaining
+					gcdEvent.finished = false
 					QueueClearGCDEvent(slotRemaining)
 					-- self:GCDSpecifics(self.FESTIVAL_IDS[progressbar.festivalGCD].name, self.FESTIVAL_IDS[progressbar.festivalGCD].icon, gcdProgress, false)
 				end
@@ -218,7 +218,7 @@ function CombatMetronome:Update()
 			
 			if gcdEvent.displayName then self:GCDSpecifics(gcdEvent.displayName, gcdEvent.icon, gcdProgress, gcdEvent.clearSynergy) end
 			
-			if gcdProgress <= 0 then
+			if slotRemaining <= 0 then
 				self:SetIconsAndNamesNil()
 				self:OnCDStop("Reset non ability stuff")
 			else
@@ -230,7 +230,7 @@ function CombatMetronome:Update()
 			-- self.debug:Print(self.currentEvent.ability.name)
 			-- if CombatMetronome.SV.debug.triggers then CombatMetronome.debug:Print(remaining) end
 			self:SetIconsAndNamesNil()
-			if gcdProgress <= 0 and self.currentEvent.ability.delay <= 1000 and not self.currentEvent.ability.channeled and not self.currentEvent.ability.heavy then
+			if slotRemaining <= 0 and self.currentEvent.ability.delay <= 1000 and not self.currentEvent.ability.channeled and not self.currentEvent.ability.heavy then
 				self:OnCDStop("GCD over")
 				return
 			end
@@ -270,7 +270,7 @@ function CombatMetronome:Update()
 			----------------------
 			---- Progress Bar ----
 			----------------------
-			if time > start + duration then
+			if time > self.currentEvent.ending then
 				self:OnCDStop("Event seems to be over")
 				return
 			else
