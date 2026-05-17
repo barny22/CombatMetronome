@@ -4,6 +4,7 @@
 !  Changed the volume settings for tick/tock to a hopefully more user friendly implementation
 !  Fixed some tracking issues. Ability/GCD tracking should now be more precise than ever
 !  Fixed heavy one handed attacks not being tracked
+!  Fixed progress being slightly off when 'make it fancy' and 'dynamic expansion' was on
 +  Added option to choose execute reminder target difficulty to prevent "EXECUTE!" spamming on normal mobs
 +  StackTracker can now be set to show only in combat
 +  Added option to show heavy attack details such as remaining time, ability name and icon

@@ -44,7 +44,7 @@ function CombatMetronome:SetEventNil(reason)
 	if self.currentEvent then
 		self.currentEvent = nil
 		self.abilityFinished = time
-		Util.Ability.Tracker.lastAbilityFinished = true
+		Util.Ability.Tracker.lastAbilityFinished = time
 	end
 	if Util.Ability.Tracker.currentEvent then
 		Util.Ability.Tracker:CancelCurrentEvent("")
@@ -83,7 +83,7 @@ function CombatMetronome:CreateMenuIconsPath(ControlName, panel)
 end
 
 function CombatMetronome:GCDSpecifics(text, icon, gcdProgress, wasSynergy)
-	if not (text and icon) then return end
+	if not (text and icon) or gcdProgress == 0 then return end
 	if not wasSynergy and self.Progressbar.synergy.wasUsed then self.Progressbar.synergy.wasUsed = false end
 	if CombatMetronome.SV.Progressbar.showSpell then
 		self.Progressbar.spellLabel:SetHidden(false)
@@ -102,7 +102,6 @@ function CombatMetronome:GCDSpecifics(text, icon, gcdProgress, wasSynergy)
 	else
 		self.Progressbar.timeLabel:SetHidden(true)
 	end
-	if gcdProgress == 0 then CombatMetronome:SetIconsAndNamesNil() end
 end
 
 function CombatMetronome:SetIconsAndNamesNil()
@@ -121,8 +120,6 @@ function CombatMetronome:SetIconsAndNamesNil()
 	self.Progressbar.spellLabel:SetHidden(true)
 	self.Progressbar.spellIcon:SetHidden(true)
 	self.Progressbar.spellIconBorder:SetHidden(true)
-	
-	self.gcdEvent = {finished = true}
 	
 	-- if self.currentEvent and self.currentEvent.start and self.currentEvent.ability and self.currentEvent.start + math.max(self.currentEvent.ability.delay, 1000) + GRACE_PERIOD < GetFrameTimeMilliseconds() then
 		-- self.currentEvent = nil

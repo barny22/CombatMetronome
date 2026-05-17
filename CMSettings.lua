@@ -1108,8 +1108,8 @@ function CombatMetronome:BuildMenu()
 					},
 					{
 						type = "checkbox",
-						name = "Switch Progress Color while channeling",
-						tooltip = "Change bar color on channeling abilities <1 second to indicate possibility to barswap, when channel is finished",
+						name = "Switch Progress Color while channeling/casting",
+						tooltip = "Change bar color on channeling/casting abilities to indicate possibility to barswap, when channel/cast is finished",
 						warning = "This is experimental and might feel a little wonky",
 						getFunc = function() return CombatMetronome.SV.Progressbar.changeOnChanneled end,
 						setFunc = function(value)

@@ -76,7 +76,7 @@ function CombatMetronome:Init()
 
     self.inCombat = IsUnitInCombat("player")
     self.currentEvent = nil
-	self.gcdEvent = {finished = true}
+	self.gcdEvent = {finished = 0}
 
     self.gcd = 1000
 
@@ -285,12 +285,11 @@ function CombatMetronome:RegisterCollectiblesTracker()
 		function(_, id)
 			if CombatMetronome.SV.Progressbar.trackGCD then
 				local name,_,icon,_,_,_,_,type,_ = GetCollectibleInfo(id)
-				if type == COLLECTIBLE_CATEGORY_TYPE_ASSISTANT or type == COLLECTIBLE_CATEGORY_TYPE_COMPANION then
+				if type == COLLECTIBLE_CATEGORY_TYPE_ASSISTANT or type == COLLECTIBLE_CATEGORY_TYPE_COMPANION and self.gcdEvent.finished <= GetFrameTimeMilliseconds() then
 					CombatMetronome:SetIconsAndNamesNil()
 					self.Progressbar.collectibleInUse = {}
 					self.Progressbar.collectibleInUse.name = Util.Text.CropZOSString(name, "collectible")
 					self.Progressbar.collectibleInUse.icon = icon
-					zo_callLater(function() self.Progressbar.collectibleInUse = nil end, 1000)
 				end
 				if type == COLLECTIBLE_CATEGORY_TYPE_MOUNT then
 					self.Progressbar.activeMount.name = Util.Text.CropZOSString(GetCollectibleNickname(id), "collectible")
@@ -311,7 +310,7 @@ function CombatMetronome:RegisterItemsTracker()
 		self.name.."InventoryItemUsed",
 		EVENT_INVENTORY_ITEM_USED,
 		function()
-			if CombatMetronome.SV.Progressbar.trackGCD and self.gcdEvent.finished then
+			if CombatMetronome.SV.Progressbar.trackGCD and self.gcdEvent.finished <= GetFrameTimeMilliseconds() then
 				local bagSize = GetBagSize(1)
 				CombatMetronome:SetIconsAndNamesNil()
 				self.itemCache = {}
@@ -329,20 +328,21 @@ function CombatMetronome:RegisterItemsTracker()
 		self.name.."InventoryItemInfo",
 		EVENT_INVENTORY_SINGLE_SLOT_UPDATE,
 		function(_, bagId, slotId, _, _, _, stackCountChange, _, _, _, _)
-			if CombatMetronome.SV.Progressbar.trackGCD and self.gcdEvent.finished then
+			if CombatMetronome.SV.Progressbar.trackGCD and self.gcdEvent.finished <= GetFrameTimeMilliseconds() then
 				if not self.Progressbar.synergy.wasUsed and stackCountChange == -1 and self.itemCache then
 					CombatMetronome:SetIconsAndNamesNil()
 					self.Progressbar.itemUsed = {
 						["name"] = self.itemCache.name[slotId],
 						["icon"] = self.itemCache.icon[slotId]
 					}
-					zo_callLater(function()
-						if self.Progressbar.itemUsed then
-							self.Progressbar.itemUsed = nil
-							self.itemCache = nil
-						end
-					end,
-					950)
+					self.itemCache = nil
+					-- zo_callLater(function()
+						-- if self.Progressbar.itemUsed then
+							-- self.Progressbar.itemUsed = nil
+							-- self.itemCache = nil
+						-- end
+					-- end,
+					-- 950)
 				end
 			end
 		end
@@ -360,8 +360,9 @@ function CombatMetronome:RegisterCombatEvents()
 --	------------------------------
 		function (_,   res,  err, aName, aGraphic, aSlotType, sName, sType, tName, 
 				tType, hVal, pType, dType, _, 		sUId, 	 tUId,  aId,   _     )
-			if CombatMetronome.SV.Progressbar.trackGCD and self.gcdEvent.finished then
+			if CombatMetronome.SV.Progressbar.trackGCD and self.gcdEvent.finished <= GetFrameTimeMilliseconds() then
 				if aId == 16565 then
+					-- Util.Ability.Tracker:CancelCurrentEvent("Break free detected")
 					CombatMetronome:SetIconsAndNamesNil()
 					self.Progressbar.breakingFree = {}
 					self.Progressbar.breakingFree.name = Util.Text.CropZOSString(aName, "ability")
@@ -383,6 +384,12 @@ function CombatMetronome:RegisterCombatEvents()
 			end
 		end
 	)
+	EVENT_MANAGER:AddFilterForEvent(
+		self.name.."CombatEvents",
+		EVENT_COMBAT_EVENT,
+		REGISTER_FILTER_SOURCE_COMBAT_UNIT_TYPE,
+		COMBAT_UNIT_TYPE_PLAYER
+	)
 	
 	self.combatEventsRegistered = true
 end
@@ -392,7 +399,7 @@ function CombatMetronome:RegisterSynergyChanged()
 		self.name.."SynergyChanged",
 		EVENT_SYNERGY_ABILITY_CHANGED,
 		function()
-			if CombatMetronome.SV.Progressbar.trackGCD and self.gcdEvent.finished then
+			if CombatMetronome.SV.Progressbar.trackGCD and self.gcdEvent.finished <= GetFrameTimeMilliseconds() then
 				local hasSynergy, name, icon, _, _ = GetCurrentSynergyInfo()
 				if hasSynergy then
 					-- if CombatMetronome.SV.debug.enabled then self.debug:Print("Found synergy: "..Util.Text.CropZOSString(name, "synergy")) end
