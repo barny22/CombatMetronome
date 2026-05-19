@@ -273,7 +273,10 @@ local function CanAbilityFire(time)
     if CombatMetronome.currentEvent and CombatMetronome.currentEvent.ending <= time then
         Ability.Tracker:CancelCurrentEvent("Old event just finished.")
         return true
+    elseif CombatMetronome.gcdEvent.clearSynergy then
+        CombatMetronome.gcdEvent = { finished = 0 }
     end
+    
     return Ability.Tracker.lastAbilityFinished <= time and CombatMetronome.gcdEvent.finished <= time
 end
 
@@ -281,12 +284,17 @@ local function RegisterJesusBeam(id)
     local t = DariansUtilities.Ability.Tracker
     if not t.jesusBeamRegistered then
         EVENT_MANAGER:RegisterForEvent(t.name.."HandleJesusBeam", EVENT_EFFECT_CHANGED, function(_,changeType)
-            if changeType == EFFECT_RESULT_FADED and t.currentEvent and t.currentEvent.ability.id == id then t:CancelCurrentEvent("Jesus beam finished") end
+            if changeType == EFFECT_RESULT_FADED and t.currentEvent and t.currentEvent.ability.id == id and not t.skipNextEffectFaded then
+                t:CancelCurrentEvent("Jesus beam finished")
+            end
         end)
         EVENT_MANAGER:AddFilterForEvent(t.name.."HandleJesusBeam", EVENT_EFFECT_CHANGED, REGISTER_FILTER_ABILITY_ID, id)
         EVENT_MANAGER:AddFilterForEvent(t.name.."HandleJesusBeam", EVENT_EFFECT_CHANGED, REGISTER_FILTER_SOURCE_COMBAT_UNIT_TYPE , COMBAT_UNIT_TYPE_PLAYER)
         t.jesusBeamRegistered = true
         t:PrintDebugNotes("abilityUsed", id, "Jesus beam tracker has been registered")
+    else
+        t.skipNextEffectFaded = true
+        t:PrintDebugNotes("abilityUsed", id, "Seems like like you casted a new beam. Will skip next effect faded")
     end
 end
 
@@ -329,13 +337,13 @@ end
 function Ability.Tracker:NewEvent(ability, slot, start)
     local time = GetFrameTimeMilliseconds()
     
-    local gcdProgress, sR, sD
-    if slot == 2 then
-        sR, sD, _, _ = GetSlotCooldownInfo(2)
-        gcdProgress = sD > 0 and sR/sD or 0
-    else
-        gcdProgress, sR, sD = self:GCDCheck()
-    end
+    local gcdProgress, sR, sD = self:GCDCheck()
+    -- if slot == 2 then
+        -- sR, sD, _, _ = GetSlotCooldownInfo(2)
+        -- gcdProgress = sD > 0 and sR/sD or 0
+    -- else
+        -- gcdProgress, sR, sD = self:GCDCheck()
+    -- end
 
     local event = { }
 
@@ -469,12 +477,12 @@ function Ability.Tracker:HandleCooldownsUpdated()
     if sR == 0 then return end
     self.gcd = sD
     
-    local heavySR = GetSlotCooldownInfo(2)
-    if heavySR > 0 then
-        self.heavyOnCooldown = true
-    else
-        self.heavyOnCooldown = false
-    end
+    -- local heavySR = GetSlotCooldownInfo(2)
+    -- if heavySR > 0 then
+        -- self.heavyOnCooldown = true
+    -- else
+        -- self.heavyOnCooldown = false
+    -- end
     
     if self.queuedEvent and self.rollDodgeFinished <= self.cdTriggerTime and not self.queuedEvent.castDuringRollDodge then
         self.eventStart = self.cdTriggerTime + sR - sD

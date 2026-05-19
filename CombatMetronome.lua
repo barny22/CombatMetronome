@@ -367,6 +367,8 @@ function CombatMetronome:RegisterCombatEvents()
 					self.Progressbar.breakingFree = {}
 					self.Progressbar.breakingFree.name = Util.Text.CropZOSString(aName, "ability")
 					self.Progressbar.breakingFree.icon = "/esoui/art/icons/ability_rogue_050.dds"
+				elseif not self.Progressbar.synergy.wasUsed and self.Progressbar.synergy.name == Util.Text.CropZOSString(aName, "synergy") then
+					self.Progressbar.synergy.wasUsed = true
 				-- none of these should be shown during combat, or during an active event
 				elseif self.currentEvent or self.inCombat then return
 				elseif IsMounted() and aId == 36432 and self.Progressbar.activeMount.action ~= "Dismounting" then
@@ -378,8 +380,6 @@ function CombatMetronome:RegisterCombatEvents()
 				elseif CombatMetronome.FESTIVAL_IDS[aId] then
 					CombatMetronome:SetIconsAndNamesNil()
 					self.Progressbar.festivalGCD = aId
-				elseif not self.Progressbar.synergy.wasUsed and self.Progressbar.synergy.name == Util.Text.CropZOSString(aName, "synergy") then
-					self.Progressbar.synergy.wasUsed = true
 				end
 			end
 		end
