@@ -230,7 +230,7 @@ CombatMetronome.StackTracker.SKILL_ATTRIBUTES = {
 		["graphic"] = "/esoui/art/icons/ability_dragonknight_001_b.dds",
 		["highlight"] = {1,0,0,0.2},
 		["highlightAnimation"] = {1,0.8,0.8,0.8},
-		["id"] = { ["buff"] = 122658, ["ability"] = 20805,}, -- 122729
+		["id"] = { ["buff"] = 122658, ["ability"] = 20805,}, -- 122729					--34117 FlameWhip 20816, machtpeitsche 20824
 		["skillLineId"] = {35,297},
 		-- ["skillLineIndex"] = 7,
 	},
