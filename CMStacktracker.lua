@@ -55,8 +55,11 @@ function StackTracker:ChangeStackCount(skill, stackCount)
 	if not self.UI[skill] then
 		if CombatMetronome.SV.debug.enabled then CombatMetronome.debug:Print("Tried to change "..skill.." stackCount without UI initialized") end
 		return
-	elseif not (CombatMetronome.inCombat and CombatMetronome.SV.StackTracker.onlyInCombat) and stackCount == 0 then
+	elseif not CombatMetronome.inCombat and CombatMetronome.SV.StackTracker.onlyInCombat and stackCount == 0 then
 		self:HideTracker(skill, true)
+		return
+	else
+		self:HideTracker(skill, false)
 	end
 	local attributes = self.SKILL_ATTRIBUTES[skill]
 	local sv = CombatMetronome.SV.StackTracker[skill]
@@ -88,16 +91,19 @@ function StackTracker:ChangeStackCount(skill, stackCount)
 		if animStart then self.UI[skill].indicator[i].SetAnimationHidden(false) end
 	end
 	if sv.playSound then
-		local uiVolume = GetSetting(SETTING_TYPE_AUDIO, AUDIO_SETTING_UI_VOLUME)											--Sound cue when stacks are full
+		-- local uiVolume = GetSetting(SETTING_TYPE_AUDIO, AUDIO_SETTING_UI_VOLUME)											--Sound cue when stacks are full
 		if previousStack == oneOff and stackCount == attributes.activation then
-			local trackerCue = ZO_QueuedSoundPlayer:New(0)
-			trackerCue:SetFinishedAllSoundsCallback(function()
-				SetSetting(SETTING_TYPE_AUDIO, AUDIO_SETTING_UI_VOLUME, uiVolume)
+			for i = 1, math.min(sv.volume, 30) do
+				PlaySound(SOUNDS[sv.sound])
+			end
+			-- local trackerCue = ZO_QueuedSoundPlayer:New(0)
+			-- trackerCue:SetFinishedAllSoundsCallback(function()
+				-- SetSetting(SETTING_TYPE_AUDIO, AUDIO_SETTING_UI_VOLUME, uiVolume)
 				--if self.SV.debug.enabled then CombatMetronome.debug:Print("Sound is finished playing. Volume adjusted. Volume is now "..GetSetting(SETTING_TYPE_AUDIO, AUDIO_SETTING_UI_VOLUME)) end
-			end)
-			SetSetting(SETTING_TYPE_AUDIO, AUDIO_SETTING_UI_VOLUME, sv.volume)
-			--if self.SV.debug.enabled then CombatMetronome.debug:Print("Volume adjusted. Volume is now "..GetSetting(SETTING_TYPE_AUDIO, AUDIO_SETTING_UI_VOLUME)) end
-			trackerCue:PlaySound(SOUNDS[sv.sound],250)
+			-- end)
+			-- SetSetting(SETTING_TYPE_AUDIO, AUDIO_SETTING_UI_VOLUME, sv.volume)
+			-- if self.SV.debug.enabled then CombatMetronome.debug:Print("Volume adjusted. Volume is now "..GetSetting(SETTING_TYPE_AUDIO, AUDIO_SETTING_UI_VOLUME)) end
+			-- trackerCue:PlaySound(SOUNDS[sv.sound],250)
 			--if self.SV.debug.enabled then CombatMetronome.debug:Print("Stacks are full") end
 		end
 	end
@@ -166,13 +172,16 @@ function StackTracker:UpdateTimers()
 				ui.timerBar:SetValue(timeLeft/entry.duration)
 				if doReminder and timeLeft <= sv.expirationTimer and not entry.soundPlayed then
 					entry.soundPlayed = true
-					local uiVolume = GetSetting(SETTING_TYPE_AUDIO, AUDIO_SETTING_UI_VOLUME)
-					local trackerCue = ZO_QueuedSoundPlayer:New(0)
-					trackerCue:SetFinishedAllSoundsCallback(function()
-						SetSetting(SETTING_TYPE_AUDIO, AUDIO_SETTING_UI_VOLUME, uiVolume)
-					end)
-					SetSetting(SETTING_TYPE_AUDIO, AUDIO_SETTING_UI_VOLUME, sv.reminderVolume)
-					trackerCue:PlaySound(sv.expirationSound,250)
+					for i = 1, math.min(sv.reminderVolume, 30) do
+						PlaySound(sv.expirationSound)
+					end
+					-- local uiVolume = GetSetting(SETTING_TYPE_AUDIO, AUDIO_SETTING_UI_VOLUME)
+					-- local trackerCue = ZO_QueuedSoundPlayer:New(0)
+					-- trackerCue:SetFinishedAllSoundsCallback(function()
+						-- SetSetting(SETTING_TYPE_AUDIO, AUDIO_SETTING_UI_VOLUME, uiVolume)
+					-- end)
+					-- SetSetting(SETTING_TYPE_AUDIO, AUDIO_SETTING_UI_VOLUME, sv.reminderVolume)
+					-- trackerCue:PlaySound(sv.expirationSound,250)
 				end
 			end
 		end

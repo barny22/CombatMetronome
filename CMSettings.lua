@@ -238,23 +238,28 @@ function CombatMetronome:BuildMenu()
 							getFunc = function() return sv.playSound end,
 							setFunc = function(value)
 								sv.playSound = value
-								if value and StackTracker.stacks[skill] and StackTracker.stacks[skill] >= StackTracker.SKILL_ATTRIBUTES[skill].iMax and sv.sound then
-									PlaySound(SOUNDS[sv.sound])
-								end
+								-- if value and StackTracker.stacks[skill] and StackTracker.stacks[skill] >= StackTracker.SKILL_ATTRIBUTES[skill].iMax and sv.sound then
+									-- PlaySound(SOUNDS[sv.sound])
+								-- end
 							end,
 						},
 						{
 							type = "slider",
 							name = "Sound cue volume",
 							tooltip = "Adjust volume of the sound cue effect",
-							warning = "You may have to adjust your general audio settings and general audio volume for this to have a noticable effect. Take care not to overadjust, your ears can only take so much!",
+							-- warning = "You may have to adjust your general audio settings and general audio volume for this to have a noticable effect. Take care not to overadjust, your ears can only take so much!",
 							disabled = function() return not sv.playSound end,
 							min = 0,
-							max = 100,
+							max = 30,
 							step = 1,
 							decimals = 0,
 							getFunc = function() return sv.volume end,
-							setFunc = function(value) sv.volume = value end,
+							setFunc = function(value)
+								sv.volume = value
+								for i = 1, math.min(value, 30) do
+									PlaySound(SOUNDS[sv.sound])
+								end
+							end,
 						},
 						{
 							type = "dropdown",
@@ -265,7 +270,9 @@ function CombatMetronome:BuildMenu()
 							getFunc = function() return sv.sound end,
 							setFunc = function(value) 
 								sv.sound = value
-								PlaySound(SOUNDS[value])
+								for i = 1, math.min(sv.volume, 30) do
+									PlaySound(SOUNDS[value])
+								end
 							end
 						},
 						{
@@ -383,22 +390,29 @@ function CombatMetronome:BuildMenu()
 						getFunc = function() return sv.expirationSound end,
 						setFunc = function(value) 
 							sv.expirationSound = value
-							PlaySound(value)
+							for i = 1, math.min(sv.reminderVolume, 30) do
+								PlaySound(value)
+							end
 						end
 					},
 					{
 						type = "slider",
 						name = "Reminder volume",
 						tooltip = "Adjust volume of the reminder sound",
-						warning = "You may have to adjust your general audio settings and general audio volume for this to have a noticable effect. Take care not to overadjust, your ears can only take so much!",
+						-- warning = "You may have to adjust your general audio settings and general audio volume for this to have a noticable effect. Take care not to overadjust, your ears can only take so much!",
 						width = "half",
 						disabled = function() return not (sv.tracked and sv.soundReminder) end,
 						min = 0,
-						max = 100,
+						max = 30,
 						step = 1,
 						decimals = 0,
 						getFunc = function() return sv.reminderVolume end,
-						setFunc = function(value) sv.reminderVolume = value end,
+						setFunc = function(value)
+							sv.reminderVolume = value
+							for i = 1, math.min(value, 30) do
+								PlaySound(sv.expirationSound)
+							end
+						end,
 					},
 					{
 						type = "slider",
@@ -1251,6 +1265,9 @@ function CombatMetronome:BuildMenu()
 						end
 					},
 					{
+						type = "divider"
+					},
+					{
 						type = "checkbox",
 						name = "Track all GCDs",
 						tooltip = "In addition to ability GCDs also track itmes, synergies, etc.",
@@ -1411,6 +1428,9 @@ function CombatMetronome:BuildMenu()
 						},
 					},
 					{
+						type = "divider"
+					},
+					{
 						type = "checkbox",
 						name = "Don't show ping zone",
 						tooltip = "Don't show Ping Zone on cast bar at all",
@@ -1515,7 +1535,12 @@ function CombatMetronome:BuildMenu()
 						step = 1,
 						decimals = 0,
 						getFunc = function() return CombatMetronome.SV.Progressbar.tickVolume end,
-						setFunc = function(value) CombatMetronome.SV.Progressbar.tickVolume = value end,
+						setFunc = function(value)
+							CombatMetronome.SV.Progressbar.tickVolume = value
+							for i = 1, math.min(value, 30) do
+								PlaySound(CombatMetronome.SV.Progressbar.soundTickEffect)
+							end
+						end,
 					},
 					{
 						type = "checkbox",
@@ -1551,7 +1576,9 @@ function CombatMetronome:BuildMenu()
 						getFunc = function() return CombatMetronome.SV.Progressbar.soundTickEffect end,
 						setFunc = function(value)
 							CombatMetronome.SV.Progressbar.soundTickEffect = value
-							PlaySound(value)
+							for i = 1, math.min(CombatMetronome.SV.Progressbar.tickVolume, 30) do
+								PlaySound(value)
+							end
 						end,
 					},
 					{
@@ -2330,6 +2357,10 @@ function CombatMetronome:BuildMenu()
 				getFunc = function() return CombatMetronome.SV.StackTracker.onlyInCombat end,
 				setFunc = function(value)
 					CombatMetronome.SV.StackTracker.onlyInCombat = value
+					for skill, stacks in pairs(CombatMetronome.StackTracker.stacks) do
+						-- CombatMetronome.StackTracker:InitializeUI(skill)
+						CombatMetronome.StackTracker:ChangeStackCount(skill, stacks)
+					end
 				end,
 			},
 			-------------------------
