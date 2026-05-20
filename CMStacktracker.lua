@@ -55,9 +55,6 @@ function StackTracker:ChangeStackCount(skill, stackCount)
 	if not self.UI[skill] then
 		if CombatMetronome.SV.debug.enabled then CombatMetronome.debug:Print("Tried to change "..skill.." stackCount without UI initialized") end
 		return
-	elseif not CombatMetronome.inCombat and CombatMetronome.SV.StackTracker.onlyInCombat and stackCount == 0 then
-		self:HideTracker(skill, true)
-		return
 	else
 		self:HideTracker(skill, false)
 	end
@@ -106,6 +103,10 @@ function StackTracker:ChangeStackCount(skill, stackCount)
 			-- trackerCue:PlaySound(SOUNDS[sv.sound],250)
 			--if self.SV.debug.enabled then CombatMetronome.debug:Print("Stacks are full") end
 		end
+	end
+	if not CombatMetronome.inCombat and CombatMetronome.SV.StackTracker.onlyInCombat and stackCount == 0 then
+		self:HideTracker(skill, true)
+		return
 	end
 end
 
