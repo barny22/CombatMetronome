@@ -631,6 +631,14 @@ function CombatMetronome:BuildMenu()
 					-- self.log = value
 				end
 			},
+			{
+				type = "checkbox",
+				name = "Print timestamps",
+				tooltip = "Include timestamps in debug messages",
+				disabled = function() return not CombatMetronome.SV.debug.enabled end,
+				getFunc = function() return CombatMetronome.SV.debug.printTimestamps end,
+				setFunc = function(value) CombatMetronome.SV.debug.printTimestamps = value end,
+			},
 			{	
 				type = "submenu",
 				name = "Debug Options",

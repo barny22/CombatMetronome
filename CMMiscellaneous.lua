@@ -114,6 +114,7 @@ CombatMetronome.DEFAULT_SAVED_VARS = {
 	},
 	["debug"] = {
 		["enabled"] = false,
+		["printTimestamps"] = false,
 		["triggers"] = false,
 		["triggerTimer"] = 170,
 		["currentEvent"] = false,
