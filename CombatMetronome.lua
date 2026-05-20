@@ -361,22 +361,23 @@ function CombatMetronome:RegisterCombatEvents()
 		function (_,   res,  err, aName, aGraphic, aSlotType, sName, sType, tName, 
 				tType, hVal, pType, dType, _, 		sUId, 	 tUId,  aId,   _     )
 			if CombatMetronome.SV.Progressbar.trackGCD and self.gcdEvent.finished <= GetFrameTimeMilliseconds() then
+				aName = Util.Text.CropZOSString(aName, "ability")
 				if aId == 16565 then
 					-- Util.Ability.Tracker:CancelCurrentEvent("Break free detected")
 					CombatMetronome:SetIconsAndNamesNil()
 					self.Progressbar.breakingFree = {}
-					self.Progressbar.breakingFree.name = Util.Text.CropZOSString(aName, "ability")
+					self.Progressbar.breakingFree.name = aName
 					self.Progressbar.breakingFree.icon = "/esoui/art/icons/ability_rogue_050.dds"
 				elseif not self.Progressbar.synergy.wasUsed and self.Progressbar.synergy.name == Util.Text.CropZOSString(aName, "synergy") then
 					self.Progressbar.synergy.wasUsed = true
 				-- none of these should be shown during combat, or during an active event
 				elseif self.currentEvent or self.inCombat then return
-				elseif IsMounted() and aId == 36432 and self.Progressbar.activeMount.action ~= "Dismounting" then
+				elseif IsMounted() and aId == 36432 and self.Progressbar.activeMount.action ~= aName then
 					CombatMetronome:SetIconsAndNamesNil()
-					self.Progressbar.activeMount.action = "Dismounting"
-				elseif not IsMounted() and aId == 36010 and self.Progressbar.activeMount.action ~= "Mounting" then
+					self.Progressbar.activeMount.action = aName
+				elseif not IsMounted() and aId == 36010 and self.Progressbar.activeMount.action ~= aName then
 					CombatMetronome:SetIconsAndNamesNil()
-					self.Progressbar.activeMount.action = "Mounting"
+					self.Progressbar.activeMount.action = aName
 				elseif CombatMetronome.FESTIVAL_IDS[aId] then
 					CombatMetronome:SetIconsAndNamesNil()
 					self.Progressbar.festivalGCD = aId

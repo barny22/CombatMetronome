@@ -159,7 +159,7 @@ function CombatMetronome:Update()
 					self.gcdEvent.finished = time + slotRemaining
 				elseif progressbar.activeMount.action ~= "" and sv.trackMounting then
 					if sv.showMountNick then
-						self.gcdEvent.displayName = CreateDisplayName(tostring(progressbar.activeMount.action.." "..progressbar.activeMount.name))
+						self.gcdEvent.displayName = CreateDisplayName(string.format("%s (%s)",progressbar.activeMount.action,progressbar.activeMount.name))
 					else
 						self.gcdEvent.displayName = CreateDisplayName(progressbar.activeMount.action)
 					end
