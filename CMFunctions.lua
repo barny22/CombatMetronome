@@ -44,7 +44,7 @@ function CombatMetronome:SetEventNil(reason)
 	if self.currentEvent then
 		self.currentEvent = nil
 		self.abilityFinished = time
-		Util.Ability.Tracker.lastAbilityFinished = time
+		Util.Ability.Tracker.lastAbilityFinished = 0
 	end
 	if Util.Ability.Tracker.currentEvent then
 		Util.Ability.Tracker:CancelCurrentEvent("")
