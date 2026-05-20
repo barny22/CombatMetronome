@@ -372,10 +372,10 @@ function CombatMetronome:RegisterCombatEvents()
 					self.Progressbar.synergy.wasUsed = true
 				-- none of these should be shown during combat, or during an active event
 				elseif self.currentEvent or self.inCombat then return
-				elseif IsMounted() and aId == 36432 and self.Progressbar.activeMount.action ~= aName then
+				elseif IsMounted() and aId == 36432 then
 					CombatMetronome:SetIconsAndNamesNil()
 					self.Progressbar.activeMount.action = aName
-				elseif not IsMounted() and aId == 36010 and self.Progressbar.activeMount.action ~= aName then
+				elseif not IsMounted() and aId == 36010 then
 					CombatMetronome:SetIconsAndNamesNil()
 					self.Progressbar.activeMount.action = aName
 				elseif CombatMetronome.FESTIVAL_IDS[aId] then
