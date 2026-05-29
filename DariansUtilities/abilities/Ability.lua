@@ -235,28 +235,35 @@ function Ability.Tracker:Start()
 end
 
 function Ability.Tracker:GCDCheck()
-    local sR, sD, global
-    local j = 1
-    local cdInfo = {[1] = { sR = 0, sD = 0 }, [2] = { sR = 0, sD = 0 }}
-    for i = 3, 7 do
-        sR, sD, global, _ = GetSlotCooldownInfo(i)
-        if j == 3 then break end
+    -- local sR, sD, global
+    -- local j = 1
+    -- local cdInfo = {[1] = { sR = 0, sD = 0 }, [2] = { sR = 0, sD = 0 }}
+    -- for i = 3, 7 do
+        -- sR, sD, global, _ = GetSlotCooldownInfo(i)
+        -- if j == 3 then break end
+        -- if global then
+            -- cdInfo[j] = { sR = sR, sD = sD }
+            -- j = j+1
+        -- end
+    -- end
+
+    -- if (cdInfo[1].sR > cdInfo[2].sR) or (cdInfo[1].sD > cdInfo[2].sD) then
+        -- cdInfo[2].sR = cdInfo[1].sR
+        -- cdInfo[2].sD = cdInfo[1].sD
+    -- end
+    
+    -- local slotRemaining = cdInfo[2].sR
+    -- local slotDuration = cdInfo[2].sD
+    
+    for i = 3, 8 do
+        local slotRemaining, slotDuration, global = GetSlotCooldownInfo(i)
+        
         if global then
-            cdInfo[j] = { sR = sR, sD = sD }
-            j = j+1
+            local gcdProgress = slotDuration > 0 and slotRemaining/slotDuration or 0
+            return gcdProgress, slotRemaining, slotDuration
         end
     end
-
-    if (cdInfo[1].sR > cdInfo[2].sR) or (cdInfo[1].sD > cdInfo[2].sD) then
-        cdInfo[2].sR = cdInfo[1].sR
-        cdInfo[2].sD = cdInfo[1].sD
-    end
-    
-    local slotRemaining = cdInfo[2].sR
-    local slotDuration = cdInfo[2].sD
-    
-    local gcdProgress = slotDuration > 0 and slotRemaining/slotDuration or 0
-    return gcdProgress, slotRemaining, slotDuration
+    return 0, 0, 0
 end
 
 function Ability.Tracker:HandleBarSwap(_, barswap, _, _)
