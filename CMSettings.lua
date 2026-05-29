@@ -723,8 +723,18 @@ function CombatMetronome:BuildMenu()
 							for i, name in ipairs(CombatMetronome.SV.debug.abilityWhitelist.list) do
 								if name == selectedSkill then
 									local skillData = self:GetEquippedSkillData(selectedSkill)
+									if not skillData then
+										for id in pairs(CombatMetronome.SV.debug.abilityWhitelist.ids) do
+											local aName = Util.Text.CropZOSString(GetAbilityName(id), "ability")
+											if string.find(name, aName) then
+												CombatMetronome.SV.debug.abilityWhitelist.ids[id] = nil
+												break
+											end
+										end
+									else
+										CombatMetronome.SV.debug.abilityWhitelist.ids[skillData.id] = nil
+									end
 									table.remove(CombatMetronome.SV.debug.abilityWhitelist.list, i)
-									CombatMetronome.SV.debug.abilityWhitelist.ids[skillData.id] = nil
 									UpdateDebugListChoices()
 									break
 								end
