@@ -50,10 +50,10 @@ function LATracker:CalculateLightAttacksPerSecond(time)
 end
 
 function LATracker:DisplayText()
-	if CombatMetronome.SV.LATracker.choice == "Nothing" then
+	if CombatMetronome.SV.LATracker.choice == "Nothing" or CombatMetronome.SV.LATracker.timeTilHiding ~= 0 then
 		LATracker.label:SetHidden(true)
 	else
-		if CM.inCombat or CombatMetronome.SV.LATracker.isUnlocked then
+		if CM.inCombat or CombatMetronome.SV.LATracker.isUnlocked or CombatMetronome.SV.LATracker.timeTilHiding == 0 then
 			LATracker.label:SetHidden(false)
 			if CombatMetronome.SV.LATracker.choice == "Time between light attacks" then
 				LATracker.label:SetText(TimeBetweenLA.." ms")
@@ -77,19 +77,21 @@ function LATracker:ResetLATracker()
 		CombatMetronome.debug:Print("End of combat")
 		CombatMetronome.debug:Print("You've been in combat for "..((GetGameTimeMilliseconds()-self.combatStart)/1000).."s")
 		CombatMetronome.debug:Print("Total amount of light attacks: "..NumLA)
-		CombatMetronome.debug:Print("This equals to "..LightAttacksPerSecond.." la/s")
+		CombatMetronome.debug:Print("This equals to "..string.format("%.2f", LightAttacksPerSecond).." la/s")
 	end
 	if NumLA ~= 0 then NumLA = 0 end
 	if TimeOfLastLA ~= 0 then TimeOfLastLA = 0 end
 	if TimeBetweenLA ~= 0 then TimeBetweenLA = 0 end
 	if LightAttacksPerSecond ~= 0 then LightAttacksPerSecond = 0 end
 	self.combatStart = nil
-	zo_callLater(function()
-		if CM.inCombat == false then
-			LATracker.label:SetHidden(true)
-		end
-	end,
-	CombatMetronome.SV.LATracker.timeTilHiding*1000)
+	if CombatMetronome.SV.LATracker.timeTilHiding > 0 then
+		zo_callLater(function()
+			if CM.inCombat == false then
+				LATracker.label:SetHidden(true)
+			end
+		end,
+		CombatMetronome.SV.LATracker.timeTilHiding*1000)
+	end
 end
 
 function LATracker:ManageLATracker(inCombat)

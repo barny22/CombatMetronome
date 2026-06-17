@@ -634,6 +634,9 @@ function Ability.Tracker:HandleOutgoingCombatEvent(_,     res,  err,   aName, _,
             Ability.Tracker:CallbackLightAttackUsed(time)
             self.lastLightAttack = time
         end
+    elseif (aSlotType == ACTION_SLOT_TYPE_LIGHT_ATTACK or aSlotType == ACTION_SLOT_TYPE_WEAPON_ATTACK) and tType ~= COMBAT_UNIT_TYPE_PLAYER and (res == ACTION_RESULT_EFFECT_GAINED or res == ACTION_RESULT_CRITICAL_DAMAGE or res == ACTION_RESULT_DAMAGE) and time ~= self.lastLightAttack then
+        Ability.Tracker:CallbackLightAttackUsed(time)
+        self.lastLightAttack = time
     end
 end
 
