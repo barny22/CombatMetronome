@@ -183,10 +183,7 @@ function Ability.Tracker:Start()
     self.rollDodgeFinished = 0
     self.lastBlockStatus = false
     
-    self.abilityTriggerCounters = {}
-    self.abilityTriggerCounters.direct = 0
-    self.abilityTriggerCounters.normal = 0
-    self.abilityTriggerCounters.late = 0
+    self.abilityTriggerCounters = {direct = 0, normal = 0, late = 0, combatEvent = 0}
     
     EVENT_MANAGER:RegisterForUpdate(self.name.."Update", 1000 / 30, function(...)
         self:Update()
@@ -202,6 +199,9 @@ function Ability.Tracker:Start()
         self:CancelCurrentEvent("Player dead")
         self:CancelEvent(GetFrameTimeMilliseconds(), "Player dead")
     end)
+    -- EVENT_MANAGER:RegisterForEvent(self.name.."PlayerActivated", EVENT_PLAYER_DEACTIVATED, function()
+        -- if self.queuedEvent then self:CancelEvent("Player deactivated") end
+    -- end)
     
     EVENT_MANAGER:RegisterForEvent(self.name.."IncomingCombatEvent", EVENT_COMBAT_EVENT, function(...)
         self:HandleIncomingCombatEvent(...) 
@@ -291,12 +291,17 @@ local function RegisterJesusBeam(id)
     local t = DariansUtilities.Ability.Tracker
     if not t.jesusBeamRegistered then
         EVENT_MANAGER:RegisterForEvent(t.name.."HandleJesusBeam", EVENT_EFFECT_CHANGED, function(_,changeType)
-            if changeType == EFFECT_RESULT_FADED and t.currentEvent and t.currentEvent.ability.id == id and not t.skipNextEffectFaded then
-                t:CancelCurrentEvent("Jesus beam finished")
+            if changeType == EFFECT_RESULT_FADED and t.currentEvent and t.currentEvent.ability.id == id then
+                if not t.skipNextEffectFaded then
+                    t:CancelCurrentEvent("Jesus beam finished")
+                else
+                    t:PrintDebugNotes("abilityUsed", id, "Skip next effect faded is now being reset")
+                    t.skipNextEffectFaded = false
+                end
             end
         end)
         EVENT_MANAGER:AddFilterForEvent(t.name.."HandleJesusBeam", EVENT_EFFECT_CHANGED, REGISTER_FILTER_ABILITY_ID, id)
-        EVENT_MANAGER:AddFilterForEvent(t.name.."HandleJesusBeam", EVENT_EFFECT_CHANGED, REGISTER_FILTER_SOURCE_COMBAT_UNIT_TYPE , COMBAT_UNIT_TYPE_PLAYER)
+        EVENT_MANAGER:AddFilterForEvent(t.name.."HandleJesusBeam", EVENT_EFFECT_CHANGED, REGISTER_FILTER_SOURCE_COMBAT_UNIT_TYPE, COMBAT_UNIT_TYPE_PLAYER)
         t.jesusBeamRegistered = true
         t:PrintDebugNotes("abilityUsed", id, "Jesus beam tracker has been registered")
     else
@@ -309,29 +314,31 @@ local function UnregisterJesusBeam(id)
     local t = DariansUtilities.Ability.Tracker
     if t.jesusBeamRegistered then
         EVENT_MANAGER:UnregisterForEvent(t.name.."HandleJesusBeam")
-        t.jesusBeamRegistered = true
-        t:PrintDebugNotes("abilityUsed", id, "Jesus beam tracker hast been unregistered")
+        t.jesusBeamRegistered = false
+        t.skipNextEffectFaded = false
+        t:PrintDebugNotes("abilityUsed", id, "Jesus beam ended. Tracker has been unregistered")
     end
 end
 
 function Ability.Tracker:Update()
     local time = GetFrameTimeMilliseconds()
-    local gcdProgress, sR, sD = Ability.Tracker:GCDCheck()
+    local gcdProgress, sR, sD = self:GCDCheck()
     
-    if (self.lastBlockStatus == false) and IsBlockActive() and self.currentEvent then
-        self:CancelCurrentEvent("Blocked")
+    if (self.lastBlockStatus == false) and IsBlockActive() and (CombatMetronome.currentEvent or self.queuedEvent) then
+        -- adding a bunch of checks here, so events aren't canceled if they actually went through
+        if CombatMetronome.currentEvent and not CombatMetronome.currentEvent.allowForce and CombatMetronome.currentEvent.start + CombatMetronome.currentEvent.ability.delay > time and sR == 0 then self:CancelCurrentEvent("Blocked") end
         self:CancelEvent(time, "Blocked")
     end
     
     -- Fire off late events if no UPDATE_COOLDOWNS events
-    if ((self.queuedEvent and self.queuedEvent.castDuringRollDodge and self.rollDodgeFinished >= time) or self.queuedEvent) and not self.currentEvent and gcdProgress > (CombatMetronome.SV.debug.triggers and ((self.gcd - CombatMetronome.SV.debug.triggerTimer)/1000) or 0.9) and CanAbilityFire(time) then
+    if ((self.queuedEvent and self.queuedEvent.castDuringRollDodge and self.rollDodgeFinished <= time) or self.queuedEvent) and gcdProgress > 0.9 and CanAbilityFire(time) then
         self.eventStart = time + sR - sD
-        self:AbilityUsed("late")
+        self:AbilityUsed("late", sR, sD)
         self.abilityTriggerCounters.late = self.abilityTriggerCounters.late + 1
     end
     
     -- delete queued Events, if they weren't fired and also shouldn't be
-    if not self.currentEvent and self.queuedEvent and math.max(self.queuedEvent.recorded, self.weaponLastSheathed + SHEATHING_PERIOD, self.lastMounted + DISMOUNT_PERIOD) + math.max(self.queuedEvent.ability.delay,1000) < time then
+    if not self.currentEvent and self.queuedEvent and math.max(self.lastAbilityFinished, self.queuedEvent.recorded, self.weaponLastSheathed + SHEATHING_PERIOD, self.lastMounted + DISMOUNT_PERIOD) + math.max(self.queuedEvent.ability.delay,1000) < time then
         self:CancelEvent(time, "Event over")
     end
     
@@ -370,11 +377,11 @@ function Ability.Tracker:NewEvent(ability, slot, start)
         
     if self.queuedEvent.ability.heavy then
         self.eventStart = start
-        self:AbilityUsed("direct")
+        self:AbilityUsed("direct", sR, sD)
     elseif self.cdTriggerTime == start and gcdProgress == 1 and self.rollDodgeFinished <= time and not event.castDuringRollDodge then
         if CombatMetronome.currentEvent then self:CancelCurrentEvent("Direct trigger detected") end
         self.eventStart = start
-        self:AbilityUsed("direct")
+        self:AbilityUsed("direct", sR, sD)
         self.abilityTriggerCounters.direct = self.abilityTriggerCounters.direct + 1
     end
 end
@@ -388,9 +395,9 @@ function Ability.Tracker:CancelEvent(time, reason)
     end
 end
 
-function Ability.Tracker:AbilityUsed(trigger)
+function Ability.Tracker:AbilityUsed(trigger, sR, sD)
     
-    local gcdProgress, sR, sD = Ability.Tracker:GCDCheck()
+    -- local gcdProgress, sR, sD = Ability.Tracker:GCDCheck()
             
     local event = self.queuedEvent
     event.start = self.eventStart
@@ -479,9 +486,10 @@ function Ability.Tracker:HandleCooldownsUpdated()
         end
     end
     
+    if sR == 0 then return end
+    
     if not CanAbilityFire(self.cdTriggerTime) then return end
     
-    if sR == 0 then return end
     self.gcd = sD
     
     -- local heavySR = GetSlotCooldownInfo(2)
@@ -493,8 +501,8 @@ function Ability.Tracker:HandleCooldownsUpdated()
     
     if self.queuedEvent and self.rollDodgeFinished <= self.cdTriggerTime and not self.queuedEvent.castDuringRollDodge then
         self.eventStart = self.cdTriggerTime + sR - sD
-        if self.eventStart + (CombatMetronome.SV.debug.triggers and CombatMetronome.SV.debug.triggerTimer or GetLatency()) >= self.cdTriggerTime then
-            self:AbilityUsed("CD updated")
+        if self.eventStart + GetLatency() >= self.cdTriggerTime then
+            self:AbilityUsed("CD updated", sR, sD)
         end
     end
 end
@@ -535,8 +543,14 @@ function Ability.Tracker:HandleIncomingCombatEvent(_,     res,  err,   aName, _,
             self:CancelCurrentEvent("CC")
             self:CancelEvent(time, "CC")
             return
-        elseif res == ACTION_RESULT_EFFECT_FADED and self.currentEvent and self.currentEvent.ability.id == aId then
+        elseif res == ACTION_RESULT_EFFECT_FADED and self.currentEvent and self.currentEvent.ability.id == aId and self.currentEvent.ability.delay > 1000 then
             self:CancelCurrentEvent("Effect faded, player is target")
+            local _, remaining = self:GCDCheck()
+            if remaining > 0 then
+                CombatMetronome.gcdEvent = ZO_ShallowTableCopy(effectFaded)
+                CombatMetronome.gcdEvent.finished = time + remaining
+            end
+            return
         elseif sType == COMBAT_UNIT_TYPE_PLAYER and res == ACTION_RESULT_SILENCED and CombatMetronome.currentEvent.ability.id == aId then
             self:CancelCurrentEvent("Silenced")
             local _, remaining = self:GCDCheck()
@@ -563,6 +577,21 @@ function Ability.Tracker:HandleOutgoingCombatEvent(_,     res,  err,   aName, _,
         self:PrintDebugNotes("currentEvent", aId, string.format("Ability needs to check for dead target. Adding target unit id '%d' to currentEvent", tUId))
     end
     
+    if self.queuedEvent and self.queuedEvent.ability.id == aId then
+        if res == ACTION_RESULT_BEGIN or res == ACTION_RESULT_EFFECT_GAINED then
+            -- if CombatMetronome.currentEvent and CombatMetronome.currentEvent.ending + 200 <= time or self.queuedEvent.recorded + 200 <= time then
+                local gcdProgress, sR, sD = self:GCDCheck()
+                self.eventStart = time + sR - sD
+                self:AbilityUsed("CombatEvent", sR, sD)
+                self.abilityTriggerCounters.combatEvent = self.abilityTriggerCounters.combatEvent + 1
+            -- end
+        elseif self.queuedEvent.ability.enemy and res == ACTION_RESULT_TARGET_DEAD then
+            self:CancelEvent(time, "Leave him alone, he is already dead")
+        -- elseif res == ACTION_RESULT_QUEUED then
+            -- self.queuedEvent.isQueued = true
+        end
+    end
+            
     if CombatMetronome.currentEvent and CombatMetronome.currentEvent.ability.id == aId and err and CombatMetronome.currentEvent.recorded + 100 > time and res == ACTION_RESULT_ABILITY_ON_COOLDOWN then
         self:CancelCurrentEvent("Error")
         local _, remaining = self:GCDCheck()
@@ -587,7 +616,7 @@ function Ability.Tracker:HandleOutgoingCombatEvent(_,     res,  err,   aName, _,
             CombatMetronome.gcdEvent.finished = time + remaining
         end
     
-    elseif (res == ACTION_RESULT_DIED or res == ACTION_RESULT_DIED_XP or res == ACTION_RESULT_TARGET_DEAD) and CombatMetronome and CombatMetronome.currentEvent and CombatMetronome.currentEvent.ability.checkForDeadTarget and CombatMetronome.currentEvent.target == tUId then -- ACTION_RESULT_TARGET_DEAD
+    elseif (res == ACTION_RESULT_DIED or res == ACTION_RESULT_DIED_XP) and CombatMetronome and CombatMetronome.currentEvent and CombatMetronome.currentEvent.ability.checkForDeadTarget and CombatMetronome.currentEvent.target == tUId and aId == CombatMetronome.currentEvent.ability.id then -- ACTION_RESULT_TARGET_DEAD
         self:PrintDebugNotes("currentEvent", aId, string.format("Target dead. Cancelling '%s' - Id: %d", aName, aId))
         local _, remaining = self:GCDCheck()
         if remaining > 0 then
@@ -595,7 +624,6 @@ function Ability.Tracker:HandleOutgoingCombatEvent(_,     res,  err,   aName, _,
             CombatMetronome.gcdEvent = ZO_ShallowTableCopy(targetDied)
             CombatMetronome.gcdEvent.finished = time + remaining
         else
-            self:CancelEvent(time, "Leave him alone, he is already dead")
             self:CancelCurrentEvent("Target died")
         end
         return
@@ -629,11 +657,6 @@ function Ability.Tracker:HandleOutgoingCombatEvent(_,     res,  err,   aName, _,
         local heavy = Util.Ability:ForId(aId, false)
         self:NewEvent(heavy, 2, time)
         return
-    elseif aSlotType == ACTION_SLOT_TYPE_LIGHT_ATTACK or aSlotType == ACTION_SLOT_TYPE_WEAPON_ATTACK then
-        if (res == ACTION_RESULT_EFFECT_GAINED or res == ACTION_RESULT_CRITICAL_DAMAGE or res == ACTION_RESULT_DAMAGE) and time ~= self.lastLightAttack then
-            Ability.Tracker:CallbackLightAttackUsed(time)
-            self.lastLightAttack = time
-        end
     elseif (aSlotType == ACTION_SLOT_TYPE_LIGHT_ATTACK or aSlotType == ACTION_SLOT_TYPE_WEAPON_ATTACK) and tType ~= COMBAT_UNIT_TYPE_PLAYER and (res == ACTION_RESULT_EFFECT_GAINED or res == ACTION_RESULT_CRITICAL_DAMAGE or res == ACTION_RESULT_DAMAGE) and time ~= self.lastLightAttack then
         Ability.Tracker:CallbackLightAttackUsed(time)
         self.lastLightAttack = time
@@ -653,13 +676,19 @@ end
 
 function Ability.Tracker:ResetDebugCount(inCombat)
     if not inCombat and not self.debugCountReset then
-        self:PrintDebugNotes("triggers", nil, string.format("Normal triggers: %d", self.abilityTriggerCounters.normal))
-        self:PrintDebugNotes("triggers", nil, string.format("Direct triggers: %d", self.abilityTriggerCounters.direct))
-        self:PrintDebugNotes("triggers", nil, string.format("Late triggers: %d", self.abilityTriggerCounters.late))
-        self:PrintDebugNotes("triggers", nil, "Combat ended")
-        self.abilityTriggerCounters.late = 0
-        self.abilityTriggerCounters.normal = 0
-        self.abilityTriggerCounters.direct = 0
+        for t, c in pairs(self.abilityTriggerCounters) do
+            self:PrintDebugNotes("triggers", nil, string.format("%s triggers: %d", t, c))
+            c = 0
+        end
+        -- self:PrintDebugNotes("triggers", nil, string.format("Normal triggers: %d", self.abilityTriggerCounters.normal))
+        -- self:PrintDebugNotes("triggers", nil, string.format("Direct triggers: %d", self.abilityTriggerCounters.direct))
+        -- self:PrintDebugNotes("triggers", nil, string.format("Late triggers: %d", self.abilityTriggerCounters.late))
+        -- self:PrintDebugNotes("triggers", nil, string.format("CombatEvent triggers: %d", self.abilityTriggerCounters.combatEvent))
+        -- self:PrintDebugNotes("triggers", nil, "Combat ended")
+        -- self.abilityTriggerCounters.late = 0
+        -- self.abilityTriggerCounters.normal = 0
+        -- self.abilityTriggerCounters.direct = 0
+        -- self.abilityTriggerCounters.combatEvent = 0
         self.debugCountReset = true
     elseif inCombat and self.debugCountReset then
         self.debugCountReset = false
@@ -687,7 +716,13 @@ function Ability.Tracker:CancelCurrentEvent(reason)
         CombatMetronome:OnCDStop("")
         printDebug = true
     end
-    if printDebug and reason ~= "" then self:PrintDebugNotes("currentEvent", ability.id, string.format("Current event '%s' canceled by: %s", ability.name, reason)) end
+    if printDebug then self:PrintDebugNotes("currentEvent", ability.id, string.format("Current event '%s' canceled by: %s", ability.name, reason)) end
+    -- if self.queuedEvent and not cameFromCanAbilityFire then
+        -- local time = GetFrameTimeMilliseconds()
+        -- local gcdProgress, sR, sD = self:GCDCheck()
+        -- self.eventStart = time + sR - sD
+        -- self:AbilityUsed("CM killed old event", sR, sD)
+    -- end
     self.lastAbilityFinished = 0
 end
 
@@ -703,6 +738,10 @@ function Ability.Tracker:PrintDebugNotes(debugType, abilityID, message)
     end
     
     if printDebug then
+        if debugs.printTimestamps then
+            local time = GetFrameTimeMilliseconds()
+            message = string.format("%d --> %s", time, message)
+        end
         CombatMetronome.debug:Print(message)
     end
 end
