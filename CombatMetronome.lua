@@ -372,12 +372,17 @@ function CombatMetronome:RegisterCombatEvents()
 					self.Progressbar.synergy.wasUsed = true
 				-- none of these should be shown during combat, or during an active event
 				elseif self.currentEvent or self.inCombat then return
-				elseif IsMounted() and aId == 36432 then
+				-- elseif IsMounted() and aId == 36432 then
+				elseif res == ACTION_RESULT_EFFECT_GAINED and aId == 36432 then
 					CombatMetronome:SetIconsAndNamesNil()
 					self.Progressbar.activeMount.action = aName
-				elseif not IsMounted() and aId == 36010 then
+				-- elseif not IsMounted() and aId == 36010 then
+				elseif res == ACTION_RESULT_BEGIN and aId == 37059 then
 					CombatMetronome:SetIconsAndNamesNil()
 					self.Progressbar.activeMount.action = aName
+				-- elseif res == ACTION_RESULT_BAD_TARGET and err and aId == 37059 then
+					-- CombatMetronome:SetIconsAndNamesNil()
+					-- self.Progressbar.activeMount.action = aName
 				elseif CombatMetronome.FESTIVAL_IDS[aId] then
 					CombatMetronome:SetIconsAndNamesNil()
 					self.Progressbar.festivalGCD = aId
@@ -559,7 +564,7 @@ function StackTracker:Unregister(skill)
 	self.stacks[skill] = nil
 	self:HandleUIVisibility(skill, "NoUI")
 	self:HandleUIVisibility(skill, "NoSample")
-	if CombatMetronome.SV.debug.enabled then CombatMetronome.debug:Print(skill.." tracker is unregistered") end
+	-- if CombatMetronome.SV.debug.enabled then CombatMetronome.debug:Print(skill.." tracker is unregistered") end
 end
 
 function CombatMetronome:UnregisterCollectiblesTracker()
