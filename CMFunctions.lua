@@ -39,15 +39,12 @@ end
 
 function CombatMetronome:SetEventNil(reason)
 	local time = GetFrameTimeMilliseconds()
-	Util.Ability.Tracker:PrintDebugNotes("currentEvent", self.currentEvent.ability.id, string.format("Killed CM currentEvent '%s'. Reason: '%s'", self.currentEvent.ability.name, reason))
 	
 	if self.currentEvent then
 		self.currentEvent = nil
 		self.abilityFinished = time
+		Util.Ability.Tracker:CancelCurrentEvent(string.format("CM: %s", reason))
 		Util.Ability.Tracker.lastAbilityFinished = 0
-	end
-	if Util.Ability.Tracker.currentEvent then
-		Util.Ability.Tracker:CancelCurrentEvent("")
 	end
 	
 	self.Progressbar.bar.segments[1].progress = 0
