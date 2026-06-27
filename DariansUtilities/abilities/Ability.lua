@@ -30,6 +30,12 @@ local silenced = {
     clearSynergy = false,
 }
 
+local stagger = {
+    displayName = "Stagger",
+    icon = "/esoui/art/icons/ability_debuff_stagger.dds",
+    clearSynergy = false,
+}
+
 local immune = {
     displayName = "Target immune",
     icon = "/esoui/art/icons/death_recap_void_dot_heavy.dds", --/esoui/art/icons/death_recap_necro_dot_heavy2.dds
@@ -235,25 +241,6 @@ function Ability.Tracker:Start()
 end
 
 function Ability.Tracker:GCDCheck()
-    -- local sR, sD, global
-    -- local j = 1
-    -- local cdInfo = {[1] = { sR = 0, sD = 0 }, [2] = { sR = 0, sD = 0 }}
-    -- for i = 3, 7 do
-        -- sR, sD, global, _ = GetSlotCooldownInfo(i)
-        -- if j == 3 then break end
-        -- if global then
-            -- cdInfo[j] = { sR = sR, sD = sD }
-            -- j = j+1
-        -- end
-    -- end
-
-    -- if (cdInfo[1].sR > cdInfo[2].sR) or (cdInfo[1].sD > cdInfo[2].sD) then
-        -- cdInfo[2].sR = cdInfo[1].sR
-        -- cdInfo[2].sD = cdInfo[1].sD
-    -- end
-    
-    -- local slotRemaining = cdInfo[2].sR
-    -- local slotDuration = cdInfo[2].sD
     
     for i = 3, 8 do
         local slotRemaining, slotDuration, global = GetSlotCooldownInfo(i)
@@ -352,12 +339,6 @@ function Ability.Tracker:NewEvent(ability, slot, start)
     local time = GetFrameTimeMilliseconds()
     
     local gcdProgress, sR, sD = self:GCDCheck()
-    -- if slot == 2 then
-        -- sR, sD, _, _ = GetSlotCooldownInfo(2)
-        -- gcdProgress = sD > 0 and sR/sD or 0
-    -- else
-        -- gcdProgress, sR, sD = self:GCDCheck()
-    -- end
 
     local event = { }
 
@@ -396,9 +377,7 @@ function Ability.Tracker:CancelEvent(time, reason)
 end
 
 function Ability.Tracker:AbilityUsed(trigger, sR, sD)
-    
-    -- local gcdProgress, sR, sD = Ability.Tracker:GCDCheck()
-            
+                
     local event = self.queuedEvent
     event.start = self.eventStart
     event.ending = self.eventStart + math.max(event.ability.delay, 1000)
@@ -409,7 +388,6 @@ function Ability.Tracker:AbilityUsed(trigger, sR, sD)
     self.gcd = sD
     self:PrintDebugNotes("abilityUsed", event.ability.id, string.format("New ability used '%s' - Trigger: %s - Remaining: %d", event.ability.name, trigger, sR))
     if jesusBeam[event.ability.id] then RegisterJesusBeam(event.ability.id) end
-    -- QueueClearCurrentEvent(event.start, math.max(sR, math.max(event.ability.delay, 1000)+sR-sD))
     self:CallbackAbilityUsed(event)
 
     if (event.ability.instant or event.ability.channeled) then
@@ -492,13 +470,6 @@ function Ability.Tracker:HandleCooldownsUpdated()
     
     self.gcd = sD
     
-    -- local heavySR = GetSlotCooldownInfo(2)
-    -- if heavySR > 0 then
-        -- self.heavyOnCooldown = true
-    -- else
-        -- self.heavyOnCooldown = false
-    -- end
-    
     if self.queuedEvent and self.rollDodgeFinished <= self.cdTriggerTime and not self.queuedEvent.castDuringRollDodge then
         self.eventStart = self.cdTriggerTime + sR - sD
         if self.eventStart + GetLatency() >= self.cdTriggerTime then
@@ -545,19 +516,9 @@ function Ability.Tracker:HandleIncomingCombatEvent(_,     res,  err,   aName, _,
             return
         elseif res == ACTION_RESULT_EFFECT_FADED and self.currentEvent and self.currentEvent.ability.id == aId and self.currentEvent.ability.delay > 1000 then
             self:CancelCurrentEvent("Effect faded, player is target")
-            local _, remaining = self:GCDCheck()
-            if remaining > 0 then
-                CombatMetronome.gcdEvent = ZO_ShallowTableCopy(effectFaded)
-                CombatMetronome.gcdEvent.finished = time + remaining
-            end
             return
         elseif sType == COMBAT_UNIT_TYPE_PLAYER and res == ACTION_RESULT_SILENCED and CombatMetronome.currentEvent.ability.id == aId then
             self:CancelCurrentEvent("Silenced")
-            local _, remaining = self:GCDCheck()
-            if remaining > 0 then
-                CombatMetronome.gcdEvent = ZO_ShallowTableCopy(silenced)
-                CombatMetronome.gcdEvent.finished = time + remaining
-            end
             return
         end
     end
@@ -570,8 +531,10 @@ end
 --                                                 10     11    12     13    14 	15     16     17     18
 function Ability.Tracker:HandleOutgoingCombatEvent(_,     res,  err,   aName, _, aSlotType, sName, sType, tName, 
                                                    tType, hVal, pType, dType, _, sUId, tUId,  aId, overflow)
+    
     aName = Util.Text.CropZOSString(aName, "ability")
     local time = GetFrameTimeMilliseconds()
+    
     if res ~= ACTION_RESULT_EFFECT_FADED and CombatMetronome and CombatMetronome.currentEvent and CombatMetronome.currentEvent.ability.id == aId and CombatMetronome.currentEvent.ability.checkForDeadTarget and not CombatMetronome.currentEvent.target then
         CombatMetronome.currentEvent.target = tUId
         self:PrintDebugNotes("currentEvent", aId, string.format("Ability needs to check for dead target. Adding target unit id '%d' to currentEvent", tUId))
@@ -579,12 +542,10 @@ function Ability.Tracker:HandleOutgoingCombatEvent(_,     res,  err,   aName, _,
     
     if self.queuedEvent and self.queuedEvent.ability.id == aId then
         if res == ACTION_RESULT_BEGIN or res == ACTION_RESULT_EFFECT_GAINED then
-            -- if CombatMetronome.currentEvent and CombatMetronome.currentEvent.ending + 200 <= time or self.queuedEvent.recorded + 200 <= time then
-                local gcdProgress, sR, sD = self:GCDCheck()
-                self.eventStart = time + sR - sD
-                self:AbilityUsed("CombatEvent", sR, sD)
-                self.abilityTriggerCounters.combatEvent = self.abilityTriggerCounters.combatEvent + 1
-            -- end
+            local gcdProgress, sR, sD = self:GCDCheck()
+            self.eventStart = time + sR - sD
+            self:AbilityUsed("CombatEvent", sR, sD)
+            self.abilityTriggerCounters.combatEvent = self.abilityTriggerCounters.combatEvent + 1
         elseif self.queuedEvent.ability.enemy and res == ACTION_RESULT_TARGET_DEAD then
             self:CancelEvent(time, "Leave him alone, he is already dead")
         -- elseif res == ACTION_RESULT_QUEUED then
@@ -594,56 +555,37 @@ function Ability.Tracker:HandleOutgoingCombatEvent(_,     res,  err,   aName, _,
             
     if CombatMetronome.currentEvent and CombatMetronome.currentEvent.ability.id == aId and err and CombatMetronome.currentEvent.recorded + 100 > time and res == ACTION_RESULT_ABILITY_ON_COOLDOWN then
         self:CancelCurrentEvent("Error")
-        local _, remaining = self:GCDCheck()
-        if remaining > 0 then
-            CombatMetronome.gcdEvent = ZO_ShallowTableCopy(abilityOnCooldown)
-            CombatMetronome.gcdEvent.finished = time + remaining
-        end        
-        -- barnysDevTools.msg:Print(string.format("Got combat event regarding ability '%s' with an error and the following action result: '%d'", aName, res))
+        return
     elseif res == ACTION_RESULT_EFFECT_FADED and self.currentEvent and self.currentEvent.ability.id == aId then
         self:CancelCurrentEvent("Effect faded, player is source")
-        local _, remaining = self:GCDCheck()
-        if remaining > 0 then
-            CombatMetronome.gcdEvent = ZO_ShallowTableCopy(effectFaded)
-            CombatMetronome.gcdEvent.finished = time + remaining
+        return
+    elseif CombatMetronome.currentEvent and CombatMetronome.currentEvent.ability.id == aId and CombatMetronome.currentEvent.ability.enemy then
+        if jesusBeam[aId] and not excludedRes[res] then CombatMetronome.debug:Print(time..": Got here") end
+        if res == ACTION_RESULT_IMMUNE then
+            self:CancelCurrentEvent("Target immune")
+            return
+        elseif res == ACTION_RESULT_STAGGERED then
+            self:CancelCurrentEvent("Stagger")
+            return
+        elseif res == ACTION_RESULT_TARGET_DEAD then
+            self:CancelCurrentEvent("Target dead")
+            return
         end
-        
-    elseif res == ACTION_RESULT_IMMUNE and CombatMetronome.currentEvent and CombatMetronome.currentEvent.ability.id == aId and CombatMetronome.currentEvent.ability.enemy then
-        self:CancelCurrentEvent("Target immune")
-        local _, remaining = self:GCDCheck()
-        if remaining > 0 then
-            CombatMetronome.gcdEvent = ZO_ShallowTableCopy(immune)
-            CombatMetronome.gcdEvent.finished = time + remaining
-        end
-    
     elseif (res == ACTION_RESULT_DIED or res == ACTION_RESULT_DIED_XP) and CombatMetronome and CombatMetronome.currentEvent and CombatMetronome.currentEvent.ability.checkForDeadTarget and CombatMetronome.currentEvent.target == tUId and aId == CombatMetronome.currentEvent.ability.id then -- ACTION_RESULT_TARGET_DEAD
         self:PrintDebugNotes("currentEvent", aId, string.format("Target dead. Cancelling '%s' - Id: %d", aName, aId))
-        local _, remaining = self:GCDCheck()
-        if remaining > 0 then
-            self:CancelCurrentEvent("Target died but GCD > 0")
-            CombatMetronome.gcdEvent = ZO_ShallowTableCopy(targetDied)
-            CombatMetronome.gcdEvent.finished = time + remaining
-        else
-            self:CancelCurrentEvent("Target died")
-        end
+        self:CancelCurrentEvent("Target died")
         return
     elseif res == ACTION_RESULT_NO_LOCATION_FOUND and CombatMetronome and CombatMetronome.currentEvent and CombatMetronome.currentEvent.ability.id == aId then
-        self:CancelCurrentEvent("Invalid location")
-        local _, remaining = self:GCDCheck()
-        CombatMetronome.gcdEvent = ZO_ShallowTableCopy(invalidLocation)
-        CombatMetronome.gcdEvent.finished = time + remaining
-        
+        self:CancelCurrentEvent("Invalid location")        
         return
                 -- rolldodge
     elseif aId == 28549 and res == ACTION_RESULT_EFFECT_GAINED then
         local _, remaining = self:GCDCheck()
         self.rollDodgeFinished = time + remaining
-        -- zo_callLater(function() self.rollDodgeFinished = true end, remaining)
         self:CancelEvent(time, "Rolldodge")
         if self.currentEvent or CombatMetronome.currentEvent then
             self:CancelCurrentEvent("Rolldodge")
         end
-        
         
     elseif err then return
     
@@ -680,15 +622,6 @@ function Ability.Tracker:ResetDebugCount(inCombat)
             self:PrintDebugNotes("triggers", nil, string.format("%s triggers: %d", t, c))
             c = 0
         end
-        -- self:PrintDebugNotes("triggers", nil, string.format("Normal triggers: %d", self.abilityTriggerCounters.normal))
-        -- self:PrintDebugNotes("triggers", nil, string.format("Direct triggers: %d", self.abilityTriggerCounters.direct))
-        -- self:PrintDebugNotes("triggers", nil, string.format("Late triggers: %d", self.abilityTriggerCounters.late))
-        -- self:PrintDebugNotes("triggers", nil, string.format("CombatEvent triggers: %d", self.abilityTriggerCounters.combatEvent))
-        -- self:PrintDebugNotes("triggers", nil, "Combat ended")
-        -- self.abilityTriggerCounters.late = 0
-        -- self.abilityTriggerCounters.normal = 0
-        -- self.abilityTriggerCounters.direct = 0
-        -- self.abilityTriggerCounters.combatEvent = 0
         self.debugCountReset = true
     elseif inCombat and self.debugCountReset then
         self.debugCountReset = false
@@ -699,24 +632,47 @@ end
 ---- Debug/Cancel currentEvent ----
 -----------------------------------
 
+local reasonToGCDMapping = {
+    ["Error"] = abilityOnCooldown,
+    ["Effect faded, player is source"] = effectFaded,
+    ["Effect faded, player is target"] = effectFaded,
+    ["Jesus beam finished"] = effectFaded,
+    ["Invalid location"] = invalidLocation,
+    ["Target immune"] = immune,
+    ["Silenced"] = silenced,
+    ["Stagger"] = stagger,
+    ["Target died"] = targetDied,
+    ["Target dead"] = targetDied,
+}
+
 function Ability.Tracker:CancelCurrentEvent(reason)
     local printDebug = false
     local ability
     if self.currentEvent then
         if self.currentEvent.ability then ability = self.currentEvent.ability end
-        if jesusBeam[self.currentEvent.ability.id] then UnregisterJesusBeam(self.currentEvent.ability.id) end
+        if jesusBeam[ability.id] then UnregisterJesusBeam(ability.id) end
         self.currentEvent = nil
         self.gcd = 1000
         printDebug = true
     end
         
-    if self.CombatMetronome and CombatMetronome.currentEvent then
+    if CombatMetronome.currentEvent then
         ability = ability or CombatMetronome.currentEvent.ability
         CombatMetronome.currentEvent = nil
         CombatMetronome:OnCDStop("")
         printDebug = true
     end
-    if printDebug then self:PrintDebugNotes("currentEvent", ability.id, string.format("Current event '%s' canceled by: %s", ability.name, reason)) end
+    
+    if printDebug then
+        -- event has been canceled - displaying GCD event instead
+        local _, remaining = self:GCDCheck()
+        if remaining > 0 and reasonToGCDMapping[reason] then
+            CombatMetronome.gcdEvent = ZO_ShallowTableCopy(reasonToGCDMapping[reason])
+            CombatMetronome.gcdEvent.finished = GetFrameTimeMilliseconds() + remaining
+        end
+        
+        self:PrintDebugNotes("currentEvent", ability.id, string.format("Current event '%s' canceled by: %s", ability.name, reason))
+    end
     -- if self.queuedEvent and not cameFromCanAbilityFire then
         -- local time = GetFrameTimeMilliseconds()
         -- local gcdProgress, sR, sD = self:GCDCheck()
