@@ -560,7 +560,6 @@ function Ability.Tracker:HandleOutgoingCombatEvent(_,     res,  err,   aName, _,
         self:CancelCurrentEvent("Effect faded, player is source")
         return
     elseif CombatMetronome.currentEvent and CombatMetronome.currentEvent.ability.id == aId and CombatMetronome.currentEvent.ability.enemy then
-        if jesusBeam[aId] and not excludedRes[res] then CombatMetronome.debug:Print(time..": Got here") end
         if res == ACTION_RESULT_IMMUNE then
             self:CancelCurrentEvent("Target immune")
             return
