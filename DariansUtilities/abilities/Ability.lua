@@ -48,6 +48,12 @@ local abilityOnCooldown = {
     clearSynergy = false,
 }
 
+local block = {
+    displayName = "Blocked",
+    icon = "/esoui/art/icons/u42_weaponskill_onehandshield25.dds",
+    clearSynergy = false,
+}
+
 local GRACE_PERIOD = 500
 
 local Class = {
@@ -313,7 +319,7 @@ function Ability.Tracker:Update()
     
     if (self.lastBlockStatus == false) and IsBlockActive() and (CombatMetronome.currentEvent or self.queuedEvent) then
         -- adding a bunch of checks here, so events aren't canceled if they actually went through
-        if CombatMetronome.currentEvent and not CombatMetronome.currentEvent.allowForce and CombatMetronome.currentEvent.start + CombatMetronome.currentEvent.ability.delay > time and sR == 0 then self:CancelCurrentEvent("Blocked") end
+        if CombatMetronome.currentEvent and not CombatMetronome.currentEvent.allowForce and CombatMetronome.currentEvent.start + CombatMetronome.currentEvent.ability.delay > time then self:CancelCurrentEvent("Blocked") end
         self:CancelEvent(time, "Blocked")
     end
     
@@ -388,8 +394,9 @@ function Ability.Tracker:AbilityUsed(trigger, sR, sD)
     self.gcd = sD
     self:PrintDebugNotes("abilityUsed", event.ability.id, string.format("New ability used '%s' - Trigger: %s - Remaining: %d", event.ability.name, trigger, sR))
     if jesusBeam[event.ability.id] then RegisterJesusBeam(event.ability.id) end
+            
     self:CallbackAbilityUsed(event)
-
+    
     if (event.ability.instant or event.ability.channeled) then
         self:CallbackAbilityActivated(event)
     end
@@ -632,6 +639,7 @@ end
 -----------------------------------
 
 local reasonToGCDMapping = {
+    ["Blocked"] = block,
     ["Error"] = abilityOnCooldown,
     ["Effect faded, player is source"] = effectFaded,
     ["Effect faded, player is target"] = effectFaded,

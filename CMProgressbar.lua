@@ -197,8 +197,9 @@ function CombatMetronome:Update()
 			
 			if self.gcdEvent.displayName then self:GCDSpecifics(self.gcdEvent.displayName, self.gcdEvent.icon, gcdProgress, self.gcdEvent.clearSynergy) end
 			
-			if slotRemaining <= 0 and self.gcdEvent.finished <= time then
+			if slotRemaining <= 0 then
 				self:OnCDStop("Reset non ability stuff")
+				self.gcdEvent = {finished = 0}
 			else
 				self:HideBar(false)
 				progressbar.bar.backgroundTexture:SetWidth(gcdProgress*sv.width)
