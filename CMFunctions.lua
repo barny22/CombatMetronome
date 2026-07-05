@@ -234,6 +234,8 @@ function CombatMetronome:GetEquippedSkillData(selectedSkill)
 end
 
 function CombatMetronome:BuildListOfCurrentlyEquippedAbilities()
+	self.Resources.executeAbilityThreshold = 0
+	
 	self.currentlyEquippedAbilities.data = Util.Stacks:StoreAbilitiesOnActionBar()
 	
 	-- clear current list
@@ -270,15 +272,11 @@ function CombatMetronome:BuildListOfCurrentlyEquippedAbilities()
 		-- EXECUTE check
 		if self.Resources.EXECUTE_ABILITIES[skill.id] then
 			-- CombatMetronome.debug:Print("Execute ability found, adjusting execute threshold")
-			self.Resources.executeThreshold = math.max(self.Resources.EXECUTE_ABILITIES[skill.id], self.Resources.executeThreshold or 0)
-			executeAbilityFound = true
+			self.Resources.executeAbilityThreshold = math.max(self.Resources.EXECUTE_ABILITIES[skill.id], self.Resources.executeAbilityThreshold)
 		end
 		
 	end
-	if not executeAbilityFound then
-		-- CombatMetronome.debug:Print("No execute ability found")
-		self.Resources.executeThreshold = CombatMetronome.SV.Resources.showHealth and CombatMetronome.SV.Resources.hpHighlightThreshold or 0
-	end
+	self:CalculateExecuteThreshold()
 	
 	-- refresh equipped ability list
 	local panelOptions = {
@@ -301,6 +299,10 @@ function CombatMetronome:BuildListOfCurrentlyEquippedAbilities()
 			end
 		end
 	end
+end
+
+function CombatMetronome:CalculateExecuteThreshold()
+	self.Resources.executeThreshold = math.max(CombatMetronome.SV.Resources.showHealth and CombatMetronome.SV.Resources.hpHighlightThreshold or 0, self.Resources.executeAbilityThreshold)
 end
 
 	-------------------------

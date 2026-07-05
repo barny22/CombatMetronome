@@ -1939,7 +1939,10 @@ function CombatMetronome:BuildMenu()
 				name = "Automatically show execute reminder",
 				tooltip = "Shows a little reminder on screen, when using health highlighting or equipping an execute ability and hitting the targets corresponding execute threshold",
 				getFunc = function() return CombatMetronome.SV.Resources.showExecuteReminder end,
-				setFunc = function(value) CombatMetronome.SV.Resources.showExecuteReminder = value end,
+				setFunc = function(value)
+					CombatMetronome.SV.Resources.showExecuteReminder = value
+					if value then CombatMetronome:CalculateExecuteThreshold() end
+				end,
 			},
 			{
 				type = "dropdown",
@@ -2267,7 +2270,12 @@ function CombatMetronome:BuildMenu()
 						step = 1,
 						decimals = 0,
 						getFunc = function() return CombatMetronome.SV.Resources.hpHighlightThreshold end,
-						setFunc = function(value) CombatMetronome.SV.Resources.hpHighlightThreshold = value end,
+						setFunc = function(value)
+							CombatMetronome.SV.Resources.hpHighlightThreshold = value
+							if CombatMetronome.SV.Resources.showExecuteReminder then
+								CombatMetronome:CalculateExecuteThreshold()
+							end
+						end,
 					},
 					{
 						type = "colorpicker",
