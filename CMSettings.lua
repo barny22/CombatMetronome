@@ -1501,7 +1501,7 @@ function CombatMetronome:BuildMenu()
 						controls = {
 							{
 								type = "checkbox",
-								name = "I'm no Oakensorc",
+								name = "Don't show heavy attacks",
 								tooltip = "Stops displaying heavy attacks on the progress bar",
 								getFunc = function() return CombatMetronome.SV.Progressbar.stopHATracking end,
 								setFunc = function(value)
@@ -1513,7 +1513,7 @@ function CombatMetronome:BuildMenu()
 								name = "Display ping zone on heavy attacks",
 								tooltip = "Displays heavy attacks with ping zone",
 								disabled = function()
-									return (CombatMetronome.SV.Progressbar.dontShowPing)
+									return CombatMetronome.SV.Progressbar.dontShowPing or CombatMetronome.SV.Progressbar.stopHATracking
 								end,
 								getFunc = function() return CombatMetronome.SV.Progressbar.displayPingOnHeavy end,
 								setFunc = function(value)
@@ -1524,7 +1524,7 @@ function CombatMetronome:BuildMenu()
 								type = "checkbox",
 								name = "Show labels and icon",
 								default = false,
-								disabled = function() return not (CombatMetronome.SV.Progressbar.showSpell and CombatMetronome.SV.Progressbar.showTimeRemaining) end,
+								disabled = function() return not (CombatMetronome.SV.Progressbar.showSpell and CombatMetronome.SV.Progressbar.showTimeRemaining) or CombatMetronome.SV.Progressbar.stopHATracking end,
 								getFunc = function() return CombatMetronome.SV.Progressbar.showHeavyDetails end,
 								setFunc = function(value)
 									CombatMetronome.SV.Progressbar.showHeavyDetails = value
