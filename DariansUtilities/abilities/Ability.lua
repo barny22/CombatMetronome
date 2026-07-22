@@ -87,7 +87,7 @@ local meditateIds = {
     [103665]=true, [103492]=true, [103652]=true
 }
 
-local SlotNumbers = {3,4,5,6,7,8}
+local carverIds = {[183122] = "Exhausting Fatecarver mag", [193397] = "Exhausting Fatecarver stam"}
 
 local log = Util.log
 
@@ -209,7 +209,7 @@ function Ability.Tracker:Start()
     end)
     EVENT_MANAGER:RegisterForEvent(self.name.."PlayerDead", EVENT_PLAYER_DEAD, function()
         self:CancelCurrentEvent("Player dead")
-        self:CancelEvent(GetFrameTimeMilliseconds(), "Player dead")
+        self:CancelEvent("Player dead")
     end)
     -- EVENT_MANAGER:RegisterForEvent(self.name.."PlayerActivated", EVENT_PLAYER_DEACTIVATED, function()
         -- if self.queuedEvent then self:CancelEvent("Player deactivated") end
@@ -266,7 +266,7 @@ function Ability.Tracker:HandleBarSwap(_, barswap, _, _)
         self:CancelCurrentEvent("Barswap")
         self.barswap = false
     end
-    self:CancelEvent(GetFrameTimeMilliseconds(), "Barswap")
+    self:CancelEvent("Barswap")
 end
 
 local function CanAbilityFire(time)
@@ -320,7 +320,7 @@ function Ability.Tracker:Update()
     if (self.lastBlockStatus == false) and IsBlockActive() and (CombatMetronome.currentEvent or self.queuedEvent) then
         -- adding a bunch of checks here, so events aren't canceled if they actually went through
         if CombatMetronome.currentEvent and not CombatMetronome.currentEvent.allowForce and CombatMetronome.currentEvent.start + CombatMetronome.currentEvent.ability.delay > time then self:CancelCurrentEvent("Blocked") end
-        self:CancelEvent(time, "Blocked")
+        self:CancelEvent("Blocked")
     end
     
     -- Fire off late events if no UPDATE_COOLDOWNS events
@@ -332,7 +332,7 @@ function Ability.Tracker:Update()
     
     -- delete queued Events, if they weren't fired and also shouldn't be
     if not self.currentEvent and self.queuedEvent and math.max(self.lastAbilityFinished, self.queuedEvent.recorded, self.weaponLastSheathed + SHEATHING_PERIOD, self.lastMounted + DISMOUNT_PERIOD) + math.max(self.queuedEvent.ability.delay,1000) < time then
-        self:CancelEvent(time, "Event over")
+        self:CancelEvent("Event over")
     end
     
     if ArePlayerWeaponsSheathed() then
@@ -373,8 +373,8 @@ function Ability.Tracker:NewEvent(ability, slot, start)
     end
 end
 
-function Ability.Tracker:CancelEvent(time, reason)    
-    if self.queuedEvent and not self.queuedEvent.allowForce and self.lastAbilityFinished <= time then
+function Ability.Tracker:CancelEvent(reason)    
+    if self.queuedEvent then
         if self.queuedEvent and self.queuedEvent.ability and not self.queuedEvent.ability.heavy then
             self:PrintDebugNotes("eventCancel", self.queuedEvent.ability.id, string.format("Canceled queued ability '%s'. Reason: %s", self.queuedEvent.ability.name, reason))
         end
@@ -385,6 +385,14 @@ end
 function Ability.Tracker:AbilityUsed(trigger, sR, sD)
                 
     local event = self.queuedEvent
+    
+    if carverIds[event.ability.id] then
+        local stacks = Util.Stacks:GetCurrentNumStacksOnPlayer("Crux")
+        local duration = event.ability.delay + 338*stacks
+        event.ability.delay = duration
+        event.ability.channelTime = duration
+    end
+    
     event.start = self.eventStart
     event.ending = self.eventStart + math.max(event.ability.delay, 1000)
     
@@ -430,7 +438,7 @@ end
     -- if self.lastLightAttack == time then return end
     
     -- if self.queuedEvent and self.queuedEvent.recorded == time and self.queuedEvent.slot == slot then
-        -- self:CancelEvent(time, "Same slot updated")
+        -- self:CancelEvent("Same slot updated")
     -- elseif CombatMetronome.currentEvent and CombatMetronome.currentEvent.slot == slot and CombatMetronome.currentEvent.recorded == time then
         -- self:CancelCurrentEvent("Same slot updated")
     -- end
@@ -498,7 +506,8 @@ function Ability.Tracker:HandleSlotUsed(_, slot)
     
     local time = GetFrameTimeMilliseconds()
         
-    if self.queuedEvent then self:CancelEvent(time, "Overwrite") end
+    self:CancelEvent("Overwrite")
+    
     self:NewEvent(ability, slot, time)
 end
 
@@ -519,7 +528,7 @@ function Ability.Tracker:HandleIncomingCombatEvent(_,     res,  err,   aName, _,
             or res == ACTION_RESULT_LEVITATED)
             and not sType == COMBAT_UNIT_TYPE_PLAYER and not CombatMetronome.currentEvent.allowForce then
             self:CancelCurrentEvent("CC")
-            self:CancelEvent(time, "CC")
+            self:CancelEvent("CC")
             return
         elseif res == ACTION_RESULT_EFFECT_FADED and self.currentEvent and self.currentEvent.ability.id == aId and self.currentEvent.ability.delay > 1000 then
             self:CancelCurrentEvent("Effect faded, player is target")
@@ -554,7 +563,7 @@ function Ability.Tracker:HandleOutgoingCombatEvent(_,     res,  err,   aName, _,
             self:AbilityUsed("CombatEvent", sR, sD)
             self.abilityTriggerCounters.combatEvent = self.abilityTriggerCounters.combatEvent + 1
         elseif self.queuedEvent.ability.enemy and res == ACTION_RESULT_TARGET_DEAD then
-            self:CancelEvent(time, "Leave him alone, he is already dead")
+            self:CancelEvent("Leave him alone, he is already dead")
         -- elseif res == ACTION_RESULT_QUEUED then
             -- self.queuedEvent.isQueued = true
         end
@@ -588,7 +597,7 @@ function Ability.Tracker:HandleOutgoingCombatEvent(_,     res,  err,   aName, _,
     elseif aId == 28549 and res == ACTION_RESULT_EFFECT_GAINED then
         local _, remaining = self:GCDCheck()
         self.rollDodgeFinished = time + remaining
-        self:CancelEvent(time, "Rolldodge")
+        self:CancelEvent("Rolldodge")
         if self.currentEvent or CombatMetronome.currentEvent then
             self:CancelCurrentEvent("Rolldodge")
         end
