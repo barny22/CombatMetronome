@@ -159,7 +159,7 @@ function StackTracker:UpdateTimers()
 				else
 					ui.timer:SetText(string.format("%.1f", timeLeft))
 				end
-				if doReminder and timeLeft <= sv.expirationTimer then
+				if sv.animateTimer and doReminder and timeLeft <= sv.expirationTimer then
 					local multiplier = (self.SKILL_ATTRIBUTES[skill].multiplier or 1)*(2+math.sin((timeLeft-sv.expirationTimer)*3*math.pi)/2)
 					TimerSize(skill, multiplier, sv.indicatorSize)
 				else
@@ -171,7 +171,7 @@ function StackTracker:UpdateTimers()
 				ui.timerBarBackdrop:SetHidden(false)
 				ui.timerBarGloss:SetHidden(false)
 				ui.timerBar:SetValue(timeLeft/entry.duration)
-				if doReminder and timeLeft <= sv.expirationTimer and not entry.soundPlayed then
+				if sv.soundReminder and doReminder and timeLeft <= sv.expirationTimer and not entry.soundPlayed then
 					entry.soundPlayed = true
 					for i = 1, math.min(sv.reminderVolume, 30) do
 						PlaySound(sv.expirationSound)
