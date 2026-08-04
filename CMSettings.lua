@@ -317,7 +317,8 @@ function CombatMetronome:BuildMenu()
 						getFunc = function() return sv.showTimer end,
 						setFunc = function(value)
 							sv.showTimer = value
-							StackTracker.UI[skill].indicator.timer:SetHidden(not value)
+							StackTracker.UI[skill].indicator.timer:SetHidden(not (value and CombatMetronome.SV.StackTracker.isUnlocked))
+							StackTracker.UI[skill].indicator.timerBarTimer:SetHidden(value and CombatMetronome.SV.StackTracker.isUnlocked)
 						end,
 					},
 					{
@@ -328,9 +329,10 @@ function CombatMetronome:BuildMenu()
 						getFunc = function() return sv.showTimerBar end,
 						setFunc = function(value)
 							sv.showTimerBar = value
-							StackTracker.UI[skill].indicator.timerBar:SetHidden(not value)
-							StackTracker.UI[skill].indicator.timerBarGloss:SetHidden(not value)
-							StackTracker.UI[skill].indicator.timerBarBackdrop:SetHidden(not value)
+							StackTracker.UI[skill].indicator.timerBar:SetHidden(not (value and CombatMetronome.SV.StackTracker.isUnlocked))
+							StackTracker.UI[skill].indicator.timerBarGloss:SetHidden(not (value and CombatMetronome.SV.StackTracker.isUnlocked))
+							StackTracker.UI[skill].indicator.timerBarBackdrop:SetHidden(not (value and CombatMetronome.SV.StackTracker.isUnlocked))
+							StackTracker.UI[skill].indicator.timerBarTimer:SetHidden(not (value and CombatMetronome.SV.StackTracker.isUnlocked) or sv.showTimer)
 						end,
 					},
 					{
@@ -2351,6 +2353,8 @@ function CombatMetronome:BuildMenu()
 					for skill, _ in pairs(StackTracker.SKILL_ATTRIBUTES) do
 						if StackTracker.UI[skill] then 
 							StackTracker.UI[skill].stacksWindow:SetMovable(value)
+							StackTracker.UI[skill].stacksWindow:SetHidden(not value)
+							StackTracker.UI[skill].Hide(not value)
 							if value then
 								StackTracker.UI[skill].FadeScenes("Sample")
 								if StackTracker.UI[skill].indicator.timer then
@@ -2362,6 +2366,8 @@ function CombatMetronome:BuildMenu()
 									StackTracker.UI[skill].indicator.timerBarBackdrop:SetHidden(not CombatMetronome.SV.StackTracker[skill].showTimerBar)
 									StackTracker.UI[skill].indicator.timerBarGloss:SetHidden(not CombatMetronome.SV.StackTracker[skill].showTimerBar)
 									StackTracker.UI[skill].indicator.timerBar:SetValue(0.5)
+									StackTracker.UI[skill].indicator.timerBarTimer:SetHidden(not CombatMetronome.SV.StackTracker[skill].showTimerBar or CombatMetronome.SV.StackTracker[skill].showTimer)
+									StackTracker.UI[skill].indicator.timerBarTimer:SetText("2.5")
 								end
 							else
 								StackTracker.UI[skill].FadeScenes("NoSample")
@@ -2370,6 +2376,7 @@ function CombatMetronome:BuildMenu()
 									StackTracker.UI[skill].indicator.timerBar:SetHidden(true)
 									StackTracker.UI[skill].indicator.timerBarBackdrop:SetHidden(true)
 									StackTracker.UI[skill].indicator.timerBarGloss:SetHidden(true)
+									StackTracker.UI[skill].indicator.timerBarTimer:SetHidden(true)
 								end
 							end
 						end
