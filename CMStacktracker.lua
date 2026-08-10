@@ -55,6 +55,8 @@ function StackTracker:ChangeStackCount(skill, stackCount)
 	if not self.UI[skill] then
 		if CombatMetronome.SV.debug.enabled then CombatMetronome.debug:Print("Tried to change "..skill.." stackCount without UI initialized") end
 		return
+	else
+		self:HideTracker(skill, false)
 	end
 	local attributes = self.SKILL_ATTRIBUTES[skill]
 	local sv = CombatMetronome.SV.StackTracker[skill]
@@ -85,29 +87,33 @@ function StackTracker:ChangeStackCount(skill, stackCount)
 		self.UI[skill].indicator[i].Activate()
 		if animStart then self.UI[skill].indicator[i].SetAnimationHidden(false) end
 	end
-	if sv.playSound then
-		local uiVolume = GetSetting(SETTING_TYPE_AUDIO, AUDIO_SETTING_UI_VOLUME)											--Sound cue when stacks are full
+	if sv.playSound then														--Sound cue when stacks are full
 		if previousStack == oneOff and stackCount == attributes.activation then
-			local trackerCue = ZO_QueuedSoundPlayer:New(0)
-			trackerCue:SetFinishedAllSoundsCallback(function()
-				SetSetting(SETTING_TYPE_AUDIO, AUDIO_SETTING_UI_VOLUME, uiVolume)
-				--if self.SV.debug.enabled then CombatMetronome.debug:Print("Sound is finished playing. Volume adjusted. Volume is now "..GetSetting(SETTING_TYPE_AUDIO, AUDIO_SETTING_UI_VOLUME)) end
-			end)
-			SetSetting(SETTING_TYPE_AUDIO, AUDIO_SETTING_UI_VOLUME, sv.volume)
-			--if self.SV.debug.enabled then CombatMetronome.debug:Print("Volume adjusted. Volume is now "..GetSetting(SETTING_TYPE_AUDIO, AUDIO_SETTING_UI_VOLUME)) end
-			trackerCue:PlaySound(SOUNDS[sv.sound],250)
-			--if self.SV.debug.enabled then CombatMetronome.debug:Print("Stacks are full") end
+			for i = 1, math.min(sv.volume, 30) do
+				PlaySound(SOUNDS[sv.sound])
+			end
 		end
+	end
+	if not CombatMetronome.SV.StackTracker.isUnlocked and not CombatMetronome.inCombat and CombatMetronome.SV.StackTracker.onlyInCombat and stackCount == 0 then
+		self:HideTracker(skill, true)
 	end
 end
 
 local function HideTimers(skill)
 	local ui = StackTracker.UI[skill].indicator
 	
+	if CombatMetronome.SV.StackTracker.isUnlocked then
+		ui.timer:SetText("2.5")
+		ui.timerBar:SetValue(0.5)
+		ui.timerBarTimer:SetText("2.5")
+		return
+	end
+	
 	ui.timer:SetHidden(true)
 	ui.timerBar:SetHidden(true)
 	ui.timerBarBackdrop:SetHidden(true)
 	ui.timerBarGloss:SetHidden(true)
+	ui.timerBarTimer:SetHidden(true)
 end
 
 local function TimerSize(skill, multiplier, size)
@@ -136,6 +142,16 @@ function StackTracker:UpdateTimers()
 		local sv = CombatMetronome.SV.StackTracker[skill]
 		local ui = self.UI[skill].indicator
 		
+		local function CalculateTimer(timeleft)
+			local str
+			if timeLeft >= 10 then
+				str = tostring(zo_round(timeLeft))
+			else
+				str = string.format("%.1f", timeLeft)
+			end
+			return str
+		end
+		
 		if not needsTimer then
 			self.timers[skill] = nil
 			HideTimers(skill)
@@ -145,32 +161,33 @@ function StackTracker:UpdateTimers()
 			local doReminder = (sv.remindersOnlyInCombat and CombatMetronome.inCombat) or not sv.remindersOnlyInCombat
 			if sv.showTimer then
 				ui.timer:SetHidden(false)
-				if timeLeft >= 10 then
-					ui.timer:SetText(tostring(zo_round(timeLeft)))
-				else
-					ui.timer:SetText(string.format("%.1f", timeLeft))
-				end
-				if doReminder and timeLeft <= sv.expirationTimer then
+				ui.timer:SetText(CalculateTimer(timeLeft))
+				
+				if sv.animateTimer and doReminder and timeLeft <= sv.expirationTimer then
 					local multiplier = (self.SKILL_ATTRIBUTES[skill].multiplier or 1)*(2+math.sin((timeLeft-sv.expirationTimer)*3*math.pi)/2)
 					TimerSize(skill, multiplier, sv.indicatorSize)
 				else
 					TimerSize(skill, 1, sv.indicatorSize)
 				end
+			else
+				ui.timer:SetHidden(true)
 			end
 			if sv.showTimerBar then
 				ui.timerBar:SetHidden(false)
 				ui.timerBarBackdrop:SetHidden(false)
 				ui.timerBarGloss:SetHidden(false)
 				ui.timerBar:SetValue(timeLeft/entry.duration)
-				if doReminder and timeLeft <= sv.expirationTimer and not entry.soundPlayed then
+				
+				if not sv.showTimer then
+					ui.timerBarTimer:SetHidden(false)
+					ui.timerBarTimer:SetText(CalculateTimer(timeLeft))
+				end
+				
+				if sv.soundReminder and doReminder and timeLeft <= sv.expirationTimer and not entry.soundPlayed then
 					entry.soundPlayed = true
-					local uiVolume = GetSetting(SETTING_TYPE_AUDIO, AUDIO_SETTING_UI_VOLUME)
-					local trackerCue = ZO_QueuedSoundPlayer:New(0)
-					trackerCue:SetFinishedAllSoundsCallback(function()
-						SetSetting(SETTING_TYPE_AUDIO, AUDIO_SETTING_UI_VOLUME, uiVolume)
-					end)
-					SetSetting(SETTING_TYPE_AUDIO, AUDIO_SETTING_UI_VOLUME, sv.reminderVolume)
-					trackerCue:PlaySound(sv.expirationSound,250)
+					for i = 1, math.min(sv.reminderVolume, 30) do
+						PlaySound(sv.expirationSound)
+					end
 				end
 			end
 		end

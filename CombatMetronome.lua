@@ -4,14 +4,13 @@
 -- })
 
 local beta = true
-local dev = true
 
 CombatMetronome = {
     name = "CombatMetronome",
     version = {
 		["patch"] = 1,
 		["major"] = 7,
-		["minor"] = 4,
+		["minor"] = 5,
 	},
 	API = GetAPIVersion(),
 	beta = beta,
@@ -77,6 +76,7 @@ function CombatMetronome:Init()
 
     self.inCombat = IsUnitInCombat("player")
     self.currentEvent = nil
+	self.gcdEvent = {finished = 0}
 
     self.gcd = 1000
 
@@ -131,7 +131,6 @@ function CombatMetronome:Init()
     self:BuildMenu()
 	self:RegisterMetadata()
 	
-	if dev then self.DevTools = self:DevTools() end
 	if self.versionCheck ~= self.SV.lastAddOnVersion then self.SV.showBetaMessage = true end
 	self:CreateNotifications()
 end
@@ -239,6 +238,15 @@ function CombatMetronome:RegisterMetadata()
         function(_, inCombat) 
             self.inCombat = inCombat == true
 			LATracker:ManageLATracker(inCombat)
+			if self.SV.StackTracker.onlyInCombat and not inCombat then
+				for skill, _ in pairs(StackTracker.availableSkills) do
+					StackTracker:HideTracker(skill, StackTracker.stacks[skill] == 0)
+				end
+			else
+				for skill, _ in pairs(StackTracker.availableSkills) do
+					StackTracker:HideTracker(skill, false)
+				end
+			end
         end
     )		
 end
@@ -277,12 +285,11 @@ function CombatMetronome:RegisterCollectiblesTracker()
 		function(_, id)
 			if CombatMetronome.SV.Progressbar.trackGCD then
 				local name,_,icon,_,_,_,_,type,_ = GetCollectibleInfo(id)
-				if type == COLLECTIBLE_CATEGORY_TYPE_ASSISTANT or type == COLLECTIBLE_CATEGORY_TYPE_COMPANION then
+				if type == COLLECTIBLE_CATEGORY_TYPE_ASSISTANT or type == COLLECTIBLE_CATEGORY_TYPE_COMPANION and self.gcdEvent.finished <= GetFrameTimeMilliseconds() then
 					CombatMetronome:SetIconsAndNamesNil()
 					self.Progressbar.collectibleInUse = {}
 					self.Progressbar.collectibleInUse.name = Util.Text.CropZOSString(name, "collectible")
 					self.Progressbar.collectibleInUse.icon = icon
-					zo_callLater(function() self.Progressbar.collectibleInUse = nil end, 1000)
 				end
 				if type == COLLECTIBLE_CATEGORY_TYPE_MOUNT then
 					self.Progressbar.activeMount.name = Util.Text.CropZOSString(GetCollectibleNickname(id), "collectible")
@@ -303,7 +310,7 @@ function CombatMetronome:RegisterItemsTracker()
 		self.name.."InventoryItemUsed",
 		EVENT_INVENTORY_ITEM_USED,
 		function()
-			if CombatMetronome.SV.Progressbar.trackGCD then
+			if CombatMetronome.SV.Progressbar.trackGCD and self.gcdEvent.finished <= GetFrameTimeMilliseconds() then
 				local bagSize = GetBagSize(1)
 				CombatMetronome:SetIconsAndNamesNil()
 				self.itemCache = {}
@@ -321,20 +328,21 @@ function CombatMetronome:RegisterItemsTracker()
 		self.name.."InventoryItemInfo",
 		EVENT_INVENTORY_SINGLE_SLOT_UPDATE,
 		function(_, bagId, slotId, _, _, _, stackCountChange, _, _, _, _)
-			if CombatMetronome.SV.Progressbar.trackGCD then
+			if CombatMetronome.SV.Progressbar.trackGCD and self.gcdEvent.finished <= GetFrameTimeMilliseconds() then
 				if not self.Progressbar.synergy.wasUsed and stackCountChange == -1 and self.itemCache then
 					CombatMetronome:SetIconsAndNamesNil()
 					self.Progressbar.itemUsed = {
 						["name"] = self.itemCache.name[slotId],
 						["icon"] = self.itemCache.icon[slotId]
 					}
-					zo_callLater(function()
-						if self.Progressbar.itemUsed then
-							self.Progressbar.itemUsed = nil
-							self.itemCache = nil
-						end
-					end,
-					950)
+					self.itemCache = nil
+					-- zo_callLater(function()
+						-- if self.Progressbar.itemUsed then
+							-- self.Progressbar.itemUsed = nil
+							-- self.itemCache = nil
+						-- end
+					-- end,
+					-- 950)
 				end
 			end
 		end
@@ -352,26 +360,41 @@ function CombatMetronome:RegisterCombatEvents()
 --	------------------------------
 		function (_,   res,  err, aName, aGraphic, aSlotType, sName, sType, tName, 
 				tType, hVal, pType, dType, _, 		sUId, 	 tUId,  aId,   _     )
-			if Util.Text.CropZOSString(sName, "name") == self.currentCharacterName and CombatMetronome.SV.Progressbar.trackGCD then
-				if IsMounted() and aId == 36432 and self.Progressbar.activeMount.action ~= "Dismounting" then
-					CombatMetronome:SetIconsAndNamesNil()
-					self.Progressbar.activeMount.action = "Dismounting"
-				elseif not IsMounted() and aId == 36010 and self.Progressbar.activeMount.action ~= "Mounting" then
-					CombatMetronome:SetIconsAndNamesNil()
-					self.Progressbar.activeMount.action = "Mounting"
-				elseif CombatMetronome.FESTIVAL_IDS[aId] then
-					CombatMetronome:SetIconsAndNamesNil()
-					self.Progressbar.festivalGCD = aId
-				elseif aId == 16565 then
+			if CombatMetronome.SV.Progressbar.trackGCD and self.gcdEvent.finished <= GetFrameTimeMilliseconds() then
+				aName = Util.Text.CropZOSString(aName, "ability")
+				if aId == 16565 then
+					-- Util.Ability.Tracker:CancelCurrentEvent("Break free detected")
 					CombatMetronome:SetIconsAndNamesNil()
 					self.Progressbar.breakingFree = {}
-					self.Progressbar.breakingFree.name = Util.Text.CropZOSString(aName, "ability")
+					self.Progressbar.breakingFree.name = aName
 					self.Progressbar.breakingFree.icon = "/esoui/art/icons/ability_rogue_050.dds"
 				elseif not self.Progressbar.synergy.wasUsed and self.Progressbar.synergy.name == Util.Text.CropZOSString(aName, "synergy") then
 					self.Progressbar.synergy.wasUsed = true
+				-- none of these should be shown during combat, or during an active event
+				elseif self.currentEvent or self.inCombat then return
+				-- elseif IsMounted() and aId == 36432 then
+				elseif res == ACTION_RESULT_EFFECT_GAINED and aId == 36432 then
+					CombatMetronome:SetIconsAndNamesNil()
+					self.Progressbar.activeMount.action = aName
+				-- elseif not IsMounted() and aId == 36010 then
+				elseif res == ACTION_RESULT_BEGIN and aId == 37059 then
+					CombatMetronome:SetIconsAndNamesNil()
+					self.Progressbar.activeMount.action = aName
+				-- elseif res == ACTION_RESULT_BAD_TARGET and err and aId == 37059 then
+					-- CombatMetronome:SetIconsAndNamesNil()
+					-- self.Progressbar.activeMount.action = aName
+				elseif CombatMetronome.FESTIVAL_IDS[aId] then
+					CombatMetronome:SetIconsAndNamesNil()
+					self.Progressbar.festivalGCD = aId
 				end
 			end
 		end
+	)
+	EVENT_MANAGER:AddFilterForEvent(
+		self.name.."CombatEvents",
+		EVENT_COMBAT_EVENT,
+		REGISTER_FILTER_SOURCE_COMBAT_UNIT_TYPE,
+		COMBAT_UNIT_TYPE_PLAYER
 	)
 	
 	self.combatEventsRegistered = true
@@ -382,7 +405,7 @@ function CombatMetronome:RegisterSynergyChanged()
 		self.name.."SynergyChanged",
 		EVENT_SYNERGY_ABILITY_CHANGED,
 		function()
-			if CombatMetronome.SV.Progressbar.trackGCD then
+			if CombatMetronome.SV.Progressbar.trackGCD and self.gcdEvent.finished <= GetFrameTimeMilliseconds() then
 				local hasSynergy, name, icon, _, _ = GetCurrentSynergyInfo()
 				if hasSynergy then
 					-- if CombatMetronome.SV.debug.enabled then self.debug:Print("Found synergy: "..Util.Text.CropZOSString(name, "synergy")) end
@@ -452,7 +475,7 @@ function StackTracker:Register(skill)
 	self:InitializeUI(skill)
 	
 	StackTracker:ChangeStackCount(skill, self.stacks[skill])
-	if CombatMetronome.SV.debug.enabled then CombatMetronome.debug:Print(skill.." tracker is registered") end
+	-- if CombatMetronome.SV.debug.enabled then CombatMetronome.debug:Print(skill.." tracker is registered") end
 end
 
 function StackTracker:RegisterEffectChanged(name, aId)
@@ -470,8 +493,8 @@ function StackTracker:RegisterEffectChanged(name, aId)
 	EVENT_MANAGER:AddFilterForEvent(
 		name,
 		EVENT_EFFECT_CHANGED,
-		REGISTER_FILTER_UNIT_TAG,
-		"player"
+		REGISTER_FILTER_SOURCE_COMBAT_UNIT_TYPE ,
+		COMBAT_UNIT_TYPE_PLAYER
 	)
 end
 
@@ -541,7 +564,7 @@ function StackTracker:Unregister(skill)
 	self.stacks[skill] = nil
 	self:HandleUIVisibility(skill, "NoUI")
 	self:HandleUIVisibility(skill, "NoSample")
-	if CombatMetronome.SV.debug.enabled then CombatMetronome.debug:Print(skill.." tracker is unregistered") end
+	-- if CombatMetronome.SV.debug.enabled then CombatMetronome.debug:Print(skill.." tracker is unregistered") end
 end
 
 function CombatMetronome:UnregisterCollectiblesTracker()
@@ -573,100 +596,4 @@ function CombatMetronome:UnregisterCombatEvents()
 		self.name.."SynergyChanged")
 		
 	self.synergyChangedRegistered = false
-end
-
-	---------------------
-	---- DEV Section ----
-	---------------------
-
-function CombatMetronome:DevTools()
-
-	local ADDON_DEPENDENCY_VERSIONS = {
-		["libAddonKeybinds"] = -1, ["LibAddonMenu-2.0"] = -1, ["LibChatMessage"] = -1, ["LibSetDetection"] = -1, ["LibNotification"] = -1, ["LibGroupBroadcast"] = -1, ["LibAddonMenuOrderListBox"] = -1,
-	}
-
-	local function GetDependencyVersions()
-		local AM = GetAddOnManager()
-		for addonName, version in pairs(ADDON_DEPENDENCY_VERSIONS) do
-			for i = 1, AM:GetNumAddOns() do
-				local name = AM:GetAddOnInfo(i)
-				if name == addonName then
-					ADDON_DEPENDENCY_VERSIONS[name] = AM:GetAddOnVersion(i)
-				end
-			end
-		end
-	end
-	
-	GetDependencyVersions()
-	
-	--------------------
-	---- Chat Links ----
-	--------------------
-
-	local function HandleVersionDisableLink(link, button, text, color, linkType, noIdea)
-		if linkType ~= "END_CM_VERSION_INFO_LINK" then
-			-- CombatMetronome.debug:Print("Not my kind of link")
-			return
-		end
-		if button then
-			if not CombatMetronome.SV.dependencyVersions then CombatMetronome.SV.dependencyVersions = {} end
-			
-			for addonName, version in pairs(ADDON_DEPENDENCY_VERSIONS) do
-				if version ~= -1 then CombatMetronome.SV.dependencyVersions[addonName] = version end
-			end
-			CombatMetronome.debug:Print("Saved current dependency versions to you SV")
-			CombatMetronome.debug:Print("Enjoy your free chat at startup")
-		end
-		return true -- link has been handled
-	end
-	
-	local function InitLinkHandler()
-		LINK_HANDLER:RegisterCallback(LINK_HANDLER.LINK_CLICKED_EVENT, HandleVersionDisableLink)
-		LINK_HANDLER:RegisterCallback(LINK_HANDLER.LINK_MOUSE_UP_EVENT, HandleVersionDisableLink)
-	end
-
-	local function PrintStartupNotes()
-		CombatMetronome.debug:Print("You are now using the addon's developer mode")
-		
-		local versionChangeDetected, gotSV, versionStartMessage = false, false, false
-
-		if not CombatMetronome.SV.dependencyVersions then
-			gotSV = false
-		else 
-			gotSV = true
-		end
-		
-		for addonName, version in pairs(ADDON_DEPENDENCY_VERSIONS) do
-			if not gotSV and version ~= -1 then
-				if not versionStartMessage then
-					CombatMetronome.debug:Print("Dependency version changes:")
-					versionStartMessage = true
-				end
-				CombatMetronome.debug:Print(addonName..": "..version)
-				versionChangeDetected = true
-			elseif gotSV and version ~= -1 and version ~= CombatMetronome.SV.dependencyVersions[addonName] then
-				if not versionStartMessage then
-					CombatMetronome.debug:Print("Dependency version changes:")
-					versionStartMessage = true
-				end
-				CombatMetronome.debug:Print(addonName..": "..version)
-				versionChangeDetected = true
-			end
-		end
-		
-		if versionChangeDetected then
-			CombatMetronome.debug:Print("Click |c2a52be|H1:END_CM_VERSION_INFO_LINK|h[here]|h|r to save versions to SV and disable this message until another version change was found")
-		end
-	end
-	
-	InitLinkHandler()
-	PrintStartupNotes()
-	
-	return {
-		ADDON_DEPENDENCY_VERSIONS = ADDON_DEPENDENCY_VERSIONS,
-		GetDependencyVersions = GetDependencyVersions,
-		HandleVersionDisableLink = HandleVersionDisableLink,
-		InitLinkHandler = InitLinkHandler,
-		PrintStartupNotes = PrintStartupNotes,
-	}
 end

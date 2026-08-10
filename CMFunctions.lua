@@ -11,7 +11,7 @@ local StackTracker = CombatMetronome.StackTracker
 	---- Helper Functions ----
 	--------------------------
 
-function CombatMetronome:OnCDStop()
+function CombatMetronome:OnCDStop(reason)
 	if CombatMetronome.SV.Progressbar.dontHide then
 		if CombatMetronome.SV.Progressbar.makeItFancy then
 			self:HideFancy(false)
@@ -24,9 +24,8 @@ function CombatMetronome:OnCDStop()
 	end
 	self:HideLabels(true)
 	if self.currentEvent then
-		self.abilityFinished = GetFrameTimeMilliseconds()
+		self:SetEventNil(reason)
 	end
-	self:SetEventNil()
 end
 
 function CombatMetronome:HideBar(value)
@@ -38,8 +37,16 @@ function CombatMetronome:HideBar(value)
 	self.Progressbar.bar:SetHidden(value)
 end
 
-function CombatMetronome:SetEventNil()
-	self.currentEvent = nil
+function CombatMetronome:SetEventNil(reason)
+	local time = GetFrameTimeMilliseconds()
+	
+	if self.currentEvent then
+		self.currentEvent = nil
+		self.abilityFinished = time
+		Util.Ability.Tracker:CancelCurrentEvent(string.format("CM: %s", reason))
+		Util.Ability.Tracker.lastAbilityFinished = 0
+	end
+	
 	self.Progressbar.bar.segments[1].progress = 0
 	self.Progressbar.bar.segments[2].progress = 0
 	self.Progressbar.bar.backgroundTexture:SetWidth(0)
@@ -73,7 +80,7 @@ function CombatMetronome:CreateMenuIconsPath(ControlName, panel)
 end
 
 function CombatMetronome:GCDSpecifics(text, icon, gcdProgress, wasSynergy)
-	if not (text and icon) then return end
+	if not (text and icon) or gcdProgress == 0 then return end
 	if not wasSynergy and self.Progressbar.synergy.wasUsed then self.Progressbar.synergy.wasUsed = false end
 	if CombatMetronome.SV.Progressbar.showSpell then
 		self.Progressbar.spellLabel:SetHidden(false)
@@ -92,10 +99,11 @@ function CombatMetronome:GCDSpecifics(text, icon, gcdProgress, wasSynergy)
 	else
 		self.Progressbar.timeLabel:SetHidden(true)
 	end
-	if gcdProgress == 0 then CombatMetronome:SetIconsAndNamesNil() end
 end
 
 function CombatMetronome:SetIconsAndNamesNil()
+	if self.currentEvent then return end
+	
 	self.Progressbar.activeMount.action = ""
 	self.Progressbar.collectibleInUse = nil
 	self.Progressbar.itemUsed = nil
@@ -226,6 +234,8 @@ function CombatMetronome:GetEquippedSkillData(selectedSkill)
 end
 
 function CombatMetronome:BuildListOfCurrentlyEquippedAbilities()
+	self.Resources.executeAbilityThreshold = 0
+	
 	self.currentlyEquippedAbilities.data = Util.Stacks:StoreAbilitiesOnActionBar()
 	
 	-- clear current list
@@ -249,37 +259,50 @@ function CombatMetronome:BuildListOfCurrentlyEquippedAbilities()
 			self.StackTracker.slottedSkills[self.StackTracker.AVAILABLE_TRACKING_IDS[skill.id]] = true
 		end
 		
-		if self.StackTracker.availableSkills.Crux and not self.StackTracker.slottedSkills.Crux and self.StackTracker.CRUX_SKILL_LINE_IDS[skill.skillLine] then
-			self.StackTracker.slottedSkills.Crux = true
+		if self.StackTracker.availableSkills.Crux and not self.StackTracker.slottedSkills.Crux then
+			for _, data in ipairs(self.currentlyEquippedAbilities.data) do
+				if self.StackTracker.ABILITIES_USING_OR_GENERATING_CRUX[data.id] then
+					self.StackTracker.slottedSkills.Crux = true
+					break
+				end
+				self.StackTracker.slottedSkills.Crux = false
+			end
 		end
 		
 		-- EXECUTE check
 		if self.Resources.EXECUTE_ABILITIES[skill.id] then
 			-- CombatMetronome.debug:Print("Execute ability found, adjusting execute threshold")
-			self.Resources.executeThreshold = math.max(self.Resources.EXECUTE_ABILITIES[skill.id], self.Resources.executeThreshold or 0)
-			executeAbilityFound = true
+			self.Resources.executeAbilityThreshold = math.max(self.Resources.EXECUTE_ABILITIES[skill.id], self.Resources.executeAbilityThreshold)
 		end
 		
 	end
-	if not executeAbilityFound then
-		-- CombatMetronome.debug:Print("No execute ability found")
-		self.Resources.executeThreshold = CombatMetronome.SV.Resources.showHealth and CombatMetronome.SV.Resources.hpHighlightThreshold or 0
-	end
+	self:CalculateExecuteThreshold()
 	
 	-- refresh equipped ability list
-	if self.menu.panels and self.menu.panels.Progressbar then
-		local panelControls = self.menu.panels.Progressbar.controlsToRefresh
-		for i = 1, #panelControls do
-			local control = panelControls[i]
-			if (control.data and control.data.name == "Currently equipped abilities:") then
-				-- CombatMetronome.debug:Print("Updating currently equipped skills")
-				-- self.currentlyEquippedAbilities = self:BuildListOfCurrentlyEquippedAbilities()
-				control:UpdateChoices()
-				control:UpdateValue()
-				break
+	local panelOptions = {
+		Progressbar = "Currently equipped abilities:",
+		General = "Add ability ID to debug whitelist",
+	}
+	
+	for panel, option in pairs(panelOptions) do
+		if self.menu.panels and self.menu.panels[panel] then
+			local panelControls = self.menu.panels[panel].controlsToRefresh
+			for i = 1, #panelControls do
+				local control = panelControls[i]
+				if (control.data and control.data.name == option) then
+					-- CombatMetronome.debug:Print("Updating currently equipped skills")
+					-- self.currentlyEquippedAbilities = self:BuildListOfCurrentlyEquippedAbilities()
+					control:UpdateChoices()
+					control:UpdateValue()
+					break
+				end
 			end
 		end
 	end
+end
+
+function CombatMetronome:CalculateExecuteThreshold()
+	self.Resources.executeThreshold = math.max(CombatMetronome.SV.Resources.showHealth and CombatMetronome.SV.Resources.hpHighlightThreshold or 0, self.Resources.executeAbilityThreshold)
 end
 
 	-------------------------
@@ -288,15 +311,15 @@ end
 
 function CombatMetronome:HandleAbilityUsed(event)
     if not (self.inCombat or CombatMetronome.SV.Progressbar.showOOC) then return end
-	if CombatMetronome.SV.debug.abilityUsed and event.ability then CombatMetronome.debug:Print("New event "..event.ability.name.." recieved in CombatMetronome. ID: "..event.ability.id) end
-	if event == "cancel heavy" then
-		if self.currentEvent and self.currentEvent.ability.heavy then
-			if CombatMetronome.SV.debug.currentEvent then CombatMetronome.debug:Print("Canceled heavy"..self.currentEvent.ability.name) end
-			self.currentEvent = nil
-			self.gcd = 0
-		end
-		return
-	end
+	if event.ability then Util.Ability.Tracker:PrintDebugNotes("abilityUsed", event.ability.id, string.format("New event '%s' recieved in CombatMetronome. ID: %d", event.ability.name, event.ability.id)) end
+	-- if event == "cancel heavy" then
+		-- if self.currentEvent and self.currentEvent.ability.heavy then
+			-- Util.Ability.Tracker:PrintDebugNotes("currentEvent", self.currentEvent.ability.id, string.format("Canceled heavy '%s'", self.currentEvent.ability.name))
+			-- self.currentEvent = nil
+			-- self.gcd = 0
+		-- end
+		-- return
+	-- end
 
     self.Progressbar.soundTickPlayed = false
     self.Progressbar.soundTockPlayed = false
@@ -312,7 +335,7 @@ function CombatMetronome:HandleAbilityUsed(event)
 		return
 	else
 		self.currentEvent = event
-		-- if CombatMetronome.SV.debug.enabled then CombatMetronome.debug:Print("Got new Event "..event.ability.name) end
+		Util.Ability.Tracker:PrintDebugNotes("currentEvent", ability.id, string.format("Current event is now '%s'", ability.name))
 	end
 	self.lastAbilityFinished = self.abilityFinished
 	self.abilityFinished = event.start + math.max(ability.delay, 1000)
@@ -483,6 +506,13 @@ function StackTracker:HandleUIVisibility(skill, scene)
 	end
 end
 
+function StackTracker:HideTracker(skill, value)
+	if self.UI[skill] then
+		self.UI[skill].Hide(value)
+	end
+	self:UpdateTimers()
+end
+
 		-------------------------------
         ---- PVP Check and Handler ----
         -------------------------------
@@ -588,32 +618,33 @@ local MENU_SOUND_CONTROLS = {
 }
 
 function CombatMetronome:RefreshSoundControls()
-	if not self.menu.soundControlsToRefresh then self.menu.soundControlsToRefresh = {} end
-	if #self.menu.soundControlsToRefresh == 0 then
-		if self.menu.panel then
-			local num = 0
-			for _,_ in pairs(MENU_SOUND_CONTROLS) do
-				num = num + 1
-			end
-			local updateCount = 0
-			local panelControls = self.menu.panel.controlsToRefresh
-			for i, control in ipairs(panelControls) do
-				if control.data and MENU_SOUND_CONTROLS[control.data.name] then
-					if control.UpdateValue then control:UpdateValue() end
-					if control.UpdateDisabled then control:UpdateDisabled() end
-					updateCount = updateCount + 1
-					self.menu.soundControlsToRefresh[updateCount] = i				
-				end
-				if updateCount == num then break end -- number of 
-			end
-		end
-	else
+	-- if not self.menu.soundControlsToRefresh then self.menu.soundControlsToRefresh = {} end
+	-- if #self.menu.soundControlsToRefresh == 0 then
+		-- if self.menu.panel then
+			-- local num = 0
+			-- for _,_ in pairs(MENU_SOUND_CONTROLS) do
+				-- num = num + 1
+			-- end
+			-- local updateCount = 0
+			-- local panelControls = self.menu.panel.controlsToRefresh
+			-- for i, control in ipairs(panelControls) do
+				-- if control.data and MENU_SOUND_CONTROLS[control.data.name] then
+					-- if control.UpdateValue then control:UpdateValue() end
+					-- if control.UpdateDisabled then control:UpdateDisabled() end
+					-- updateCount = updateCount + 1
+					-- self.menu.soundControlsToRefresh[updateCount] = i				
+				-- end
+				-- if updateCount == num then break end -- number of 
+			-- end
+		-- end
+	-- else
 		-- CombatMetronome.debug:Print("Second wind")
-		for _, i in ipairs(self.menu.soundControlsToRefresh) do
-			if self.menu.panel.controlsToRefresh[i].UpdateValue then self.menu.panel.controlsToRefresh[i]:UpdateValue() end
-			if self.menu.panel.controlsToRefresh[i].UpdateDisabled then self.menu.panel.controlsToRefresh[i]:UpdateDisabled() end
-		end
-	end
+		-- for _, i in ipairs(self.menu.soundControlsToRefresh) do
+			-- if self.menu.panel.controlsToRefresh[i].UpdateValue then self.menu.panel.controlsToRefresh[i]:UpdateValue() end
+			-- if self.menu.panel.controlsToRefresh[i].UpdateDisabled then self.menu.panel.controlsToRefresh[i]:UpdateDisabled() end
+		-- end
+	-- end
+	CombatMetronome.menu.panels.Progressbar:RefreshPanel()
 end
 
 		-----------------------------
@@ -741,7 +772,7 @@ local function NewVersionAlert(provider)
 		CombatMetronome.SV.lastAddOnVersion = CombatMetronome.versionCheck
 		RemoveNotification(provider, identifier)
 	end
-
+	
 	local msg = {
 	dataType = NOTIFICATIONS_ALERT_DATA,
 	secsSinceRequest = ZO_NormalizeSecondsSince(0),
@@ -757,6 +788,10 @@ local function NewVersionAlert(provider)
 	gamepadDeclineCallback = decline,
 	data = {}, -- Place any custom data you want to store here
     }
+	
+	if CombatMetronome.versionString == "1.7.5" then
+		msg.note = "Your new version is: "..CombatMetronome.versionCheck.."\nThe Tick/Tock volume settings have been changed. Please check the sound settings. I apologize for the inconvenience."
+	end
 	
 	-- CombatMetronome.debug:Print("New Version was detected. Current version: "..tostring(CombatMetronome.versionCheck))
 	

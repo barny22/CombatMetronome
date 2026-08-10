@@ -1,3 +1,15 @@
+2026-05-12 v1.7.5
+!  Fixed execute reminder being shown on allies/non attackable units
+!  Eliminated some user irrelevant code
+!  Changed the volume settings for tick/tock to a hopefully more user friendly implementation
+!  Fixed some tracking issues. Ability/GCD tracking should now be more precise than ever
+!  Fixed heavy one handed attacks not being tracked
+!  Fixed progress being slightly off when 'make it fancy' and 'dynamic expansion' was on
+!  Fixes for StackTracker UI in unlocked mode
++  Added option to choose execute reminder target difficulty to prevent "EXECUTE!" spamming on normal mobs
++  StackTracker can now be set to show only in combat
++  Added option to show heavy attack details such as remaining time, ability name and icon
+
 2025-12-18 v1.7.4
 +  Made code slightly more preformant
 +  Added highlights for stam and mag label

@@ -1,6 +1,7 @@
 local Util = DariansUtilities
 Util.Ability = Util.Ability or {}
 Util.Ability.Tracker = Util.Ability.Tracker or {}
+local Tracker = Util.Ability.Tracker
 Util.Text = Util.Text or {}
 CombatMetronome.SV = CombatMetronome.SV or {}
 
@@ -16,6 +17,26 @@ local function AnchorSpellIcon(dynamic)
 		CombatMetronome.Progressbar.spellIcon:SetAnchor(RIGHT, CombatMetronome.Progressbar.frame, LEFT, -(CombatMetronome.SV.Progressbar.height/10), 0)
 		CombatMetronome.Progressbar.spellIconAnchoredDynamically = false
 	end
+end
+
+local function CreateDisplayName(name)
+	local displayName
+	CombatMetronome.Progressbar.spellLabel:SetText(name)
+	local barSpace = CombatMetronome.SV.Progressbar.width - (CombatMetronome.SV.Progressbar.showTimeRemaining and 2.5*CombatMetronome.Progressbar.timeLabel:GetWidth() or 0)
+	if CombatMetronome.Progressbar.spellLabel:GetWidth() > barSpace then
+		for i = #name, 1, -1 do
+			local shortName =  string.sub(name, 1, i):gsub("%s+$", "") .. ".."
+			CombatMetronome.Progressbar.spellLabel:SetText(shortName)
+			if CombatMetronome.Progressbar.spellLabel:GetWidth() <= barSpace then
+				displayName = shortName
+				break
+			end
+		end
+	else
+		displayName = name
+	end
+	
+	return displayName
 end
 
 	--------------------------
@@ -76,7 +97,7 @@ function CombatMetronome:Update()
 		local time = GetFrameTimeMilliseconds()
 		
 		-- this is important for GCD Tracking
-		local gcdProgress, slotRemaining, slotDuration = Util.Ability.Tracker:GCDCheck()
+		local gcdProgress, slotRemaining, slotDuration = Tracker:GCDCheck()
 				
 		-- local interval = false
 		-- if time > progressbar.lastInterval + INTERVAL then
@@ -100,13 +121,16 @@ function CombatMetronome:Update()
 						progressbar.soundTockPlayed = true
 					end
 										
-					local uiVolume = GetSetting(SETTING_TYPE_AUDIO, AUDIO_SETTING_UI_VOLUME)
-					local tockQueue = ZO_QueuedSoundPlayer:New(0)
-					tockQueue:SetFinishedAllSoundsCallback(function()
-						SetSetting(SETTING_TYPE_AUDIO, AUDIO_SETTING_UI_VOLUME, uiVolume)
-					end)
-					SetSetting(SETTING_TYPE_AUDIO, AUDIO_SETTING_UI_VOLUME, sv.tickVolume)
-					tockQueue:PlaySound(sv.soundTockEffect, 250)
+					-- local uiVolume = GetSetting(SETTING_TYPE_AUDIO, AUDIO_SETTING_UI_VOLUME)
+					-- local tockQueue = ZO_QueuedSoundPlayer:New(0)
+					-- tockQueue:SetFinishedAllSoundsCallback(function()
+						-- SetSetting(SETTING_TYPE_AUDIO, AUDIO_SETTING_UI_VOLUME, uiVolume)
+					-- end)
+					-- SetSetting(SETTING_TYPE_AUDIO, AUDIO_SETTING_UI_VOLUME, sv.tickVolume)
+					-- tockQueue:PlaySound(sv.soundTockEffect, 250)
+					for i = 1, math.min(sv.tickVolume, 30) do
+						PlaySound(sv.soundTockEffect)
+					end
 				end
 			end
 		end
@@ -124,49 +148,74 @@ function CombatMetronome:Update()
 			
 			progressbar.bar.segments[1].progress = (sv.showPingOnGCD and latency/1000) or 0
 			progressbar.bar.segments[2].progress = gcdProgress
-			if not Util.Ability.Tracker.rollDodgeFinished and sv.trackRolldodge then
-				self:GCDSpecifics(Util.Text.CropZOSString(GetAbilityName(28549), "ability"), "/esoui/art/icons/ability_rogue_035.dds", gcdProgress, false)
-			elseif progressbar.activeMount.action ~= "" and sv.trackMounting then
-				if sv.showMountNick then
-					self:GCDSpecifics(tostring(progressbar.activeMount.action.." "..progressbar.activeMount.name), progressbar.activeMount.icon, gcdProgress, false)
-				else
-					self:GCDSpecifics(progressbar.activeMount.action, progressbar.activeMount.icon, gcdProgress, false)
+			
+			-- local gcdEvent = self.gcdEvent
+			if self.gcdEvent.finished <= time then
+				self.gcdEvent = {finished = 0}
+				if Tracker.rollDodgeFinished >= time and sv.trackRolldodge then
+					self.gcdEvent.displayName = CreateDisplayName(Util.Text.CropZOSString(GetAbilityName(28549), "ability"))
+					self.gcdEvent.icon = "/esoui/art/icons/ability_rogue_035.dds"
+					self.gcdEvent.clearSynergy = false
+					self.gcdEvent.finished = time + slotRemaining
+				elseif progressbar.activeMount.action ~= "" and sv.trackMounting then
+					if sv.showMountNick then
+						self.gcdEvent.displayName = CreateDisplayName(string.format("%s (%s)",progressbar.activeMount.action,progressbar.activeMount.name))
+					else
+						self.gcdEvent.displayName = CreateDisplayName(progressbar.activeMount.action)
+					end
+					self.gcdEvent.icon = progressbar.activeMount.icon
+					self.gcdEvent.clearSynergy = false
+					self.gcdEvent.finished = time + slotRemaining
+				elseif progressbar.collectibleInUse and sv.trackCollectibles then
+					self.gcdEvent.displayName = CreateDisplayName(progressbar.collectibleInUse.name)
+					self.gcdEvent.icon = progressbar.collectibleInUse.icon
+					self.gcdEvent.clearSynergy = false
+					self.gcdEvent.finished = time + slotRemaining
+				elseif progressbar.synergy and sv.trackSynergies and progressbar.synergy.wasUsed then
+					self.gcdEvent.displayName = CreateDisplayName(progressbar.synergy.name)
+					self.gcdEvent.icon = progressbar.synergy.icon
+					self.gcdEvent.clearSynergy = true
+					self.gcdEvent.finished = time + slotRemaining
+				elseif progressbar.itemUsed and sv.trackItems then
+					self.gcdEvent.displayName = CreateDisplayName(progressbar.itemUsed.name)
+					self.gcdEvent.icon = progressbar.itemUsed.icon
+					self.gcdEvent.clearSynergy = false
+					self.gcdEvent.finished = time + slotRemaining
+				elseif progressbar.breakingFree and sv.trackBreakingFree then
+					self.gcdEvent.displayName = CreateDisplayName(progressbar.breakingFree.name)
+					self.gcdEvent.icon = progressbar.breakingFree.icon
+					self.gcdEvent.clearSynergy = false
+					self.gcdEvent.finished = time + slotRemaining
+				elseif progressbar.festivalGCD then
+					self.gcdEvent.displayName = CreateDisplayName(self.FESTIVAL_IDS[progressbar.festivalGCD].name)
+					self.gcdEvent.icon = self.FESTIVAL_IDS[progressbar.festivalGCD].icon
+					self.gcdEvent.clearSynergy = false
+					self.gcdEvent.finished = time + slotRemaining
 				end
-			elseif progressbar.collectibleInUse and sv.trackCollectibles then
-				self:GCDSpecifics(progressbar.collectibleInUse.name, progressbar.collectibleInUse.icon, gcdProgress, false)
-				-- progressbar.nonAbilityGCDRunning = true
-			elseif progressbar.synergy and sv.trackSynergies and progressbar.synergy.wasUsed then
-				self:GCDSpecifics(progressbar.synergy.name, progressbar.synergy.icon, gcdProgress, true)
-				-- progressbar.nonAbilityGCDRunning = true
-			elseif progressbar.itemUsed and sv.trackItems then
-				self:GCDSpecifics(progressbar.itemUsed.name, progressbar.itemUsed.icon, gcdProgress, false)
-				-- progressbar.nonAbilityGCDRunning = true
-			elseif progressbar.breakingFree and sv.trackBreakingFree then
-				self:GCDSpecifics(progressbar.breakingFree.name, progressbar.breakingFree.icon, gcdProgress, false)
-				-- progressbar.nonAbilityGCDRunning = true
-			elseif progressbar.festivalGCD then
-				self:GCDSpecifics(self.FESTIVAL_IDS[progressbar.festivalGCD].name, self.FESTIVAL_IDS[progressbar.festivalGCD].icon, gcdProgress, false)
+				self:SetIconsAndNamesNil()
 			end
 			
-			if gcdProgress <= 0 then
-				self:SetIconsAndNamesNil()
-				self:OnCDStop()
+			if self.gcdEvent.displayName then self:GCDSpecifics(self.gcdEvent.displayName, self.gcdEvent.icon, gcdProgress, self.gcdEvent.clearSynergy) end
+			
+			if slotRemaining <= 0 then
+				self:OnCDStop("Reset non ability stuff")
+				self.gcdEvent = {finished = 0}
 			else
 				self:HideBar(false)
 				progressbar.bar.backgroundTexture:SetWidth(gcdProgress*sv.width)
 			end
 			progressbar.bar:Update()
 		elseif self.currentEvent then
+			-- self.debug:Print(self.currentEvent.ability.name)
 			-- if CombatMetronome.SV.debug.triggers then CombatMetronome.debug:Print(remaining) end
-			self:SetIconsAndNamesNil()
-			if gcdProgress <= 0 and self.currentEvent.ability.delay <= 1000 and not self.currentEvent.ability.channeled then
-				self:OnCDStop()
+			if slotRemaining <= 0 and self.currentEvent.ability.delay <= 1000 and not self.currentEvent.ability.channeled and not self.currentEvent.ability.heavy then
+				self:OnCDStop("GCD over")
 				return
 			end
 			local ability = self.currentEvent.ability
 			
 			if not ability.name or ability.name == "" then
-				self:OnCDStop()
+				self:OnCDStop("No ability name")
 				return
 			end
 			
@@ -177,46 +226,50 @@ function CombatMetronome:Update()
 				cdTimer = time - start
 			end
 			
-			local duration = math.max(ability.heavy and sv.stopHATracking and 0 or (self.gcd or 1000), ability.delay) + (self.currentEvent.adjust or 0)
+			local duration = math.max(self.gcd or 1000, ability.delay) + (self.currentEvent.adjust or 0)
 			-- local timeRemaining = ((start + duration + latency) - time) / 1000 or ((start + channelTime + latency) - time) < 0 and 0
 			local timeRemaining = (duration - cdTimer) / 1000
 			local castProgress = timeRemaining/(duration/1000)
 			
-			local dynamicProgress = sv.expandDynamically and sv.dynamicExpansionMultiplyer*duration/10000 > 1
+			local dynamicProgress = sv.expandDynamically and sv.dynamicExpansionMultiplyer*duration/10000 > 1 and duration <= 6000
 			-- local multiplyerCheck = sv.dynamicExpansionMultiplyer*math.max(duration, timeRemaining*1000)/10000 > 1
 						
 			-- local playerDidBlock = (self.lastBlockStatus == false) and IsBlockActive()
 			-- if playerDidBlock and self.SV.debug.enabled then CombatMetronome.debug:Print("Player blocked") end
 			
 			if ability.heavy then
-				if sv.displayPingOnHeavy then
-					duration = duration + latency
-				else
+				-- if dynamicProgress and ability.channelTime > 1500 then dynamicProgress = false end
+				if not sv.displayPingOnHeavy then
+					-- duration = duration + latency
+				-- else
 					latency = 0
 				end
 			end
 			----------------------
 			---- Progress Bar ----
 			----------------------
-			if time > start + duration then
-				self:OnCDStop()
+			if time > self.currentEvent.ending then
+				self:OnCDStop("Event seems to be over")
 				return
 			else
-				local length = duration - latency
+				-- local length = duration - latency
 				
 				-- Sound contributed to by Seltiix --
 				if (self.inCombat or (sv.showOOC and sv.playSoundsOOC)) and not progressbar.soundTickPlayed and sv.soundTickEnabled then --and time > start + length - sv.soundTickOffset then
 					if (not sv.soundTickMidAbility and time >= start + sv.soundTickOffset) or (sv.soundTickMidAbility and time >= start + duration/2 + sv.soundTickOffset) then
 						if not (ability.heavy and sv.noTickOnHeavy) then
 							progressbar.soundTickPlayed = true
-							local uiVolume = GetSetting(SETTING_TYPE_AUDIO, AUDIO_SETTING_UI_VOLUME)
-							local tickQueue = ZO_QueuedSoundPlayer:New(0)
-							tickQueue:SetFinishedAllSoundsCallback(function()
-								SetSetting(SETTING_TYPE_AUDIO, AUDIO_SETTING_UI_VOLUME, uiVolume)
+							-- local uiVolume = GetSetting(SETTING_TYPE_AUDIO, AUDIO_SETTING_UI_VOLUME)
+							-- local tickQueue = ZO_QueuedSoundPlayer:New(0)
+							-- tickQueue:SetFinishedAllSoundsCallback(function()
+								-- SetSetting(SETTING_TYPE_AUDIO, AUDIO_SETTING_UI_VOLUME, uiVolume)
 								-- if self.SV.debug.enabled then CombatMetronome.debug:Print("Sound is finished playing. Volume adjusted. Volume is now "..GetSetting(SETTING_TYPE_AUDIO, AUDIO_SETTING_UI_VOLUME)) end
-							end)
-							SetSetting(SETTING_TYPE_AUDIO, AUDIO_SETTING_UI_VOLUME, sv.tickVolume)
-							tickQueue:PlaySound(sv.soundTickEffect, 250)
+							-- end)
+							-- SetSetting(SETTING_TYPE_AUDIO, AUDIO_SETTING_UI_VOLUME, sv.tickVolume)
+							-- tickQueue:PlaySound(sv.soundTickEffect, 250)
+							for i = 1, math.min(sv.tickVolume, 30) do
+								PlaySound(sv.soundTickEffect)
+							end
 						end
 					end
 				end
@@ -226,13 +279,10 @@ function CombatMetronome:Update()
 				if sv.changeOnChanneled then
 					if (not ability.instant and ability.delay <= 1000) or ability.delay > 1000 then
 						local castIsFinished = ((ability.delay <= 1000) and (timeRemaining*1000 <= 1000 - ability.delay)) or (timeRemaining <= 0)
-						-- self.SV.debug.enabled then CombatMetronome.debug:Print("Ability with cast time < 1s detected") end
 						if not castIsFinished and progressbar.bar.segments[2].color == sv.progressColor then
 							progressbar.bar.segments[2].color = sv.channelColor
-							if self.SV.debug.enabled then CombatMetronome.debug:Print(zo_strformat("Trying to update Channel Color for event named <<1>>", ability.name)) end
 						elseif castIsFinished  and progressbar.bar.segments[2].color == sv.channelColor then
 							progressbar.bar.segments[2].color = sv.progressColor
-							--if self.SV.debug.enabled then CombatMetronome.debug:Print("Turning back to Progress Color") end
 						end
 					else
 						if progressbar.bar.segments[2].color == sv.channelColor then
@@ -241,12 +291,11 @@ function CombatMetronome:Update()
 					end
 				end
 				if cdTimer >= (duration+latency) then
-					self:OnCDStop()
+					self:OnCDStop("cdTimer seems to be over")
 				else
 					self:HideBar(false)
 					-- progressbar.bar.backgroundTexture:SetWidth((1 - (cdTimer/duration))*sv.width)
 				end
-				progressbar.bar:Update()
 				
 				if dynamicProgress then
 					local multiplyer = sv.dynamicExpansionMultiplyer*duration/10000
@@ -269,17 +318,14 @@ function CombatMetronome:Update()
 					self.Progressbar.bar.borderR:SetWidth(sv.width/2)
 					AnchorSpellIcon(false)
 				end
+				progressbar.bar:Update()
 			end
 			------------------------------
 			---- Spell Label and Icon ----
 			------------------------------	
 			
 			--Remaining time on Castbar by barny
-			if sv.showTimeRemaining and ((ability.delay > 0 and timeRemaining >= 0) or sv.alwaysShowTimeRemaining) and not ability.heavy then
-				-- to have timers at least at 1 second
-				if sv.alwaysShowTimeRemaining and ability.delay < 1000 then
-					timeRemaining = gcdProgress
-				end
+			if sv.showTimeRemaining and ((ability.delay > 0 and timeRemaining >= 0) or sv.alwaysShowTimeRemaining) and (not ability.heavy or ability.heavy and sv.showHeavyDetails) then
 				progressbar.timeLabel:SetText(string.format("%.1fs", timeRemaining))
 				progressbar.timeLabel:SetHidden(false)
 			else
@@ -287,22 +333,9 @@ function CombatMetronome:Update()
 			end
 			
 			--Spell Label on Castbar by barny
-			if sv.showSpell and ((ability.delay > 0 and timeRemaining >= 0) or sv.alwaysShowSpell) and not ability.heavy then
-				if not ability.displayName or dynamicProgress then
-					progressbar.spellLabel:SetText(ability.name)
-					local barSpace = sv.width - (sv.showTimeRemaining and 2.5*progressbar.timeLabel:GetWidth() or 0)
-					if progressbar.spellLabel:GetWidth() > barSpace then
-						for i = #ability.name, 1, -1 do
-							local shortName =  string.sub(ability.name, 1, i):gsub("%s+$", "") .. ".."
-							progressbar.spellLabel:SetText(shortName)
-							if progressbar.spellLabel:GetWidth() <= barSpace then
-								ability.displayName = shortName
-								break
-							end
-						end
-					else
-						ability.displayName = ability.name
-					end
+			if sv.showSpell and ((ability.delay > 0 and timeRemaining >= 0) or sv.alwaysShowSpell) and (not ability.heavy or ability.heavy and sv.showHeavyDetails) then
+				if not ability.displayName then
+					ability.displayName = CreateDisplayName(ability.name)
 				end
 				progressbar.spellLabel:SetText(ability.displayName)
 				progressbar.spellLabel:SetHidden(false)
@@ -317,7 +350,7 @@ function CombatMetronome:Update()
 				progressbar.spellIconBorder:SetHidden(true)
 			end
 		else
-			self:OnCDStop()
+			self:OnCDStop("End of update cycle")
 			progressbar.bar:Update()
 		end
 	end

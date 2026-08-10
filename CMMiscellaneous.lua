@@ -38,6 +38,7 @@ CombatMetronome.DEFAULT_SAVED_VARS = {
 		["fontStyle"] = "outline",
 		["trackGCD"] = false,
 		["displayPingOnHeavy"] = true,
+		["showHeavyLabels"] = false,
 		["spellSize"] = 25,
 		["globalHeavyAdjust"] = 25,
 		["globalAbilityAdjust"] = 25,
@@ -93,6 +94,7 @@ CombatMetronome.DEFAULT_SAVED_VARS = {
 		["reticleHp"] = false,
 		["unlockExecuteReminder"] = false,
 		["showExecuteReminder"] = false,
+		["executeDifficulty"] = 1,
 		["executeColor"] = {0.8, 0, 0, 1},
 		["executeX"] = (GuiRoot:GetWidth() - 250) / 2,
 		["executeY"] = (GuiRoot:GetHeight() - 50) / 2,
@@ -112,11 +114,16 @@ CombatMetronome.DEFAULT_SAVED_VARS = {
 	},
 	["debug"] = {
 		["enabled"] = false,
+		["printTimestamps"] = false,
 		["triggers"] = false,
 		["triggerTimer"] = 170,
 		["currentEvent"] = false,
 		["eventCancel"] = false,
 		["abilityUsed"] = false,
+		["abilityWhitelist"] = {
+			["list"] = {},
+			["ids"] = {},
+		},
 	},
 }
 
@@ -224,7 +231,7 @@ CombatMetronome.StackTracker.SKILL_ATTRIBUTES = {
 		["graphic"] = "/esoui/art/icons/ability_dragonknight_001_b.dds",
 		["highlight"] = {1,0,0,0.2},
 		["highlightAnimation"] = {1,0.8,0.8,0.8},
-		["id"] = { ["buff"] = 122658, ["ability"] = 20805,}, -- 122729
+		["id"] = { ["buff"] = 122658, ["ability"] = 20805,}, -- 122729					--34117 FlameWhip 20816, machtpeitsche 20824
 		["skillLineId"] = {35,297},
 		-- ["skillLineIndex"] = 7,
 	},
@@ -325,7 +332,7 @@ do
 	end
 end
 
-CombatMetronome.StackTracker.ABILITIES_USING_OR_GENERATING_CRUX = {182977, 183006, 183047, 183122, 183165, 183241, 183261, 183430, 183537, 183542, 185794, 185803, 185805, 185823, 185842, 185894, 185901, 185908, 186189, 186191, 186193, 186200, 186207, 186209, 186211, 186220, 186366, 186452, 186477, 186531, 188658, 188780, 188787, 193331, 193397, 193398, 194873, 194875, 198282, 198288, 198292, 198309, 198330, 198537, 198564, 198567, 238169, 238174, 238191, 238238, 238249, 238429, 238447, 238482, 238545, 247126}
+CombatMetronome.StackTracker.ABILITIES_USING_OR_GENERATING_CRUX = {[182977] = true, [183006] = true, [183047] = true, [183122] = true, [183165] = true, [183241] = true, [183261] = true, [183430] = true, [183537] = true, [183542] = true, [185794] = true, [185803] = true, [185805] = true, [185823] = true, [185842] = true, [185894] = true, [185901] = true, [185908] = true, [186189] = true, [186191] = true, [186193] = true, [186200] = true, [186207] = true, [186209] = true, [186211] = true, [186220] = true, [186366] = true, [186452] = true, [186477] = true, [186531] = true, [188658] = true, [188780] = true, [188787] = true, [193331] = true, [193397] = true, [193398] = true, [194873] = true, [194875] = true, [198282] = true, [198288] = true, [198292] = true, [198309] = true, [198330] = true, [198537] = true, [198564] = true, [198567] = true, [238169] = true, [238174] = true, [238191] = true, [238238] = true, [238249] = true, [238429] = true, [238447] = true, [238482] = true, [238545] = true, [247126] = true}
 
 CombatMetronome.StackTracker.CLASS = {
 	[1] = "DK",

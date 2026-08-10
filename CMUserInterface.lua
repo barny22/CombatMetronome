@@ -483,7 +483,7 @@ function StackTracker:BuildUI(skill)
 		local function SetAnimationHidden(value)
 			highlightAnimation:SetHidden(value)
 		end
-
+		
 		local controls = {
 		stackIndicator = stackIndicator,
 		frame = frame,
@@ -540,6 +540,13 @@ function StackTracker:BuildUI(skill)
 		timerBarGloss:SetTexture("/esoui/art/unitattributevisualizer/gamepad/gp_attributebar_dynamic_fill_gloss.dds")
 		timerBarGloss:SetTextureCoords(0, 1, 0.5, 0.36)
 		timerBarGloss:SetHidden(not CombatMetronome.SV.StackTracker.isUnlocked)
+		
+		local timerBarTimer = WINDOW_MANAGER:CreateControl(self.name..skill.."TimerBarTimer", timerBar, CT_LABEL)
+		timerBarTimer:SetDrawTier(DT_HIGH)
+		timerBarTimer:SetAlpha(1)
+		timerBarTimer:SetFont(Util.Text.getFontString(tostring("$(BOLD_FONT)"), size*0.7, "outline"))
+		timerBarTimer:SetHidden(not CombatMetronome.SV.StackTracker.isUnlocked and sv.showTimer)
+		timerBarTimer:SetText("2.5s")
 				
 		local function TimerBarOrientation(orientation)
 			timerBar:ClearAnchors()
@@ -554,8 +561,10 @@ function StackTracker:BuildUI(skill)
 			timer:ClearAnchors()
 			timer:SetAnchor(LEFT, stacksWindow, RIGHT, 2*distance, 0)
 			timerBarBackdrop:ClearAnchors()
-			timerBarBackdrop:SetAnchor(TOP, stacksWindow, BOTTOM, 0, distance)
+			timerBarBackdrop:SetAnchor(TOP, stacksWindow, BOTTOM, 0, distance*multiplier)
 			timerBarGloss:SetAnchorFill(timerBar)
+			timerBarTimer:ClearAnchors()
+			timerBarTimer:SetAnchor(CENTER, timerBarBackdrop, CENTER, 0, 0)
 			TimerBarOrientation(sv.timerBarOrientation)
 		end
 				
@@ -565,6 +574,7 @@ function StackTracker:BuildUI(skill)
 		timerBar = timerBar,
 		timerBarGloss = timerBarGloss,
 		timerBarBackdrop = timerBarBackdrop,
+		timerBarTimer = timerBarTimer,
 		TimerBarOrientation = TimerBarOrientation,
 		TimerBarAnchors = TimerBarAnchors,
 		}
@@ -591,6 +601,7 @@ function StackTracker:BuildUI(skill)
 		indicator.timerBar = timerControls.timerBar
 		indicator.timerBarGloss = timerControls.timerBarGloss
 		indicator.timerBarBackdrop = timerControls.timerBarBackdrop
+		indicator.timerBarTimer = timerControls.timerBarTimer
 		indicator.TimerBarOrientation = timerControls.TimerBarOrientation
 		indicator.TimerBarAnchors = timerControls.TimerBarAnchors
 	end
@@ -630,6 +641,7 @@ function StackTracker:BuildUI(skill)
 			indicator.timerBar:SetDimensions(width-size*0.15, size*0.85)
 			indicator.timerBarBackdrop:SetDimensions(width, size)
 			indicator.timerBarBackdrop:SetEdgeTexture("/esoui/art/miscellaneous/borderedinsettransparent_edgefile.dds", 128, 16, size/2)
+			indicator.timerBarTimer:SetFont(Util.Text.getFontString(tostring("$(BOLD_FONT)"), size*0.7, "outline"))
 			-- indicator.timerBarFrame:SetDimensions(stacksWindow:GetWidth(), size)
 			
 			indicator.TimerBarAnchors()
@@ -664,6 +676,20 @@ function StackTracker:BuildUI(skill)
 	end
 	indicator.ApplyIcon = ApplyIcon
 	
+	local function Hide(value)
+		for i=1,attributes.iMax*multiplier do 
+			indicator[i].controls.stackIndicator:SetHidden(value)
+			indicator[i].controls.icon:SetHidden(value)
+			indicator[i].controls.frame:SetHidden(value)
+			indicator[i].controls.highlight:SetHidden(value)
+		end
+		indicator.timer:SetHidden(value)
+		indicator.timerBar:SetHidden(value)
+		indicator.timerBarGloss:SetHidden(value)
+		indicator.timerBarBackdrop:SetHidden(value)
+		indicator.timerBarTimer:SetHidden(value)
+	end
+	
 	Position("UI")
 	
 	SCENE_MANAGER:RegisterCallback("SceneStateChanged", function(scene, newState)
@@ -679,6 +705,7 @@ function StackTracker:BuildUI(skill)
 	indicator = indicator,
 	FadeScenes = FadeScenes,
 	Position = Position,
+	Hide = Hide,
 	}
 end
 

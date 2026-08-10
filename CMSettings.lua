@@ -14,7 +14,14 @@ local MIN_WIDTH = 50
 local MAX_WIDTH = math.floor(GuiRoot:GetWidth())
 local MIN_HEIGHT = 10
 local MAX_HEIGHT = 100
-local MAX_ABILITY_DURATION = 5.3
+local MAX_ABILITY_DURATION = 5.6
+
+local difficulty = {
+	"|c00ff80EASY|r",
+	"NORMAL",
+	"|cec8b27HARD|r",
+	"|cff3131DEADLY|r",
+}
 
 local sounds = {
     "Justice_PickpocketFailed",
@@ -93,6 +100,23 @@ local function UpdateProgressbarSizeSliders()
 			entry.data.max = CombatMetronome.Progressbar[SlidersToUpdate[entry.data.name]]
 			slidersUpdated = slidersUpdated + 1
 			if slidersUpdated == slidersToUpdate then break end
+		end
+	end
+end
+
+local function UpdateDebugListChoices()
+	CombatMetronome.menu.panels.General:RefreshPanel()
+	if CombatMetronome.menu.panels and CombatMetronome.menu.panels.General then
+		local panelControls = CombatMetronome.menu.panels.General.controlsToRefresh
+		for i = 1, #panelControls do
+			local control = panelControls[i]
+			if (control.data and control.data.name == "Delete from ability whitelist") then
+				-- CombatMetronome.debug:Print("Updating currently equipped skills")
+				-- self.currentlyEquippedAbilities = self:BuildListOfCurrentlyEquippedAbilities()
+				control:UpdateChoices()
+				control:UpdateValue()
+				break
+			end
 		end
 	end
 end
@@ -214,23 +238,28 @@ function CombatMetronome:BuildMenu()
 							getFunc = function() return sv.playSound end,
 							setFunc = function(value)
 								sv.playSound = value
-								if value and StackTracker.stacks[skill] and StackTracker.stacks[skill] >= StackTracker.SKILL_ATTRIBUTES[skill].iMax and sv.sound then
-									PlaySound(SOUNDS[sv.sound])
-								end
+								-- if value and StackTracker.stacks[skill] and StackTracker.stacks[skill] >= StackTracker.SKILL_ATTRIBUTES[skill].iMax and sv.sound then
+									-- PlaySound(SOUNDS[sv.sound])
+								-- end
 							end,
 						},
 						{
 							type = "slider",
 							name = "Sound cue volume",
 							tooltip = "Adjust volume of the sound cue effect",
-							warning = "You may have to adjust your general audio settings and general audio volume for this to have a noticable effect. Take care not to overadjust, your ears can only take so much!",
+							-- warning = "You may have to adjust your general audio settings and general audio volume for this to have a noticable effect. Take care not to overadjust, your ears can only take so much!",
 							disabled = function() return not sv.playSound end,
-							min = 0,
-							max = 100,
+							min = 1,
+							max = 30,
 							step = 1,
 							decimals = 0,
 							getFunc = function() return sv.volume end,
-							setFunc = function(value) sv.volume = value end,
+							setFunc = function(value)
+								sv.volume = value
+								for i = 1, math.min(value, 30) do
+									PlaySound(SOUNDS[sv.sound])
+								end
+							end,
 						},
 						{
 							type = "dropdown",
@@ -241,7 +270,9 @@ function CombatMetronome:BuildMenu()
 							getFunc = function() return sv.sound end,
 							setFunc = function(value) 
 								sv.sound = value
-								PlaySound(SOUNDS[value])
+								for i = 1, math.min(sv.volume, 30) do
+									PlaySound(SOUNDS[value])
+								end
 							end
 						},
 						{
@@ -286,7 +317,8 @@ function CombatMetronome:BuildMenu()
 						getFunc = function() return sv.showTimer end,
 						setFunc = function(value)
 							sv.showTimer = value
-							StackTracker.UI[skill].indicator.timer:SetHidden(not value)
+							StackTracker.UI[skill].indicator.timer:SetHidden(not (value and CombatMetronome.SV.StackTracker.isUnlocked))
+							StackTracker.UI[skill].indicator.timerBarTimer:SetHidden(value and CombatMetronome.SV.StackTracker.isUnlocked)
 						end,
 					},
 					{
@@ -297,9 +329,10 @@ function CombatMetronome:BuildMenu()
 						getFunc = function() return sv.showTimerBar end,
 						setFunc = function(value)
 							sv.showTimerBar = value
-							StackTracker.UI[skill].indicator.timerBar:SetHidden(not value)
-							StackTracker.UI[skill].indicator.timerBarGloss:SetHidden(not value)
-							StackTracker.UI[skill].indicator.timerBarBackdrop:SetHidden(not value)
+							StackTracker.UI[skill].indicator.timerBar:SetHidden(not (value and CombatMetronome.SV.StackTracker.isUnlocked))
+							StackTracker.UI[skill].indicator.timerBarGloss:SetHidden(not (value and CombatMetronome.SV.StackTracker.isUnlocked))
+							StackTracker.UI[skill].indicator.timerBarBackdrop:SetHidden(not (value and CombatMetronome.SV.StackTracker.isUnlocked))
+							StackTracker.UI[skill].indicator.timerBarTimer:SetHidden(not (value and CombatMetronome.SV.StackTracker.isUnlocked) or sv.showTimer)
 						end,
 					},
 					{
@@ -359,22 +392,29 @@ function CombatMetronome:BuildMenu()
 						getFunc = function() return sv.expirationSound end,
 						setFunc = function(value) 
 							sv.expirationSound = value
-							PlaySound(value)
+							for i = 1, math.min(sv.reminderVolume, 30) do
+								PlaySound(value)
+							end
 						end
 					},
 					{
 						type = "slider",
 						name = "Reminder volume",
 						tooltip = "Adjust volume of the reminder sound",
-						warning = "You may have to adjust your general audio settings and general audio volume for this to have a noticable effect. Take care not to overadjust, your ears can only take so much!",
+						-- warning = "You may have to adjust your general audio settings and general audio volume for this to have a noticable effect. Take care not to overadjust, your ears can only take so much!",
 						width = "half",
 						disabled = function() return not (sv.tracked and sv.soundReminder) end,
-						min = 0,
-						max = 100,
+						min = 1,
+						max = 30,
 						step = 1,
 						decimals = 0,
 						getFunc = function() return sv.reminderVolume end,
-						setFunc = function(value) sv.reminderVolume = value end,
+						setFunc = function(value)
+							sv.reminderVolume = value
+							for i = 1, math.min(value, 30) do
+								PlaySound(sv.expirationSound)
+							end
+						end,
 					},
 					{
 						type = "slider",
@@ -593,6 +633,14 @@ function CombatMetronome:BuildMenu()
 					-- self.log = value
 				end
 			},
+			{
+				type = "checkbox",
+				name = "Print timestamps",
+				tooltip = "Include timestamps in debug messages",
+				disabled = function() return not CombatMetronome.SV.debug.enabled end,
+				getFunc = function() return CombatMetronome.SV.debug.printTimestamps end,
+				setFunc = function(value) CombatMetronome.SV.debug.printTimestamps = value end,
+			},
 			{	
 				type = "submenu",
 				name = "Debug Options",
@@ -648,6 +696,52 @@ function CombatMetronome:BuildMenu()
 							-- self.log = value
 						end,
 						width = "half",
+					},
+					-- {
+						-- type = "editbox",
+						-- name = "Add ability ID to debug whitelist",
+						-- func = function() end,
+					-- },
+					{
+						type = "dropdown",
+						name = "Add ability ID to debug whitelist",
+						choices = self.currentlyEquippedAbilities.list,
+						getFunc = function() end,
+						setFunc = function(selectedSkill)
+							local skillData = self:GetEquippedSkillData(selectedSkill)
+							if not CombatMetronome.SV.debug.abilityWhitelist.ids[skillData.id] then
+								table.insert(CombatMetronome.SV.debug.abilityWhitelist.list, selectedSkill)
+								CombatMetronome.SV.debug.abilityWhitelist.ids[skillData.id] = true
+								UpdateDebugListChoices()
+							end
+						end,
+					},
+					{
+						type = "dropdown",
+						name = "Delete from ability whitelist",
+						choices = CombatMetronome.SV.debug.abilityWhitelist.list or {},
+						getFunc = function() end,
+						setFunc = function(selectedSkill)
+							for i, name in ipairs(CombatMetronome.SV.debug.abilityWhitelist.list) do
+								if name == selectedSkill then
+									local skillData = self:GetEquippedSkillData(selectedSkill)
+									if not skillData then
+										for id in pairs(CombatMetronome.SV.debug.abilityWhitelist.ids) do
+											local aName = Util.Text.CropZOSString(GetAbilityName(id), "ability")
+											if string.find(name, aName) then
+												CombatMetronome.SV.debug.abilityWhitelist.ids[id] = nil
+												break
+											end
+										end
+									else
+										CombatMetronome.SV.debug.abilityWhitelist.ids[skillData.id] = nil
+									end
+									table.remove(CombatMetronome.SV.debug.abilityWhitelist.list, i)
+									UpdateDebugListChoices()
+									break
+								end
+							end
+						end,
 					},
 				},
 			},
@@ -1048,8 +1142,8 @@ function CombatMetronome:BuildMenu()
 					},
 					{
 						type = "checkbox",
-						name = "Switch Progress Color while channeling",
-						tooltip = "Change bar color on channeling abilities <1 second to indicate possibility to barswap, when channel is finished",
+						name = "Switch Progress Color while channeling/casting",
+						tooltip = "Change bar color on channeling/casting abilities to indicate possibility to barswap, when channel/cast is finished",
 						warning = "This is experimental and might feel a little wonky",
 						getFunc = function() return CombatMetronome.SV.Progressbar.changeOnChanneled end,
 						setFunc = function(value)
@@ -1189,6 +1283,9 @@ function CombatMetronome:BuildMenu()
 								CombatMetronome.SV.Progressbar.trackGCD = false
 							end
 						end
+					},
+					{
+						type = "divider"
 					},
 					{
 						type = "checkbox",
@@ -1351,34 +1448,15 @@ function CombatMetronome:BuildMenu()
 						},
 					},
 					{
+						type = "divider"
+					},
+					{
 						type = "checkbox",
 						name = "Don't show ping zone",
 						tooltip = "Don't show Ping Zone on cast bar at all",
 						getFunc = function() return CombatMetronome.SV.Progressbar.dontShowPing end,
 						setFunc = function(value)
 							CombatMetronome.SV.Progressbar.dontShowPing = value
-						end,
-					},
-					{
-						type = "checkbox",
-						name = "I'm no Oakensorc",
-						tooltip = "Stops displaying heavy attacks on the progress bar",
-						getFunc = function() return CombatMetronome.SV.Progressbar.stopHATracking end,
-						setFunc = function(value)
-							CombatMetronome.SV.Progressbar.stopHATracking = value
-						end,
-					},
-					{
-						type = "checkbox",
-						name = "Display ping zone on heavy attacks",
-						tooltip = "Displays heavy attacks with ping zone - Heavy attack cast will finish at start on entering ping zone "
-											.."(heavy attack timing is calculated locally). This is for visual consistency",
-						disabled = function()
-							return (CombatMetronome.SV.Progressbar.dontShowPing)
-						end,
-						getFunc = function() return CombatMetronome.SV.Progressbar.displayPingOnHeavy end,
-						setFunc = function(value)
-							CombatMetronome.SV.Progressbar.displayPingOnHeavy = value
 						end,
 					},
 					{
@@ -1419,6 +1497,43 @@ function CombatMetronome:BuildMenu()
 							CombatMetronome.SV.Progressbar.alwaysShowTimeRemaining = value
 						end,
 					},
+					{
+						type = "submenu",
+						name = "Heavy Attack options",
+						controls = {
+							{
+								type = "checkbox",
+								name = "Don't show heavy attacks",
+								tooltip = "Stops displaying heavy attacks on the progress bar",
+								getFunc = function() return CombatMetronome.SV.Progressbar.stopHATracking end,
+								setFunc = function(value)
+									CombatMetronome.SV.Progressbar.stopHATracking = value
+								end,
+							},
+							{
+								type = "checkbox",
+								name = "Display ping zone on heavy attacks",
+								tooltip = "Displays heavy attacks with ping zone",
+								disabled = function()
+									return CombatMetronome.SV.Progressbar.dontShowPing or CombatMetronome.SV.Progressbar.stopHATracking
+								end,
+								getFunc = function() return CombatMetronome.SV.Progressbar.displayPingOnHeavy end,
+								setFunc = function(value)
+									CombatMetronome.SV.Progressbar.displayPingOnHeavy = value
+								end,
+							},
+							{
+								type = "checkbox",
+								name = "Show labels and icon",
+								default = false,
+								disabled = function() return not (CombatMetronome.SV.Progressbar.showSpell and CombatMetronome.SV.Progressbar.showTimeRemaining) or CombatMetronome.SV.Progressbar.stopHATracking end,
+								getFunc = function() return CombatMetronome.SV.Progressbar.showHeavyDetails end,
+								setFunc = function(value)
+									CombatMetronome.SV.Progressbar.showHeavyDetails = value
+								end,
+							},
+						},
+					},
 				},
 			},
 	----------------
@@ -1433,14 +1548,19 @@ function CombatMetronome:BuildMenu()
 						type = "slider",
 						name = "Volume of 'tick' and 'tock'",
 						tooltip = "Adjust volume of tick and tock effects",
-						warning = "You may have to adjust your general audio settings and general audio volume for this to have a noticable effect. Take care not to overadjust, your ears can only take so much!",
+						-- warning = "You may have to adjust your general audio settings and general audio volume for this to have a noticable effect. Take care not to overadjust, your ears can only take so much!",
 						disabled = function() return not (CombatMetronome.SV.Progressbar.soundTickEnabled or CombatMetronome.SV.Progressbar.soundTockEnabled) end,
 						min = 0,
-						max = 100,
+						max = 30,
 						step = 1,
 						decimals = 0,
 						getFunc = function() return CombatMetronome.SV.Progressbar.tickVolume end,
-						setFunc = function(value) CombatMetronome.SV.Progressbar.tickVolume = value end,
+						setFunc = function(value)
+							CombatMetronome.SV.Progressbar.tickVolume = value
+							for i = 1, math.min(value, 30) do
+								PlaySound(CombatMetronome.SV.Progressbar.soundTickEffect)
+							end
+						end,
 					},
 					{
 						type = "checkbox",
@@ -1476,7 +1596,9 @@ function CombatMetronome:BuildMenu()
 						getFunc = function() return CombatMetronome.SV.Progressbar.soundTickEffect end,
 						setFunc = function(value)
 							CombatMetronome.SV.Progressbar.soundTickEffect = value
-							PlaySound(value)
+							for i = 1, math.min(CombatMetronome.SV.Progressbar.tickVolume, 30) do
+								PlaySound(value)
+							end
 						end,
 					},
 					{
@@ -1819,7 +1941,27 @@ function CombatMetronome:BuildMenu()
 				name = "Automatically show execute reminder",
 				tooltip = "Shows a little reminder on screen, when using health highlighting or equipping an execute ability and hitting the targets corresponding execute threshold",
 				getFunc = function() return CombatMetronome.SV.Resources.showExecuteReminder end,
-				setFunc = function(value) CombatMetronome.SV.Resources.showExecuteReminder = value end,
+				setFunc = function(value)
+					CombatMetronome.SV.Resources.showExecuteReminder = value
+					if value then CombatMetronome:CalculateExecuteThreshold() end
+				end,
+			},
+			{
+				type = "dropdown",
+				name = "Execute reminder min target difficulty",
+				tooltip = "Only shows reminder if target difficulty is higher than selected",
+				choices = difficulty,
+				default = difficulty[2],
+				disabled = function() return not CombatMetronome.SV.Resources.showExecuteReminder end,
+				getFunc = function() return difficulty[CombatMetronome.SV.Resources.executeDifficulty] end,
+				setFunc = function(value)
+					for i, str in ipairs(difficulty) do
+						if str == value then
+							CombatMetronome.SV.Resources.executeDifficulty = i
+							break
+						end
+					end
+				end,
 			},
 			{
 				type = "colorpicker",
@@ -2130,7 +2272,12 @@ function CombatMetronome:BuildMenu()
 						step = 1,
 						decimals = 0,
 						getFunc = function() return CombatMetronome.SV.Resources.hpHighlightThreshold end,
-						setFunc = function(value) CombatMetronome.SV.Resources.hpHighlightThreshold = value end,
+						setFunc = function(value)
+							CombatMetronome.SV.Resources.hpHighlightThreshold = value
+							if CombatMetronome.SV.Resources.showExecuteReminder then
+								CombatMetronome:CalculateExecuteThreshold()
+							end
+						end,
 					},
 					{
 						type = "colorpicker",
@@ -2206,6 +2353,8 @@ function CombatMetronome:BuildMenu()
 					for skill, _ in pairs(StackTracker.SKILL_ATTRIBUTES) do
 						if StackTracker.UI[skill] then 
 							StackTracker.UI[skill].stacksWindow:SetMovable(value)
+							StackTracker.UI[skill].stacksWindow:SetHidden(not value)
+							StackTracker.UI[skill].Hide(not value)
 							if value then
 								StackTracker.UI[skill].FadeScenes("Sample")
 								if StackTracker.UI[skill].indicator.timer then
@@ -2217,6 +2366,8 @@ function CombatMetronome:BuildMenu()
 									StackTracker.UI[skill].indicator.timerBarBackdrop:SetHidden(not CombatMetronome.SV.StackTracker[skill].showTimerBar)
 									StackTracker.UI[skill].indicator.timerBarGloss:SetHidden(not CombatMetronome.SV.StackTracker[skill].showTimerBar)
 									StackTracker.UI[skill].indicator.timerBar:SetValue(0.5)
+									StackTracker.UI[skill].indicator.timerBarTimer:SetHidden(not CombatMetronome.SV.StackTracker[skill].showTimerBar or CombatMetronome.SV.StackTracker[skill].showTimer)
+									StackTracker.UI[skill].indicator.timerBarTimer:SetText("2.5")
 								end
 							else
 								StackTracker.UI[skill].FadeScenes("NoSample")
@@ -2225,9 +2376,23 @@ function CombatMetronome:BuildMenu()
 									StackTracker.UI[skill].indicator.timerBar:SetHidden(true)
 									StackTracker.UI[skill].indicator.timerBarBackdrop:SetHidden(true)
 									StackTracker.UI[skill].indicator.timerBarGloss:SetHidden(true)
+									StackTracker.UI[skill].indicator.timerBarTimer:SetHidden(true)
 								end
 							end
 						end
+					end
+				end,
+			},
+			{
+				type = "checkbox",
+				name = "Show only in combat",
+				default = false,
+				getFunc = function() return CombatMetronome.SV.StackTracker.onlyInCombat end,
+				setFunc = function(value)
+					CombatMetronome.SV.StackTracker.onlyInCombat = value
+					for skill, stacks in pairs(CombatMetronome.StackTracker.stacks) do
+						-- CombatMetronome.StackTracker:InitializeUI(skill)
+						CombatMetronome.StackTracker:ChangeStackCount(skill, stacks)
 					end
 				end,
 			},
@@ -2294,15 +2459,16 @@ function CombatMetronome:BuildMenu()
 			},
 			{	type = "slider",
 				name = "Time until tracker hides after a fight",
-				tooltip = "This is the amount of seconds the tracker will keep displaying your values after a fight is finished",
+				tooltip = "This is the amount of seconds the tracker will keep displaying your values after a fight is finished. If set to '0' tracker will always be visible.",
 				default = 15,
-				min = 1,
+				min = 0,
 				max = 30,
 				step = 1,
 				decimals = 0,
 				getFunc = function() return CombatMetronome.SV.LATracker.timeTilHiding end,
 				setFunc = function(value)
 					CombatMetronome.SV.LATracker.timeTilHiding = value
+					LATracker:DisplayText()
 				end,
 			},
 			{	type = "checkbox",
