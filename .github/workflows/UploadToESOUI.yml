@@ -109,12 +109,11 @@ jobs:
     - name: Create GitHub Release
       if: env.TEST_ONLY == 'false'  # Nur wenn TEST_ONLY false ist
       uses: softprops/action-gh-release@v3
-      env:
-        GITHUB_TOKEN: ${{ secrets.CREATE_RELEASE_TOKEN }}
       with:
         tag_name: ${{ env.ADDON_VERSION }}
         name: Release ${{ env.ADDON_VERSION }}
         body: ${{ env.CHANGELOG }}
+        token: ${{ secrets.CREATE_RELEASE_TOKEN }}
         draft: false
         prerelease: false
 
