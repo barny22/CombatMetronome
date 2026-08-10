@@ -683,11 +683,13 @@ function StackTracker:BuildUI(skill)
 			indicator[i].controls.frame:SetHidden(value)
 			indicator[i].controls.highlight:SetHidden(value)
 		end
-		indicator.timer:SetHidden(value)
-		indicator.timerBar:SetHidden(value)
-		indicator.timerBarGloss:SetHidden(value)
-		indicator.timerBarBackdrop:SetHidden(value)
-		indicator.timerBarTimer:SetHidden(value)
+		if indicator.timer then
+			indicator.timer:SetHidden(value)
+			indicator.timerBar:SetHidden(value)
+			indicator.timerBarGloss:SetHidden(value)
+			indicator.timerBarBackdrop:SetHidden(value)
+			indicator.timerBarTimer:SetHidden(value)
+		end
 	end
 	
 	Position("UI")
