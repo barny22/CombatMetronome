@@ -1,3 +1,7 @@
+2026-08-15 v1.7.6
+!  Fix for toggle abilities on toggle off
+!  UI fix for canceled abilities and make-it-fancy mode
+
 2026-05-12 v1.7.5
 !  Fixed execute reminder being shown on allies/non attackable units
 !  Eliminated some user irrelevant code

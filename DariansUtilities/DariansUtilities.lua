@@ -1,8 +1,8 @@
 DariansUtilities = {
 	name = "DariansUtilities",
 	major = 8,
-	minor = 3,
-	version = "1.8.3"
+	minor = 5,
+	version = "1.8.5"
 }
 local Util = DariansUtilities
 

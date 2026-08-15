@@ -10,7 +10,7 @@ CombatMetronome = {
     version = {
 		["patch"] = 1,
 		["major"] = 7,
-		["minor"] = 5,
+		["minor"] = 6,
 	},
 	API = GetAPIVersion(),
 	beta = beta,
