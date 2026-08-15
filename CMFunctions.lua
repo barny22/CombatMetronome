@@ -15,6 +15,7 @@ function CombatMetronome:OnCDStop(reason)
 	if CombatMetronome.SV.Progressbar.dontHide then
 		if CombatMetronome.SV.Progressbar.makeItFancy then
 			self:HideFancy(false)
+			self.Progressbar.bar.backgroundTexture:SetWidth(0)
 		else
 			self:HideFancy(true)
 		end
