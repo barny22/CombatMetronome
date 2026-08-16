@@ -23,9 +23,16 @@ function CombatMetronome:OnCDStop(reason)
 		self.Progressbar.bar:SetHidden(true)
 	end
 	self:HideLabels(true)
+	self:ResetBarValues()
 	if self.currentEvent then
 		self:SetEventNil(reason)
 	end
+end
+
+function CombatMetronome:ResetBarValues()
+	self.Progressbar.bar.segments[1].progress = 0
+	self.Progressbar.bar.segments[2].progress = 0
+	self.Progressbar.bar.backgroundTexture:SetWidth(0)
 end
 
 function CombatMetronome:HideBar(value)
@@ -47,9 +54,7 @@ function CombatMetronome:SetEventNil(reason)
 		Util.Ability.Tracker.lastAbilityFinished = 0
 	end
 	
-	self.Progressbar.bar.segments[1].progress = 0
-	self.Progressbar.bar.segments[2].progress = 0
-	self.Progressbar.bar.backgroundTexture:SetWidth(0)
+	self:ResetBarValues()
 end
 
 function CombatMetronome:HideLabels(value)

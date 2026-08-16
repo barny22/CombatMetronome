@@ -1,3 +1,7 @@
+2026-08-15 v1.8.5
+!  Fix for toggle abilities preventing creating an event if toggled off
+!  Refactoring some tracking functions and changning behavior on canceling events for easier handling
+
 2026-05-12 v1.8.4
 !  Fixed some tracking issues. Ability/GCD tracking should now be more precise than ever
 !  Fixed heavy one handed attacks not being tracked

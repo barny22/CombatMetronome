@@ -494,6 +494,9 @@ function Ability.Tracker:HandleCooldownsUpdated()
 end
 
 function Ability.Tracker:HandleSlotUsed(_, slot)
+    -- don't create a new event, if using the slot is just a toggle off
+    if IsSlotToggled(slot) then return end
+    
     local ability = {}
     local actionType = GetSlotType(slot)
     if actionType == ACTION_TYPE_CRAFTED_ABILITY then
