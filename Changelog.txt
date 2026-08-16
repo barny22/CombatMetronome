@@ -1,3 +1,6 @@
+2026-08-16 v1.7.7
++  Moved 'Show permanently' settings option to 'Behavior' submenu
+
 2026-08-15 v1.7.6
 !  Fix for toggle abilities on toggle off
 !  UI fix for canceled abilities and make-it-fancy mode

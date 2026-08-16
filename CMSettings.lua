@@ -1061,18 +1061,6 @@ function CombatMetronome:BuildMenu()
 				controls = {
 					{
 						type = "checkbox",
-						name = "Show permanently",
-						tooltip = "If you don't want to hide the cast bar when it's unused, it will display the background color.",
-						disabled = function() return CombatMetronome.Progressbar.showSample end,
-						getFunc = function() return CombatMetronome.SV.Progressbar.dontHide end,
-						setFunc = function(value)
-							CombatMetronome.SV.Progressbar.dontHide = value
-							self.Progressbar.UI.HiddenStates()
-							-- self:BuildUI()
-						end,
-					},
-					{
-						type = "checkbox",
 						name = "Make it fancy",
 						tooltip = "Have fancy effects and stuff",
 						getFunc = function() return CombatMetronome.SV.Progressbar.makeItFancy, CombatMetronome.SV.Progressbar.lastBackgroundColor, CombatMetronome.SV.Progressbar.backgroundColor end,
@@ -1091,6 +1079,9 @@ function CombatMetronome:BuildMenu()
 							self.Progressbar.UI.BarColors()
 							-- self:BuildUI()
 						end,
+					},
+					{
+						type = "divider"
 					},
 					{
 						type = "colorpicker",
@@ -1221,6 +1212,21 @@ function CombatMetronome:BuildMenu()
 				name = "Behavior",
 				disabled = function() return CombatMetronome.SV.Progressbar.hide end,
 				controls = {
+					{
+						type = "checkbox",
+						name = "Show permanently",
+						tooltip = "If you don't want to hide the cast bar when it's unused, it will display the background color.",
+						disabled = function() return CombatMetronome.Progressbar.showSample end,
+						getFunc = function() return CombatMetronome.SV.Progressbar.dontHide end,
+						setFunc = function(value)
+							CombatMetronome.SV.Progressbar.dontHide = value
+							self.Progressbar.UI.HiddenStates()
+							-- self:BuildUI()
+						end,
+					},
+					{
+						type = "divider"
+					},					
 					{
 						type = "slider",
 						name = "Max latency",
