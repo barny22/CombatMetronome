@@ -1618,7 +1618,9 @@ function CombatMetronome:BuildMenu()
 						getFunc = function() return CombatMetronome.SV.Progressbar.soundTockEffect end,
 						setFunc = function(value)
 							CombatMetronome.SV.Progressbar.soundTockEffect = value
-							PlaySound(value)
+							for i = 1, math.min(CombatMetronome.SV.Progressbar.tickVolume, 30) do
+								PlaySound(value)
+							end
 						end,
 					},
 					-- {

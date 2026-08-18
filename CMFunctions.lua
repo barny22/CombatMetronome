@@ -315,19 +315,17 @@ end
 	-------------------------
 
 function CombatMetronome:HandleAbilityUsed(event)
-    if not (self.inCombat or CombatMetronome.SV.Progressbar.showOOC) then return end
-	if event.ability then Util.Ability.Tracker:PrintDebugNotes("abilityUsed", event.ability.id, string.format("New event '%s' recieved in CombatMetronome. ID: %d", event.ability.name, event.ability.id)) end
-	-- if event == "cancel heavy" then
-		-- if self.currentEvent and self.currentEvent.ability.heavy then
-			-- Util.Ability.Tracker:PrintDebugNotes("currentEvent", self.currentEvent.ability.id, string.format("Canceled heavy '%s'", self.currentEvent.ability.name))
-			-- self.currentEvent = nil
-			-- self.gcd = 0
-		-- end
-		-- return
-	-- end
 
-    self.Progressbar.soundTickPlayed = false
-    self.Progressbar.soundTockPlayed = false
+    if not (self.inCombat or CombatMetronome.SV.Progressbar.showOOC) then return
+	elseif CombatMetronome.SV.Progressbar.stopHATracking and event.ability.heavy then return	
+	end
+	
+	if event.ability then Util.Ability.Tracker:PrintDebugNotes("abilityUsed", event.ability.id, string.format("New event '%s' recieved in CombatMetronome. ID: %d", event.ability.name, event.ability.id)) end
+	
+	if not (event.ability.heavy and CombatMetronome.SV.Progressbar.noTickOnHeavy) then
+		self.Progressbar.soundTickPlayed = false
+		self.Progressbar.soundTockPlayed = false
+	end
 
     local ability = event.ability
 
@@ -335,15 +333,12 @@ function CombatMetronome:HandleAbilityUsed(event)
                     + ((ability.instant and CombatMetronome.SV.Progressbar.gcdAdjust)
                     or (ability.heavy and CombatMetronome.SV.Progressbar.globalHeavyAdjust)
                     or CombatMetronome.SV.Progressbar.globalAbilityAdjust)
-					
-	if CombatMetronome.SV.Progressbar.stopHATracking and event.ability.heavy then
-		return
-	else
-		self.currentEvent = event
-		Util.Ability.Tracker:PrintDebugNotes("currentEvent", ability.id, string.format("Current event is now '%s'", ability.name))
-	end
+
+	self.currentEvent = event
+	Util.Ability.Tracker:PrintDebugNotes("currentEvent", ability.id, string.format("Current event is now '%s'", ability.name))
+		
 	self.lastAbilityFinished = self.abilityFinished
-	self.abilityFinished = event.start + math.max(ability.delay, 1000)
+	self.abilityFinished = event.start + (ability.heavy and ability.delay or math.max(ability.delay, 1000))
     self.gcd = Util.Ability.Tracker.gcd
 end
 

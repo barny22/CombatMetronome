@@ -90,6 +90,10 @@ function CombatMetronome:Init()
 	self.Progressbar.collectibleInUse = nil
 	self.Progressbar.synergy = {}
     self.Progressbar.UI = self:BuildUI()
+	
+	-- to prevent triggering on initial load
+	self.Progressbar.soundTickPlayed = true
+	self.Progressbar.soundTockPlayed = true
     -- CombatMetronome:BuildMenu()
 	-- CombatMetronome:UpdateAdjustChoices()
 

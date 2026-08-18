@@ -120,14 +120,7 @@ function CombatMetronome:Update()
 					else
 						progressbar.soundTockPlayed = true
 					end
-										
-					-- local uiVolume = GetSetting(SETTING_TYPE_AUDIO, AUDIO_SETTING_UI_VOLUME)
-					-- local tockQueue = ZO_QueuedSoundPlayer:New(0)
-					-- tockQueue:SetFinishedAllSoundsCallback(function()
-						-- SetSetting(SETTING_TYPE_AUDIO, AUDIO_SETTING_UI_VOLUME, uiVolume)
-					-- end)
-					-- SetSetting(SETTING_TYPE_AUDIO, AUDIO_SETTING_UI_VOLUME, sv.tickVolume)
-					-- tockQueue:PlaySound(sv.soundTockEffect, 250)
+					
 					for i = 1, math.min(sv.tickVolume, 30) do
 						PlaySound(sv.soundTockEffect)
 					end
@@ -226,7 +219,7 @@ function CombatMetronome:Update()
 				cdTimer = time - start
 			end
 			
-			local duration = math.max(self.gcd or 1000, ability.delay) + (self.currentEvent.adjust or 0)
+			local duration = (ability.heavy and ability.delay or math.max(self.gcd or 1000, ability.delay)) + (self.currentEvent.adjust or 0)
 			-- local timeRemaining = ((start + duration + latency) - time) / 1000 or ((start + channelTime + latency) - time) < 0 and 0
 			local timeRemaining = (duration - cdTimer) / 1000
 			local castProgress = timeRemaining/(duration/1000)
@@ -257,19 +250,10 @@ function CombatMetronome:Update()
 				-- Sound contributed to by Seltiix --
 				if (self.inCombat or (sv.showOOC and sv.playSoundsOOC)) and not progressbar.soundTickPlayed and sv.soundTickEnabled then --and time > start + length - sv.soundTickOffset then
 					if (not sv.soundTickMidAbility and time >= start + sv.soundTickOffset) or (sv.soundTickMidAbility and time >= start + duration/2 + sv.soundTickOffset) then
-						if not (ability.heavy and sv.noTickOnHeavy) then
-							progressbar.soundTickPlayed = true
-							-- local uiVolume = GetSetting(SETTING_TYPE_AUDIO, AUDIO_SETTING_UI_VOLUME)
-							-- local tickQueue = ZO_QueuedSoundPlayer:New(0)
-							-- tickQueue:SetFinishedAllSoundsCallback(function()
-								-- SetSetting(SETTING_TYPE_AUDIO, AUDIO_SETTING_UI_VOLUME, uiVolume)
-								-- if self.SV.debug.enabled then CombatMetronome.debug:Print("Sound is finished playing. Volume adjusted. Volume is now "..GetSetting(SETTING_TYPE_AUDIO, AUDIO_SETTING_UI_VOLUME)) end
-							-- end)
-							-- SetSetting(SETTING_TYPE_AUDIO, AUDIO_SETTING_UI_VOLUME, sv.tickVolume)
-							-- tickQueue:PlaySound(sv.soundTickEffect, 250)
-							for i = 1, math.min(sv.tickVolume, 30) do
-								PlaySound(sv.soundTickEffect)
-							end
+						progressbar.soundTickPlayed = true
+						
+						for i = 1, math.min(sv.tickVolume, 30) do
+							PlaySound(sv.soundTickEffect)
 						end
 					end
 				end
@@ -281,7 +265,7 @@ function CombatMetronome:Update()
 						local castIsFinished = ((ability.delay <= 1000) and (timeRemaining*1000 <= 1000 - ability.delay)) or (timeRemaining <= 0)
 						if not castIsFinished and progressbar.bar.segments[2].color == sv.progressColor then
 							progressbar.bar.segments[2].color = sv.channelColor
-						elseif castIsFinished  and progressbar.bar.segments[2].color == sv.channelColor then
+						elseif not ability.heavy and castIsFinished  and progressbar.bar.segments[2].color == sv.channelColor then
 							progressbar.bar.segments[2].color = sv.progressColor
 						end
 					else
@@ -294,7 +278,6 @@ function CombatMetronome:Update()
 					self:OnCDStop("cdTimer seems to be over")
 				else
 					self:HideBar(false)
-					-- progressbar.bar.backgroundTexture:SetWidth((1 - (cdTimer/duration))*sv.width)
 				end
 				
 				if dynamicProgress then
