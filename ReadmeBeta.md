@@ -31,9 +31,5 @@ If you like my work and want to support what I'm doing, consider supporting me o
 
 [b]Current changes:[/b]
 [list]
-[*] Added highlights for stam and mag label
-[*] Added timers for BA, MW, Crux buffs
-[*] Added sound/visual warnings for BA, MW, Crux if their buffs are about to run out
-[*] Spell names in progressbar now automatically abbreviate if they would exceed their given bar space (looking at you fatecarver!)
-[*] Fixes for morph tracking for stack tracker
+[*] Moved 'tick' & 'tock' sounds out of the updater function
 [/list]

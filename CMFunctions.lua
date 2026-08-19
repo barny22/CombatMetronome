@@ -33,6 +33,8 @@ function CombatMetronome:ResetBarValues()
 	self.Progressbar.bar.segments[1].progress = 0
 	self.Progressbar.bar.segments[2].progress = 0
 	self.Progressbar.bar.backgroundTexture:SetWidth(0)
+	
+	self.Progressbar.bar:Update()
 end
 
 function CombatMetronome:HideBar(value)
@@ -313,29 +315,73 @@ end
 	-------------------------
 	---- Ability Handler ----
 	-------------------------
+local function QueueTick(sound, timer, identifier)
+	local sv = CombatMetronome.SV.Progressbar
+	
+	zo_callLater(function()
+			if CombatMetronome.currentEvent and CombatMetronome.currentEventIdentifier == identifier and (CombatMetronome.inCombat or sv.playSoundsOOC) then
+				for i = 1, math.min(sv.tickVolume, 30) do
+					PlaySound(sound)
+				end
+			else
+				if not CombatMetronome.identifiersToSkip then CombatMetronome.identifiersToSkip = {} end
+				CombatMetronome.identifiersToSkip[identifier] = true
+			end
+		end,
+		timer		
+	)
+end
+
+local function QueueTock(sound, timer, identifier)
+	local sv = CombatMetronome.SV.Progressbar
+	
+	zo_callLater(function()
+			if CombatMetronome.identifiersToSkip and CombatMetronome.identifiersToSkip[identifier] then
+				CombatMetronome.identifiersToSkip[identifier] = nil
+			elseif (CombatMetronome.inCombat or sv.playSoundsOOC) and (CombatMetronome.currentEventIdentifier == identifier or (sv.soundTockOffset > 0 and CombatMetronome.lastEventIdentifier == identifier) or (sv.forceSoundTock and CombatMetronome.lastEventIdentifier == identifier)) then
+				for i = 1, math.min(sv.tickVolume, 30) do
+					PlaySound(sound)
+				end
+			end
+		end,
+		timer		
+	)
+end
 
 function CombatMetronome:HandleAbilityUsed(event)
+	local sv = CombatMetronome.SV.Progressbar
 
-    if not (self.inCombat or CombatMetronome.SV.Progressbar.showOOC) then return
-	elseif CombatMetronome.SV.Progressbar.stopHATracking and event.ability.heavy then return	
+    if not (self.inCombat or sv.showOOC) then return
+	elseif sv.stopHATracking and event.ability.heavy then return	
 	end
 	
 	if event.ability then Util.Ability.Tracker:PrintDebugNotes("abilityUsed", event.ability.id, string.format("New event '%s' recieved in CombatMetronome. ID: %d", event.ability.name, event.ability.id)) end
 	
-	if not (event.ability.heavy and CombatMetronome.SV.Progressbar.noTickOnHeavy) then
-		self.Progressbar.soundTickPlayed = false
-		self.Progressbar.soundTockPlayed = false
-	end
-
     local ability = event.ability
 
-    event.adjust = (CombatMetronome.SV.Progressbar.abilityAdjusts[ability.id] or 0)
-                    + ((ability.instant and CombatMetronome.SV.Progressbar.gcdAdjust)
-                    or (ability.heavy and CombatMetronome.SV.Progressbar.globalHeavyAdjust)
-                    or CombatMetronome.SV.Progressbar.globalAbilityAdjust)
+    event.adjust = (sv.abilityAdjusts[ability.id] or 0)
+                    + ((ability.instant and sv.gcdAdjust)
+                    or (ability.heavy and sv.globalHeavyAdjust)
+                    or sv.globalAbilityAdjust)
 
 	self.currentEvent = event
+	self.lastEventIdentifier = self.currentEventIdentifier
+	self.currentEventIdentifier = self.currentEventIdentifier + 1
+	
 	Util.Ability.Tracker:PrintDebugNotes("currentEvent", ability.id, string.format("Current event is now '%s'", ability.name))
+
+	-- queue tick and tock sounds 
+	if not (event.ability.heavy and sv.noTickOnHeavy) then
+		if sv.soundTickEnabled then
+			local timer = (sv.forceTickMSBeforeEnd and (ability.delay - sv.forceTickTime) or (sv.soundTickMidAbility and math.max(ability.delay, 1000)/2 or 0)) + event.adjust + sv.soundTickOffset
+			QueueTick(sv.soundTickEffect, timer, self.currentEventIdentifier) end
+		if sv.soundTockEnabled then
+			local timer = math.max(ability.delay, 1000) + event.adjust + sv.soundTockOffset
+			QueueTock(sv.soundTockEffect, timer, self.currentEventIdentifier)
+		end
+		-- self.Progressbar.soundTickPlayed = false
+		-- self.Progressbar.soundTockPlayed = false
+	end
 		
 	self.lastAbilityFinished = self.abilityFinished
 	self.abilityFinished = event.start + (ability.heavy and ability.delay or math.max(ability.delay, 1000))
