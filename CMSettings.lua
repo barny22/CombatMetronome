@@ -1725,6 +1725,26 @@ function CombatMetronome:BuildMenu()
 					},
 					{
 						type = "checkbox",
+						name = "No sounds on abilities > 1 sec",
+						tooltip = "Prevents 'tick' & 'tock' being queued for easily interruptable abilities i.e. via block cancel",
+						disabled = function() return not (CombatMetronome.SV.Progressbar.soundTockEnabled or CombatMetronome.SV.Progressbar.soundTickEnabled) end,
+						getFunc = function() return CombatMetronome.SV.Progressbar.noSoundOnLongAbilities end,
+						setFunc = function(value)
+							CombatMetronome.SV.Progressbar.noSoundOnLongAbilities = value
+						end,
+					},
+					{
+						type = "checkbox",
+						name = "Hard force 'tick' & 'tock' if ability was ended early",
+						tooltip = "Forces the 'tick' & 'tock' sound if an ability > 1sec was ended early by i.e. CC or a dead target\nThis will only play the 'tick' sound if there is enough time with the settings chosen\nTock however will be played at the end",
+						disabled = function() return not (CombatMetronome.SV.Progressbar.soundTockEnabled or CombatMetronome.SV.Progressbar.soundTickEnabled) end,
+						getFunc = function() return CombatMetronome.SV.Progressbar.hardForceTickTock end,
+						setFunc = function(value)
+							CombatMetronome.SV.Progressbar.hardForceTickTock = value
+						end,
+					},
+					{
+						type = "checkbox",
 						name = "Play sounds ooc",
 						tooltip = "When enabled, will play 'tick' and 'tock' sounds even while out of combat",
 						disabled = function() return not (CombatMetronome.SV.Progressbar.showOOC and (CombatMetronome.SV.Progressbar.soundTockEnabled or CombatMetronome.SV.Progressbar.soundTickEnabled)) end,

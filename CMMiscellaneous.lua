@@ -63,6 +63,8 @@ CombatMetronome.DEFAULT_SAVED_VARS = {
 		["dynamicExpansionMultiplyer"] = 1,
 		["forceTickMSBeforeEnd"] = false,
 		["forceTickTime"] = 500,
+		["noSoundOnLongAbilities"] = false,
+		["hardForceTickTock"] = false,
 	},
 	["Resources"] = {
 		["anchorResourcesToProgressbar"] = true,

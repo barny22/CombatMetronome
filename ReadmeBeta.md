@@ -32,4 +32,5 @@ If you like my work and want to support what I'm doing, consider supporting me o
 [b]Current changes:[/b]
 [list]
 [*] Moved 'tick' & 'tock' sounds out of the updater function
+[*] Added 'tick' & 'tock' sound queues for abilities > 1 sec if they were ended early
 [/list]

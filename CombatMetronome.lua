@@ -80,6 +80,7 @@ function CombatMetronome:Init()
 	
 	self.currentEventIdentifier = 0
 	self.lastEventIdentifier = 0
+	self.identifiersToSkip = {}
 
     self.gcd = 1000
 

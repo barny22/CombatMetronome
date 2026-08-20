@@ -5,6 +5,7 @@
 !  Fixed bar behavior on heavy attacks with cast time lower 1sec
 !  Fixed 'tick'&'tock' being played on initial load
 +  Moved 'tick'&'tock' outside of updater to play sounds more accurately
++  Added 'tick'&'tock' queues for abilities > 1 sec if ended early
 
 2026-08-15 v1.7.6
 !  Fix for toggle abilities on toggle off
