@@ -319,17 +319,19 @@ function CombatMetronome:QueueTick(sound, timer, identifier, hardForce)
 	local sv = self.SV.Progressbar
 	
 	zo_callLater(function()
-			if hardForce then
-				for i = 1, math.min(sv.tickVolume, 30) do
-					PlaySound(sound)
+			if self.inCombat or sv.playSoundsOOC then
+				if hardForce then
+					for i = 1, math.min(sv.tickVolume, 30) do
+						PlaySound(sound)
+					end
+				elseif not self.identifiersToSkip[identifier] and self.currentEvent and self.currentEventIdentifier == identifier then
+					for i = 1, math.min(sv.tickVolume, 30) do
+						PlaySound(sound)
+					end
+				-- else
+					-- if not self.identifiersToSkip then self.identifiersToSkip = {} end
+					-- self.identifiersToSkip[identifier] = true
 				end
-			elseif not self.identifiersToSkip[identifier] and self.currentEvent and self.currentEventIdentifier == identifier and (self.inCombat or sv.playSoundsOOC) then
-				for i = 1, math.min(sv.tickVolume, 30) do
-					PlaySound(sound)
-				end
-			-- else
-				-- if not self.identifiersToSkip then self.identifiersToSkip = {} end
-				-- self.identifiersToSkip[identifier] = true
 			end
 		end,
 		timer		
@@ -340,16 +342,19 @@ function CombatMetronome:QueueTock(sound, timer, identifier, hardForce)
 	local sv = self.SV.Progressbar
 	
 	zo_callLater(function()
-			if hardForce then
-				for i = 1, math.min(sv.tickVolume, 30) do
-					PlaySound(sound)
+			if self.inCombat or sv.playSoundsOOC then
+				if hardForce then
+					for i = 1, math.min(sv.tickVolume, 30) do
+						PlaySound(sound)
+					end
+				elseif not self.identifiersToSkip[identifier] and self.currentEventIdentifier == identifier or (sv.soundTockOffset > 0 and self.lastEventIdentifier == identifier) or (sv.forceSoundTock and self.lastEventIdentifier == identifier) then
+					for i = 1, math.min(sv.tickVolume, 30) do
+						PlaySound(sound)
+					end
 				end
-			elseif self.identifiersToSkip[identifier] then
+			end
+			if not hardForce and self.identifiersToSkip[identifier] then
 				self.identifiersToSkip[identifier] = nil
-			elseif (self.inCombat or sv.playSoundsOOC) and (self.currentEventIdentifier == identifier or (sv.soundTockOffset > 0 and self.lastEventIdentifier == identifier) or (sv.forceSoundTock and self.lastEventIdentifier == identifier)) then
-				for i = 1, math.min(sv.tickVolume, 30) do
-					PlaySound(sound)
-				end
 			end
 		end,
 		timer		
@@ -380,11 +385,12 @@ function CombatMetronome:HandleAbilityUsed(event)
 
 	-- queue tick and tock sounds 
 	if not (event.ability.heavy and sv.noTickOnHeavy) and not (sv.noSoundOnLongAbilities and event.ability.delay > 1000) then
+		local duration = ability.heavy and ability.delay or math.max(ability.delay, 1000)
 		if sv.soundTickEnabled then
-			local timer = (sv.forceTickMSBeforeEnd and (math.max(ability.delay, 1000) - sv.forceTickTime) or (sv.soundTickMidAbility and math.max(ability.delay, 1000)/2 or 0)) + event.adjust + sv.soundTickOffset
+			local timer = ((sv.forceTickMSBeforeEnd and (duration - sv.forceTickTime)) or (sv.soundTickMidAbility and duration/2) or 0) + event.adjust + sv.soundTickOffset
 			self:QueueTick(sv.soundTickEffect, timer, self.currentEventIdentifier, false) end
 		if sv.soundTockEnabled then
-			local timer = math.max(ability.delay, 1000) + event.adjust + sv.soundTockOffset
+			local timer = duration + event.adjust + sv.soundTockOffset
 			self:QueueTock(sv.soundTockEffect, timer, self.currentEventIdentifier, false)
 		end
 		-- self.Progressbar.soundTickPlayed = false

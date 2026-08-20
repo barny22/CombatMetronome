@@ -1640,8 +1640,8 @@ function CombatMetronome:BuildMenu()
 							return not (CombatMetronome.SV.Progressbar.soundTickEnabled) -- and CombatMetronome.SV.Progressbar.soundOffsets)
 						end,
 						width = "half",
-						min = 0,
-						max = 1000,
+						min = -500,
+						max = 500,
 						step =  1,
 						decimals = 0,
 						getFunc = function() return CombatMetronome.SV.Progressbar.soundTickOffset end,
@@ -1656,8 +1656,8 @@ function CombatMetronome:BuildMenu()
 							return not (CombatMetronome.SV.Progressbar.soundTockEnabled) -- and CombatMetronome.SV.Progressbar.soundOffsets)
 						end,
 						width = "half",
-						min = 0,
-						max = 1000,
+						min = -500,
+						max = 500,
 						step = 1,
 						decimals = 0,
 						getFunc = function() return CombatMetronome.SV.Progressbar.soundTockOffset end,
@@ -1707,7 +1707,7 @@ function CombatMetronome:BuildMenu()
 						type = "checkbox",
 						name = "Don't play 'tick' and 'tock' on heavy attacks",
 						tooltip = "Since heavys are easily canceled, this is recommended to avoid annoying sound clutter",
-						disabled = function() return not (CombatMetronome.SV.Progressbar.soundTickMidAbility and CombatMetronome.SV.Progressbar.soundTickEnabled) or CombatMetronome.SV.Progressbar.forceTickMSBeforeEnd end,
+						disabled = function() return not (CombatMetronome.SV.Progressbar.soundTickMidAbility and CombatMetronome.SV.Progressbar.soundTickEnabled) end,
 						getFunc = function() return CombatMetronome.SV.Progressbar.noTickOnHeavy end,
 						setFunc = function(value)
 							CombatMetronome.SV.Progressbar.noTickOnHeavy = value
@@ -1737,6 +1737,7 @@ function CombatMetronome:BuildMenu()
 						type = "checkbox",
 						name = "Hard force 'tick' & 'tock' if ability was ended early",
 						tooltip = "Forces the 'tick' & 'tock' sound if an ability > 1sec was ended early by i.e. CC or a dead target\nThis will only play the 'tick' sound if there is enough time with the settings chosen\nTock however will be played at the end",
+						warning = "Only plays sounds though, if OOC enabled or in combat",
 						disabled = function() return not (CombatMetronome.SV.Progressbar.soundTockEnabled or CombatMetronome.SV.Progressbar.soundTickEnabled) end,
 						getFunc = function() return CombatMetronome.SV.Progressbar.hardForceTickTock end,
 						setFunc = function(value)

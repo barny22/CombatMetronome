@@ -657,11 +657,17 @@ local reasonToGCDMapping = {
     ["Effect faded, player is target"] = effectFaded,
     ["Jesus beam finished"] = effectFaded,
     ["Invalid location"] = invalidLocation,
-    ["Target immune"] = immune,
     ["Silenced"] = silenced,
     ["Stagger"] = stagger,
     ["Target died"] = targetDied,
     ["Target dead"] = targetDied,
+    ["Target immune"] = immune,
+}
+
+local skipTickTockReasons = {
+    ["Heavy cancel - new GCD"] = true,
+    ["Heavy cancel"] = true,
+    ["Rolldodge"] = true,
 }
 
 function Ability.Tracker:CancelCurrentEvent(reason)
@@ -702,19 +708,23 @@ function Ability.Tracker:CancelCurrentEvent(reason)
             end
         end
         -- sound queues if event was ended early
-        if endedEarly then
+        if endedEarly and (CombatMetronome.SV.Progressbar.soundTickEnabled or CombatMetronome.SV.Progressbar.soundTockEnabled) then
             local sv = CombatMetronome.SV.Progressbar
-            if ability.delay > 1000 then
+            if ability.delay > 1000 or skipTickTockReasons[reason] or (ability.heavy and not sv.noTickOnHeavy) then
                 CombatMetronome.identifiersToSkip[CombatMetronome.currentEventIdentifier] = true
             end
-            if sv.hardForceTickTock then
-                local timerTick =  ((sv.forceTickMSBeforeEnd and sv.forceTickTime) or (sv.soundTickMidAbility and 500) or 0) + sv.soundTickOffset
-                if not (ability.channeled and reason == "Blocked") and remaining > timerTick then
-                    CombatMetronome:QueueTick(sv.soundTickEffect, timerTick, CombatMetronome.currentEventIdentifier, true)
+            if sv.hardForceTickTock and not (ability.heavy and sv.noTickOnHeavy) then
+                if sv.soundTickEnabled then
+                    local timerTick =  ((sv.forceTickMSBeforeEnd and sv.forceTickTime) or (sv.soundTickMidAbility and 500) or 0) - sv.soundTickOffset
+                    if not (ability.channeled and reason == "Blocked") and remaining > timerTick then
+                        CombatMetronome:QueueTick(sv.soundTickEffect, remaining - timerTick, CombatMetronome.currentEventIdentifier, true)
+                    end
                 end
                 
-                local timerTock = (not (ability.channeled and reason == "Blocked") and remaining or 0) + sv.soundTockOffset
-                CombatMetronome:QueueTock(sv.soundTockEffect, timerTock, CombatMetronome.currentEventIdentifier, true)
+                if sv.soundTockEnabled then
+                    local timerTock = (not (ability.channeled and reason == "Blocked") and remaining or 0) + sv.soundTockOffset
+                    CombatMetronome:QueueTock(sv.soundTockEffect, timerTock, CombatMetronome.currentEventIdentifier, true)
+                end
             end
         end
         
