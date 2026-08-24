@@ -646,6 +646,10 @@ function CombatMetronome:BuildMenu()
 				name = "Debug Options",
 				disabled = function() return not CombatMetronome.SV.debug.enabled end,
 				controls = {
+					{
+						type = "header",
+						name = "Ability.lua",
+					},
 					{	type = "checkbox",
 						name = "Debug ability.lua triggers",
 						getFunc = function() return CombatMetronome.SV.debug.triggers end,
@@ -742,6 +746,19 @@ function CombatMetronome:BuildMenu()
 								end
 							end
 						end,
+					},
+					{
+						type = "header",
+						name = "Sound",
+					},
+					{	type = "checkbox",
+						name = "'Tick' & 'Tock' triggers",
+						getFunc = function() return CombatMetronome.SV.debug.tickTock end,
+						setFunc = function(value)
+							CombatMetronome.SV.debug.tickTock = value
+							-- self.log = value
+						end,
+						width = "half",
 					},
 				},
 			},
@@ -1704,25 +1721,32 @@ function CombatMetronome:BuildMenu()
 						end,
 					},
 					{
-						type = "checkbox",
-						name = "Don't play 'tick' and 'tock' on heavy attacks",
-						tooltip = "Since heavys are easily canceled, this is recommended to avoid annoying sound clutter",
-						disabled = function() return not (CombatMetronome.SV.Progressbar.soundTickMidAbility and CombatMetronome.SV.Progressbar.soundTickEnabled) end,
-						getFunc = function() return CombatMetronome.SV.Progressbar.noTickOnHeavy end,
-						setFunc = function(value)
-							CombatMetronome.SV.Progressbar.noTickOnHeavy = value
-						end,
+						type = "divider",
 					},
 					{
 						type = "checkbox",
-						name = "Force 'tock'",
-						tooltip = "Forces the 'tock' sound even when you missed a light attack and already have another ability queued, to keep the rythm",
+						name = "Force 'tock' (and 'tick' if allowed)",
+						tooltip = "Forces the 'tock' sound even when you missed a light attack and already have another ability queued, to keep the rythm"
+									.."\nAlso plays a 'tick' sound if an ability was ended early and GCD went off"
+									.."and the options enabled allow a 'tick'",
 						disabled = function() return not CombatMetronome.SV.Progressbar.soundTockEnabled end,
 						getFunc = function() return CombatMetronome.SV.Progressbar.forceSoundTock end,
 						setFunc = function(value)
 							CombatMetronome.SV.Progressbar.forceSoundTock = value
 						end,
 					},
+					-- causes more problems than it has benefits
+					-- {
+						-- type = "checkbox",
+						-- name = "Hard force 'tick' & 'tock' if ability was ended early",
+						-- tooltip = "Forces the 'tick' & 'tock' sound if an ability > 1sec was ended early by i.e. CC or a dead target\nThis will only play the 'tick' sound if there is enough time with the settings chosen\nTock however will be played at the end",
+						-- warning = "Only plays sounds though, if sounds OOC enabled or in combat",
+						-- disabled = function() return not (CombatMetronome.SV.Progressbar.soundTockEnabled or CombatMetronome.SV.Progressbar.soundTickEnabled) end,
+						-- getFunc = function() return CombatMetronome.SV.Progressbar.hardForceTickTock end,
+						-- setFunc = function(value)
+							-- CombatMetronome.SV.Progressbar.hardForceTickTock = value
+						-- end,
+					-- },
 					{
 						type = "checkbox",
 						name = "No sounds on abilities > 1 sec",
@@ -1735,13 +1759,12 @@ function CombatMetronome:BuildMenu()
 					},
 					{
 						type = "checkbox",
-						name = "Hard force 'tick' & 'tock' if ability was ended early",
-						tooltip = "Forces the 'tick' & 'tock' sound if an ability > 1sec was ended early by i.e. CC or a dead target\nThis will only play the 'tick' sound if there is enough time with the settings chosen\nTock however will be played at the end",
-						warning = "Only plays sounds though, if OOC enabled or in combat",
-						disabled = function() return not (CombatMetronome.SV.Progressbar.soundTockEnabled or CombatMetronome.SV.Progressbar.soundTickEnabled) end,
-						getFunc = function() return CombatMetronome.SV.Progressbar.hardForceTickTock end,
+						name = "Don't play 'tick' and 'tock' on heavy attacks",
+						tooltip = "Since heavys are easily canceled, this is recommended to avoid annoying sound clutter",
+						disabled = function() return not (CombatMetronome.SV.Progressbar.soundTickMidAbility and CombatMetronome.SV.Progressbar.soundTickEnabled) end,
+						getFunc = function() return CombatMetronome.SV.Progressbar.noTickOnHeavy end,
 						setFunc = function(value)
-							CombatMetronome.SV.Progressbar.hardForceTickTock = value
+							CombatMetronome.SV.Progressbar.noTickOnHeavy = value
 						end,
 					},
 					{
@@ -1751,6 +1774,8 @@ function CombatMetronome:BuildMenu()
 						disabled = function() return not (CombatMetronome.SV.Progressbar.showOOC and (CombatMetronome.SV.Progressbar.soundTockEnabled or CombatMetronome.SV.Progressbar.soundTickEnabled)) end,
 						getFunc = function() return CombatMetronome.SV.Progressbar.playSoundsOOC end,
 						setFunc = function(value)
+							CombatMetronome.Progressbar.soundTickPlayed = true
+							CombatMetronome.Progressbar.soundTockPlayed = true
 							CombatMetronome.SV.Progressbar.playSoundsOOC = value
 						end,
 					},

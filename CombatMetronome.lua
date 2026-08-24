@@ -78,14 +78,13 @@ function CombatMetronome:Init()
     self.currentEvent = nil
 	self.gcdEvent = {finished = 0}
 	
-	self.currentEventIdentifier = 0
-	self.lastEventIdentifier = 0
-	self.identifiersToSkip = {}
+	-- self.currentEventIdentifier = 0
+	-- self.lastEventIdentifier = 0
+	-- self.identifiersToSkip = {}
 
     self.gcd = 1000
 
 	self.Progressbar = {}
-	self.Progressbar.soundTockPlayed = true
 	self.Progressbar.activeMount = {}
 	self.Progressbar.activeMount.name = Util.Text.CropZOSString(GetCollectibleNickname(GetActiveCollectibleByType(COLLECTIBLE_CATEGORY_TYPE_MOUNT,GAMEPLAY_ACTOR_CATEGORY_PLAYER)), "collectible")
 	self.Progressbar.activeMount.icon = GetCollectibleIcon(GetActiveCollectibleByType(COLLECTIBLE_CATEGORY_TYPE_MOUNT,GAMEPLAY_ACTOR_CATEGORY_PLAYER))
@@ -99,12 +98,8 @@ function CombatMetronome:Init()
 	-- to prevent triggering on initial load
 	self.Progressbar.soundTickPlayed = true
 	self.Progressbar.soundTockPlayed = true
-    -- CombatMetronome:BuildMenu()
-	-- CombatMetronome:UpdateAdjustChoices()
-
-    self.Progressbar.lastInterval = 0
-	-- StackTracker.actionSlotCache = self.currentlyEquippedAbilities.data
-
+	self.lastAbilityFinished = 0
+	self.abilityFinished = 0
 	
 	Util.Ability.Tracker.CombatMetronome = self
     Util.Ability.Tracker:Start()

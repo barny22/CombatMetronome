@@ -64,7 +64,7 @@ CombatMetronome.DEFAULT_SAVED_VARS = {
 		["forceTickMSBeforeEnd"] = false,
 		["forceTickTime"] = 500,
 		["noSoundOnLongAbilities"] = false,
-		["hardForceTickTock"] = false,
+		-- ["hardForceTickTock"] = false,
 	},
 	["Resources"] = {
 		["anchorResourcesToProgressbar"] = true,
@@ -129,6 +129,7 @@ CombatMetronome.DEFAULT_SAVED_VARS = {
 			["list"] = {},
 			["ids"] = {},
 		},
+		["tickTock"] = false,
 	},
 }
 

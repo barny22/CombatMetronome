@@ -394,7 +394,7 @@ function Ability.Tracker:AbilityUsed(trigger, sR, sD)
     end
     
     event.start = self.eventStart
-    event.ending = self.eventStart + math.max(event.ability.delay, 1000)
+    event.ending = self.eventStart + (event.ability.heavy and event.ability.delay or math.max(event.ability.delay, 1000))
     
     self:PrintDebugNotes("eventCancel", self.queuedEvent.ability.id, string.format("Queued ability '%s' is about to be fired. Setting queuedEvent 'nil'", self.queuedEvent.ability.name))
     self.queuedEvent = nil
@@ -664,24 +664,24 @@ local reasonToGCDMapping = {
     ["Target immune"] = immune,
 }
 
-local skipTickTockReasons = {
-    ["Heavy cancel - new GCD"] = true,
-    ["Heavy cancel"] = true,
-    ["Rolldodge"] = true,
-}
+-- local skipTickTockReasons = {
+    -- ["Heavy cancel - new GCD"] = true,
+    -- ["Heavy cancel"] = true,
+    -- ["Rolldodge"] = true,
+-- }
 
 function Ability.Tracker:CancelCurrentEvent(reason)
     local printDebug = false
     local ability
     
-    local time = GetFrameTimeMilliseconds()
-    local endedEarly = false
+    -- local time = GetFrameTimeMilliseconds()
+    -- local endedEarly = false
     
     if self.currentEvent then
         if self.currentEvent.ability then ability = self.currentEvent.ability end
         if jesusBeam[ability.id] then UnregisterJesusBeam(ability.id) end
         
-        if self.currentEvent.ending > time then endedEarly = true end
+        -- if self.currentEvent.ending > time then endedEarly = true end
         
         self.currentEvent = nil
         self.gcd = 1000
@@ -691,7 +691,7 @@ function Ability.Tracker:CancelCurrentEvent(reason)
     if CombatMetronome.currentEvent then
         ability = ability or CombatMetronome.currentEvent.ability
         
-        if CombatMetronome.currentEvent.ending > time then endedEarly = true end
+        -- if CombatMetronome.currentEvent.ending > time then endedEarly = true end
         
         CombatMetronome.currentEvent = nil
         CombatMetronome:OnCDStop("")
@@ -704,29 +704,30 @@ function Ability.Tracker:CancelCurrentEvent(reason)
         if remaining > 0 then
             if reasonToGCDMapping[reason] then
                 CombatMetronome.gcdEvent = ZO_ShallowTableCopy(reasonToGCDMapping[reason])
-                CombatMetronome.gcdEvent.finished = time + remaining
+                CombatMetronome.gcdEvent.finished = GetFrameTimeMilliseconds() + remaining
             end
         end
+        -- this implementation causes too many problems. leave here for future me to not commit too deep
         -- sound queues if event was ended early
-        if endedEarly and (CombatMetronome.SV.Progressbar.soundTickEnabled or CombatMetronome.SV.Progressbar.soundTockEnabled) then
-            local sv = CombatMetronome.SV.Progressbar
-            if ability.delay > 1000 or skipTickTockReasons[reason] or (ability.heavy and not sv.noTickOnHeavy) then
-                CombatMetronome.identifiersToSkip[CombatMetronome.currentEventIdentifier] = true
-            end
-            if sv.hardForceTickTock and not (ability.heavy and sv.noTickOnHeavy) then
-                if sv.soundTickEnabled then
-                    local timerTick =  ((sv.forceTickMSBeforeEnd and sv.forceTickTime) or (sv.soundTickMidAbility and 500) or 0) - sv.soundTickOffset
-                    if not (ability.channeled and reason == "Blocked") and remaining > timerTick then
-                        CombatMetronome:QueueTick(sv.soundTickEffect, remaining - timerTick, CombatMetronome.currentEventIdentifier, true)
-                    end
-                end
+        -- if endedEarly and (CombatMetronome.SV.Progressbar.soundTickEnabled or CombatMetronome.SV.Progressbar.soundTockEnabled) then
+            -- local sv = CombatMetronome.SV.Progressbar
+            -- if ability.delay > 1000 or skipTickTockReasons[reason] or (ability.heavy and not sv.noTickOnHeavy) then
+                -- CombatMetronome.identifiersToSkip[CombatMetronome.currentEventIdentifier] = true
+            -- end
+            -- if sv.hardForceTickTock and not (ability.heavy and sv.noTickOnHeavy) then
+                -- if sv.soundTickEnabled then
+                    -- local timerTick =  ((sv.forceTickMSBeforeEnd and sv.forceTickTime) or (sv.soundTickMidAbility and 500) or 0) - sv.soundTickOffset
+                    -- if not (ability.channeled and reason == "Blocked") and remaining > timerTick then
+                        -- CombatMetronome:QueueTick(sv.soundTickEffect, remaining - timerTick, CombatMetronome.currentEventIdentifier, true)
+                    -- end
+                -- end
                 
-                if sv.soundTockEnabled then
-                    local timerTock = (not (ability.channeled and reason == "Blocked") and remaining or 0) + sv.soundTockOffset
-                    CombatMetronome:QueueTock(sv.soundTockEffect, timerTock, CombatMetronome.currentEventIdentifier, true)
-                end
-            end
-        end
+                -- if sv.soundTockEnabled then
+                    -- local timerTock = (not (ability.channeled and reason == "Blocked") and remaining or 0) + sv.soundTockOffset
+                    -- CombatMetronome:QueueTock(sv.soundTockEffect, timerTock, CombatMetronome.currentEventIdentifier, true)
+                -- end
+            -- end
+        -- end
         
         self:PrintDebugNotes("currentEvent", ability.id, string.format("Current event '%s' canceled by: %s", ability.name, reason))
     end

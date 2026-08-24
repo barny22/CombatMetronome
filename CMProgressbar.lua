@@ -5,8 +5,6 @@ local Tracker = Util.Ability.Tracker
 Util.Text = Util.Text or {}
 CombatMetronome.SV = CombatMetronome.SV or {}
 
--- local INTERVAL = 200
-
 local function AnchorSpellIcon(dynamic)
 	if dynamic and not CombatMetronome.Progressbar.spellIconAnchoredDynamically then
 		CombatMetronome.Progressbar.spellIcon:ClearAnchors()
@@ -98,35 +96,73 @@ function CombatMetronome:Update()
 		
 		-- this is important for GCD Tracking
 		local gcdProgress, slotRemaining, slotDuration = Tracker:GCDCheck()
-				
-		-- local interval = false
-		-- if time > progressbar.lastInterval + INTERVAL then
-			-- progressbar.lastInterval = time
-			-- interval = true
-		-- end
 		
 			---------------------
 			---- GCD Tracker ----
 			---------------------
+		if not self.currentEvent and not progressbar.soundTickPlayed then
+			-- if force tick needed then play 'tick'
+			if sv.forceSoundTock and (self.inCombat or (sv.showOOC and sv.playSoundsOOC)) and
+			(
+			-- tick at start of the ability
+			(not sv.soundTickMidAbility and not sv.forceTickMSBeforeEnd and slotRemaining >= slotDuration - sv.soundTickOffset) or
+			-- tick at set amount of ms left of an ability
+			(sv.forceTickMSBeforeEnd and slotRemaining >= sv.forceTickTime - sv.soundTickOffset) or
+			-- tick mid ability
+			(sv.soundTickMidAbility and not sv.forceTickMSBeforeEnd and slotRemaining >= 500 - sv.soundTickOffset)
+			) then
+				self:PrintDebug("tickTock", "forced 'tick'")
+				for i = 1, math.min(sv.tickVolume, 30) do
+					PlaySound(sv.soundTickEffect)
+				end
+			end
+			
+			-- reset soundTickPlayed regardles of being played. if it didn't have to be forced to be played, you don't need to play it regularly.
+			progressbar.soundTickPlayed = true
+		end
 		
-		-- if sv.soundTockEnabled then
-			-- if (self.inCombat or (sv.showOOC and sv.playSoundsOOC)) and not progressbar.soundTockPlayed then --and time > start + (length / 2) - sv.soundTockOffset then
-				-- local timeToPlayTock = (self.abilityFinished or 0) + sv.soundTockOffset
-				-- local timeToForceTock = (self.lastAbilityFinished or 0) + sv.soundTockOffset
-				-- if time >= timeToPlayTock or (sv.forceSoundTock and self.currentEvent and time >= timeToForceTock and timeToForceTock >= self.currentEvent.start) then
-				
-					-- if sv.forceSoundTock and self.currentEvent and time >= timeToForceTock and timeToForceTock >= self.currentEvent.start then		-- kill self.lastAbilityFinished so the statement will not be true in the future
-						-- self.lastAbilityFinished = self.abilityFinished
-					-- else
+		-- if not progressbar.soundTockPlayed then
+			-- local timeToPlayTock = (self.abilityFinished or 0) + sv.soundTockOffset
+			-- local timeToForceTock = (self.lastAbilityFinished or 0) + sv.soundTockOffset
+			-- local needToForce = sv.forceSoundTock and self.currentEvent and time >= timeToForceTock and timeToForceTock >= self.currentEvent.start
+			
+			-- if time >= timeToPlayTock then
+				-- self:PrintDebug("tickTock", "time to 'tock'")
+				-- if (self.inCombat or (sv.showOOC and sv.playSoundsOOC)) then --and time > start + (length / 2) - sv.soundTockOffset then
+					-- if not self.currentEvent and (slotRemaining == 0 or (sv.soundTockOffset < 0 and slotRemaining >= -sv.soundTockOffset)) or needToForce then
+					
+						-- if needToForce then		-- kill self.lastAbilityFinished so the statement will not be true in the future
+							-- self:PrintDebug("tickTock", "forced 'tock'")
+							-- self.lastAbilityFinished = self.abilityFinished
+						-- else
+							-- self:PrintDebug("tickTock", "normal 'tock'")
+							-- progressbar.soundTockPlayed = true
+						-- end
+						
+						-- for i = 1, math.min(sv.tickVolume, 30) do
+							-- PlaySound(sv.soundTockEffect)
+						-- end
+					-- elseif not sv.forceSoundTock then
+						-- self:PrintDebug("tickTock", "no need to force 'tock', clear queue")
 						-- progressbar.soundTockPlayed = true
 					-- end
-					
-					-- for i = 1, math.min(sv.tickVolume, 30) do
-						-- PlaySound(sv.soundTockEffect)
-					-- end
+				-- else
+					-- self:PrintDebug("tickTock", "cleared 'tock' queue. time to 'tock' is over but you're not in combat")
+					-- progressbar.soundTockPlayed = true
 				-- end
 			-- end
 		-- end
+		
+		if not progressbar.soundTockPlayed and not self.currentEvent and time >= self.abilityFinished + sv.soundTockOffset and (self.inCombat or (sv.showOOC and sv.playSoundsOOC))
+		   and ((slotRemaining == 0) or (sv.soundTockOffset < 0 and slotRemaining >= -sv.soundTockOffset)) then
+			
+			progressbar.soundTockPlayed = true
+			
+			self:PrintDebug("tickTock", "normal 'tock'")
+			for i = 1, math.min(sv.tickVolume, 30) do
+				PlaySound(sv.soundTockEffect)
+			end
+		end
 		
 		if sv.trackGCD and not self.currentEvent then
 			
@@ -253,15 +289,46 @@ function CombatMetronome:Update()
 				-- local length = duration - latency
 				
 				-- Sound contributed to by Seltiix --
-				-- if sv.soundTickEnabled and (self.inCombat or (sv.showOOC and sv.playSoundsOOC)) and not progressbar.soundTickPlayed then --and time > start + length - sv.soundTickOffset then
-					-- if (not sv.soundTickMidAbility and time >= start + sv.soundTickOffset) or (sv.soundTickMidAbility and time >= start + duration/2 + sv.soundTickOffset) then
-						-- progressbar.soundTickPlayed = true
+				if not progressbar.soundTickPlayed then
+					if (
+						-- tick at start of the ability
+						(not sv.soundTickMidAbility and not sv.forceTickMSBeforeEnd and time >= start + sv.soundTickOffset) or
+						-- tick at set amount of ms left of an ability
+						(sv.forceTickMSBeforeEnd and timeRemaining*1000 <= sv.forceTickTime) or
+						-- tick mid ability
+						(sv.soundTickMidAbility and not sv.forceTickMSBeforeEnd and time >= start + duration/2 + sv.soundTickOffset)
+					) then
+					
+						progressbar.soundTickPlayed = true
 						
-						-- for i = 1, math.min(sv.tickVolume, 30) do
-							-- PlaySound(sv.soundTickEffect)
-						-- end
-					-- end
-				-- end
+						if self.inCombat or (sv.showOOC and sv.playSoundsOOC) then
+							self:PrintDebug("tickTock", string.format("normal 'tick' for '%s'", ability.name))
+							for i = 1, math.min(sv.tickVolume, 30) do
+								PlaySound(sv.soundTickEffect)
+							end
+						end
+					end
+				end
+				if not progressbar.soundTockPlayed then
+					local isSameEvent = sv.soundTockOffset < 0
+					local tockTimer = isSameEvent and (self.currentEvent.ending + sv.soundTockOffset) or (sv.forceSoundTock and (self.lastAbilityFinished + sv.soundTockOffset) or 0)
+						-- forced 'tock' during next ability								normal 'tock' during same ability
+					if (sv.forceSoundTock and tockTimer >= start and time >= tockTimer) or (not sv.forceSoundTock and isSameEvent and time >= tockTimer) then
+						if (self.inCombat or (sv.showOOC and sv.playSoundsOOC)) then
+							for i = 1, math.min(sv.tickVolume, 30) do
+								PlaySound(sv.soundTockEffect)
+							end
+						end
+						
+						if isSameEvent then
+							self:PrintDebug("tickTock", string.format("normal 'tock' for '%s'", ability.name))
+							progressbar.soundTockPlayed = true
+						elseif sv.forceSoundTock then
+							self:PrintDebug("tickTock", "force 'tock' during next ability")
+							self.lastAbilityFinished = self.abilityFinished		-- kill lastAbilityFinished to not let the statement be true again all the time
+						end
+					end
+				end
 			------------------------------------------------
 			---- Switching Color on channeled abilities ----
 			------------------------------------------------
