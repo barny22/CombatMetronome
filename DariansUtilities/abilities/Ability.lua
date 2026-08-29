@@ -270,7 +270,10 @@ function Ability.Tracker:HandleBarSwap(_, barswap, _, _)
 end
 
 local function CanAbilityFire(time)
-    if CombatMetronome.currentEvent and CombatMetronome.currentEvent.ending <= time then
+    if (Ability.Tracker.currentEvent and Ability.Tracker.currentEvent.ability.heavy) or (CombatMetronome.currentEvent and CombatMetronome.currentEvent.ability.heavy) then
+        Ability.Tracker:CancelCurrentEvent("Heavy cancel - new event coming")
+        return true
+    elseif CombatMetronome.currentEvent and CombatMetronome.currentEvent.ending <= time then
         Ability.Tracker:CancelCurrentEvent("Old event just finished.")
         return true
     elseif CombatMetronome.gcdEvent.clearSynergy then
