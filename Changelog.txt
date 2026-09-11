@@ -9,6 +9,7 @@
 +  Added debug option for sound timings
 !  Fixed LATracker not showing when reset timer > 0
 !  Fixed initial showing of LATracker when reset timer = 0
+!  Fixed event.ending calculations to not end events too early
 
 2026-08-15 v1.7.6
 !  Fix for toggle abilities on toggle off
