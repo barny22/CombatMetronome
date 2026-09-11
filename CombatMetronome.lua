@@ -125,7 +125,6 @@ function CombatMetronome:Init()
 	
 	LATracker:BuildUI()
 	LATracker.frame:SetUnlocked(CombatMetronome.SV.LATracker.isUnlocked)
-	LATracker:DisplayText()
 	
 	--------------
 	-- Metadata --
@@ -206,6 +205,7 @@ function CombatMetronome:RegisterMetadata()
 			self.inPVPZone = self:IsInPvPZone()
 			self:CMPVPSwitch()
 			self:ResourcesPVPSwitch()
+			self.LATracker:DisplayText()
 			for skill, _ in pairs(CombatMetronome.StackTracker.SKILL_ATTRIBUTES) do	
 				StackTracker:PVPSwitch(skill)
 			end

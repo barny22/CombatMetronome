@@ -1,4 +1,4 @@
-2026-08-16 v1.7.7
+2026-09-11 v1.7.7
 +  Moved 'Show permanently' settings option to 'Behavior' submenu
 !  Fixed Sound 'tock' effect now playing at correct volume if in settings menu
 !  Fixed 'tock' being played on heavy attacks even though turned off
@@ -7,6 +7,8 @@
 +  Added 'tick'&'tock' queues for abilities > 1 sec if ended early
 +  Moved 'tick'&'tock' outside of updater to play sounds more accurately (reverted again as that method caused more trouble rather than being more accurate)
 +  Added debug option for sound timings
+!  Fixed LATracker not showing when reset timer > 0
+!  Fixed initial showing of LATracker when reset timer = 0
 
 2026-08-15 v1.7.6
 !  Fix for toggle abilities on toggle off
