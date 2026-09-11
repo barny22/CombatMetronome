@@ -397,7 +397,7 @@ function Ability.Tracker:AbilityUsed(trigger, sR, sD)
     end
     
     event.start = self.eventStart
-    event.ending = self.eventStart + (event.ability.heavy and event.ability.delay or math.max(event.ability.delay, 1000))
+    event.ending = self.eventStart + (event.ability.heavy and event.ability.delay or math.max(event.ability.delay, 1000, sR))
     
     self:PrintDebugNotes("eventCancel", self.queuedEvent.ability.id, string.format("Queued ability '%s' is about to be fired. Setting queuedEvent 'nil'", self.queuedEvent.ability.name))
     self.queuedEvent = nil

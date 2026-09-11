@@ -282,7 +282,7 @@ function CombatMetronome:Update()
 			----------------------
 			---- Progress Bar ----
 			----------------------
-			if time > self.currentEvent.ending then
+			if time > self.currentEvent.ending and slotRemaining == 0 then
 				self:OnCDStop("Event seems to be over")
 				return
 			else
