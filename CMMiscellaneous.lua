@@ -46,7 +46,7 @@ CombatMetronome.DEFAULT_SAVED_VARS = {
 		["showSpell"] = true,
 		["showTimeRemaining"] = true,
 		["soundTickEnabled"] = false,
-		["tickVolume"] = 100,
+		["tickVolume"] = 5,
 		["soundTickEffect"] = "Justice_PickpocketFailed",
 		["soundTickOffset"] = 200,
 		["soundTockEnabled"] = false,
@@ -398,7 +398,7 @@ local function InsertSkillOptionsForStackTracker()
 			["playSound"] = false,
 			["sound"] = "ABILITY_COMPANION_ULTIMATE_READY",
 			["hightlightOnFullStacks"] = false,
-			["volume"] = 100,
+			["volume"] = 1,
 			["alpha"] = 1,
 		}
 		if CombatMetronome.StackTracker.SKILL_ATTRIBUTES[skill].duration then
