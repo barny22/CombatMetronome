@@ -676,6 +676,23 @@ function StackTracker:BuildUI(skill)
 	end
 	indicator.ApplyIcon = ApplyIcon
 	
+	local function ApplyAlpha()
+		for i=1,attributes.iMax*multiplier do 
+			indicator[i].controls.frame:SetAlpha(sv.alpha)
+			indicator[i].controls.highlight:SetAlpha(sv.alpha*0.2)
+			indicator[i].controls.icon:SetAlpha(sv.alpha)
+			indicator[i].controls.highlightAnimation:SetAlpha(sv.alpha*0.8)
+		end
+		if indicator.timer then
+			indicator.timer:SetAlpha(sv.alpha)
+			indicator.timerBar:SetAlpha(sv.alpha)
+			indicator.timerBarBackdrop:SetAlpha(sv.alpha)
+			indicator.timerBarGloss:SetAlpha(sv.alpha)
+			indicator.timerBarTimer:SetAlpha(sv.alpha)
+		end
+	end
+	indicator.ApplyAlpha = ApplyAlpha
+	
 	local function Hide(value)
 		for i=1,attributes.iMax*multiplier do 
 			indicator[i].controls.stackIndicator:SetHidden(value)

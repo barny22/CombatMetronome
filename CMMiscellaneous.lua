@@ -399,6 +399,7 @@ local function InsertSkillOptionsForStackTracker()
 			["sound"] = "ABILITY_COMPANION_ULTIMATE_READY",
 			["hightlightOnFullStacks"] = false,
 			["volume"] = 100,
+			["alpha"] = 1,
 		}
 		if CombatMetronome.StackTracker.SKILL_ATTRIBUTES[skill].duration then
 			skillOptions[skill].showTimerBar = false

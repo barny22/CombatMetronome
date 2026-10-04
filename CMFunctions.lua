@@ -551,6 +551,7 @@ function StackTracker:InitializeUI(skill)
 		-- self.UI[skill].indicator.ApplyDistance(CombatMetronome.SV.StackTracker[skill].indicatorSize/5, CombatMetronome.SV.StackTracker[skill].indicatorSize)
 		self.UI[skill].indicator.ApplySize(CombatMetronome.SV.StackTracker[skill].indicatorSize)
 		self.UI[skill].indicator.ApplyIcon()
+		self.UI[skill].indicator.ApplyAlpha()
 		self.UI[skill].stacksWindow:SetMovable(CombatMetronome.SV.StackTracker.isUnlocked)
 	end
 	self:UpdateTimers()
