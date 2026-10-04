@@ -613,6 +613,7 @@ function StackTracker:BuildUI(skill)
 	local function ApplySize(size)
 		local dis = size/5
 		stacksWindow:SetDimensions((size*attributes.iMax+dis*(attributes.iMax-1)), size*multiplier)
+		
 		for i=1,attributes.iMax*multiplier do 
 			indicator[i].controls.frame:SetDimensions(size,size)
 			indicator[i].controls.highlight:SetDimensions(size,size)
