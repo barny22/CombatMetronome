@@ -364,6 +364,18 @@ function CombatMetronome:RegisterCombatEvents()
 --	------------------------------
 		function (_,   res,  err, aName, aGraphic, aSlotType, sName, sType, tName, 
 				tType, hVal, pType, dType, _, 		sUId, 	 tUId,  aId,   _     )
+			if self.SV.StackTracker.CW.tracked then 
+				-- if aId == 46331 and tType == COMBAT_UNIT_TYPE_PLAYER and res == ACTION_RESULT_EFFECT_GAINED then
+					-- self.StackTracker.stacks.CW = hVal
+					-- self.StackTracker.lastCW = GetFrameTimeMilliseconds()
+					-- self.StackTracker:ChangeStackCount("CW", self.StackTracker.stacks.CW)
+				if aId == 143805 and tType == COMBAT_UNIT_TYPE_PLAYER and self.StackTracker.stacks.CW and self.StackTracker.lastCW ~= GetFrameTimeMilliseconds() then
+					self.StackTracker.stacks.CW = self.StackTracker.stacks.CW - 1
+					-- CombatMetronome.debug:Print(string.format("%s - stacks:%d - aId:%d",aName,self.StackTracker.stacks.CW,aId))
+					self.StackTracker.lastCW = GetFrameTimeMilliseconds()
+					self.StackTracker:ChangeStackCount("CW", self.StackTracker.stacks.CW)
+				end
+			end
 			if CombatMetronome.SV.Progressbar.trackGCD and self.gcdEvent.finished <= GetFrameTimeMilliseconds() then
 				aName = Util.Text.CropZOSString(aName, "ability")
 				if aId == 16565 then

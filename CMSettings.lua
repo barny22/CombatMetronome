@@ -216,6 +216,21 @@ function CombatMetronome:BuildMenu()
 						},
 						{	
 							type = "slider",
+							name = "Stack tracker opacity",
+							tooltip = "Change tracker opacity. Set to '0' if you just want to use sound cues and don't want a visible tracker.",
+							min = 0,
+							max = 100,
+							step = 1,
+							decimals = 0,
+							default = sv.alpha*100,
+							getFunc = function() return sv.alpha*100 end,
+							setFunc = function(value)
+								sv.alpha = value/100
+								StackTracker.UI[skill].indicator.ApplyAlpha()
+							end,
+						},
+						{	
+							type = "slider",
 							name = "Stack indicator size",
 							min = 10,
 							max = 60,
@@ -233,8 +248,8 @@ function CombatMetronome:BuildMenu()
 						},
 						{
 							type = "checkbox",
-							name = "Play sound cue at max stacks",
-							tooltip = "Plays a sound when you are at max stacks, so you don't miss to cast your ability",
+							name = "Play sound cue when ready to cast",
+							tooltip = "Plays a sound when you are at max stacks, so you don't miss to cast your ability, or when stacks ran out ('crystal weapon' only atm)",
 							getFunc = function() return sv.playSound end,
 							setFunc = function(value)
 								sv.playSound = value
@@ -277,8 +292,8 @@ function CombatMetronome:BuildMenu()
 						},
 						{
 							type = "checkbox",
-							name = "Animation cue to fire stacks",
-							tooltip = "Gives you a more intense visual cue, if you reach an amount of stacks needed to fire an ability, or at max stacks",
+							name = "Animation cue to cast ability",
+							tooltip = "Gives you a more intense visual cue, if you reach an amount of stacks needed to fire an ability, or at max stacks, or as long as there are stacks ('crystal weapon' only atm)",
 							getFunc = function() return sv.hightlightOnFullStacks end,
 							setFunc = function(value)
 								sv.hightlightOnFullStacks = value
@@ -443,7 +458,7 @@ function CombatMetronome:BuildMenu()
 					table.insert(submenu[1].controls, controls[i])
 				end
 			else
-				local position = FindMenuPosition(submenu[1].controls, "Play sound cue at max stacks")
+				local position = FindMenuPosition(submenu[1].controls, "Play sound cue when ready to cast")
 				if not position then return end
 				local queueHeader = {
 					type = "header",

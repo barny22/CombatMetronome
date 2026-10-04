@@ -191,6 +191,12 @@ CombatMetronome.menu.CONTROLS = {
 			-- ["frame"] = frameTexture,
 			["icon"] = "/esoui/art/icons/ability_sorcerer_bound_armaments.dds",
 		},
+		["CW"] = {
+			["Name"] = "Track crystal weapon stacks",
+			["subName"] = "Crystal weapon",
+			-- ["frame"] = frameTexture,
+			["icon"] = "/esoui/art/icons/ability_sorcerer_crystalweapon.dds",
+		},
 		["GF"] = {
 			["Name"] = "Track stacks of grimm focus and its morphs",
 			["subName"] = "Grimm focus (and morphs)",
@@ -308,6 +314,17 @@ CombatMetronome.StackTracker.SKILL_ATTRIBUTES = {
 		["skillLineId"] = {127,309},
 		-- ["skillLineIndex"] = 13,
 	},
+	["CW"] = {
+		["iMax"] = 3,
+		["activation"] = 1,
+		["duration"] = true,
+		["graphic"] = "/esoui/art/icons/ability_sorcerer_crystalweapon.dds",
+		["highlight"] = {0,0,1,0.2},
+		["highlightAnimation"] = {0.8,0.8,1,0.8},
+		["id"] = { ["buff"] = 46331, ["ability"] = 46331,},
+		["countdown"] = true,
+		["skillLineId"] = {41},
+	},	
 }
 
 CombatMetronome.StackTracker.ALL_IDS = {}

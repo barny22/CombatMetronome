@@ -13,6 +13,23 @@ local trackerShouldBeVisible = false
 local sampleAnimationStarted = false
 local previousStack
 
+local function HideTimers(skill)
+	local ui = StackTracker.UI[skill].indicator
+	
+	if CombatMetronome.SV.StackTracker.isUnlocked then
+		ui.timer:SetText("2.5")
+		ui.timerBar:SetValue(0.5)
+		ui.timerBarTimer:SetText("2.5")
+		return
+	end
+	
+	ui.timer:SetHidden(true)
+	ui.timerBar:SetHidden(true)
+	ui.timerBarBackdrop:SetHidden(true)
+	ui.timerBarGloss:SetHidden(true)
+	ui.timerBarTimer:SetHidden(true)
+end
+
 function StackTracker:HandleEffectChanged(_,changeType, _, _, unitTag, beginTime, endTime, stackCount, _, _, _, _, _, uName, uId, aId, _)	
 	if not self.trackedIds[aId] then return end
 	
@@ -88,7 +105,11 @@ function StackTracker:ChangeStackCount(skill, stackCount)
 		if animStart then self.UI[skill].indicator[i].SetAnimationHidden(false) end
 	end
 	if sv.playSound then														--Sound cue when stacks are full
-		if previousStack == oneOff and stackCount == attributes.activation then
+		if attributes.countdown and previousStack ~= 0 and stackCount == 0 then
+			for i = 1, math.min(sv.volume, 30) do
+				PlaySound(SOUNDS[sv.sound])
+			end
+		elseif previousStack == oneOff and stackCount == attributes.activation then
 			for i = 1, math.min(sv.volume, 30) do
 				PlaySound(SOUNDS[sv.sound])
 			end
@@ -97,23 +118,6 @@ function StackTracker:ChangeStackCount(skill, stackCount)
 	if not CombatMetronome.SV.StackTracker.isUnlocked and not CombatMetronome.inCombat and CombatMetronome.SV.StackTracker.onlyInCombat and stackCount == 0 then
 		self:HideTracker(skill, true)
 	end
-end
-
-local function HideTimers(skill)
-	local ui = StackTracker.UI[skill].indicator
-	
-	if CombatMetronome.SV.StackTracker.isUnlocked then
-		ui.timer:SetText("2.5")
-		ui.timerBar:SetValue(0.5)
-		ui.timerBarTimer:SetText("2.5")
-		return
-	end
-	
-	ui.timer:SetHidden(true)
-	ui.timerBar:SetHidden(true)
-	ui.timerBarBackdrop:SetHidden(true)
-	ui.timerBarGloss:SetHidden(true)
-	ui.timerBarTimer:SetHidden(true)
 end
 
 local function TimerSize(skill, multiplier, size)
@@ -138,7 +142,7 @@ function StackTracker:UpdateTimers()
 	
 	for skill, entry in pairs(self.timers) do
 		local timeLeft = entry.endTime-time
-		local needsTimer = (self.stacks[skill] ~= 0) and timeLeft > 0
+		-- local needsTimer = (self.stacks[skill] ~= 0) and timeLeft > 0
 		local sv = CombatMetronome.SV.StackTracker[skill]
 		local ui = self.UI[skill].indicator
 		
@@ -152,7 +156,7 @@ function StackTracker:UpdateTimers()
 			return str
 		end
 		
-		if not needsTimer then
+		if self.stacks[skill] == 0 or timeLeft <= 0 then
 			self.timers[skill] = nil
 			HideTimers(skill)
 		else
@@ -195,7 +199,7 @@ function StackTracker:UpdateTimers()
 		end
 	end
 	
-	if not shouldBeRegistered then self:UnregisterTimerUpdater() end
+	if not shouldBeRegistered and self.timerUpdaterRegistered then self:UnregisterTimerUpdater() end
 end
 
 function StackTracker:RegisterTimerUpdater()	
