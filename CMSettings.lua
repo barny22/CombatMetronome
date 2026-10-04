@@ -2455,26 +2455,26 @@ function CombatMetronome:BuildMenu()
 							if value then
 								StackTracker.UI[skill].FadeScenes("Sample")
 								if StackTracker.UI[skill].indicator.timer then
-									StackTracker.UI[skill].indicator.timer:SetHidden(not CombatMetronome.SV.StackTracker[skill].showTimer)
+									-- StackTracker.UI[skill].indicator.timer:SetHidden(not CombatMetronome.SV.StackTracker[skill].showTimer)
 									StackTracker.UI[skill].indicator.timer:SetText("2.5")
 								end
 								if StackTracker.UI[skill].indicator.timerBarBackdrop then
-									StackTracker.UI[skill].indicator.timerBar:SetHidden(not CombatMetronome.SV.StackTracker[skill].showTimerBar)
-									StackTracker.UI[skill].indicator.timerBarBackdrop:SetHidden(not CombatMetronome.SV.StackTracker[skill].showTimerBar)
-									StackTracker.UI[skill].indicator.timerBarGloss:SetHidden(not CombatMetronome.SV.StackTracker[skill].showTimerBar)
+									-- StackTracker.UI[skill].indicator.timerBar:SetHidden(not CombatMetronome.SV.StackTracker[skill].showTimerBar)
+									-- StackTracker.UI[skill].indicator.timerBarBackdrop:SetHidden(not CombatMetronome.SV.StackTracker[skill].showTimerBar)
+									-- StackTracker.UI[skill].indicator.timerBarGloss:SetHidden(not CombatMetronome.SV.StackTracker[skill].showTimerBar)
 									StackTracker.UI[skill].indicator.timerBar:SetValue(0.5)
-									StackTracker.UI[skill].indicator.timerBarTimer:SetHidden(not CombatMetronome.SV.StackTracker[skill].showTimerBar or CombatMetronome.SV.StackTracker[skill].showTimer)
+									-- StackTracker.UI[skill].indicator.timerBarTimer:SetHidden(not CombatMetronome.SV.StackTracker[skill].showTimerBar or CombatMetronome.SV.StackTracker[skill].showTimer)
 									StackTracker.UI[skill].indicator.timerBarTimer:SetText("2.5")
 								end
 							else
 								StackTracker.UI[skill].FadeScenes("NoSample")
-								if StackTracker.UI[skill].indicator.timer then StackTracker.UI[skill].indicator.timer:SetHidden(true) end
-								if StackTracker.UI[skill].indicator.timerBarBackdrop then
-									StackTracker.UI[skill].indicator.timerBar:SetHidden(true)
-									StackTracker.UI[skill].indicator.timerBarBackdrop:SetHidden(true)
-									StackTracker.UI[skill].indicator.timerBarGloss:SetHidden(true)
-									StackTracker.UI[skill].indicator.timerBarTimer:SetHidden(true)
-								end
+								-- if StackTracker.UI[skill].indicator.timer then StackTracker.UI[skill].indicator.timer:SetHidden(true) end
+								-- if StackTracker.UI[skill].indicator.timerBarBackdrop then
+									-- StackTracker.UI[skill].indicator.timerBar:SetHidden(true)
+									-- StackTracker.UI[skill].indicator.timerBarBackdrop:SetHidden(true)
+									-- StackTracker.UI[skill].indicator.timerBarGloss:SetHidden(true)
+									-- StackTracker.UI[skill].indicator.timerBarTimer:SetHidden(true)
+								-- end
 							end
 						end
 					end

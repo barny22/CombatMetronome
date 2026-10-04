@@ -553,8 +553,8 @@ function StackTracker:InitializeUI(skill)
 		self.UI[skill].indicator.ApplyIcon()
 		self.UI[skill].stacksWindow:SetMovable(CombatMetronome.SV.StackTracker.isUnlocked)
 	end
-	self:HandleUIVisibility(skill, "UI")
 	self:UpdateTimers()
+	self:HandleUIVisibility(skill, "UI")
 	if CombatMetronome.SV.StackTracker.isUnlocked then self:HandleUIVisibility(skill, "Sample") end
 end
 
@@ -566,6 +566,7 @@ function StackTracker:HandleUIVisibility(skill, scene)
 		-- elseif scene == "Sample" or scene == "UI" then
 			-- StackTracker.UI[skill].stacksWindow:SetHidden(false)
 		-- end
+		StackTracker.UI[skill].Hide(not CombatMetronome.SV.StackTracker.isUnlocked)
 	end
 end
 
