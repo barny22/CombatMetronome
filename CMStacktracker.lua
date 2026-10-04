@@ -42,6 +42,8 @@ function StackTracker:HandleEffectChanged(_,changeType, _, _, unitTag, beginTime
 		stackCount = 1
 	elseif self.trackedIds[aId] == "FS" and stackCount == 3 then
 		stackCount = 0
+	elseif self.trackedIds[aId] == "CW" and (changeType == EFFECT_RESULT_GAINED or changeType == EFFECT_RESULT_UPDATED) then
+		stackCount = 3
 	end
 	-- if CombatMetronome.SV.debug.enabled then CombatMetronome.debug:Print("Found matching id, initiating stackCount change") end
 	if changeType == EFFECT_RESULT_FADED then stackCount = 0 end
@@ -55,6 +57,8 @@ function StackTracker:HandleEffectChanged(_,changeType, _, _, unitTag, beginTime
 		if not self.timerUpdaterRegistered then
 			self:RegisterTimerUpdater()
 		end
+	elseif needsTimer and stackCount == 0 then
+		HideTimers(self.trackedIds[aId])
 	end
 end
 
