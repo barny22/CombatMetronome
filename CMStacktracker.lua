@@ -30,7 +30,7 @@ local function HideTimers(skill)
 	ui.timerBarTimer:SetHidden(true)
 end
 
-function StackTracker:HandleEffectChanged(_,changeType, _, _, unitTag, beginTime, endTime, stackCount, _, _, _, _, _, uName, uId, aId, _)	
+function StackTracker:HandleEffectChanged(_,changeType, _, _, _, beginTime, endTime, stackCount, _, _, _, _, _, _, _, aId, _)	
 	if not self.trackedIds[aId] then return end
 	
 	local attributes = self.SKILL_ATTRIBUTES[self.trackedIds[aId]]
@@ -42,11 +42,15 @@ function StackTracker:HandleEffectChanged(_,changeType, _, _, unitTag, beginTime
 		stackCount = 1
 	elseif self.trackedIds[aId] == "FS" and stackCount == 3 then
 		stackCount = 0
-	elseif self.trackedIds[aId] == "CW" and (changeType == EFFECT_RESULT_GAINED or changeType == EFFECT_RESULT_UPDATED) then
+	elseif self.trackedIds[aId] == "CW" and changeType == EFFECT_RESULT_GAINED then
 		stackCount = 3
 	end
 	-- if CombatMetronome.SV.debug.enabled then CombatMetronome.debug:Print("Found matching id, initiating stackCount change") end
-	if changeType == EFFECT_RESULT_FADED then stackCount = 0 end
+	if changeType == EFFECT_RESULT_FADED then
+		-- prevent stack count change when buff is recast
+		if attributes.countdown and self.timers and self.timers[self.trackedIds[aId]] and self.timers[self.trackedIds[aId]].endTime - GetGameTimeSeconds() ~= 0 then return end
+		stackCount = 0
+	end
 	self:ChangeStackCount(self.trackedIds[aId], stackCount)
 	if needsTimer and (beginTime ~= endTime) and stackCount ~= 0 then
 		if not self.timers then self.timers = {} end
@@ -119,6 +123,8 @@ function StackTracker:ChangeStackCount(skill, stackCount)
 			end
 		end
 	end
+	-- when there are no stacks, timer should also be 0
+	if stackCount == 0 and self.timers and self.timers[skill] then self.timers[skill] = nil end
 	if not CombatMetronome.SV.StackTracker.isUnlocked and not CombatMetronome.inCombat and CombatMetronome.SV.StackTracker.onlyInCombat and stackCount == 0 then
 		self:HideTracker(skill, true)
 	end
@@ -132,11 +138,16 @@ local function TimerSize(skill, multiplier, size)
 end
 
 function StackTracker:UpdateTimers()
-	if not self.timers or (self.timers and not next(self.timers)) then
+	if (not self.timers or (self.timers and not next(self.timers))) then
 		for _, skill in pairs(self.trackedIds) do
 			if self.UI[skill].indicator.timer then
 				HideTimers(skill)
 			end
+		end
+		-- unregister timer updater if neccessary
+		if self.timerUpdaterRegistered then
+			self:UnregisterTimerUpdater()
+			self.timerUpdaterRegistered = false
 		end
 		return
 	end
@@ -163,6 +174,10 @@ function StackTracker:UpdateTimers()
 		if self.stacks[skill] == 0 or timeLeft <= 0 then
 			self.timers[skill] = nil
 			HideTimers(skill)
+			-- also change stackCount to 0 if not already done
+			if self.stacks[skill] ~= 0 then
+				self:ChangeStackCount(skill, 0)
+			end
 		else
 			shouldBeRegistered = true
 			

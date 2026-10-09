@@ -369,11 +369,12 @@ function CombatMetronome:RegisterCombatEvents()
 					-- self.StackTracker.stacks.CW = hVal
 					-- self.StackTracker.lastCW = GetFrameTimeMilliseconds()
 					-- self.StackTracker:ChangeStackCount("CW", self.StackTracker.stacks.CW)
-				if aId == 143805 and tType == COMBAT_UNIT_TYPE_PLAYER and self.StackTracker.stacks.CW and self.StackTracker.lastCW ~= GetFrameTimeMilliseconds() then
-					self.StackTracker.stacks.CW = self.StackTracker.stacks.CW - 1
+				local time = GetFrameTimeMilliseconds()
+				if aId == 143805 and tType == COMBAT_UNIT_TYPE_PLAYER and self.StackTracker.stacks.CW and self.StackTracker.lastCW ~= time then
+					-- self.StackTracker.stacks.CW = self.StackTracker.stacks.CW - 1
 					-- CombatMetronome.debug:Print(string.format("%s - stacks:%d - aId:%d",aName,self.StackTracker.stacks.CW,aId))
-					self.StackTracker.lastCW = GetFrameTimeMilliseconds()
-					self.StackTracker:ChangeStackCount("CW", self.StackTracker.stacks.CW)
+					self.StackTracker.lastCW = time
+					self.StackTracker:ChangeStackCount("CW", self.StackTracker.stacks.CW - 1)
 				end
 			end
 			if CombatMetronome.SV.Progressbar.trackGCD and self.gcdEvent.finished <= GetFrameTimeMilliseconds() then

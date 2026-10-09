@@ -704,11 +704,11 @@ function StackTracker:BuildUI(skill)
 		end
 		if indicator.timer then
 			-- local hideTimer = value or ((CombatMetronome.StackTracker.timers and CombatMetronome.StackTracker.timers[skill] == nil) and not sv.isUnlocked)
-			indicator.timer:SetHidden(value or not sv.showTimer)
-			indicator.timerBar:SetHidden(value or not sv.showTimerBar)
-			indicator.timerBarGloss:SetHidden(value or not sv.showTimerBar)
-			indicator.timerBarBackdrop:SetHidden(value or not sv.showTimerBar)
-			indicator.timerBarTimer:SetHidden(value or not sv.showTimerBar or sv.showTimer)
+			indicator.timer:SetHidden(value or not sv.showTimer or CombatMetronome.StackTracker.stacks[skill] == 0)
+			indicator.timerBar:SetHidden(value or not sv.showTimerBar or CombatMetronome.StackTracker.stacks[skill] == 0)
+			indicator.timerBarGloss:SetHidden(value or not sv.showTimerBar or CombatMetronome.StackTracker.stacks[skill] == 0)
+			indicator.timerBarBackdrop:SetHidden(value or not sv.showTimerBar or CombatMetronome.StackTracker.stacks[skill] == 0)
+			indicator.timerBarTimer:SetHidden(value or not sv.showTimerBar or sv.showTimer or CombatMetronome.StackTracker.stacks[skill] == 0)
 		end
 	end
 	

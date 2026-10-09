@@ -2483,6 +2483,7 @@ function CombatMetronome:BuildMenu()
 			{
 				type = "checkbox",
 				name = "Show only in combat",
+				tooltip = "Only shows the trackers when in combat or stacks are unequal to 0",
 				default = false,
 				getFunc = function() return CombatMetronome.SV.StackTracker.onlyInCombat end,
 				setFunc = function(value)
