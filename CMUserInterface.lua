@@ -704,11 +704,11 @@ function StackTracker:BuildUI(skill)
 		end
 		if indicator.timer then
 			-- local hideTimer = value or ((CombatMetronome.StackTracker.timers and CombatMetronome.StackTracker.timers[skill] == nil) and not sv.isUnlocked)
-			indicator.timer:SetHidden(value or not sv.showTimer or CombatMetronome.StackTracker.stacks[skill] == 0)
-			indicator.timerBar:SetHidden(value or not sv.showTimerBar or CombatMetronome.StackTracker.stacks[skill] == 0)
-			indicator.timerBarGloss:SetHidden(value or not sv.showTimerBar or CombatMetronome.StackTracker.stacks[skill] == 0)
-			indicator.timerBarBackdrop:SetHidden(value or not sv.showTimerBar or CombatMetronome.StackTracker.stacks[skill] == 0)
-			indicator.timerBarTimer:SetHidden(value or not sv.showTimerBar or sv.showTimer or CombatMetronome.StackTracker.stacks[skill] == 0)
+			indicator.timer:SetHidden(value or not sv.showTimer or (CombatMetronome.StackTracker.stacks[skill] == 0 and not sv.isUnlocked))
+			indicator.timerBar:SetHidden(value or not sv.showTimerBar or (CombatMetronome.StackTracker.stacks[skill] == 0 and not sv.isUnlocked))
+			indicator.timerBarGloss:SetHidden(value or not sv.showTimerBar or (CombatMetronome.StackTracker.stacks[skill] == 0 and not sv.isUnlocked))
+			indicator.timerBarBackdrop:SetHidden(value or not sv.showTimerBar or (CombatMetronome.StackTracker.stacks[skill] == 0 and not sv.isUnlocked))
+			indicator.timerBarTimer:SetHidden(value or not sv.showTimerBar or sv.showTimer or (CombatMetronome.StackTracker.stacks[skill] == 0 and not sv.isUnlocked))
 		end
 	end
 	

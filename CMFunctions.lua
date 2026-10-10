@@ -575,7 +575,7 @@ function StackTracker:HideTracker(skill, value)
 	if self.UI[skill] then
 		self.UI[skill].Hide(value)
 	end
-	self:UpdateTimers()
+	-- self:UpdateTimers()
 end
 
 		-------------------------------
