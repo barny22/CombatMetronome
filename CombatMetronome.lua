@@ -251,6 +251,15 @@ function CombatMetronome:RegisterMetadata()
 					StackTracker:HideTracker(skill, false)
 				end
 			end
+			-- reset unlocked status on StackTrackers upon inCombat change
+			if self.SV.StackTracker.isUnlocked then
+				self.SV.StackTracker.isUnlocked = false
+				for skill, _ in pairs(StackTracker.availableSkills) do
+					if StackTracker.UI[skill] then 
+						StackTracker.UI[skill].stacksWindow:SetMovable(false)
+					end
+				end
+			end
         end
     )		
 end

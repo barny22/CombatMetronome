@@ -2442,6 +2442,7 @@ function CombatMetronome:BuildMenu()
 			{	type = "checkbox",
 				name = "Unlock Trackers",
 				tooltip = "Move stack trackers",
+				warning = "Resets on combat initiation or end",
 				-- width = "half",
 				disabled = function() return not StackTracker:TrackerIsActive() end,
 				getFunc = function() return CombatMetronome.SV.StackTracker.isUnlocked end,
