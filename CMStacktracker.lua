@@ -16,12 +16,12 @@ local previousStack
 local function HideTimers(skill)
 	local ui = StackTracker.UI[skill].indicator
 	
-	if CombatMetronome.SV.StackTracker.isUnlocked then
-		ui.timer:SetText("2.5")
-		ui.timerBar:SetValue(0.5)
-		ui.timerBarTimer:SetText("2.5")
-		return
-	end
+	-- if CombatMetronome.SV.StackTracker.isUnlocked then
+		-- ui.timer:SetText("2.5")
+		-- ui.timerBar:SetValue(0.5)
+		-- ui.timerBarTimer:SetText("2.5")
+		-- return
+	-- end
 	
 	ui.timer:SetHidden(true)
 	ui.timerBar:SetHidden(true)
@@ -124,7 +124,10 @@ function StackTracker:ChangeStackCount(skill, stackCount)
 		end
 	end
 	-- when there are no stacks, timer should also be 0
-	if stackCount == 0 and self.timers and self.timers[skill] then self.timers[skill] = nil end
+	if stackCount == 0 and self.timers and self.timers[skill] then
+		self.timers[skill] = nil
+		HideTimers(skill)
+	end
 	if not CombatMetronome.SV.StackTracker.isUnlocked and not CombatMetronome.inCombat and CombatMetronome.SV.StackTracker.onlyInCombat and stackCount == 0 then
 		self:HideTracker(skill, true)
 	end
@@ -171,7 +174,7 @@ function StackTracker:UpdateTimers()
 			return str
 		end
 		
-		if self.stacks[skill] == 0 or timeLeft <= 0 then
+		if (self.stacks[skill] == 0) or (entry.endTime < time) then
 			self.timers[skill] = nil
 			HideTimers(skill)
 			-- also change stackCount to 0 if not already done
